@@ -3,7 +3,7 @@ from tools_factory.base import BaseTool, ToolMetadata
 from pydantic import ValidationError
 
 from .flight_scehma import FlightSearchInput
-from .flight_search_controller import search_flights
+from .flight_search_service import search_flights
 
 
 class FlightSearchTool(BaseTool):
