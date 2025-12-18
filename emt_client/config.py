@@ -354,6 +354,10 @@ def get_default_headers(trace_id: str = None) -> Dict[str, str]:
 ENGINE_DEFAULT = "15"
 ENGINE_BOOKING_JINI = "10"
 
+AUTOSUGGEST_HEADERS = {
+    "Content-Type": "application/json; charset=UTF-8",
+}
+AUTOSUGGEST_URL = "https://www.easemytrip.com/api/Flight/GetAutoSuggestNew"
 # Room Configuration
 MAX_ROOMS = 9
 MAX_ADULTS_PER_ROOM = 6

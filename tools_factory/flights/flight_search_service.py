@@ -9,12 +9,9 @@ This module handles all flight search operations including:
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
-
-import httpx
-
-from app.flight_token import get_easemytrip_token
-from app.utils import gen_trace_id, fetch_first_code_and_country
-from app.config import FLIGHT_BASE_URL, FLIGHT_DEEPLINK
+from emt_client.clients.flight_client import FlightApiClient
+from emt_client.utils import gen_trace_id,fetch_first_code_and_country
+from emt_client.config import FLIGHT_BASE_URL, FLIGHT_DEEPLINK
 
 
 def _normalize_cabin(cabin: str) -> str:
@@ -538,12 +535,12 @@ async def search_flights(
     Returns:
         Dict containing flight search results with outbound and return flights
     """
-    token = get_easemytrip_token()
+    #token = get_easemytrip_token()
     trace_id = gen_trace_id()
-
+    client = FlightApiClient()
     is_roundtrip = return_date is not None
-    origin_code, origin_country=fetch_first_code_and_country(origin)
-    destination_code, destination_country=fetch_first_code_and_country(destination)
+    origin_code, origin_country=await fetch_first_code_and_country(client,origin)
+    destination_code, destination_country=await fetch_first_code_and_country(client,destination)
 
     is_international=not((origin_country=="India") and (destination_country=="India"))
 
@@ -589,16 +586,14 @@ async def search_flights(
         "IpAddress": "",
         "LoginKey": "",
         "UUID": "",
-        "TKN": token,
+        "TKN": "",
         "requesttime": "2025-03-25T09:22:38.407Z",
         "tokenResponsetime": "2025-03-25T09:22:38.406Z"
     }
 
     url = f"{FLIGHT_BASE_URL}/AirAvail_Lights/AirBus_New"
-    async with httpx.AsyncClient(timeout=60) as client:
-        res = await client.post(url, json=payload)
-        res.raise_for_status()
-        data = res.json()
+   
+    data = await client.search(url, payload)
 
     # Check if response is error string
     if isinstance(data, str):
