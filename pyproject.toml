@@ -1,22 +1,28 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
 [project]
-name = "emt-tools-ecosystem"  
+name = "emt-tools-ecosystem"
 version = "0.1.0"
 description = "EMT Tools Ecosystem"
 readme = "README.md"
 requires-python = ">=3.10"
+
 authors = [
-    {name = "Md Aamir Enam", email = "aamir.enam@easemytrip.com"}
+    { name = "Md Aamir Enam", email = "aamir.enam@easemytrip.com" }
 ]
+
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3",
 ]
+
 dependencies = [
-    "python-dotenv>=0.9.9", 
+    "python-dotenv>=0.9.9",
     "httpx>=0.28.1",
     "pydantic>=2.12.5",
-    "setuptools>=80.9.0",
 ]
 
 [project.optional-dependencies]
@@ -25,9 +31,8 @@ dev = [
     "pytest-asyncio>=1.3.0",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [tool.hatch.build.targets.wheel]
-packages = ["emt_client", "tools_factory"]
+packages = [
+    "emt_client",
+    "tools_factory",
+]
