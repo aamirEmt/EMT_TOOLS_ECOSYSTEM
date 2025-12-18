@@ -1,5 +1,5 @@
 [project]
-name = "tool-factory"  
+name = "emt-tools-ecosystem"  
 version = "0.1.0"
 description = "EMT Tools Ecosystem"
 readme = "README.md"
