@@ -9,9 +9,12 @@ This module handles all flight search operations including:
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
-from emt_client.clients.flight_client import FlightApiClient
-from emt_client.utils import gen_trace_id
-from emt_client.config import FLIGHT_BASE_URL, FLIGHT_DEEPLINK
+
+import httpx
+
+from app.flight_token import get_easemytrip_token
+from app.utils import gen_trace_id, fetch_first_code_and_country
+from app.config import FLIGHT_BASE_URL, FLIGHT_DEEPLINK
 
 
 def _normalize_cabin(cabin: str) -> str:
@@ -106,6 +109,331 @@ def _build_segment_strings(
         segments.append(",".join(filter(None, segment_parts)))
 
     return segments
+
+
+def _build_leg_from_detail(detail: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Map dctFltDtl entry to a leg structure."""
+    if not detail or not isinstance(detail, dict):
+        return None
+
+    airline_code = detail.get("AC", "") or detail.get("airline_code", "")
+    airline_name = detail.get("ALN") or detail.get("AN") or detail.get("airline_name") or airline_code
+
+    return {
+        "airline_code": airline_code,
+        "airline_name": airline_name,
+        "flight_number": detail.get("FN", "") or detail.get("flight_number", ""),
+        "origin": detail.get("OG", "") or detail.get("origin", ""),
+        "destination": detail.get("DT", "") or detail.get("destination", ""),
+        "departure_date": detail.get("DDT", "") or detail.get("departure_date", ""),
+        "departure_time": detail.get("DTM", "") or detail.get("departure_time", ""),
+        "arrival_date": detail.get("ADT", "") or detail.get("arrival_date", ""),
+        "arrival_time": detail.get("ATM", "") or detail.get("arrival_time", ""),
+        "cabin": detail.get("CB", "") or detail.get("cabin", ""),
+        "fare_class": detail.get("FCLS", "") or detail.get("fare_class", ""),
+        "booking_code": detail.get("FCLS", "") or detail.get("booking_code", "") or detail.get("fare_class", ""),
+        "duration": detail.get("DUR", "") or detail.get("duration", ""),
+        "baggage": f"{detail.get('BW', '')} {detail.get('BU', '')}".strip(),
+    }
+
+
+def _derive_combo_fare(segment: Dict[str, Any]) -> float:
+    """Extract fare from combo segment."""
+    if not segment or not isinstance(segment, dict):
+        return 0.0
+    fares = segment.get("lstFr") or []
+    if fares and isinstance(fares, list):
+        primary = fares[0] if fares else {}
+        try:
+            total = float(primary.get("TF") or primary.get("total_fare") or primary.get("total") or 0)
+            if total:
+                return total
+        except (TypeError, ValueError):
+            pass
+        try:
+            base = float(primary.get("BF") or primary.get("base_fare") or 0)
+            return base or 0.0
+        except (TypeError, ValueError):
+            return 0.0
+    return 0.0
+
+
+def _build_fare_options_from_combo(segment: Dict[str, Any], per_leg_fare: float) -> List[Dict[str, Any]]:
+    fares = segment.get("lstFr") or []
+    primary = fares[0] if fares and isinstance(fares, list) else {}
+    base_fare = per_leg_fare or primary.get("BF") or primary.get("base_fare") or 0
+    total_fare = per_leg_fare or primary.get("TF") or primary.get("total_fare") or primary.get("total") or base_fare
+    try:
+        base_fare = float(base_fare)
+    except (TypeError, ValueError):
+        base_fare = 0.0
+    try:
+        total_fare = float(total_fare)
+    except (TypeError, ValueError):
+        total_fare = base_fare
+
+    return [
+        {
+            "fare_id": primary.get("SID", "") if primary else "",
+            "fare_name": primary.get("FN", "") if primary else "",
+            "base_fare": base_fare,
+            "total_fare": total_fare or base_fare,
+            "total_tax": primary.get("TTXMP", 0) if primary else 0,
+            "discount": primary.get("DA", 0) if primary else 0,
+        }
+    ]
+
+
+def _get_flight_details_for_refs(refs, flight_details_dict):
+    """
+    Returns list of flight detail objects, one per leg.
+    """
+    if isinstance(refs, list):
+        details = []
+        for ref in refs:
+            detail = (
+                flight_details_dict.get(str(ref))
+                or flight_details_dict.get(ref)
+            )
+            if detail:
+                details.append(detail)
+        return details
+
+    # single-leg journey
+    detail = (
+        flight_details_dict.get(str(refs))
+        or flight_details_dict.get(refs)
+    )
+    return [detail] if detail else []
+
+def _process_international_combos(
+    journeys: List[Dict[str, Any]],
+    flight_details_dict: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """
+    Build pre-combined international outbound + return flight combos.
+    """
+
+    combos: List[Dict[str, Any]] = []
+
+    total_segments = 0
+    segments_with_blocks = 0
+    segments_with_refs = 0
+    segments_with_details = 0
+
+    if not journeys:
+        print("Intl combos: journeys missing/empty.")
+        return combos
+
+    # Normalize journeys input
+    if isinstance(journeys, dict):
+        journeys_iterable = list(journeys.values())
+    elif isinstance(journeys, list):
+        journeys_iterable = journeys
+    else:
+        print(f"Intl combos: unsupported journeys type: {type(journeys)}")
+        return combos
+
+    def _get_combo_list(segment: Dict[str, Any], target: str) -> Any:
+        """
+        Fetch l_OB / l_IB arrays, tolerant to casing and underscores.
+        """
+        direct = segment.get(target)
+        if direct is not None:
+            return direct
+
+        normalized = target.replace("_", "").lower()
+        for key, val in segment.items():
+            if key and str(key).replace("_", "").lower() == normalized:
+                return val
+        return None
+
+    def _first_block(items: Any) -> Dict[str, Any]:
+        """
+        Return first meaningful block containing flight data.
+        """
+        if not items:
+            return {}
+
+        if isinstance(items, dict):
+            return items
+
+        if isinstance(items, list):
+            for item in items:
+                if isinstance(item, dict) and item.get("FL"):
+                    return item
+            return items[0] if items else {}
+
+        return {}
+
+    def _first_flight_id(block: Any) -> Any:
+        """
+        Extract first flight ID from block.
+        """
+        if not block:
+            return None
+
+        if isinstance(block, dict):
+            fl = block.get("FL") or block.get("fl") or block.get("flights")
+            if isinstance(fl, list) and fl:
+                return fl
+            if isinstance(fl, (str, int)):
+                return fl
+
+        return None
+
+    def _extract_flight_ids(block: Dict[str, Any]) -> List[Any]:
+        """
+        Extract all flight IDs for stop calculation.
+        """
+        if not isinstance(block, dict):
+            return []
+
+        fl = block.get("FL") or block.get("fl") or block.get("flights")
+
+        if isinstance(fl, list):
+            return fl
+        if isinstance(fl, (str, int)):
+            return [fl]
+
+        return []
+
+    print(
+        "Intl combos: starting processing",
+        {
+            "journey_count": len(journeys_iterable),
+            "detail_keys": list(flight_details_dict.keys())[:5],
+        },
+    )
+
+    for journey_idx, journey in enumerate(journeys_iterable):
+        segments = journey.get("s", [])
+        if not isinstance(segments, list):
+            continue
+
+        for segment_idx, segment in enumerate(segments):
+            total_segments += 1
+
+            lob_items = _get_combo_list(segment, "l_OB") or []
+            lib_items = _get_combo_list(segment, "l_IB") or []
+
+            if not lob_items or not lib_items:
+                continue
+
+            segments_with_blocks += 1
+
+            outbound_block = _first_block(lob_items)
+            inbound_block = _first_block(lib_items)
+
+            # pick only the first referenced flight from each block (first pair)
+            outbound_ref = _first_flight_id(outbound_block) 
+            inbound_ref = _first_flight_id(inbound_block) 
+
+           
+
+            if outbound_ref is None or inbound_ref is None:
+                continue
+            
+
+            segments_with_refs += 1
+            
+            outbound_detail = _get_flight_details_for_refs(outbound_ref, flight_details_dict)
+            inbound_detail = _get_flight_details_for_refs(inbound_ref, flight_details_dict)
+            # outbound_detail = (
+            #     flight_details_dict.get(str(outbound_ref)) #TODO: MAY BE UNCOMMENT LATER COMMENTING FOR TESTING
+            #     or flight_details_dict.get(outbound_ref)
+            # )
+            # inbound_detail = (
+            #     flight_details_dict.get(str(inbound_ref))
+            #     or flight_details_dict.get(inbound_ref) #TODO: MAY BE UNCOMMENT LATER COMMENTING FOR TESTING
+            # )
+
+            # outbound_leg = _build_leg_from_detail(outbound_detail)
+            # inbound_leg = _build_leg_from_detail(inbound_detail)
+            outbound_leg = [
+                _build_leg_from_detail(d) for d in outbound_detail if d
+            ]
+            inbound_leg = [
+                _build_leg_from_detail(d) for d in inbound_detail if d
+            ]
+
+            if not outbound_leg or not inbound_leg:
+                continue
+
+            segments_with_details += 1
+
+            # derive fares: prefer segment-level combo fare; fall back to per-leg cheapest fares
+            combo_fare = None
+            # possible places where combo fare may live on segment
+            for fk in ("TF", "comboFare", "combo_fare", "totalFare", "total_fare", "total"):
+                if segment.get(fk) is not None:
+                    try:
+                        combo_fare = float(segment.get(fk))
+                        break
+                    except (TypeError, ValueError):
+                        combo_fare = None
+
+            # build fare options for outbound/inbound from combo
+            combo_fare = combo_fare or _derive_combo_fare(segment)
+
+            per_leg_fare = combo_fare / 2 if combo_fare else 0.0
+            outbound_fare_options = _build_fare_options_from_combo(segment, per_leg_fare)
+            inbound_fare_options = _build_fare_options_from_combo(segment, per_leg_fare)
+
+            # final fallback: sum cheapest available fares from the two sides
+            if not combo_fare:
+                cheapest_out = outbound_fare_options[0]["total_fare"] if outbound_fare_options else 0.0
+                cheapest_in = inbound_fare_options[0]["total_fare"] if inbound_fare_options else 0.0
+                try:
+                    combo_fare = float(cheapest_out) + float(cheapest_in)
+                except (TypeError, ValueError):
+                    combo_fare = 0.0
+
+            combos.append(
+                {
+                    "id": f"{journey_idx}-{segment_idx}-{outbound_ref}-{inbound_ref}",
+                    "onward_flight": {
+                        #"segment_id": f"ob-{outbound_ref}",
+                        "segement_id": f"ob-{'-'.join(map(str, outbound_ref))}",
+                        "origin": outbound_leg[0]["origin"],
+                        "destination": outbound_leg[-1]["destination"],
+                        "journey_time": outbound_block.get("JyTm", ""),
+                        "is_refundable": outbound_block.get("RF") == "Refundable",
+                        "total_stops": max(len(_extract_flight_ids(outbound_block)) - 1, 0),
+                        "direction": "outbound",
+                        "legs": outbound_leg if isinstance(outbound_leg, list) else [outbound_leg],
+                        "fare_options": outbound_fare_options,
+                    },
+                    "return_flight": {
+                        #"segment_id": f"ib-{inbound_ref}",
+                        "segement_id": f"ob-{'-'.join(map(str, inbound_ref))}",
+                        "origin": inbound_leg[0]["origin"],
+                        "destination": inbound_leg[-1]["destination"],
+                        "journey_time": inbound_block.get("JyTm", ""),
+                        "is_refundable": inbound_block.get("RF") == "Refundable",
+                        "total_stops": max(len(_extract_flight_ids(inbound_block)) - 1, 0),
+                        "direction": "return",
+                       # "legs": [inbound_leg],
+                       "legs": inbound_leg if isinstance(inbound_leg, list) else [inbound_leg],
+                        "fare_options": inbound_fare_options,
+                    },
+                    "combo_fare": combo_fare,
+                }
+            )
+
+    print(
+        "Intl combos: completed",
+        {
+            "combo_count": len(combos),
+            "total_segments": total_segments,
+            "segments_with_blocks": segments_with_blocks,
+            "segments_with_refs": segments_with_refs,
+            "segments_with_details": segments_with_details,
+        },
+    )
+
+    return combos[:20]
+
 
 
 def build_deep_link(
@@ -210,13 +538,18 @@ async def search_flights(
     Returns:
         Dict containing flight search results with outbound and return flights
     """
-    #token = get_easemytrip_token()
+    token = get_easemytrip_token()
     trace_id = gen_trace_id()
 
     is_roundtrip = return_date is not None
+    origin_code, origin_country=fetch_first_code_and_country(origin)
+    destination_code, destination_country=fetch_first_code_and_country(destination)
+
+    is_international=not((origin_country=="India") and (destination_country=="India"))
+
     search_context = {
-        "origin": origin,
-        "destination": destination,
+        "origin": origin_code,
+        "destination": destination_code,
         "outbound_date": outbound_date,
         "return_date": return_date,
         "adults": adults,
@@ -225,8 +558,8 @@ async def search_flights(
     }
 
     payload = {
-        "org": origin.upper(),
-        "dept": destination.upper(),
+        "org": origin_code,
+        "dept": destination_code,
         "adt": str(adults),
         "chd": str(children),
         "inf": str(infants),
@@ -235,7 +568,7 @@ async def search_flights(
         "arrDT": return_date if is_roundtrip else None,
         "userid": "",
         "IsDoubelSeat": False,
-        "isDomestic": "true",
+        "isDomestic": f"{not is_international}",
         "isOneway": not is_roundtrip,
         "airline": "undefined",
         "VIP_CODE": "",
@@ -244,7 +577,7 @@ async def search_flights(
         "currCode": "INR",
         "appType": 1,
         "isSingleView": False,
-        "ResType": 2,
+        "ResType": 0 if is_international else 2,
         "IsNBA": True,
         "CouponCode": "",
         "IsArmedForce": False,
@@ -256,19 +589,16 @@ async def search_flights(
         "IpAddress": "",
         "LoginKey": "",
         "UUID": "",
-        "TKN": "",
+        "TKN": token,
         "requesttime": "2025-03-25T09:22:38.407Z",
         "tokenResponsetime": "2025-03-25T09:22:38.406Z"
     }
 
-    # 
-    # async with httpx.AsyncClient(timeout=60) as client:
-    #     res = await client.post(url, json=payload)
-    #     res.raise_for_status()
-    #     data = res.json()
     url = f"{FLIGHT_BASE_URL}/AirAvail_Lights/AirBus_New"
-    api = FlightApiClient()
-    data = await api.search(url, payload)
+    async with httpx.AsyncClient(timeout=60) as client:
+        res = await client.post(url, json=payload)
+        res.raise_for_status()
+        data = res.json()
 
     # Check if response is error string
     if isinstance(data, str):
@@ -278,20 +608,21 @@ async def search_flights(
             "outbound_flights": [],
             "return_flights": [],
             "is_roundtrip": is_roundtrip,
-            "origin": origin.upper(),
-            "destination": destination.upper(),
+            "origin": origin_code,
+            "destination": destination_code,
         }
 
     # Process results
-    processed_data = process_flight_results(data, is_roundtrip, search_context)
-    processed_data["origin"] = origin.upper()
-    processed_data["destination"] = destination.upper()
+    processed_data = process_flight_results(data, is_roundtrip,is_international, search_context)
+    processed_data["origin"] = origin_code
+    processed_data["destination"] = destination_code
     return processed_data
 
 
 def process_flight_results(
     search_response: dict,
     is_roundtrip: bool,
+    is_international:bool,
     search_context: Optional[Dict[str, Any]] = None,
 ) -> dict:
     """Process raw flight search response.
@@ -344,7 +675,9 @@ def process_flight_results(
     return {
         "outbound_flights": outbound_flights[:10],
         "return_flights": return_flights[:10],
-        "is_roundtrip": is_roundtrip
+        "is_roundtrip": is_roundtrip,
+        "is_international":is_international,
+        "international_combos": _process_international_combos(journeys, flight_details_dict),
     }
 
 
