@@ -1,0 +1,7 @@
+[index]
+default = "pypi"
+
+[[index.sources]]
+name = "gitlab"
+url = "https://__token__:<your-personal-access-token>@gitlab.com/api/v4/projects/<project-id>/packages/pypi/simple"
+priority = 1
