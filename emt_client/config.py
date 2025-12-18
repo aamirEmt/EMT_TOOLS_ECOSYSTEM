@@ -1,29 +1,138 @@
-# app/config.py
+# emt_client/config.py
 """
-Centralized configuration for EaseMyTrip MCP Server
-All API endpoints, authentication, and settings in one place
+Configuration module for EMT Client
+Supports configuration injection from parent projects
 """
 from os import getenv
-from typing import Dict
+from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# ============================================================================
+# 🆕 NEW: Configuration Injection Support
+# ============================================================================
+# Global configuration storage
+_injected_config: Optional[Dict[str, Any]] = None
+
+def inject_config(config: Dict[str, Any]):
+    """
+    🆕 NEW: Inject configuration from parent project
+    
+    This allows parent projects to pass configuration without needing .env files
+    
+    Args:
+        config: Configuration dictionary with keys like:
+            - FLIGHT_TOKEN_URL
+            - FLIGHT_BASE_URL
+            - FLIGHT_ATK_TOKEN
+            - FLIGHT_DEEPLINK
+            - etc.
+    
+    Example:
+        from app.config import FLIGHT_TOKEN_URL, FLIGHT_BASE_URL
+        from emt_client.config import inject_config
+        
+        inject_config({
+            'FLIGHT_TOKEN_URL': FLIGHT_TOKEN_URL,
+            'FLIGHT_BASE_URL': FLIGHT_BASE_URL,
+            'FLIGHT_ATK_TOKEN': FLIGHT_ATK_TOKEN,
+        })
+    """
+    global _injected_config
+    _injected_config = config
+
+def _get_config_value(key: str, env_key: str, default: Any = None, required: bool = False) -> Any:
+    """
+    🆕 NEW: Get configuration value with priority: injected > env > default
+    
+    Args:
+        key: Key in injected config dictionary
+        env_key: Environment variable name
+        default: Default value if not found
+        required: If True, raises error when not found
+        
+    Returns:
+        Configuration value
+    """
+    # Priority 1: Check injected config
+    if _injected_config is not None and key in _injected_config:
+        return _injected_config[key]
+    
+    # Priority 2: Check environment variables (only if no injection)
+    if _injected_config is None:
+        load_dotenv()
+        env_value = getenv(env_key)
+        if env_value is not None:
+            return env_value
+    
+    # Priority 3: Use default
+    if default is not None:
+        return default
+    
+    # If required and still not found, raise error
+    if required:
+        raise ValueError(
+            f"Required configuration '{key}' not found. "
+            f"Either inject it via inject_config() or set environment variable '{env_key}'"
+        )
+    
+    return None
+
+def has_injected_config() -> bool:
+    """🆕 NEW: Check if configuration has been injected"""
+    return _injected_config is not None
+
+def reset_config():
+    """🆕 NEW: Reset injected configuration (useful for testing)"""
+    global _injected_config
+    _injected_config = None
 
 # ============================================================================
+# ✅ MODIFIED: Flight Configuration (now supports injection)
+# ============================================================================
+
+# 🔄 CHANGED: Now uses _get_config_value for injection support
+FLIGHT_TOKEN_URL = _get_config_value(
+    'FLIGHT_TOKEN_URL',
+    'FLIGHT_TOKEN_URL',
+    default='https://gi.easemytrip.com/etm/api/etoken/jypppm'
+)
+
+FLIGHT_BASE_URL = _get_config_value(
+    'FLIGHT_BASE_URL',
+    'FLIGHT_BASE_URL',
+    default='https://flightservice-web.easemytrip.com/EmtAppService'
+)
+
+FLIGHT_ATK_TOKEN = _get_config_value(
+    'FLIGHT_ATK_TOKEN',
+    'FLIGHT_ATK_TOKEN',
+    required=True  # This will error if not provided via injection or env
+)
+
+FLIGHT_DEEPLINK = _get_config_value(
+    'FLIGHT_DEEPLINK',
+    'FLIGHT_DEEPLINK',
+    default='https://flight.easemytrip.com/RemoteSearchHandlers/index'
+)
+
+FLIGHT_AMENITIES_URL = f"{FLIGHT_BASE_URL}/FlightStatus/FlightAmentiesByListing"
+
+# ============================================================================
+# ✅ STAYS THE SAME: All your existing configurations
+# ============================================================================
+
+# Load environment variables (only used if config not injected)
+if _injected_config is None:
+    load_dotenv()
+
 # 🏨 HOTEL SERVICE BASE URL
-# ============================================================================
 BASE_URL = "https://hotelservice.easemytrip.com/api"
-HOTEL_DEEPLINK="https://www.easemytrip.com/hotel-new/details?"
-# ============================================================================
+HOTEL_DEEPLINK = "https://www.easemytrip.com/hotel-new/details?"
+
 # 🏨 HOTEL API ENDPOINTS
-# ============================================================================
 LOGIN_URL = f"{BASE_URL}/HotelService/UserLogin"
 HOTEL_SEARCH_URL = f"{BASE_URL}/HotelService/HotelListIdWiseNew"
 HOTEL_SEARCH_WITH_FILTER_URL = f"{BASE_URL}/HotelService/HotelSearch"
-# HOTEL_DESCRIPTION_URL = f"{BASE_URL}/HotelInfo/GetHotelDescriptionV1"
-# PRODUCT_DETAILS_URL = f"{BASE_URL}/HotelInfo/GetProductDetails"
-# CREATE_TRANSACTION_URL = f"{BASE_URL}/HotelInfo/HotelTraveller"
 
 # Payment/Checkout URL
 PAYMENT_CHECKOUT_BASE_URL = "https://safepay.easemytrip.com/new/checkout"
@@ -31,20 +140,9 @@ PAYMENT_CHECKOUT_BASE_URL = "https://safepay.easemytrip.com/new/checkout"
 # Legacy URL mappings (for backward compatibility)
 HOTEL_LIST_URL = HOTEL_SEARCH_URL
 USER_LOGIN_URL = LOGIN_URL
-# CREATE_BOOKING_URL = CREATE_TRANSACTION_URL
 
 # ============================================================================
-# 🛫 FLIGHT SERVICE (For Future Expansion)
-# ============================================================================
-FLIGHT_TOKEN_URL = "https://gi.easemytrip.com/etm/api/etoken/jypppm"
-FLIGHT_BASE_URL = "https://flightservice-web.easemytrip.com/EmtAppService"
-FLIGHT_AMENITIES_URL = f"{FLIGHT_BASE_URL}/FlightStatus/FlightAmentiesByListing"
-FLIGHT_ATK_TOKEN = getenv("FLIGHT_ATK_TOKEN")
-FLIGHT_DEEPLINK="https://flight.easemytrip.com/RemoteSearchHandlers/index"
-
-
-# ============================================================================
-# 🔐 AUTHENTICATION CONFIGURATION
+# 🔐 AUTHENTICATION CONFIGURATION - STAYS THE SAME
 # ============================================================================
 
 def get_agent_auth() -> Dict[str, str]:
@@ -75,12 +173,10 @@ def get_agent_auth() -> Dict[str, str]:
 
 # Default agent auth (can be overridden by environment variables)
 AGENT_AUTH = get_agent_auth()
-
-# For backward compatibility
 DEFAULT_AUTH = AGENT_AUTH
 
 # ============================================================================
-# 🆔 VENDOR & SESSION CONFIGURATION
+# 🆔 VENDOR & SESSION CONFIGURATION - STAYS THE SAME
 # ============================================================================
 VID = getenv("VID")
 if not VID:
@@ -88,7 +184,7 @@ if not VID:
 DEFAULT_VID = VID
 
 # ============================================================================
-# ⚙️ API CONFIGURATION
+# ⚙️ API CONFIGURATION - STAYS THE SAME
 # ============================================================================
 
 # HTTP Request Settings
@@ -153,7 +249,7 @@ SORT_OPTIONS = {
 DEFAULT_SORT = SORT_OPTIONS["popular_desc"]
 
 # ============================================================================
-# 🌍 SEARCH KEY CONFIGURATION
+# 🌍 SEARCH KEY CONFIGURATION - STAYS THE SAME
 # ============================================================================
 
 def generate_search_key(
@@ -195,7 +291,7 @@ def generate_search_key(
     )
 
 # ============================================================================
-# 📊 LOGGING CONFIGURATION
+# 📊 LOGGING CONFIGURATION - STAYS THE SAME
 # ============================================================================
 LOG_LEVEL = getenv("LOG_LEVEL")
 if not LOG_LEVEL:
@@ -212,7 +308,7 @@ if not _log_api_responses:
 LOG_API_RESPONSES = _log_api_responses.lower() == "true"
 
 # ============================================================================
-# 🔧 DEVELOPMENT / DEBUG SETTINGS
+# 🔧 DEVELOPMENT / DEBUG SETTINGS - STAYS THE SAME
 # ============================================================================
 _debug_mode = getenv("DEBUG_MODE")
 if not _debug_mode:
@@ -225,7 +321,7 @@ if not _mock_api_calls:
 MOCK_API_CALLS = _mock_api_calls.lower() == "true"
 
 # ============================================================================
-# 📝 API HEADERS CONFIGURATION
+# 📝 API HEADERS CONFIGURATION - STAYS THE SAME
 # ============================================================================
 
 def get_default_headers(trace_id: str = None) -> Dict[str, str]:
@@ -241,8 +337,6 @@ def get_default_headers(trace_id: str = None) -> Dict[str, str]:
     headers = {
         "Content-Type": "application/json; charset=utf-8",
         "Accept": "application/json, text/plain, */*",
-        # Keep encoding to gzip/deflate only; httpx isn't built with brotli by default,
-        # and the API returns br-compressed bodies otherwise, which breaks JSON decoding.
         "Accept-Encoding": "gzip, deflate",
         "User-Agent": "EaseMyTrip-MCP-Server/1.0"
     }
@@ -253,7 +347,7 @@ def get_default_headers(trace_id: str = None) -> Dict[str, str]:
     return headers
 
 # ============================================================================
-# 🏷️ CONSTANTS
+# 🏷️ CONSTANTS - STAYS THE SAME
 # ============================================================================
 
 # Engine IDs
@@ -293,35 +387,39 @@ BOOKING_POLICIES = {
 }
 
 # ============================================================================
-# 🌐 ENVIRONMENT-SPECIFIC OVERRIDES
+# 🌐 ENVIRONMENT-SPECIFIC OVERRIDES - STAYS THE SAME
 # ============================================================================
 
 # Allow environment variables to override any URL
 LOGIN_URL = getenv("LOGIN_URL", LOGIN_URL)
 HOTEL_SEARCH_URL = getenv("HOTEL_SEARCH_URL", HOTEL_SEARCH_URL)
-# HOTEL_DESCRIPTION_URL = getenv("HOTEL_DESCRIPTION_URL", HOTEL_DESCRIPTION_URL)
-# PRODUCT_DETAILS_URL = getenv("PRODUCT_DETAILS_URL", PRODUCT_DETAILS_URL)
 
 # ============================================================================
 # 📦 EXPORT ALL CONFIGURATIONS
 # ============================================================================
 
 __all__ = [
+    # 🆕 NEW: Injection functions
+    "inject_config",
+    "has_injected_config",
+    "reset_config",
+    
     # Base URLs
     "BASE_URL",
     "FLIGHT_BASE_URL",
+    "FLIGHT_TOKEN_URL",
+    "FLIGHT_DEEPLINK",
 
     # Hotel Endpoints
     "LOGIN_URL",
     "HOTEL_SEARCH_URL",
     "HOTEL_SEARCH_WITH_FILTER_URL",
-    "HOTEL_DESCRIPTION_URL",
-    "PRODUCT_DETAILS_URL",
-    "CREATE_TRANSACTION_URL",
     "PAYMENT_CHECKOUT_BASE_URL",
+    "HOTEL_DEEPLINK",
 
     # Flight Endpoints
     "FLIGHT_AMENITIES_URL",
+    "FLIGHT_ATK_TOKEN",
 
     # Authentication
     "AGENT_AUTH",
