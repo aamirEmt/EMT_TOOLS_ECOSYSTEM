@@ -1,5 +1,6 @@
 from tools_factory.base import BaseTool
 from tools_factory.flights.flight_search_tool import FlightSearchTool
+from tools_factory.hotels.hotel_search_tool import HotelSearchTool
 from typing import Dict, Optional, List
 
 class ToolFactory:
@@ -12,6 +13,7 @@ class ToolFactory:
     def _register_default_tools(self):
         """Register all available tools"""
         self.register_tool(FlightSearchTool())
+        self.register_tool(HotelSearchTool())
     
     def register_tool(self, tool: BaseTool):
         """Register a tool"""

@@ -4,6 +4,7 @@ Configuration module for EMT Client
 Supports configuration injection from parent projects
 """
 from os import getenv
+import os
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -474,3 +475,29 @@ __all__ = [
     "DEBUG_MODE",
     "MOCK_API_CALLS"
 ]
+
+
+# Hotel API URLs
+HOTEL_BASE_URL = os.getenv(
+    "HOTEL_BASE_URL",
+    "https://hotelservice.easemytrip.com/api"
+)
+HOTEL_LOGIN_URL = f"{HOTEL_BASE_URL}/HotelService/UserLogin"
+HOTEL_SEARCH_URL = f"{HOTEL_BASE_URL}/HotelService/HotelListIdWiseNew"
+
+# Authentication Credentials
+DEFAULT_AUTH: Dict[str, str] = {
+    "AgentCode": os.getenv("AGENT_CODE", ""),
+    "User": os.getenv("AGENT_USER", ""),
+    "Pwd": os.getenv("AGENT_PWD", ""),
+}
+
+# Vendor ID
+VID: str = os.getenv("VID", "")
+
+# Token Settings
+TOKEN_VALIDITY_MINUTES: int = int(os.getenv("TOKEN_VALIDITY_MINUTES", "28"))
+TOKEN_CACHE_ENABLED: bool = os.getenv("TOKEN_CACHE_ENABLED", "true").lower() == "true"
+
+# Debug Settings
+DEBUG_MODE: bool = os.getenv("DEBUG_MODE", "false").lower() == "true"

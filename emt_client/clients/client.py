@@ -29,5 +29,10 @@ class EMTClient:
         async with httpx.AsyncClient(timeout=60) as client:
             res = await client.post(url, json=payload)
             res.raise_for_status()
+            
+            # Handle empty responses (204 No Content)
+            if res.status_code == 204 or not res.text:
+                return {}
+            
             return res.json()
 
