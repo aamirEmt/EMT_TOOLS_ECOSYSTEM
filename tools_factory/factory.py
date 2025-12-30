@@ -5,6 +5,7 @@ from tools_factory.login.login_tool import LoginTool
 from tools_factory.bookings.flight_bookings_tool import GetFlightBookingsTool
 from tools_factory.bookings.hotel_bookings_tool import GetHotelBookingsTool
 from tools_factory.bookings.train_bookings_tool import GetTrainBookingsTool
+from tools_factory.bookings.bus_bookings_tool import GetBusBookingsTool
 from typing import Dict, Optional, List
 
 class ToolFactory:
@@ -26,6 +27,7 @@ class ToolFactory:
         self.register_tool(GetFlightBookingsTool(login_tool))
         self.register_tool(GetHotelBookingsTool(login_tool))
         self.register_tool(GetTrainBookingsTool(login_tool))
+        self.register_tool(GetBusBookingsTool(login_tool))
     
     def register_tool(self, tool: BaseTool):
         """Register a tool"""

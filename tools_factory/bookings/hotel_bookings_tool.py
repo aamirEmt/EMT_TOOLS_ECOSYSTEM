@@ -1,4 +1,4 @@
-"""Hotel Bookings Tool - Following main.py pattern"""
+"""Hotel Bookings Tool"""
 from typing import Dict, Any
 import logging
 
@@ -17,7 +17,6 @@ class GetHotelBookingsTool(BaseTool):
         self.service = HotelBookingsService(login_tool.service.token_provider)
     
     def get_metadata(self) -> ToolMetadata:
-        """Metadata matching main.py pattern"""
         return ToolMetadata(
             name="get_hotel_bookings",
             description="Fetch all hotel bookings (Upcoming, Completed, Cancelled, Pending) for the logged-in user.",
@@ -32,7 +31,6 @@ class GetHotelBookingsTool(BaseTool):
         )
     
     async def execute(self, **kwargs) -> Dict[str, Any]:
-        """Execute following main.py pattern"""
         try:
             result = await self.service.get_hotel_bookings()
             
@@ -55,7 +53,6 @@ class GetHotelBookingsTool(BaseTool):
                     "text_content": f"No hotel bookings found for {result.get('email')}"
                 }
             
-            # Format bookings following main.py pattern
             lines = []
             for b in bookings:
                 line = f"• {b.get('status')} | Booking ID: {b.get('booking_id')}"

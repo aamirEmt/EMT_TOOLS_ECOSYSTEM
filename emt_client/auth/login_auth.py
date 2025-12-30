@@ -1,10 +1,10 @@
-"""Login Token Provider for EMT API - Matches main.py SESSION"""
+"""Login Token Provider for EMT API """
 from typing import Optional
 from .base import TokenProvider
 
 
 class LoginTokenProvider(TokenProvider):
-    """Token provider for login operations - Matches main.py SESSION structure"""
+    """Token provider for login operations"""
     
     def __init__(self):
         super().__init__()
@@ -14,7 +14,7 @@ class LoginTokenProvider(TokenProvider):
         self._phone: Optional[str] = None
         self._uid: Optional[str] = None
         self._name: Optional[str] = None
-        self._ip: str = "49.249.40.58"  # Hardcoded IP like main.py
+        self._ip: str = "49.249.40.58"  
     
     async def get_tokens(self) -> dict:
         """Return tokens required for the service"""
@@ -33,17 +33,15 @@ class LoginTokenProvider(TokenProvider):
         uid: Optional[str] = None,
         name: Optional[str] = None
     ) -> None:
-        """Matches main.py SESSION.update() pattern"""
         self._logged_in = True
         self._auth = auth_token
         self._email = email
         self._phone = phone
         self._uid = uid
         self._name = name
-        self._ip = "49.249.40.58"  # Always use hardcoded IP like main.py
+        self._ip = "49.249.40.58"  
     
     def get_session(self) -> dict:
-        """Get complete session data matching main.py SESSION structure"""
         return {
             "logged_in": self._logged_in,
             "auth": self._auth,
@@ -65,7 +63,6 @@ class LoginTokenProvider(TokenProvider):
         }
     
     def clear_session(self) -> None:
-        """Clear stored token and user info - matches SESSION.clear()"""
         self._logged_in = False
         self._auth = None
         self._email = None

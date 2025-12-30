@@ -1,4 +1,4 @@
-"""Login Tool - Matches main.py login_user tool exactly"""
+"""Login Tool """
 from typing import Dict, Any
 import logging
 
@@ -9,14 +9,12 @@ logger = logging.getLogger(__name__)
 
 
 class LoginTool(BaseTool):
-    """Login tool matching main.py implementation"""
     
     def __init__(self):
         super().__init__()
         self.service = LoginService()
     
     def get_metadata(self) -> ToolMetadata:
-        """Metadata matching main.py login_tool"""
         return ToolMetadata(
             name="login_user",
             description="Login a user with phone number and IP address.",
@@ -41,7 +39,6 @@ class LoginTool(BaseTool):
         )
     
     async def execute(self, **kwargs) -> Dict[str, Any]:
-        """Execute login - exactly matches main.py logic"""
         try:
             phone_number = kwargs.get("phone_number")
             ip_address = kwargs.get("ip_address")
@@ -72,13 +69,11 @@ class LoginTool(BaseTool):
                     "isError": True
                 }
             
-            # Handle success - matches main.py response format
             user = result.get("user", {})
             name = user.get("name", "N/A")
             email = user.get("email", "N/A")
             phone = user.get("phone", "N/A")
             
-            # Format response exactly like main.py
             text_content = (
                 "Login successful\n\n"
                 f"Name: {name}\n"

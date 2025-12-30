@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field
 
 
 class LoginInput(BaseModel):
-    """Schema matching main.py login tool"""
     
     phone_number: str = Field(
         ...,

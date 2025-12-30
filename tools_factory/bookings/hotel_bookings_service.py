@@ -1,4 +1,4 @@
-"""Hotel Bookings Service - Exact extraction from get_bookings.py"""
+"""Hotel Bookings Service """
 from typing import Dict, Any, List
 import logging
 
@@ -26,7 +26,7 @@ class HotelBookingsService:
             
             user_info = self.token_provider.get_user_info()
             auth = await self.token_provider.get_token()
-            email = user_info.get("email") or user_info.get("phone")  # Use phone as fallback
+            email = user_info.get("email") or user_info.get("phone")  
             ip = self.token_provider.get_ip()  # Get hardcoded IP from session
             
             logger.info(f"Hotel bookings - Auth: {bool(auth)}, Email: {email}, IP: {ip}")
@@ -61,7 +61,6 @@ class HotelBookingsService:
             }
     
     def extract_hotels(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Exact extraction logic from get_bookings.py"""
         results = []
         
         if not isinstance(data, dict):

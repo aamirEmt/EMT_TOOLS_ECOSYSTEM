@@ -1,4 +1,4 @@
-"""Login Service - Business logic matching main.py exactly"""
+"""Login Service"""
 from typing import Dict, Any
 import logging
 
@@ -10,14 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 class LoginService:
-    """Login service matching main.py _call_tool_request login logic"""
     
     def __init__(self):
         self.token_provider = LoginTokenProvider()
         self.client = LoginApiClient(token_provider=self.token_provider)
     
     async def authenticate_user(self, phone_number: str, ip_address: str) -> Dict[str, Any]:
-        """Authenticate user - exactly matches main.py login flow"""
+        """Authenticate user """
         try:
             login_input = LoginInput(
                 phone_number=phone_number,
@@ -38,7 +37,7 @@ class LoginService:
             print("\nEMT LOGIN RAW RESPONSE:\n", raw_text)
             print("\nEMT LOGIN PARSED JSON:\n", json_data)
             
-            # Check if response is valid JSON - matches main.py check
+            # Check if response is valid JSON 
             if not isinstance(json_data, dict):
                 return {
                     "success": False,
@@ -46,7 +45,7 @@ class LoginService:
                     "message": "Login failed: EMT response was not valid JSON"
                 }
             
-            # Extract auth token - matches main.py token extraction
+            # Extract auth token 
             auth_token = (
                 json_data.get("Auth") or
                 json_data.get("AuthenticationToken") or
@@ -56,12 +55,12 @@ class LoginService:
             print("Auth token length:", len(auth_token) if auth_token else 0)
             print("Auth token preview:", auth_token[:50] if auth_token else None, "...", auth_token[-50:] if auth_token else None)
             
-            # Extract user info - matches main.py extraction
+            # Extract user info 
             email_list = json_data.get("EmailList") or []
             name = json_data.get("Name")
             uid = json_data.get("UID") or phone_number
             
-            # Check for auth token - matches main.py validation
+            # Check for auth token 
             if not auth_token:
                 return {
                     "success": False,
@@ -69,7 +68,7 @@ class LoginService:
                     "message": "Login failed: Authentication token missing"
                 }
             
-            # Clear and update session - matches main.py SESSION.clear() and SESSION.update()
+            # Clear and update session 
             self.token_provider.clear_session()
             self.token_provider.set_auth_token(
                 auth_token=auth_token,
@@ -81,7 +80,6 @@ class LoginService:
             
             logger.info(f"Login successful for user: {email_list[0] if email_list else 'N/A'}")
             
-            # Return response matching main.py format
             return {
                 "success": True,
                 "message": "Login successful",
@@ -107,7 +105,7 @@ class LoginService:
         return self.token_provider.get_session()
     
     def logout(self) -> Dict[str, Any]:
-        """Logout user and clear session - matches SESSION.clear()"""
+        """Logout user and clear session """
         self.token_provider.clear_session()
         logger.info("User logged out successfully")
         

@@ -1,15 +1,13 @@
-"""Booking API Client for EMT - Using exact code from get_bookings.py"""
+"""Booking API Client for EMT"""
 import httpx
 from typing import Dict, Any
 
 from .client import EMTClient
 
-# Exact URL from get_bookings.py
 BOOKINGS_URL = "https://emtservice-ln.easemytrip.com/api/Product/search-product"
 
 
 class BookingApiClient(EMTClient):
-    """Booking API Client using exact logic from get_bookings.py"""
     
     def __init__(self, token_provider=None):
         super().__init__(token_provider)
@@ -20,9 +18,7 @@ class BookingApiClient(EMTClient):
         email: str,
         ip: str
     ) -> Dict[str, Any]:
-        """Exact get_all_bookings logic from get_bookings.py"""
         
-        # Exact payload from get_bookings.py
         payload = {
             "Auth": auth,
             "EmailId": email if isinstance(email, str) else email[0],
@@ -36,7 +32,6 @@ class BookingApiClient(EMTClient):
             }
         }
 
-        # Exact headers from get_bookings.py
         # Use EmailId from payload for auth, fallback to hardcoded if not present
         auth_email = payload.get("EmailId", "upmanyu.wadhwa@easemytrip.com")
         
@@ -56,7 +51,6 @@ class BookingApiClient(EMTClient):
                 )
             data = response.json()
             
-            # Debug output - matches get_bookings.py
             print("===== EMT BOOKINGS RAW RESPONSE =====")
             print(data)
             print("====================================")

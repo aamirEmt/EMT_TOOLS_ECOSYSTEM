@@ -80,12 +80,13 @@ async def test_bookings_tools_category():
     factory = get_tool_factory()
     booking_tools = factory.get_tools_by_category("bookings")
     
-    assert len(booking_tools) == 3
+    assert len(booking_tools) == 4
     
     tool_names = [tool.get_metadata().name for tool in booking_tools]
     assert "get_flight_bookings" in tool_names
     assert "get_hotel_bookings" in tool_names
     assert "get_train_bookings" in tool_names
+    assert "get_bus_bookings" in tool_names
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Login API Client for EMT - Using exact code from login.py and crypto_bot.py"""
+"""Login API Client for EMT"""
 import json
 import base64
 from typing import Dict, Any
@@ -8,11 +8,9 @@ from Crypto.Util.Padding import pad, unpad
 
 from .client import EMTClient
 
-# Exact encryption keys from crypto_bot.py
 KEY = b"EMTOO1BOTT9aWsV1"
 IV = b"EMTOO1BOTT9aWsV1"
 
-# Exact URL from login.py
 LOGIN_URL = "https://loginuser.easemytrip.com/api/Login/GoogleLogin"
 
 
@@ -24,7 +22,6 @@ def EncryptStringAES_BOT(plain_text: str) -> str:
 
 
 def DecryptStringAES_BOT(encrypted_value: str) -> str:
-    """Exact function from crypto_bot.py"""
     # 🔑 EMT wraps ciphertext in quotes sometimes
     encrypted_value = encrypted_value.strip().strip('"')
 
@@ -35,13 +32,11 @@ def DecryptStringAES_BOT(encrypted_value: str) -> str:
 
 
 class LoginApiClient(EMTClient):
-    """Login API Client using exact logic from login.py"""
     
     def __init__(self, token_provider=None):
         super().__init__(token_provider)
     
     async def login_user(self, phone_number: str, ip_address: str) -> Dict[str, Any]:
-        """Exact emt_login logic from login.py"""
         plain_value = f"{phone_number}|{ip_address}"
         id_token = EncryptStringAES_BOT(plain_value)
 

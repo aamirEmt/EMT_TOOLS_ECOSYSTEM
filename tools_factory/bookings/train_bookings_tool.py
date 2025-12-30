@@ -1,4 +1,4 @@
-"""Train Bookings Tool - Following main.py pattern"""
+"""Train Bookings Tool """
 from typing import Dict, Any
 import logging
 
@@ -17,7 +17,6 @@ class GetTrainBookingsTool(BaseTool):
         self.service = TrainBookingsService(login_tool.service.token_provider)
     
     def get_metadata(self) -> ToolMetadata:
-        """Metadata matching main.py pattern"""
         return ToolMetadata(
             name="get_train_bookings",
             description="Fetch all train bookings for the logged-in user.",
@@ -32,7 +31,6 @@ class GetTrainBookingsTool(BaseTool):
         )
     
     async def execute(self, **kwargs) -> Dict[str, Any]:
-        """Execute following main.py pattern"""
         try:
             result = await self.service.get_train_bookings()
             
@@ -54,8 +52,7 @@ class GetTrainBookingsTool(BaseTool):
                     "bookings": [],
                     "text_content": f"No train bookings found for {result.get('email')}"
                 }
-            
-            # Format bookings following main.py pattern
+           
             lines = []
             for b in bookings:
                 line = f"• {b.get('status')} | Booking ID: {b.get('booking_id')}"
