@@ -1,0 +1,85 @@
+"""Hotel Bookings Service - Exact extraction from get_bookings.py"""
+from typing import Dict, Any, List
+import logging
+
+from emt_client.clients.booking_client import BookingApiClient
+from emt_client.auth.login_auth import LoginTokenProvider
+
+logger = logging.getLogger(__name__)
+
+
+class HotelBookingsService:
+    """Service for fetching hotel bookings"""
+    
+    def __init__(self, login_token_provider: LoginTokenProvider):
+        self.token_provider = login_token_provider
+        self.client = BookingApiClient(token_provider=self.token_provider)
+    
+    async def get_hotel_bookings(self) -> Dict[str, Any]:
+        """Fetch hotel bookings"""
+        try:
+            if not self.token_provider.is_authenticated():
+                return {
+                    "success": False,
+                    "error": "USER_NOT_LOGGED_IN"
+                }
+            
+            user_info = self.token_provider.get_user_info()
+            auth = await self.token_provider.get_token()
+            email = user_info.get("email") or user_info.get("phone")  # Use phone as fallback
+            ip = self.token_provider.get_ip()  # Get hardcoded IP from session
+            
+            logger.info(f"Hotel bookings - Auth: {bool(auth)}, Email: {email}, IP: {ip}")
+            
+            if not auth or not email:
+                return {
+                    "success": False,
+                    "error": "INVALID_SESSION"
+                }
+            
+            result = await self.client.fetch_bookings(auth, email, ip)
+            
+            if not result.get("success"):
+                return result
+            
+            data = result.get("data", {})
+            hotels = self.extract_hotels(data)
+            
+            return {
+                "success": True,
+                "email": email,
+                "total": len(hotels),
+                "bookings": hotels,
+                "raw_response": data
+            }
+        
+        except Exception as e:
+            logger.error(f"Error fetching hotel bookings: {str(e)}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def extract_hotels(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Exact extraction logic from get_bookings.py"""
+        results = []
+        
+        if not isinstance(data, dict):
+            return results
+        
+        hotel = data.get("HotelDetails") or {}
+        for status_key in ["Upcoming", "Completed", "Cancelled", "Pending"]:
+            hotel_list = hotel.get(status_key) or []
+            for h in hotel_list:
+                results.append({
+                    "type": "Hotel",
+                    "status": status_key,
+                    "booking_id": h.get("BookingRefNo"),
+                    "hotel_name": h.get("HotelName"),
+                    "checkin": h.get("CheckInDate"),
+                    "checkout": h.get("CheckOutDate"),
+                    "rooms": h.get("NoOfRooms"),
+                    "guests": h.get("NoOfGuests")
+                })
+        
+        return results
