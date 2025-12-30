@@ -3,10 +3,10 @@
 These tests make actual API calls and verify real responses.
 NO MOCKING - Real API integration tests.
 
-File: tool_factory/tests/test_tools_real_api.py
+File: tests/test_flights.py
 
 Run with:
-    pytest tool_factory/tests/test_tools_real_api.py -v -s
+    pytest tests/test_flights.py -v -s
     
 Mark as integration tests:
     pytest -m integration
