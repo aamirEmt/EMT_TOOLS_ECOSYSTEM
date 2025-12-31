@@ -12,6 +12,7 @@ from urllib.parse import quote
 from emt_client.clients.flight_client import FlightApiClient
 from emt_client.utils import gen_trace_id,fetch_first_code_and_country
 from emt_client.config import FLIGHT_BASE_URL, FLIGHT_DEEPLINK
+import re
 
 
 def _normalize_cabin(cabin: str) -> str:
@@ -658,7 +659,10 @@ def process_flight_results(
                 flight_details_dict,
                 airlines_map,
                 journey_index,
-                search_context,
+                is_international,
+                is_roundtrip,
+                search_context
+                
             )
 
             if processed_flight:
@@ -681,6 +685,8 @@ def process_segment(
     flight_details_dict: dict,
     airlines_map: dict,
     journey_index: int,
+    is_international:bool,
+    is_roundtrip,
     search_context: Optional[Dict[str, Any]] = None,
 ) -> Optional[dict]:
     """Process a single flight segment.
@@ -698,7 +704,11 @@ def process_segment(
     segment_id = segment.get("id")
     segment_key = segment.get("SK")
 
-    bonds = segment.get("b", [])
+    bonds=[]
+    if is_international and  not is_roundtrip:
+         bonds = segment.get("l_OB", [])
+    else:
+        bonds = segment.get("b", [])
     if not isinstance(bonds, list) or len(bonds) == 0:
         return None
 
@@ -706,7 +716,18 @@ def process_segment(
 
     journey_time = bond.get("JyTm", "")
     is_refundable = bond.get("RF") == "1"
-    stops = bond.get("stp", "0")
+    if is_international and  not is_roundtrip:
+        stops = bond.get("STP", "0")
+        print(stops)
+        
+
+        stops = re.split(r'[-+]', stops)[0].replace('|', '')
+
+        if stops == "Non":
+            stops=0
+        
+    else:
+        stops = bond.get("stp", "0")
     flight_ids = bond.get("FL", [])
 
     # Process flight legs
@@ -749,7 +770,14 @@ def process_segment(
 
     # Process fare options
     fare_options = []
-    fares = segment.get("lstFr", [])
+    if is_international and  not is_roundtrip:
+        fare=segment.get("TF", [])
+        fare_option={ "base_fare":fare,
+                    "total_fare": fare,}
+        fare_options.append(fare_option)
+    else:
+        fares = segment.get("lstFr", [])
+    
 
     if fares and isinstance(fares, list):
         for fare in fares:
