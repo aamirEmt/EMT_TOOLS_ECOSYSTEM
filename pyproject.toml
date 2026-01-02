@@ -36,3 +36,8 @@ packages = [
     "emt_client",
     "tools_factory",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest-html>=4.1.1",
+]

@@ -40,6 +40,8 @@ class FlightSearchTool(BaseTool):
             adults=payload.adults,
             children=payload.children,
             infants=payload.infants,
+            cabin=payload.cabin,
+
         )
 
         outbound_count = len(flight_results.get("outbound_flights", []))
