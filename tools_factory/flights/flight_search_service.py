@@ -688,6 +688,7 @@ def process_segment(
     is_international:bool,
     is_roundtrip,
     search_context: Optional[Dict[str, Any]] = None,
+    
 ) -> Optional[dict]:
     """Process a single flight segment.
 
@@ -703,7 +704,6 @@ def process_segment(
     """
     segment_id = segment.get("id")
     segment_key = segment.get("SK")
-
     bonds=[]
     if is_international and  not is_roundtrip:
          bonds = segment.get("l_OB", [])
@@ -777,22 +777,21 @@ def process_segment(
         fare_options.append(fare_option)
     else:
         fares = segment.get("lstFr", [])
-    
 
-    if fares and isinstance(fares, list):
-        for fare in fares:
-            if not isinstance(fare, dict):
-                continue
+        if fares and isinstance(fares, list):
+            for fare in fares:
+                if not isinstance(fare, dict):
+                    continue
 
-            fare_option = {
-                "fare_id": fare.get("SID", ""),
-                "fare_name": fare.get("FN", ""),
-                "base_fare": fare.get("BF", 0),
-                "total_fare": fare.get("TF", 0),
-                "total_tax": fare.get("TTXMP", 0),
-                "discount": fare.get("DA", 0)
-            }
-            fare_options.append(fare_option)
+                fare_option = {
+                    "fare_id": fare.get("SID", ""),
+                    "fare_name": fare.get("FN", ""),
+                    "base_fare": fare.get("BF", 0),
+                    "total_fare": fare.get("TF", 0),
+                    "total_tax": fare.get("TTXMP", 0),
+                    "discount": fare.get("DA", 0)
+                }
+                fare_options.append(fare_option)
 
     # Create flight object
     flight = {
