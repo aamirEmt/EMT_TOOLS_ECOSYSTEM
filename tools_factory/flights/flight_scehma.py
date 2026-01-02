@@ -24,6 +24,11 @@ class FlightSearchInput(BaseModel):
         alias="returnDate",
         description="Return flight date in YYYY-MM-DD format (optional for one-way)",
     )
+    cabin: Optional[str] = Field(
+        None,
+        description="Cabin preference like economy, premium economy, business, or first"
+    )
+    
     adults: int = Field(1, ge=1, le=9)
     children: int = Field(0, ge=0, le=8)
     infants: int = Field(0, ge=0, le=8)
