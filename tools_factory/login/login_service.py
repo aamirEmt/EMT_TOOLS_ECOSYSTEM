@@ -15,15 +15,23 @@ class LoginService:
         self.token_provider = LoginTokenProvider()
         self.client = LoginApiClient(token_provider=self.token_provider)
     
-    async def authenticate_user(self, phone_number: str, ip_address: str) -> Dict[str, Any]:
-        """Authenticate user """
+    async def authenticate_user(self, phone_or_email: str, ip_address: str) -> Dict[str, Any]:
+        """Authenticate user with phone number or email
+        
+        Args:
+            phone_or_email: Phone number or email address for authentication
+            ip_address: User's IP address
+            
+        Returns:
+            Dict containing authentication result and user info
+        """
         try:
             login_input = LoginInput(
-                phone_number=phone_number,
+                phone_number=phone_or_email,
                 ip_address=ip_address
             )
             
-            logger.info(f"Attempting login for phone: {login_input.phone_number}")
+            logger.info(f"Attempting login for: {login_input.phone_number}")
             
             # Call login API - matches main.py emt_login()
             result = await self.client.login_user(
@@ -52,13 +60,17 @@ class LoginService:
                 json_data.get("auth")
             )
             
+            # Extract Action2Token for booking API calls
+            action2_token = json_data.get("Action2Token")
+            
             print("Auth token length:", len(auth_token) if auth_token else 0)
             print("Auth token preview:", auth_token[:50] if auth_token else None, "...", auth_token[-50:] if auth_token else None)
+            print("Action2Token length:", len(action2_token) if action2_token else 0)
             
             # Extract user info 
             email_list = json_data.get("EmailList") or []
             name = json_data.get("Name")
-            uid = json_data.get("UID") or phone_number
+            uid = json_data.get("UID") or phone_or_email
             
             # Check for auth token 
             if not auth_token:
@@ -68,14 +80,19 @@ class LoginService:
                     "message": "Login failed: Authentication token missing"
                 }
             
+            # Check for Action2Token
+            if not action2_token:
+                logger.warning("Action2Token not found in response")
+            
             # Clear and update session 
             self.token_provider.clear_session()
             self.token_provider.set_auth_token(
                 auth_token=auth_token,
                 email=email_list[0] if email_list else None,
-                phone=phone_number,
+                phone=phone_or_email,
                 uid=uid,
-                name=name
+                name=name,
+                action2_token=action2_token
             )
             
             logger.info(f"Login successful for user: {email_list[0] if email_list else 'N/A'}")
@@ -86,7 +103,7 @@ class LoginService:
                 "user": {
                     "name": name or "N/A",
                     "email": email_list[0] if email_list else "N/A",
-                    "phone": phone_number,
+                    "phone": phone_or_email,
                     "uid": uid
                 },
                 "session": self.token_provider.get_session()

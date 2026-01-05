@@ -47,10 +47,10 @@ class GetBusBookingsTool(BaseTool):
             if not bookings:
                 return {
                     "success": True,
-                    "email": result.get("email"),
+                    "uid": result.get("uid"),
                     "total": 0,
                     "bookings": [],
-                    "text_content": f"No bus bookings found for {result.get('email')}"
+                    "text_content": f"No bus bookings found for {result.get('uid')}"
                 }
             
             lines = []
@@ -81,14 +81,14 @@ class GetBusBookingsTool(BaseTool):
             
             text_content = (
                 f"Bookings found \\n\\n"
-                f"Account: {result.get('email')}\\n"
-                f"Total bookings: {len(bookings)}\\n\\n"
-                + "\\n".join(lines)
+                f"Account: {result.get('uid')}\n"
+                f"Total bookings: {len(bookings)}\n\n"
+                + "\n".join(lines)
             )
             
             return {
                 "success": True,
-                "email": result.get("email"),
+                "uid": result.get("uid"),
                 "total": len(bookings),
                 "bookings": bookings,
                 "text_content": text_content,

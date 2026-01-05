@@ -59,6 +59,7 @@ async def test_bookings_require_login():
     flight_tool = factory.get_tool("get_flight_bookings")
     hotel_tool = factory.get_tool("get_hotel_bookings")
     train_tool = factory.get_tool("get_train_bookings")
+    bus_tool = factory.get_tool("get_bus_bookings")
     
     # Should fail without login
     flight_result = await flight_tool.execute()
@@ -73,6 +74,9 @@ async def test_bookings_require_login():
     assert train_result["success"] is False
     assert "USER_NOT_LOGGED_IN" in train_result["error"]
 
+    bus_result = await bus_tool.execute()
+    assert bus_result["success"] is False
+    assert "USER_NOT_LOGGED_IN" in bus_result["error"]
 
 @pytest.mark.asyncio
 async def test_bookings_tools_category():

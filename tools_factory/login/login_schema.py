@@ -6,7 +6,7 @@ class LoginInput(BaseModel):
     
     phone_number: str = Field(
         ...,
-        description="User phone number"
+        description="User phone number or email address"
     )
     
     ip_address: str = Field(

@@ -10,6 +10,7 @@ class LoginTokenProvider(TokenProvider):
         super().__init__()
         self._logged_in: bool = False
         self._auth: Optional[str] = None
+        self._action2_token: Optional[str] = None
         self._email: Optional[str] = None
         self._phone: Optional[str] = None
         self._uid: Optional[str] = None
@@ -31,10 +32,12 @@ class LoginTokenProvider(TokenProvider):
         email: str,
         phone: str,
         uid: Optional[str] = None,
-        name: Optional[str] = None
+        name: Optional[str] = None,
+        action2_token: Optional[str] = None
     ) -> None:
         self._logged_in = True
         self._auth = auth_token
+        self._action2_token = action2_token
         self._email = email
         self._phone = phone
         self._uid = uid
@@ -45,6 +48,7 @@ class LoginTokenProvider(TokenProvider):
         return {
             "logged_in": self._logged_in,
             "auth": self._auth,
+            "action2_token": self._action2_token,
             "email": self._email,
             "phone": self._phone,
             "uid": self._uid,
@@ -65,6 +69,7 @@ class LoginTokenProvider(TokenProvider):
     def clear_session(self) -> None:
         self._logged_in = False
         self._auth = None
+        self._action2_token = None
         self._email = None
         self._phone = None
         self._uid = None
@@ -89,3 +94,11 @@ class LoginTokenProvider(TokenProvider):
     def get_ip(self) -> str:
         """Get stored IP (always returns hardcoded IP)"""
         return self._ip
+    
+    def get_action2_token(self) -> Optional[str]:
+        """Get Action2Token for booking API calls"""
+        return self._action2_token
+    
+    def get_uid(self) -> Optional[str]:
+        """Get UID (phone or email used for login)"""
+        return self._uid

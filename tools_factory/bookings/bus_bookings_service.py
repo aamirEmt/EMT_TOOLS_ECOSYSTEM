@@ -25,17 +25,19 @@ class BusBookingsService:
                 }
             
             user_info = self.token_provider.get_user_info()
-            auth = await self.token_provider.get_token()
-            email = user_info.get("email")
+            action2_token = self.token_provider.get_action2_token()
+            uid = self.token_provider.get_uid()
             ip = self.token_provider.get_ip()  # Get hardcoded IP from session
             
-            if not auth or not email:
+            logger.info(f"Bus bookings - Action2Token: {bool(action2_token)}, UID: {uid}, IP: {ip}")
+            
+            if not action2_token or not uid:
                 return {
                     "success": False,
                     "error": "INVALID_SESSION"
                 }
             
-            result = await self.client.fetch_bookings(auth, email, ip)
+            result = await self.client.fetch_bookings(action2_token, uid, ip)
             
             if not result.get("success"):
                 return result
@@ -45,7 +47,7 @@ class BusBookingsService:
             
             return {
                 "success": True,
-                "email": email,
+                "uid": uid,
                 "total": len(buses),
                 "bookings": buses,
                 "raw_response": data
