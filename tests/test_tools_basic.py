@@ -40,6 +40,21 @@ def dummy_flight_oneway():
         "infants": 0
     }
 
+@pytest.fixture
+def dummy_flight_international_oneway():
+    """Dummy payload for one-way flight search."""
+    today = datetime.now()
+    outbound = (today + timedelta(days=30)).strftime("%Y-%m-%d")  # 30 days from now
+    
+    return {
+        "origin": "DEL",
+        "destination": "LHR",
+        "outbound_date": outbound,
+        "adults": 1,
+        "children": 0,
+        "infants": 0
+    }
+
 
 @pytest.fixture
 def dummy_flight_roundtrip():
@@ -152,6 +167,24 @@ async def test_flight_search_oneway_real_api(dummy_flight_oneway):
 
 
 @pytest.mark.asyncio
+async def test_flight_search_international_oneway_no_combos(dummy_flight_international_oneway):
+    """International one-way should only populate outbound flights and no combos."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    result = await tool.execute(**dummy_flight_international_oneway)
+    data = result["structured_content"]
+
+    assert data.get("is_roundtrip") is False
+    assert data.get("is_international") is True
+    assert data.get("return_flights") == []
+    assert data.get("international_combos") == []
+
+    outbound_flights = data.get("outbound_flights", [])
+    assert len(outbound_flights) > 0, "International one-way should return outbound flights"
+
+
+@pytest.mark.asyncio
 async def test_flight_search_roundtrip_real_api(dummy_flight_roundtrip):
     """Test round-trip flight search with real API call."""
     factory = get_tool_factory()
@@ -237,6 +270,203 @@ async def test_flight_search_with_multiple_passengers():
     flights = data.get("outbound_flights", [])
     print(f"✅ Found {len(flights)} flights for 2 adults, 2 children, 1 infant")
 
+
+
+# ============================================================================
+# FLIGHT SEARCH CLASSES TEST - REAL API
+# ============================================================================
+@pytest.mark.asyncio
+async def test_flight_search_with_economy_cabin(dummy_flight_oneway):
+    """Test flight search with explicit economy cabin."""
+    payload = {
+        **dummy_flight_oneway,
+        "cabin": "economy"
+    }
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    print(f"\n🔍 Searching economy class flights: {payload}")
+
+    result = await tool.execute(**payload)
+    data = result["structured_content"]
+
+    assert "outbound_flights" in data
+    flights = data.get("outbound_flights", [])
+
+    assert flights, "❌ No outbound flights returned"
+
+    for flight_index, flight in enumerate(flights):
+        legs = flight.get("legs", [])
+        assert legs, f"❌ No legs found for flight index {flight_index}"
+
+        for leg_index, leg in enumerate(legs):
+            cabin = leg.get("cabin")
+
+            assert cabin == "ECONOMY", (
+                f"❌ Flight {flight_index}, Leg {leg_index} "
+                f"has cabin '{cabin}' instead of 'ECONOMY'"
+            )
+
+    print(f"✅ All {len(flights)} flights have ECONOMY class cabin in every leg")
+
+@pytest.mark.asyncio
+async def test_flight_search_with_business_cabin(dummy_flight_international_oneway):
+    """Test flight search with business class cabin."""
+    payload = {
+        **dummy_flight_international_oneway,
+        "cabin": "business class"
+    }
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    print(f"\n🔍 Searching business class flights: {payload}")
+
+    result = await tool.execute(**payload)
+    data = result["structured_content"]
+
+    assert data.get("is_international") is True
+    flights = data.get("outbound_flights", [])
+
+    assert flights, "❌ No outbound flights returned"
+
+    for flight_index, flight in enumerate(flights):
+        legs = flight.get("legs", [])
+        assert legs, f"❌ No legs found for flight index {flight_index}"
+
+        for leg_index, leg in enumerate(legs):
+            cabin = leg.get("cabin")
+
+            assert cabin == "BUSINESS", (
+                f"❌ Flight {flight_index}, Leg {leg_index} "
+                f"has cabin '{cabin}' instead of 'BUSINESS'"
+            )
+
+    print(f"✅ All {len(flights)} flights have BUSINESS class cabin in every leg")
+
+
+@pytest.mark.asyncio
+async def test_flight_search_with_premium_economy_cabin(dummy_flight_international_oneway):
+    """Test flight search with premium economy cabin."""
+    payload = {
+        **dummy_flight_international_oneway,
+        "cabin": "premium economy"
+    }
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    print(f"\n🔍 Searching premium economy flights: {payload}")
+
+    result = await tool.execute(**payload)
+    data = result["structured_content"]
+
+    flights = data.get("outbound_flights", [])
+    assert flights, "❌ No outbound flights returned"
+    for flight_index, flight in enumerate(flights):
+        legs = flight.get("legs", [])
+        assert legs, f"❌ No legs found for flight index {flight_index}"
+
+        for leg_index, leg in enumerate(legs):
+            cabin = leg.get("cabin")
+
+            assert cabin == "PREMIUMECONOMY", (
+                f"❌ Flight {flight_index}, Leg {leg_index} "
+                f"has cabin '{cabin}' instead of 'PREMIUMECONOMY'"
+            )
+
+    print(f"✅ All {len(flights)} flights have PREMIUMECONOMY class cabin in every leg")
+
+
+
+@pytest.mark.asyncio
+async def test_flight_search_with_first_class_cabin(dummy_flight_international_oneway):
+    """Test flight search with first class cabin."""
+    payload = {
+        **dummy_flight_international_oneway,
+        "cabin": "first class"
+    }
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    print(f"\n🔍 Searching first class flights: {payload}")
+
+    result = await tool.execute(**payload)
+    data = result["structured_content"]
+
+    flights = data.get("outbound_flights", [])
+    assert flights, "❌ No outbound flights returned"
+
+    for flight_index, flight in enumerate(flights):
+        legs = flight.get("legs", [])
+        assert legs, f"❌ No legs found for flight index {flight_index}"
+
+        for leg_index, leg in enumerate(legs):
+            cabin = leg.get("cabin")
+
+            assert cabin == "FIRST", (
+                f"❌ Flight {flight_index}, Leg {leg_index} "
+                f"has cabin '{cabin}' instead of 'FIRST'"
+            )
+
+    print(f"✅ All {len(flights)} flights have FIRST class cabin in every leg")
+
+
+@pytest.mark.asyncio
+async def test_flight_search_with_unknown_cabin_fallback(dummy_flight_oneway):
+    """Unknown cabin input should safely fallback to economy."""
+    payload = {
+        **dummy_flight_oneway,
+        "cabin": "luxury"
+    }
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    print(f"\n🔍 Searching with unknown cabin (fallback): {payload}")
+
+    result = await tool.execute(**payload)
+    data = result["structured_content"]
+
+    flights = data.get("outbound_flights", [])
+    assert flights is not None
+
+    print(f"✅ Unknown cabin fallback returned {len(flights)} flights")
+
+@pytest.mark.asyncio
+async def test_flight_search_with_mixed_case_cabin(dummy_flight_oneway):
+    """Cabin input should be case-insensitive."""
+    payload = {
+        **dummy_flight_oneway,
+        "cabin": "BuSiNeSs ClAsS"
+    }
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    print(f"\n🔍 Searching with mixed-case cabin input: {payload}")
+
+    result = await tool.execute(**payload)
+    data = result["structured_content"]
+
+    flights = data.get("outbound_flights", [])
+    assert flights, "❌ No outbound flights returned"
+
+    for flight_index, flight in enumerate(flights):
+        legs = flight.get("legs", [])
+        assert legs, f"❌ No legs found for flight index {flight_index}"
+
+        for leg_index, leg in enumerate(legs):
+            cabin = leg.get("cabin")
+
+            assert cabin == "BUSINESS", (
+                f"❌ Flight {flight_index}, Leg {leg_index} "
+                f"has cabin '{cabin}' instead of 'BUSINESS'"
+            )
+
+    print(f"✅ All {len(flights)} flights have BUSINESS class cabin in every leg")
 
 # ============================================================================
 # HOTEL SEARCH TESTS - REAL API
@@ -389,6 +619,23 @@ async def test_flight_response_has_deeplinks(dummy_flight_oneway):
         
         print(f"\n✅ DeepLink verified: {first_flight['deepLink'][:50]}...")
 
+
+@pytest.mark.asyncio
+async def test_flight_search_international_oneway_no_combos(dummy_flight_international_oneway):
+    """International one-way should only populate outbound flights and no combos."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    result = await tool.execute(**dummy_flight_international_oneway)
+    data = result["structured_content"]
+
+    assert data.get("is_roundtrip") is False
+    assert data.get("is_international") is True
+    assert data.get("return_flights") == []
+    assert data.get("international_combos") == []
+
+    outbound_flights = data.get("outbound_flights", [])
+    assert len(outbound_flights) > 0, "International one-way should return outbound flights"
 
 @pytest.mark.asyncio
 async def test_flight_response_has_fare_options(dummy_flight_oneway):
