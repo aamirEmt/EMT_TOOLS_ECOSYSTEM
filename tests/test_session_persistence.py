@@ -125,6 +125,10 @@ async def test_bookings_without_login_should_fail():
     """Test that booking calls fail without login"""
     factory = get_tool_factory()
     
+    # Clear any existing session to ensure clean test
+    login_tool = factory.get_tool("login_user")
+    login_tool.service.logout()
+    
     # Try to get bookings without logging in first
     print("\n=== Attempting bookings without login ===")
     
