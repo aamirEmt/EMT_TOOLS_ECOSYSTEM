@@ -8,7 +8,7 @@ from tools_factory.factory import get_tool_factory
 # REPLACE WITH YOUR ACTUAL PHONE NUMBER
 # ============================================================================
 YOUR_PHONE_NUMBER = "santoshkr86420@gmail.com"  # ← CHANGE THIS TO YOUR ACTUAL PHONE NUMBER OR EMAIL
-YOUR_IP_ADDRESS = "49.249.40.58"
+# YOUR_IP_ADDRESS = "49.249.40.58"  # Commented out - not needed
 # ============================================================================
 
 
@@ -36,7 +36,7 @@ async def test_full_booking_workflow():
     
     login_result = await login_tool.execute(
         phone_number=YOUR_PHONE_NUMBER,
-        ip_address=YOUR_IP_ADDRESS
+        # ip_address=YOUR_IP_ADDRESS  # Commented out - not needed
     )
     
     print(f"\nLogin Result:")
@@ -203,7 +203,7 @@ async def test_login_only():
     login_tool = factory.get_tool("login_user")
     result = await login_tool.execute(
         phone_number=YOUR_PHONE_NUMBER,
-        ip_address=YOUR_IP_ADDRESS
+        # ip_address=YOUR_IP_ADDRESS  # Commented out - not needed
     )
     
     assert result.get("success") is True, f"Login failed: {result.get('error')}"

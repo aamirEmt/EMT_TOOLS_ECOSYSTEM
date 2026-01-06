@@ -36,8 +36,12 @@ class LoginApiClient(EMTClient):
     def __init__(self, token_provider=None):
         super().__init__(token_provider)
     
-    async def login_user(self, phone_number: str, ip_address: str) -> Dict[str, Any]:
-        plain_value = f"{phone_number}|{ip_address}"
+    async def login_user(self, phone_number: str) -> Dict[str, Any]:  # , ip_address: str
+        # IP address not needed - commenting out
+        # ip_address = "49.249.40.58"
+        
+        # plain_value = f"{phone_number}|{ip_address}"
+        plain_value = phone_number  # No IP needed
         id_token = EncryptStringAES_BOT(plain_value)
 
         payload = {

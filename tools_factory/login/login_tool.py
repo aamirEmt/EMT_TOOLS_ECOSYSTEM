@@ -18,7 +18,7 @@ class LoginTool(BaseTool):
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
             name="login_user",
-            description="Login a user with phone number or email and IP address.",
+            description="Login a user with phone number or email.",
             input_schema=LoginInput.model_json_schema(),
             output_template=None,
             category="authentication",
@@ -28,14 +28,14 @@ class LoginTool(BaseTool):
     async def execute(self, **kwargs) -> Dict[str, Any]:
         try:
             phone_number = kwargs.get("phone_number")
-            ip_address = kwargs.get("ip_address")
+            # ip_address = kwargs.get("ip_address", "49.249.40.58")  # Use default if not provided
             
-            # Validate required parameters - matches main.py check
-            if not phone_number or not ip_address:
+            # Validate required parameters - only phone_number is mandatory
+            if not phone_number:
                 return {
                     "success": False,
-                    "error": "phone_number (or email) and ip_address are required",
-                    "text_content": "phone_number (or email) and ip_address are required",
+                    "error": "phone_number (or email) is required",
+                    "text_content": "phone_number (or email) is required",
                     "isError": True
                 }
             
@@ -43,7 +43,7 @@ class LoginTool(BaseTool):
             
             result = await self.service.authenticate_user(
                 phone_or_email=phone_number,
-                ip_address=ip_address
+                # ip_address=ip_address  # Commented out - not needed
             )
             
             # Handle failure
