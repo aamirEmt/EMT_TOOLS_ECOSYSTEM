@@ -47,6 +47,100 @@ def _parse_date_to_iso(raw_date: str, fallback: Optional[str] = None) -> str:
 
     return fallback or raw_date
 
+# --------------------------
+# EaseMyTrip UI helper functions
+# --------------------------
+
+def clean_code(value: str, fallback=""):
+    if not value or not isinstance(value, str):
+        return fallback
+    return value.strip().upper()
+
+def clean_code_no_spaces(value: str, fallback=""):
+    return clean_code(value, fallback).replace(" ", "")
+
+def normalize_cabin_et(value: str):
+    """Alternative cabin normalization for UI display"""
+    if not value or not isinstance(value, str):
+        return "Economy"
+    lower = value.strip().lower()
+    if lower == "economy":
+        return "Economy"
+    if lower == "business":
+        return "Business"
+    if lower == "first":
+        return "First"
+    return value.strip()
+
+def to_date_string(value):
+    if not value:
+        return ""
+    try:
+        if isinstance(value, str):
+            return datetime.fromisoformat(value[:10]).strftime("%Y-%m-%d")
+        return value.strftime("%Y-%m-%d")
+    except:
+        return ""
+
+def to_time_string(value):
+    if not value:
+        return ""
+    try:
+        if isinstance(value, str):
+            digits = "".join(filter(str.isdigit, value))
+            if len(digits) >= 4:
+                return digits[:4]
+            return digits.zfill(4)
+        return value.strftime("%H%M")
+    except:
+        return ""
+
+def compose_datetime(date_value, time_value):
+    date_part = to_date_string(date_value)
+    time_part = to_time_string(time_value)
+    if date_part and time_part:
+        return f"{date_part}T{time_part}"
+    return date_part or ""
+
+def extract_segments(flight: Dict[str, Any]):
+    legs = flight.get("legs") or [flight]
+    segments = []
+    for leg in legs:
+        departure_date = to_date_string(leg.get("departure_date") or leg.get("departureDateTime"))
+        arrival_date = to_date_string(leg.get("arrival_date") or leg.get("arrivalDateTime"))
+        cabin = normalize_cabin_et(leg.get("cabin") or flight.get("cabin") or "Economy")
+        booking_code = clean_code_no_spaces(leg.get("booking_code") or leg.get("fare_class") or "Y")
+        flight_number = leg.get("flight_number") or ""
+        carrier = clean_code(leg.get("airline_code") or leg.get("carrier") or "")
+        segments.append({
+            "origin": clean_code(leg.get("origin") or flight.get("origin")),
+            "destination": clean_code(leg.get("destination") or flight.get("destination")),
+            "booking_code": booking_code,
+            "flight_number": flight_number,
+            "carrier": carrier,
+            "cabin": cabin,
+            "departure_date": departure_date,
+            "arrival_date": arrival_date,
+            "departure_time": to_time_string(leg.get("departure_time")),
+            "arrival_time": to_time_string(leg.get("arrival_time")),
+        })
+    return segments
+
+def extract_fare(flight: Dict[str, Any]) -> float:
+    candidates = [
+        flight.get("fare_options", [{}])[0].get("total_fare") if flight.get("fare_options") else None,
+        flight.get("fare_options", [{}])[0].get("total") if flight.get("fare_options") else None,
+        flight.get("fare", None),
+        flight.get("price", None),
+    ]
+    for c in candidates:
+        if c is not None:
+            try:
+                return float(c)
+            except:
+                continue
+    return 0.0
+
 
 def _clean_time(raw_time: str) -> str:
     """Remove separators from time values (e.g., 06:00 -> 0600)."""
@@ -431,6 +525,68 @@ def _process_international_combos(
 
     return combos[:20]
 
+def build_deep_link_et(
+    onward: Optional[Dict[str, Any]] = None,
+    return_flight: Optional[Dict[str, Any]] = None,
+    adults: int = 1,
+    children: int = 0,
+    infants: int = 0,
+    referral_id: str = "UserID",
+    language: str = "en",
+    currency: str = "INR",
+    pos_country: str = "IN",
+    cc: str = "",
+) -> str:
+    if not onward:
+        return FLIGHT_DEEPLINK
+
+    onward_segments = extract_segments(onward)
+    return_segments = extract_segments(return_flight) if return_flight else []
+
+    all_segments = onward_segments + return_segments
+
+    params = [
+        ("Adult", str(adults)),
+        ("Child", str(children)),
+        ("Infant", str(infants)),
+        ("ReferralId", referral_id),
+        ("UserLanguage", language),
+        ("DisplayedPriceCurrency", currency),
+        ("UserCurrency", currency),
+        ("DisplayedPrice", "{:.2f}".format(
+            extract_fare(onward) + extract_fare(return_flight) if return_flight else extract_fare(onward)
+        )),
+        ("PointOfSaleCountry", pos_country),
+        ("TripType", "RoundTrip" if return_flight else "OneWay"),
+        ("cc", cc),
+    ]
+
+    # Slice indices
+    if onward_segments:
+        params.append(("Slice1", ",".join(str(i + 1) for i in range(len(onward_segments)))))
+    if return_segments:
+        params.append(("Slice2", ",".join(str(len(onward_segments) + i + 1) for i in range(len(return_segments)))))
+
+    # SegmentN strings
+    segment_strings = []
+    for idx, seg in enumerate(all_segments):
+        parts = [
+            f"Origin={seg['origin']}",
+            f"BookingCode={seg['booking_code']}",
+            f"Destination={seg['destination']}",
+            f"FlightNumber={seg['flight_number']}",
+            f"Carrier={seg['carrier']}",
+            f"DepartureDate={compose_datetime(seg['departure_date'], seg['departure_time'])}",
+            f"id={idx+1}",
+            f"Cabin={seg['cabin']}",
+            f"ArrivalDate={compose_datetime(seg.get('arrival_date'), seg.get('arrival_time'))}",
+        ]
+        segment_strings.append(",".join(parts))
+
+    query_parts = [f"{k}={quote(str(v))}" for k, v in params]
+    query_parts += [f"Segment{idx+1}={quote(seg, safe='=,:-T')}" for idx, seg in enumerate(segment_strings)]
+
+    return f"{FLIGHT_DEEPLINK}?{'&'.join(query_parts)}"
 
 
 def build_deep_link(
@@ -803,3 +959,110 @@ def process_segment(
     )["deepLink"]
 
     return flight
+
+
+def build_ui_flight_card(
+    flight: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    React-IDENTICAL UI contract for one flight card.
+    This object should be renderable WITHOUT any extra logic.
+    """
+
+    legs = flight.get("legs") or []
+    if not legs:
+        return {}
+
+    first = legs[0]
+    last = legs[-1]
+
+    # --- Airline ---
+    airline_name = (
+        first.get("airline_name")
+        or first.get("airline_code")
+        or "Airline"
+    )
+
+    airline_code = first.get("airline_code", "")
+
+    # --- Times ---
+    departure_time_raw = first.get("departure_time")
+    arrival_time_raw = last.get("arrival_time")
+
+    departure_time = format_time_ui(departure_time_raw)
+    arrival_time = format_time_ui(arrival_time_raw)
+
+    # --- Fare ---
+    fare = 0
+    if flight.get("fare_options"):
+        try:
+            fare = int(float(flight["fare_options"][0].get("total_fare", 0)))
+        except (TypeError, ValueError):
+            fare = 0
+
+    # --- Stops ---
+    stops_count = int(flight.get("total_stops", 0))
+    stops_label = format_stops_ui(stops_count)
+
+    return {
+        # Stable identity (React key)
+        "id": flight.get("segment_id") or flight.get("segment_key"),
+
+        # Airline
+        "airline": airline_name,
+        "airlineCode": airline_code,
+
+        # Route
+        "origin": first.get("origin"),
+        "destination": last.get("destination"),
+
+        # Time
+        "departureTime": departure_time,
+        "arrivalTime": arrival_time,
+
+        # Meta
+        "duration": format_duration_ui(flight.get("journey_time")),
+        "stops": stops_label,
+        "stopsCount": stops_count,
+
+        # Price
+        "price": fare,
+        "currency": "INR",
+
+        # CTA
+        "bookUrl": flight.get("deepLink"),
+    }
+
+
+
+# --------------------------
+# UI formatting helpers (React parity)
+# --------------------------
+
+def format_time_ui(value: str) -> str:
+    """
+    Convert '0600' → '06:00' (React-style)
+    """
+    if not value or not isinstance(value, str):
+        return ""
+    digits = "".join(filter(str.isdigit, value))
+    if len(digits) == 4:
+        return f"{digits[:2]}:{digits[2:]}"
+    return value
+
+
+def format_duration_ui(value: str) -> str:
+    """
+    Normalize journey time for UI (e.g. '2h 30m')
+    """
+    if not value:
+        return ""
+    return str(value).replace(":", "h ") + "m" if ":" in str(value) else str(value)
+
+
+def format_stops_ui(stops: int) -> str:
+    if stops == 0:
+        return "Non-stop"
+    if stops == 1:
+        return "1 stop"
+    return f"{stops} stops"
