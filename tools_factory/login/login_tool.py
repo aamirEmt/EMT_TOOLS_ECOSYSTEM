@@ -4,7 +4,7 @@ import logging
 
 from ..base import BaseTool, ToolMetadata
 from .login_service import LoginService
-from .login_schemaq import LoginInput
+from .login_schema import LoginInput
 
 logger = logging.getLogger(__name__)
 
