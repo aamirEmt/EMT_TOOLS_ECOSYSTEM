@@ -15,12 +15,12 @@ class LoginService:
         self.token_provider = LoginTokenProvider()
         self.client = LoginApiClient(token_provider=self.token_provider)
     
-    async def authenticate_user(self, phone_or_email: str, ip_address: str) -> Dict[str, Any]:
+    async def authenticate_user(self, phone_or_email: str) -> Dict[str, Any]:  # , ip_address: str
         """Authenticate user with phone number or email
         
         Args:
             phone_or_email: Phone number or email address for authentication
-            ip_address: User's IP address
+            # ip_address: User's IP address (not needed)
             
         Returns:
             Dict containing authentication result and user info
@@ -28,7 +28,7 @@ class LoginService:
         try:
             login_input = LoginInput(
                 phone_number=phone_or_email,
-                ip_address=ip_address
+                # ip_address=ip_address  # Commented out
             )
             
             logger.info(f"Attempting login for: {login_input.phone_number}")
@@ -36,7 +36,7 @@ class LoginService:
             # Call login API - matches main.py emt_login()
             result = await self.client.login_user(
                 phone_number=login_input.phone_number,
-                ip_address=login_input.ip_address
+                # ip_address=login_input.ip_address  # Commented out
             )
             
             raw_text = result.get("raw_text")

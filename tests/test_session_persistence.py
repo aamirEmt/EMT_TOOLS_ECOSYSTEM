@@ -13,7 +13,7 @@ async def test_login_once_use_multiple_times():
     login_tool = factory.get_tool("login_user")
     login_result = await login_tool.execute(
         phone_number="9876543210",
-        ip_address="127.0.0.1"
+        # ip_address="127.0.0.1"  # Commented out - not needed
     )
     
     # Check if login was successful (might fail if invalid credentials)
@@ -49,7 +49,7 @@ async def test_different_tool_instances_share_session():
     login_tool = factory.get_tool("login_user")
     login_result = await login_tool.execute(
         phone_number="9876543210",
-        ip_address="127.0.0.1"
+        # ip_address="127.0.0.1"  # Commented out - not needed
     )
     
     if not login_result.get("success"):
@@ -90,7 +90,7 @@ async def test_new_factory_requires_new_login():
     login_tool1 = factory1.get_tool("login_user")
     login_result = await login_tool1.execute(
         phone_number="9876543210",
-        ip_address="127.0.0.1"
+        # ip_address="127.0.0.1"  # Commented out - not needed
     )
     
     if not login_result.get("success"):
@@ -163,7 +163,7 @@ async def test_session_persists_across_hotel_search():
     login_tool = factory.get_tool("login_user")
     login_result = await login_tool.execute(
         phone_number="9876543210",
-        ip_address="127.0.0.1"
+        # ip_address="127.0.0.1"  # Commented out - not needed
     )
     
     if not login_result.get("success"):

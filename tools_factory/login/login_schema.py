@@ -10,7 +10,7 @@ class LoginInput(BaseModel):
         description="User phone number or email address"
     )
     
-    ip_address: Optional[str] = Field(
-        "49.249.40.58",
-        description="USER IP Address But its not mandatory"
-    )
+    # ip_address: Optional[str] = Field(
+    #     "49.249.40.58",
+    #     description="USER IP Address but don't ask user for it"
+    # )

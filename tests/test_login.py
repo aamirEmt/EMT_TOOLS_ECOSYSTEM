@@ -23,7 +23,7 @@ async def test_login_tool_metadata():
     assert metadata.category == "authentication"
     assert "login" in metadata.tags
     assert "phone_number" in metadata.input_schema["properties"]
-    assert "ip_address" in metadata.input_schema["properties"]
+    # assert "ip_address" in metadata.input_schema["properties"]  # Commented out - not needed
 
 
 @pytest.mark.asyncio
@@ -33,14 +33,14 @@ async def test_login_missing_params():
     tool = factory.get_tool("login_user")
     
     # Missing phone_number
-    result = await tool.execute(ip_address="192.168.1.1")
+    result = await tool.execute()  # ip_address="192.168.1.1"
     assert result["success"] is False
     assert "phone" in result["error"].lower()
     
-    # Missing ip_address
-    result = await tool.execute(phone_number="9876543210")
-    assert result["success"] is False
-    assert "ip" in result["error"].lower()
+    # # Missing ip_address - no longer needed
+    # result = await tool.execute(phone_number="9876543210")
+    # assert result["success"] is False
+    # assert "ip" in result["error"].lower()
 
 
 @pytest.mark.asyncio
