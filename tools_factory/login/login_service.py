@@ -63,9 +63,13 @@ class LoginService:
             # Extract Action2Token for booking API calls
             action2_token = json_data.get("Action2Token")
             
+            # Extract CookC token
+            cookc = json_data.get("CookC")
+            
             print("Auth token length:", len(auth_token) if auth_token else 0)
             print("Auth token preview:", auth_token[:50] if auth_token else None, "...", auth_token[-50:] if auth_token else None)
             print("Action2Token length:", len(action2_token) if action2_token else 0)
+            print("CookC length:", len(cookc) if cookc else 0)
             
             # Extract user info 
             email_list = json_data.get("EmailList") or []
@@ -92,7 +96,8 @@ class LoginService:
                 phone=phone_or_email,
                 uid=uid,
                 name=name,
-                action2_token=action2_token
+                action2_token=action2_token,
+                cookc=cookc
             )
             
             logger.info(f"Login successful for user: {email_list[0] if email_list else 'N/A'}")

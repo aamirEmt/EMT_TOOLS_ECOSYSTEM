@@ -11,6 +11,7 @@ class LoginTokenProvider(TokenProvider):
         self._logged_in: bool = False
         self._auth: Optional[str] = None
         self._action2_token: Optional[str] = None
+        self._cookc: Optional[str] = None
         self._email: Optional[str] = None
         self._phone: Optional[str] = None
         self._uid: Optional[str] = None
@@ -33,11 +34,13 @@ class LoginTokenProvider(TokenProvider):
         phone: str,
         uid: Optional[str] = None,
         name: Optional[str] = None,
-        action2_token: Optional[str] = None
+        action2_token: Optional[str] = None,
+        cookc: Optional[str] = None
     ) -> None:
         self._logged_in = True
         self._auth = auth_token
         self._action2_token = action2_token
+        self._cookc = cookc
         self._email = email
         self._phone = phone
         self._uid = uid
@@ -49,6 +52,7 @@ class LoginTokenProvider(TokenProvider):
             "logged_in": self._logged_in,
             "auth": self._auth,
             "action2_token": self._action2_token,
+            "cookc": self._cookc,
             "email": self._email,
             "phone": self._phone,
             "uid": self._uid,
@@ -70,6 +74,7 @@ class LoginTokenProvider(TokenProvider):
         self._logged_in = False
         self._auth = None
         self._action2_token = None
+        self._cookc = None
         self._email = None
         self._phone = None
         self._uid = None
@@ -98,6 +103,10 @@ class LoginTokenProvider(TokenProvider):
     def get_action2_token(self) -> Optional[str]:
         """Get Action2Token for booking API calls"""
         return self._action2_token
+    
+    def get_cookc(self) -> Optional[str]:
+        """Get CookC token"""
+        return self._cookc
     
     def get_uid(self) -> Optional[str]:
         """Get UID (phone or email used for login)"""
