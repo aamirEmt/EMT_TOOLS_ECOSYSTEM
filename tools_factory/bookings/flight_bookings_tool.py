@@ -5,6 +5,7 @@ import logging
 from ..base import BaseTool, ToolMetadata
 from .flight_bookings_service import FlightBookingsService
 from tools_factory.login.login_tool import LoginTool
+from .booking_schema import GetBookingsInput 
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +21,7 @@ class GetFlightBookingsTool(BaseTool):
         return ToolMetadata(
             name="get_flight_bookings",
             description="Fetch all flight bookings (Upcoming, Completed, Cancelled, Rejected, Locked) for the logged-in user.",
-            input_schema={
-                "type": "object",
-                "properties": {},
-                "additionalProperties": False
-            },
+            input_schema=GetBookingsInput.model_json_schema(),
             output_template=None,
             category="bookings",
             tags=["bookings", "flight"]

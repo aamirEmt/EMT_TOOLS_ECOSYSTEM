@@ -5,6 +5,7 @@ import logging
 from ..base import BaseTool, ToolMetadata
 from .hotel_bookings_service import HotelBookingsService
 from tools_factory.login.login_tool import LoginTool
+from .booking_schema import GetBookingsInput
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +21,7 @@ class GetHotelBookingsTool(BaseTool):
         return ToolMetadata(
             name="get_hotel_bookings",
             description="Fetch all hotel bookings (Upcoming, Completed, Cancelled, Pending) for the logged-in user.",
-            input_schema={
-                "type": "object",
-                "properties": {},
-                "additionalProperties": False
-            },
+            input_schema=GetBookingsInput.model_json_schema(),
             output_template=None,
             category="bookings",
             tags=["bookings", "hotel"]
