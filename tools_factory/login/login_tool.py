@@ -4,6 +4,7 @@ import logging
 
 from ..base import BaseTool, ToolMetadata
 from .login_service import LoginService
+from .login_schemaq import LoginInput
 
 logger = logging.getLogger(__name__)
 
@@ -18,21 +19,7 @@ class LoginTool(BaseTool):
         return ToolMetadata(
             name="login_user",
             description="Login a user with phone number or email and IP address.",
-            input_schema={
-                "type": "object",
-                "properties": {
-                    "phone_number": {
-                        "type": "string",
-                        "description": "User phone number or email address"
-                    },
-                    "ip_address": {
-                        "type": "string",
-                        "description": "User IP address"
-                    },
-                },
-                "required": ["phone_number", "ip_address"],
-                "additionalProperties": False,
-            },
+            input_schema=LoginInput.model_json_schema(),
             output_template=None,
             category="authentication",
             tags=["login", "auth"]
