@@ -1,4 +1,5 @@
 """Login Input Schema"""
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -9,7 +10,7 @@ class LoginInput(BaseModel):
         description="User phone number or email address"
     )
     
-    ip_address: str = Field(
+    ip_address: Optional[str] = Field(
         ...,
         description="User IP address"
     )
