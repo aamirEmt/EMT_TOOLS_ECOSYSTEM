@@ -12,6 +12,38 @@ from urllib.parse import quote
 from emt_client.clients.flight_client import FlightApiClient
 from emt_client.utils import gen_trace_id,fetch_first_code_and_country
 from emt_client.config import FLIGHT_BASE_URL, FLIGHT_DEEPLINK
+from enum import Enum
+import re
+
+class CabinClassEnum(int, Enum):
+    ECONOMY = 0
+    FIRST = 1
+    BUSINESS = 2
+    PREMIUM_ECONOMY = 4
+
+
+def resolve_cabin_enum(user_cabin: Optional[str]) -> CabinClassEnum:
+    if not user_cabin:
+        return CabinClassEnum.ECONOMY  # default
+
+    text = user_cabin.lower()
+
+    if any(k in text for k in ["business", "biz", "buss"]):
+        return CabinClassEnum.BUSINESS
+
+    if any(k in text for k in ["first", "first class"]):
+        return CabinClassEnum.FIRST
+
+    if any(k in text for k in ["premium", "premium economy", "prem"]):
+        return CabinClassEnum.PREMIUM_ECONOMY
+
+    if any(k in text for k in ["economy", "eco", "coach"]):
+        return CabinClassEnum.ECONOMY
+
+    # safe fallback
+    return CabinClassEnum.ECONOMY
+
+
 
 
 def _normalize_cabin(cabin: str) -> str:
@@ -219,7 +251,7 @@ def _process_international_combos(
     segments_with_details = 0
 
     if not journeys:
-        print("Intl combos: journeys missing/empty.")
+        # print("Intl combos: journeys missing/empty.")
         return combos
 
     # Normalize journeys input
@@ -228,7 +260,7 @@ def _process_international_combos(
     elif isinstance(journeys, list):
         journeys_iterable = journeys
     else:
-        print(f"Intl combos: unsupported journeys type: {type(journeys)}")
+        # print(f"Intl combos: unsupported journeys type: {type(journeys)}")
         return combos
 
     def _get_combo_list(segment: Dict[str, Any], target: str) -> Any:
@@ -295,13 +327,13 @@ def _process_international_combos(
 
         return []
 
-    print(
-        "Intl combos: starting processing",
-        {
-            "journey_count": len(journeys_iterable),
-            "detail_keys": list(flight_details_dict.keys())[:5],
-        },
-    )
+    # print(
+    #     "Intl combos: starting processing",
+    #     {
+    #         "journey_count": len(journeys_iterable),
+    #         "detail_keys": list(flight_details_dict.keys())[:5],
+    #     },
+    # )
 
     for journey_idx, journey in enumerate(journeys_iterable):
         segments = journey.get("s", [])
@@ -418,16 +450,16 @@ def _process_international_combos(
                 }
             )
 
-    print(
-        "Intl combos: completed",
-        {
-            "combo_count": len(combos),
-            "total_segments": total_segments,
-            "segments_with_blocks": segments_with_blocks,
-            "segments_with_refs": segments_with_refs,
-            "segments_with_details": segments_with_details,
-        },
-    )
+    # print(
+    #     "Intl combos: completed",
+    #     {
+    #         "combo_count": len(combos),
+    #         "total_segments": total_segments,
+    #         "segments_with_blocks": segments_with_blocks,
+    #         "segments_with_refs": segments_with_refs,
+    #         "segments_with_details": segments_with_details,
+    #     },
+    # )
 
     return combos[:20]
 
@@ -520,6 +552,7 @@ async def search_flights(
     adults: int,
     children: int,
     infants: int,
+    cabin: Optional[str] = None,
 ) -> dict:
     """Call EaseMyTrip flight search API.
 
@@ -543,6 +576,7 @@ async def search_flights(
     destination_code, destination_country=await fetch_first_code_and_country(client,destination)
 
     is_international=not((origin_country=="India") and (destination_country=="India"))
+    cabin_enum = resolve_cabin_enum(cabin)
 
     search_context = {
         "origin": origin_code,
@@ -552,7 +586,11 @@ async def search_flights(
         "adults": adults,
         "children": children,
         "infants": infants,
+        "cabin": cabin_enum.value,
     }
+
+  
+
 
     payload = {
         "org": origin_code,
@@ -570,7 +608,7 @@ async def search_flights(
         "airline": "undefined",
         "VIP_CODE": "",
         "VIP_UNIQUE": "",
-        "Cabin": 0,
+        "Cabin": cabin_enum.value,
         "currCode": "INR",
         "appType": 1,
         "isSingleView": False,
@@ -591,6 +629,7 @@ async def search_flights(
         "tokenResponsetime": "2025-03-25T09:22:38.406Z"
     }
 
+    
     url = f"{FLIGHT_BASE_URL}/AirAvail_Lights/AirBus_New"
    
     data = await client.search(url, payload)
@@ -658,7 +697,10 @@ def process_flight_results(
                 flight_details_dict,
                 airlines_map,
                 journey_index,
-                search_context,
+                is_international,
+                is_roundtrip,
+                search_context
+                
             )
 
             if processed_flight:
@@ -681,7 +723,10 @@ def process_segment(
     flight_details_dict: dict,
     airlines_map: dict,
     journey_index: int,
+    is_international:bool,
+    is_roundtrip,
     search_context: Optional[Dict[str, Any]] = None,
+    
 ) -> Optional[dict]:
     """Process a single flight segment.
 
@@ -697,8 +742,11 @@ def process_segment(
     """
     segment_id = segment.get("id")
     segment_key = segment.get("SK")
-
-    bonds = segment.get("b", [])
+    bonds=[]
+    if is_international and  not is_roundtrip:
+         bonds = segment.get("l_OB", [])
+    else:
+        bonds = segment.get("b", [])
     if not isinstance(bonds, list) or len(bonds) == 0:
         return None
 
@@ -706,7 +754,17 @@ def process_segment(
 
     journey_time = bond.get("JyTm", "")
     is_refundable = bond.get("RF") == "1"
-    stops = bond.get("stp", "0")
+    if is_international and  not is_roundtrip:
+        stops = bond.get("STP", "0")
+        
+
+        stops = re.split(r'[-+]', stops)[0].replace('|', '')
+
+        if stops == "Non":
+            stops=0
+        
+    else:
+        stops = bond.get("stp", "0")
     flight_ids = bond.get("FL", [])
 
     # Process flight legs
@@ -749,22 +807,28 @@ def process_segment(
 
     # Process fare options
     fare_options = []
-    fares = segment.get("lstFr", [])
+    if is_international and  not is_roundtrip:
+        fare=segment.get("TF", [])
+        fare_option={ "base_fare":fare,
+                    "total_fare": fare,}
+        fare_options.append(fare_option)
+    else:
+        fares = segment.get("lstFr", [])
 
-    if fares and isinstance(fares, list):
-        for fare in fares:
-            if not isinstance(fare, dict):
-                continue
+        if fares and isinstance(fares, list):
+            for fare in fares:
+                if not isinstance(fare, dict):
+                    continue
 
-            fare_option = {
-                "fare_id": fare.get("SID", ""),
-                "fare_name": fare.get("FN", ""),
-                "base_fare": fare.get("BF", 0),
-                "total_fare": fare.get("TF", 0),
-                "total_tax": fare.get("TTXMP", 0),
-                "discount": fare.get("DA", 0)
-            }
-            fare_options.append(fare_option)
+                fare_option = {
+                    "fare_id": fare.get("SID", ""),
+                    "fare_name": fare.get("FN", ""),
+                    "base_fare": fare.get("BF", 0),
+                    "total_fare": fare.get("TF", 0),
+                    "total_tax": fare.get("TTXMP", 0),
+                    "discount": fare.get("DA", 0)
+                }
+                fare_options.append(fare_option)
 
     # Create flight object
     flight = {
