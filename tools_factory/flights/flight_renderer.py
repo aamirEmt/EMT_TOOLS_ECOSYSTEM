@@ -1,16 +1,14 @@
-from typing import Dict, Any, Callable, Optional
+from typing import Dict, Any, List
 from jinja2 import Environment, BaseLoader, select_autoescape
 
-# -----------------------------------
-# Jinja environment
-# -----------------------------------
+
 _jinja_env = Environment(
     loader=BaseLoader(),
     autoescape=select_autoescape(["html", "xml"]),
 )
 
 # =====================================================================
-# 1️⃣ LEGACY SIMPLE UI (UNCHANGED – BACKWARD COMPATIBLE)
+# 1️⃣ LEGACY SIMPLE UI (BACKWARD COMPATIBLE – DO NOT BREAK)
 # =====================================================================
 FLIGHT_RESULTS_TEMPLATE = """
 <style>
@@ -64,6 +62,8 @@ Stops: {{ f.total_stops }} | Duration: {{ f.journey_time }}<br/>
 </li>
 {% endfor %}
 </ul>
+{% else %}
+<p>No flights available.</p>
 {% endif %}
 </div>
 """
@@ -145,7 +145,7 @@ FLIGHT_CAROUSEL_TEMPLATE = """
       <div>
         <div class="airline">{{ f.airline }} ({{ f.airlineCode }})</div>
         <div class="route">
-          {{ f.origin }} → {{ f.destination }} • {{ f.stops }}
+          {{ f.origin }} → {{ f.destination }} • {{ f.stops }} stop{{ 's' if f.stops != 1 else '' }}
         </div>
       </div>
       <div class="time">
@@ -158,58 +158,87 @@ FLIGHT_CAROUSEL_TEMPLATE = """
       <div class="price">₹{{ f.price }}</div>
     </div>
 
-    <a href="{{ f.bookUrl }}" class="book-btn">Book</a>
+    {% if f.bookUrl %}
+      <a href="{{ f.bookUrl }}" class="book-btn">Book</a>
+    {% endif %}
   </div>
 {% endfor %}
 </div>
 """
 
 # =====================================================================
-# 3️⃣ FINAL RENDERER (SAFE, COMPATIBLE, DETERMINISTIC)
+# 3️⃣ NORMALIZER — REAL EMT JSON → UI MODEL
 # =====================================================================
-def render_flight_results(
-    flight_results: Dict[str, Any],
-    extract_segments_fn: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None,
-    build_deep_link_fn: Optional[Callable[[Dict[str, Any]], str]] = None,
-) -> str:
+def _normalize_flight_for_ui(flight: Dict[str, Any]) -> Dict[str, Any]:
+    legs: List[Dict[str, Any]] = flight.get("legs", [])
+    if not legs:
+        return {}
+
+    first_leg = legs[0]
+    last_leg = legs[-1]
+
+    fare_options = flight.get("fare_options", [])
+    lowest_fare = min(
+        fare_options,
+        key=lambda x: x.get("total_fare", float("inf")),
+        default={}
+    )
+
+    return {
+        "airline": first_leg.get("airline_name", "Airline"),
+        "airlineCode": first_leg.get("airline_code", ""),
+        "origin": first_leg.get("origin"),
+        "destination": last_leg.get("destination"),
+        "departureTime": first_leg.get("departure_time"),
+        "arrivalTime": last_leg.get("arrival_time"),
+        "duration": flight.get("journey_time"),
+        "stops": flight.get("total_stops", 0),
+        "price": lowest_fare.get("total_fare"),
+        "bookUrl": flight.get("deepLink"),
+    }
+
+# =====================================================================
+# 4️⃣ FINAL RENDERER (PURE, SAFE, COMPATIBLE)
+# =====================================================================
+def render_flight_results(flight_results: Dict[str, Any]) -> str:
     """
-    Renders flight results.
+    Renders flight results into HTML.
 
-    - If helpers are provided → React-parity EaseMyTrip UI
-    - Else → legacy simple UI (unchanged)
+    Priority:
+    1. Real EMT JSON → EaseMyTrip React-parity UI
+    2. Old structure → Legacy simple UI
     """
 
-    # -------------------------------
-    # React-style UI path
-    # -------------------------------
-    if extract_segments_fn and build_deep_link_fn:
-        flights_ui = []
+    # -------------------------------------------------
+    # 🔥 CRITICAL FIX: unwrap real EMT response
+    # -------------------------------------------------
+    if "structured_content" in flight_results:
+        flight_results = flight_results["structured_content"]
 
-        for flight in flight_results.get("outbound_flights", []):
-            seg = extract_segments_fn(flight)
+    outbound_flights = flight_results.get("outbound_flights", [])
 
-            flights_ui.append({
-                "airline": seg.get("airline", "Airline"),
-                "airlineCode": seg.get("airline_code", ""),
-                "origin": seg.get("origin"),
-                "destination": seg.get("destination"),
-                "departureTime": seg.get("departure_time"),
-                "arrivalTime": seg.get("arrival_time"),
-                "duration": seg.get("duration"),
-                "stops": seg.get("stops"),
-                "price": flight.get("fare_options", [{}])[0].get("total_fare"),
-                "bookUrl": build_deep_link_fn(flight),
-            })
+    # -------------------------------------------------
+    # React-parity path (real EMT data)
+    # -------------------------------------------------
+    flights_ui = [
+        _normalize_flight_for_ui(f)
+        for f in outbound_flights
+        if f.get("legs")
+    ]
 
+    # Remove empty normalizations (safety)
+    flights_ui = [f for f in flights_ui if f]
+
+    if flights_ui:
         template = _jinja_env.from_string(FLIGHT_CAROUSEL_TEMPLATE)
         return template.render(flights=flights_ui)
 
-    # -------------------------------
-    # Legacy fallback UI
-    # -------------------------------
+    # -------------------------------------------------
+    # Legacy fallback (DO NOT TOUCH)
+    # -------------------------------------------------
     template = _jinja_env.from_string(FLIGHT_RESULTS_TEMPLATE)
     return template.render(
-        outbound_flights=flight_results.get("outbound_flights", []),
+        outbound_flights=outbound_flights,
         return_flights=flight_results.get("return_flights", []),
         is_roundtrip=flight_results.get("is_roundtrip", False),
     )

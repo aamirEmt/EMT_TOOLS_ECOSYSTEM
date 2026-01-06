@@ -1,84 +1,42 @@
 
 <style>
-.flight-combined-carousel {
-    font-family: Inter, Arial, sans-serif;
-    background: #f4f6f9;
-    padding: 12px;
-    border-radius: 10px;
+.flight-results {
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    padding: 15px;
+    border-radius: 8px;
+    max-width: 600px;
 }
-.flight-card {
-    background: #ffffff;
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+.flight-results h3 {
+    color: #1a73e8;
 }
-.flight-leg {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
+.flight-results ul {
+    list-style: none;
+    padding: 0;
 }
-.airline {
-    font-weight: 600;
-    font-size: 14px;
-}
-.time {
-    font-size: 16px;
-    font-weight: 600;
-}
-.meta {
-    font-size: 12px;
-    color: #666;
+.flight-results li {
+    background: #fff;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
 }
 .price {
     color: #0b8043;
-    font-weight: 700;
-    font-size: 16px;
+    font-weight: bold;
 }
-.book {
-    margin-top: 8px;
+.book-btn {
     display: inline-block;
-    background: #ef6614;
-    color: white;
-    padding: 6px 14px;
-    border-radius: 6px;
+    margin-top: 6px;
+    background: #1a73e8;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
     text-decoration: none;
-    font-size: 14px;
 }
 </style>
 
-<div class="flight-combined-carousel">
-  
-    <div class="flight-card">
-      
-      <div class="flight-leg">
-        <div>
-          <div class="airline">IndiGo (Outbound)</div>
-          <div class="meta">DEL → BOM | 0 stop(s)</div>
-        </div>
-        <div class="time">06:30 – 08:45</div>
-      </div>
-      
+<div class="flight-results">
 
-      
-      <div class="flight-leg">
-        <div>
-          <div class="airline">IndiGo (Return)</div>
-          <div class="meta">BOM → DEL | 0 stop(s)</div>
-        </div>
-        <div class="time">17:00 – 19:15</div>
-      </div>
-      
+<p>No flights available.</p>
 
-      <div class="flight-leg" style="margin-top:6px;">
-        <div class="meta">Total Duration: 
-          2h 15m 
-          + 2h 15m
-        </div>
-        <div class="price">₹10498</div>
-      </div>
-
-      <a href="https://www.easemytrip.com/flight-booking/1" class="book">Book</a>
-    </div>
-  
 </div>

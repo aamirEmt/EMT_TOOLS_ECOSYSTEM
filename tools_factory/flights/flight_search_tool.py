@@ -108,8 +108,6 @@ class FlightSearchTool(BaseTool):
         # Render HTML carousel if requested
         # --------------------------
         if render_html and not flight_results.get("error"):
-            response["html"] = render_flight_results(
-                {"flights": ui_cards}
-            )
+            response["html"] = render_flight_results(flight_results)
 
         return response
