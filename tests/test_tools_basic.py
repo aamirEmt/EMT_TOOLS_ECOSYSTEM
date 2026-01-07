@@ -13,6 +13,7 @@ Mark as integration tests:
 """
 
 import pytest
+import json
 from datetime import datetime, timedelta
 from tools_factory.factory import get_tool_factory
 
@@ -38,6 +39,67 @@ def dummy_flight_oneway():
         "adults": 1,
         "children": 0,
         "infants": 0
+    }
+
+@pytest.fixture
+def dummy_flight_oneway_with_limit():
+    """Dummy payload for one-way flight search."""
+    today = datetime.now()
+    outbound = (today + timedelta(days=30)).strftime("%Y-%m-%d")  # 30 days from now
+    
+    return {
+        "origin": "DEL",
+        "destination": "BOM",
+        "outbound_date": outbound,
+        "adults": 1,
+        "children": 0,
+        "infants": 0,
+        "_limit": 2
+    }
+
+@pytest.fixture
+def dummy_flight_roundtrip_with_limit():
+    today = datetime.now()
+    outbound = (today + timedelta(days=30)).strftime("%Y-%m-%d")
+    return_date = (today + timedelta(days=37)).strftime("%Y-%m-%d")
+
+    return {
+        "origin": "DEL",
+        "destination": "BOM",
+        "outbound_date": outbound,
+        "return_date": return_date,
+        "adults": 1,
+        "_limit": 2
+    }
+
+
+@pytest.fixture
+def dummy_flight_international_oneway_with_limit():
+    today = datetime.now()
+    outbound = (today + timedelta(days=30)).strftime("%Y-%m-%d")
+
+    return {
+        "origin": "DEL",
+        "destination": "DXB",
+        "outbound_date": outbound,
+        "adults": 1,
+        "_limit": 2
+    }
+
+
+@pytest.fixture
+def dummy_flight_international_roundtrip_with_limit():
+    today = datetime.now()
+    outbound = (today + timedelta(days=30)).strftime("%Y-%m-%d")
+    return_date = (today + timedelta(days=37)).strftime("%Y-%m-%d")
+
+    return {
+        "origin": "DEL",
+        "destination": "DXB",
+        "outbound_date": outbound,
+        "return_date": return_date,
+        "adults": 1,
+        "_limit": 2
     }
 
 
@@ -124,6 +186,9 @@ async def test_flight_search_oneway_real_api(dummy_flight_oneway):
     print(f"\n🔍 Searching flights: {dummy_flight_oneway}")
     
     result = await tool.execute(**dummy_flight_oneway)
+    with open("result.json", "w", encoding="utf-8") as f:
+        json.dump(result, f, indent=2, ensure_ascii=False)
+    
     
     # Verify response structure
     assert "text" in result
@@ -149,6 +214,182 @@ async def test_flight_search_oneway_real_api(dummy_flight_oneway):
         print(f"   First flight: {first_flight.get('origin')} → {first_flight.get('destination')}")
         print(f"   Stops: {first_flight.get('total_stops')}")
         print(f"   Journey time: {first_flight.get('journey_time')}")
+
+@pytest.mark.asyncio
+async def test_flight_search_oneway_real_api_with_limit(dummy_flight_oneway_with_limit):
+    """Test one-way flight search with real API call."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+    
+    print(f"\n🔍 Searching flights: {dummy_flight_oneway_with_limit}")
+    
+    result = await tool.execute(**dummy_flight_oneway_with_limit)
+    with open("result.json", "w", encoding="utf-8") as f:
+        json.dump(result, f, indent=2, ensure_ascii=False)
+    
+    
+    # Verify response structure
+    assert "text" in result
+    assert "structured_content" in result
+    
+    print(f"✅ Response: {result['text']}")
+    
+    data = result["structured_content"]
+    
+    # Verify API response structure
+    assert "outbound_flights" in data
+    assert "is_roundtrip" in data
+    assert data["is_roundtrip"] == False
+    assert "origin" in data
+    assert "destination" in data
+    
+    # Print results summary
+    flights = data.get("outbound_flights", [])
+    print(f"📊 Found {len(flights)} outbound flights")
+    
+    if flights:
+        first_flight = flights[0]
+        print(f"   First flight: {first_flight.get('origin')} → {first_flight.get('destination')}")
+        print(f"   Stops: {first_flight.get('total_stops')}")
+        print(f"   Journey time: {first_flight.get('journey_time')}")
+
+@pytest.mark.asyncio
+async def test_flight_search_roundtrip_real_api_with_limit(dummy_flight_roundtrip_with_limit):
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    print(f"\n🔍 Searching round-trip flights with limit: {dummy_flight_roundtrip_with_limit}")
+
+    result = await tool.execute(**dummy_flight_roundtrip_with_limit)
+
+    data = result["structured_content"]
+
+    assert data["is_roundtrip"] is True
+    assert len(data.get("outbound_flights", [])) <= 2
+    assert len(data.get("return_flights", [])) <= 2
+
+    print("✅ Roundtrip limit applied correctly")
+
+
+@pytest.mark.asyncio
+async def test_flight_search_international_oneway_with_limit(dummy_flight_international_oneway_with_limit):
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    print(f"\n🌍 Searching international oneway with limit: {dummy_flight_international_oneway_with_limit}")
+
+    result = await tool.execute(**dummy_flight_international_oneway_with_limit)
+
+    data = result["structured_content"]
+
+    assert data["is_roundtrip"] is False
+    assert len(data.get("outbound_flights", [])) <= 2
+
+    print("✅ International oneway limit applied")
+
+
+@pytest.mark.asyncio
+async def test_flight_search_international_roundtrip_with_limit(dummy_flight_international_roundtrip_with_limit):
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    print(f"\n🌍 Searching international roundtrip with limit: {dummy_flight_international_roundtrip_with_limit}")
+
+    result = await tool.execute(**dummy_flight_international_roundtrip_with_limit)
+
+    data = result["structured_content"]
+
+    assert data["is_roundtrip"] is True
+    assert len(data.get("outbound_flights", [])) <= 2
+    assert len(data.get("return_flights", [])) <= 2
+
+    print("✅ International roundtrip limit applied")
+
+#HTML tests
+
+@pytest.mark.asyncio
+async def test_flight_search_oneway_real_api_with_html(dummy_flight_oneway):
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    payload = {**dummy_flight_oneway, "_html": True}
+
+    result = await tool.execute(**payload)
+
+    assert result["html"] is not None
+    assert "flight-card" in result["html"]
+
+    print("✅ Oneway HTML rendered")
+
+
+@pytest.mark.asyncio
+async def test_flight_search_roundtrip_real_api_with_html(dummy_flight_roundtrip):
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    payload = {**dummy_flight_roundtrip, "_html": True}
+
+    result = await tool.execute(**payload)
+
+    assert result["html"] is not None
+    assert "flight-card" in result["html"]
+
+    print("✅ Roundtrip HTML rendered")
+'''
+@pytest.mark.asyncio
+async def test_flight_search_international_oneway_with_html(
+    dummy_flight_international_oneway_with_limit
+):
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    payload = {
+        k: v for k, v in dummy_flight_international_oneway_with_limit.items()
+        if k != "_limit"
+    }
+    payload["_html"] = True
+
+    result = await tool.execute(**payload)
+
+    assert result["html"] is not None
+
+    html = result["html"]
+
+    if "flight-card" in html:
+        assert "flight-card" in html
+    else:
+        assert "No flights available" in html
+'''
+@pytest.mark.asyncio
+async def test_flight_search_international_oneway_with_html(dummy_flight_international_oneway_with_limit):
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    payload = {k: v for k, v in dummy_flight_international_oneway_with_limit.items() if k != "_limit"}
+    payload["_html"] = True
+
+    result = await tool.execute(**payload)
+
+    assert result["html"] is not None
+    assert "flight-card" in result["html"]
+
+    print("✅ International oneway HTML rendered")
+
+
+@pytest.mark.asyncio
+async def test_flight_search_international_roundtrip_with_html(dummy_flight_international_roundtrip_with_limit):
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    payload = {k: v for k, v in dummy_flight_international_roundtrip_with_limit.items() if k != "_limit"}
+    payload["_html"] = True
+
+    result = await tool.execute(**payload)
+
+    assert result["html"] is not None
+    assert "flight-card" in result["html"]
+
+    print("✅ International roundtrip HTML rendered")
 
 
 @pytest.mark.asyncio

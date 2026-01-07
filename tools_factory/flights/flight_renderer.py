@@ -138,7 +138,7 @@ FLIGHT_CAROUSEL_TEMPLATE = """
 }
 </style>
 
-<div class="flight-carousel">
+<div class="flight-carousel" style="max-width: 400px; margin: 0 auto;">
 {% for f in flights %}
   <div class="flight-card">
     <div class="flight-top">
