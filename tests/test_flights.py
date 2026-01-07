@@ -636,6 +636,7 @@ async def test_flight_search_international_oneway_no_combos(dummy_flight_interna
 
     outbound_flights = data.get("outbound_flights", [])
     assert len(outbound_flights) > 0, "International one-way should return outbound flights"
+    print(f"\n✅ International one-way has {len(outbound_flights)} outbound flights, no combos")
 
 @pytest.mark.asyncio
 async def test_flight_response_has_fare_options(dummy_flight_oneway):

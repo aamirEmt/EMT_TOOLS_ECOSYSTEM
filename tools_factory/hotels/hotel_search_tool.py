@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from ..base import BaseTool, ToolMetadata
 from .hotel_schema import HotelSearchInput
 from .hotel_search_service import HotelSearchService
+from .hotel_renderer import render_hotel_results
 
 
 class HotelSearchTool(BaseTool):
@@ -65,11 +66,14 @@ class HotelSearchTool(BaseTool):
             sort_type (str, optional): Sort criteria. Default: "Popular|DESC"
             rating (List[str], optional): Star ratings filter (e.g., ["3", "4", "5"])
             amenities (List[str], optional): Amenities filter (e.g., ["Free WiFi", "Pool"])
+            _limit (int, optional): Limit number of hotels returned (internal use)
+            _html (bool, optional): Render HTML carousel (internal use)
         
         Returns:
             Dict containing:
                 - text (str): Human-readable summary of results
                 - structured_content (dict): Search results with hotel list and metadata
+                - html (str): Rendered HTML carousel (if _html=True)
                 - is_error (bool): Whether an error occurred
         
         Example:
@@ -86,12 +90,24 @@ class HotelSearchTool(BaseTool):
             >>> print(result["text"])
             Found 150 hotels!
         """
+        # --------------------------
+        # Extract extra runtime flags
+        # --------------------------
+        limit = kwargs.pop("_limit", None)
+        render_html = kwargs.pop("_html", False)
+        
         try:
             # Validate input against schema
             search_input = HotelSearchInput(**kwargs)
             
             # Execute search through service layer
             results = await self.service.search(search_input)
+            
+            # --------------------------
+            # Apply limit to results if requested
+            # --------------------------
+            if limit is not None and "hotels" in results:
+                results["hotels"] = results["hotels"][:limit]
             
             # Count hotels found
             hotel_count = len(results.get("hotels", []))
@@ -102,12 +118,23 @@ class HotelSearchTool(BaseTool):
             else:
                 text = f"Found {hotel_count} hotels in {search_input.city_name}!"
             
-            # Format response matching flight tool pattern
-            return {
+            # --------------------------
+            # Prepare generic response
+            # --------------------------
+            response: Dict[str, Any] = {
                 "text": text,
                 "structured_content": results,
+                "html": None,  # placeholder for rendered HTML
                 "is_error": results.get("error") is not None,
             }
+            
+            # --------------------------
+            # Render HTML carousel if requested
+            # --------------------------
+            if render_html and not results.get("error"):
+                response["html"] = render_hotel_results(results)
+            
+            return response
         
         except ValidationError as exc:
             # Handle input validation errors
@@ -117,6 +144,7 @@ class HotelSearchTool(BaseTool):
                     "error": "VALIDATION_ERROR",
                     "details": exc.errors(),
                 },
+                "html": None,
                 "is_error": True,
             }
         
@@ -128,6 +156,7 @@ class HotelSearchTool(BaseTool):
                     "error": "SEARCH_ERROR",
                     "message": str(e),
                 },
+                "html": None,
                 "is_error": True,
             }
 

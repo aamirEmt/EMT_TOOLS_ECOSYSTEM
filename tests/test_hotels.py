@@ -115,6 +115,9 @@ async def test_hotel_search_basic_real_api(dummy_hotel_basic):
         print(f"   First hotel: {first_hotel.get('name', 'N/A')}")
         print(f"   Rating: {first_hotel.get('rating', 'N/A')}")
         print(f"   Price: ₹{first_hotel.get('price', 'N/A')}")
+        deeplink = first_hotel.get('deepLink') or first_hotel.get('booking_url') or first_hotel.get('url')
+        if deeplink:
+            print(f"   DeepLink: {deeplink}")
 
 
 @pytest.mark.asyncio
