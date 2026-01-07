@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+   {
+  "name": "Debug Pytest - Single File (uv venv)",
+  "type": "python",
+  "request": "launch",
+  "module": "pytest",
+  "python": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+  "args": [
+    "tests/test_tools_basic.py::test_flight_search_international_oneway_with_html",
+    "-v",
+    "-s"
+  ],
+  "justMyCode": false,
+  "console": "integratedTerminal"
+}
+
+  ]
+}

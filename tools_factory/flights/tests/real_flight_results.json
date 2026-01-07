@@ -1,0 +1,645 @@
+{
+  "text": "Found 10 flights!",
+  "structured_content": {
+    "outbound_flights": [
+      {
+        "segment_id": 1,
+        "segment_key": "1",
+        "origin": "DEL",
+        "destination": "NMI",
+        "journey_time": "02h 05m",
+        "is_refundable": true,
+        "total_stops": 0,
+        "direction": "outbound",
+        "legs": [
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": "6346",
+            "origin": "DEL",
+            "destination": "NMI",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "06:40",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "08:45",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "02h 05m",
+            "baggage": "15 Kgs"
+          }
+        ],
+        "fare_options": [
+          {
+            "fare_id": "1798,ADT:BF=3634 Tax=994,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=4628`994`3634`3999`2999`0`0`R0IP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:994,CTB=,ITB=,TBA=3634,TTA=994,TFA=4628,CCode`,RTSearch=0,POS=IN,RBD=R",
+            "fare_name": "Saver",
+            "base_fare": 3634.0,
+            "total_fare": 4628.0,
+            "total_tax": 994.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1972,ADT:BF=3934 Tax=1009,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=4943`1009`3934`3999`2999`0`0`RUIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1009,CTB=,ITB=,TBA=3934,TTA=1009,TFA=4943,CCode`,RTSearch=0,POS=IN,RBD=J",
+            "fare_name": "Flexi plus",
+            "base_fare": 3934.0,
+            "total_fare": 4943.0,
+            "total_tax": 1009.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1929,ADT:BF=5134 Tax=1069,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=6203`1069`5134`3999`2999`0`0`RLIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1069,CTB=,ITB=,TBA=5134,TTA=1069,TFA=6203,CCode`,RTSearch=0,POS=IN,RBD=O",
+            "fare_name": "Super 6E",
+            "base_fare": 5134.0,
+            "total_fare": 6203.0,
+            "total_tax": 1069.0,
+            "discount": 150.0
+          }
+        ],
+        "deepLink": "https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=1&Child=0&Infant=0&ReferralId=UserID&UserLanguage=en&DisplayedPriceCurrency=INR&UserCurrency=INR&DisplayedPrice=4628.00&PointOfSaleCountry=IN&TripType=OneWay&Origin1=DEL&Destination1=NMI&DepartureDate1=2026-02-05&Cabin1=Economy&BookingCode1=R&FlightNumber1=6346&cc=&Slice1=1&Segment1=Origin=DEL,BookingCode=R,Destination=NMI,FlightNumber=6346,Carrier=6E,DepartureDate=2026-02-05T0640,id=1,Cabin=Economy,ArrivalDate=2026-02-05T0845"
+      },
+      {
+        "segment_id": 181,
+        "segment_key": "181",
+        "origin": "DEL",
+        "destination": "NMI",
+        "journey_time": "02h 10m",
+        "is_refundable": true,
+        "total_stops": 0,
+        "direction": "outbound",
+        "legs": [
+          {
+            "airline_code": "IX",
+            "airline_name": "Air India Express",
+            "flight_number": "2152",
+            "origin": "DEL",
+            "destination": "NMI",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "11:15",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "13:25",
+            "cabin": "ECONOMY",
+            "fare_class": "G",
+            "booking_code": "G",
+            "duration": "02h 10m",
+            "baggage": "15 Kgs"
+          }
+        ],
+        "fare_options": [
+          {
+            "fare_id": "711,ADT:BF=3912 Tax=1086,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=4998`1086`3912`4300`3000`0`0`GNRA000``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1086,CTB=,ITB=,TBA=3912,TTA=1086,TFA=4998,CCode`,RTSearch=0,POS=IN,RBD=G",
+            "fare_name": "Value",
+            "base_fare": 3912.0,
+            "total_fare": 4998.0,
+            "total_tax": 1086.0,
+            "discount": 200.0
+          },
+          {
+            "fare_id": "1167,ADT:BF=4512 Tax=1116,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5628`1116`4512`2000`300`0`0`GNOA000``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1116,CTB=,ITB=,TBA=4512,TTA=1116,TFA=5628,CCode`,RTSearch=0,POS=IN,RBD=G",
+            "fare_name": "Classic",
+            "base_fare": 4512.0,
+            "total_fare": 5628.0,
+            "total_tax": 1116.0,
+            "discount": 200.0
+          },
+          {
+            "fare_id": "738,ADT:BF=5412 Tax=1162,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=6574`1162`5412`1500`0`0`0`GNEA000``Kgs`20`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1162,CTB=,ITB=,TBA=5412,TTA=1162,TFA=6574,CCode`,RTSearch=0,POS=IN,RBD=G",
+            "fare_name": "Flex",
+            "base_fare": 5412.0,
+            "total_fare": 6574.0,
+            "total_tax": 1162.0,
+            "discount": 200.0
+          }
+        ],
+        "deepLink": "https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=1&Child=0&Infant=0&ReferralId=UserID&UserLanguage=en&DisplayedPriceCurrency=INR&UserCurrency=INR&DisplayedPrice=4998.00&PointOfSaleCountry=IN&TripType=OneWay&Origin1=DEL&Destination1=NMI&DepartureDate1=2026-02-05&Cabin1=Economy&BookingCode1=G&FlightNumber1=2152&cc=&Slice1=1&Segment1=Origin=DEL,BookingCode=G,Destination=NMI,FlightNumber=2152,Carrier=IX,DepartureDate=2026-02-05T1115,id=1,Cabin=Economy,ArrivalDate=2026-02-05T1325"
+      },
+      {
+        "segment_id": 258,
+        "segment_key": "258",
+        "origin": "DEL",
+        "destination": "NMI",
+        "journey_time": "02h 20m",
+        "is_refundable": true,
+        "total_stops": 0,
+        "direction": "outbound",
+        "legs": [
+          {
+            "airline_code": "QP",
+            "airline_name": "AkasaAir",
+            "flight_number": "1831",
+            "origin": "DEL",
+            "destination": "NMI",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "06:30",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "08:50",
+            "cabin": "ECONOMY",
+            "fare_class": "U1",
+            "booking_code": "U1",
+            "duration": "02h 20m",
+            "baggage": "15 Kgs"
+          }
+        ],
+        "fare_options": [
+          {
+            "fare_id": "681,ADT:BF=4007 Tax=1038,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5045`1038`4007`3999`2250`0`0`U1O7RBIX``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1038,CTB=,ITB=,TBA=4007,TTA=1038,TFA=5045,CCode`,RTSearch=0,POS=IN,RBD=U1",
+            "fare_name": "Saver",
+            "base_fare": 4007.0,
+            "total_fare": 5045.0,
+            "total_tax": 1038.0,
+            "discount": 200.0
+          },
+          {
+            "fare_id": "1801,ADT:BF=4388 Tax=1058,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5446`1058`4388`2499`299`0`0`U1O7VWIX``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1058,CTB=,ITB=,TBA=4388,TTA=1058,TFA=5446,CCode`,RTSearch=0,POS=IN,RBD=U1",
+            "fare_name": "Economy  Flexi",
+            "base_fare": 4388.0,
+            "total_fare": 5446.0,
+            "total_tax": 1058.0,
+            "discount": 200.0
+          }
+        ],
+        "deepLink": "https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=1&Child=0&Infant=0&ReferralId=UserID&UserLanguage=en&DisplayedPriceCurrency=INR&UserCurrency=INR&DisplayedPrice=5045.00&PointOfSaleCountry=IN&TripType=OneWay&Origin1=DEL&Destination1=NMI&DepartureDate1=2026-02-05&Cabin1=Economy&BookingCode1=U1&FlightNumber1=1831&cc=&Slice1=1&Segment1=Origin=DEL,BookingCode=U1,Destination=NMI,FlightNumber=1831,Carrier=QP,DepartureDate=2026-02-05T0630,id=1,Cabin=Economy,ArrivalDate=2026-02-05T0850"
+      },
+      {
+        "segment_id": 2,
+        "segment_key": "2",
+        "origin": "DEL",
+        "destination": "NMI",
+        "journey_time": "02h 00m",
+        "is_refundable": true,
+        "total_stops": 0,
+        "direction": "outbound",
+        "legs": [
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": "6210",
+            "origin": "DEL",
+            "destination": "NMI",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "17:15",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "19:15",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "02h 00m",
+            "baggage": "15 Kgs"
+          }
+        ],
+        "fare_options": [
+          {
+            "fare_id": "1798,ADT:BF=4134 Tax=1019,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5153`1019`4134`3999`2999`0`0`P0IP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1019,CTB=,ITB=,TBA=4134,TTA=1019,TFA=5153,CCode`,RTSearch=0,POS=IN,RBD=R",
+            "fare_name": "Saver",
+            "base_fare": 4134.0,
+            "total_fare": 5153.0,
+            "total_tax": 1019.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1972,ADT:BF=4434 Tax=1034,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5468`1034`4434`3999`2999`0`0`PUIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1034,CTB=,ITB=,TBA=4434,TTA=1034,TFA=5468,CCode`,RTSearch=0,POS=IN,RBD=J",
+            "fare_name": "Flexi plus",
+            "base_fare": 4434.0,
+            "total_fare": 5468.0,
+            "total_tax": 1034.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1929,ADT:BF=5634 Tax=1094,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=6728`1094`5634`3999`2999`0`0`PLIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1094,CTB=,ITB=,TBA=5634,TTA=1094,TFA=6728,CCode`,RTSearch=0,POS=IN,RBD=O",
+            "fare_name": "Super 6E",
+            "base_fare": 5634.0,
+            "total_fare": 6728.0,
+            "total_tax": 1094.0,
+            "discount": 150.0
+          }
+        ],
+        "deepLink": "https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=1&Child=0&Infant=0&ReferralId=UserID&UserLanguage=en&DisplayedPriceCurrency=INR&UserCurrency=INR&DisplayedPrice=5153.00&PointOfSaleCountry=IN&TripType=OneWay&Origin1=DEL&Destination1=NMI&DepartureDate1=2026-02-05&Cabin1=Economy&BookingCode1=R&FlightNumber1=6210&cc=&Slice1=1&Segment1=Origin=DEL,BookingCode=R,Destination=NMI,FlightNumber=6210,Carrier=6E,DepartureDate=2026-02-05T1715,id=1,Cabin=Economy,ArrivalDate=2026-02-05T1915"
+      },
+      {
+        "segment_id": 182,
+        "segment_key": "182",
+        "origin": "HDO",
+        "destination": "BOM",
+        "journey_time": "02h 00m",
+        "is_refundable": true,
+        "total_stops": 0,
+        "direction": "outbound",
+        "legs": [
+          {
+            "airline_code": "IX",
+            "airline_name": "Air India Express",
+            "flight_number": "1242",
+            "origin": "HDO",
+            "destination": "BOM",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "15:00",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "17:00",
+            "cabin": "ECONOMY",
+            "fare_class": "G",
+            "booking_code": "G",
+            "duration": "02h 00m",
+            "baggage": "15 Kgs"
+          }
+        ],
+        "fare_options": [
+          {
+            "fare_id": "711,ADT:BF=4603 Tax=936,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5539`936`4603`4300`3000`0`0`GNRA000``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:936,CTB=,ITB=,TBA=4603,TTA=936,TFA=5539,CCode`,RTSearch=0,POS=IN,RBD=G",
+            "fare_name": "Value",
+            "base_fare": 4603.0,
+            "total_fare": 5539.0,
+            "total_tax": 936.0,
+            "discount": 200.0
+          },
+          {
+            "fare_id": "1167,ADT:BF=5504 Tax=980,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=6484`980`5504`2000`300`0`0`GNOA000``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:980,CTB=,ITB=,TBA=5504,TTA=980,TFA=6484,CCode`,RTSearch=0,POS=IN,RBD=G",
+            "fare_name": "Classic",
+            "base_fare": 5504.0,
+            "total_fare": 6484.0,
+            "total_tax": 980.0,
+            "discount": 200.0
+          },
+          {
+            "fare_id": "738,ADT:BF=6404 Tax=1026,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=7430`1026`6404`1500`0`0`0`GNEA000``Kgs`20`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1026,CTB=,ITB=,TBA=6404,TTA=1026,TFA=7430,CCode`,RTSearch=0,POS=IN,RBD=G",
+            "fare_name": "Flex",
+            "base_fare": 6404.0,
+            "total_fare": 7430.0,
+            "total_tax": 1026.0,
+            "discount": 200.0
+          },
+          {
+            "fare_id": "735,ADT:BF=14900 Tax=3406,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=18306`3406`14900`4300`3000`0`0`DNVA000``Kgs`25`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:3406,CTB=,ITB=,TBA=14900,TTA=3406,TFA=18306,CCode`,RTSearch=0,POS=IN,RBD=D",
+            "fare_name": "Business",
+            "base_fare": 14900.0,
+            "total_fare": 18306.0,
+            "total_tax": 3406.0,
+            "discount": 200.0
+          }
+        ],
+        "deepLink": "https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=1&Child=0&Infant=0&ReferralId=UserID&UserLanguage=en&DisplayedPriceCurrency=INR&UserCurrency=INR&DisplayedPrice=5539.00&PointOfSaleCountry=IN&TripType=OneWay&Origin1=HDO&Destination1=BOM&DepartureDate1=2026-02-05&Cabin1=Economy&BookingCode1=G&FlightNumber1=1242&cc=&Slice1=1&Segment1=Origin=HDO,BookingCode=G,Destination=BOM,FlightNumber=1242,Carrier=IX,DepartureDate=2026-02-05T1500,id=1,Cabin=Economy,ArrivalDate=2026-02-05T1700"
+      },
+      {
+        "segment_id": 6,
+        "segment_key": "6",
+        "origin": "DEL",
+        "destination": "NMI",
+        "journey_time": "03h 45m",
+        "is_refundable": true,
+        "total_stops": 1,
+        "direction": "outbound",
+        "legs": [
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": " 163",
+            "origin": "DEL",
+            "destination": "AMD",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "09:15",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "10:55",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "01h 40m",
+            "baggage": "15 Kgs"
+          },
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": " 836",
+            "origin": "AMD",
+            "destination": "NMI",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "11:55",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "13:00",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "01h 05m",
+            "baggage": "15 Kgs"
+          }
+        ],
+        "fare_options": [
+          {
+            "fare_id": "1798,ADT:BF=4416 Tax=1085,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5501`1085`4416`3999`2999`0`0`RCIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1085,CTB=,ITB=,TBA=4416,TTA=1085,TFA=5501,CCode`,RTSearch=0,POS=IN,RBD=RR",
+            "fare_name": "Saver",
+            "base_fare": 4416.0,
+            "total_fare": 5501.0,
+            "total_tax": 1085.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1972,ADT:BF=4858 Tax=1107,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5965`1107`4858`3999`2999`0`0`RUIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1107,CTB=,ITB=,TBA=4858,TTA=1107,TFA=5965,CCode`,RTSearch=0,POS=IN,RBD=JJ",
+            "fare_name": "Flexi plus",
+            "base_fare": 4858.0,
+            "total_fare": 5965.0,
+            "total_tax": 1107.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1929,ADT:BF=7416 Tax=1235,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=8651`1235`7416`3999`2999`0`0`RLIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1235,CTB=,ITB=,TBA=7416,TTA=1235,TFA=8651,CCode`,RTSearch=0,POS=IN,RBD=OO",
+            "fare_name": "Super 6E",
+            "base_fare": 7416.0,
+            "total_fare": 8651.0,
+            "total_tax": 1235.0,
+            "discount": 150.0
+          }
+        ],
+        "deepLink": "https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=1&Child=0&Infant=0&ReferralId=UserID&UserLanguage=en&DisplayedPriceCurrency=INR&UserCurrency=INR&DisplayedPrice=5501.00&PointOfSaleCountry=IN&TripType=OneWay&Origin1=DEL&Destination1=NMI&DepartureDate1=2026-02-05&Cabin1=Economy&BookingCode1=R&FlightNumber1=%20163&cc=&Slice1=1%2C2&Segment1=Origin=DEL,BookingCode=R,Destination=AMD,FlightNumber=%20163,Carrier=6E,DepartureDate=2026-02-05T0915,id=1,Cabin=Economy,ArrivalDate=2026-02-05T1055&Segment2=Origin=AMD,BookingCode=R,Destination=NMI,FlightNumber=%20836,Carrier=6E,DepartureDate=2026-02-05T1155,id=2,Cabin=Economy,ArrivalDate=2026-02-05T1300"
+      },
+      {
+        "segment_id": 5,
+        "segment_key": "5",
+        "origin": "DEL",
+        "destination": "NMI",
+        "journey_time": "05h 50m",
+        "is_refundable": true,
+        "total_stops": 1,
+        "direction": "outbound",
+        "legs": [
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": "2033",
+            "origin": "DEL",
+            "destination": "AMD",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "07:10",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "08:55",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "01h 45m",
+            "baggage": "15 Kgs"
+          },
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": " 836",
+            "origin": "AMD",
+            "destination": "NMI",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "11:55",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "13:00",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "01h 05m",
+            "baggage": "15 Kgs"
+          }
+        ],
+        "fare_options": [
+          {
+            "fare_id": "1798,ADT:BF=4416 Tax=1085,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5501`1085`4416`3999`2999`0`0`RCIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1085,CTB=,ITB=,TBA=4416,TTA=1085,TFA=5501,CCode`,RTSearch=0,POS=IN,RBD=RR",
+            "fare_name": "Saver",
+            "base_fare": 4416.0,
+            "total_fare": 5501.0,
+            "total_tax": 1085.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1972,ADT:BF=4858 Tax=1107,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5965`1107`4858`3999`2999`0`0`RUIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1107,CTB=,ITB=,TBA=4858,TTA=1107,TFA=5965,CCode`,RTSearch=0,POS=IN,RBD=JJ",
+            "fare_name": "Flexi plus",
+            "base_fare": 4858.0,
+            "total_fare": 5965.0,
+            "total_tax": 1107.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1929,ADT:BF=7416 Tax=1235,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=8651`1235`7416`3999`2999`0`0`RLIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1235,CTB=,ITB=,TBA=7416,TTA=1235,TFA=8651,CCode`,RTSearch=0,POS=IN,RBD=OO",
+            "fare_name": "Super 6E",
+            "base_fare": 7416.0,
+            "total_fare": 8651.0,
+            "total_tax": 1235.0,
+            "discount": 150.0
+          }
+        ],
+        "deepLink": "https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=1&Child=0&Infant=0&ReferralId=UserID&UserLanguage=en&DisplayedPriceCurrency=INR&UserCurrency=INR&DisplayedPrice=5501.00&PointOfSaleCountry=IN&TripType=OneWay&Origin1=DEL&Destination1=NMI&DepartureDate1=2026-02-05&Cabin1=Economy&BookingCode1=R&FlightNumber1=2033&cc=&Slice1=1%2C2&Segment1=Origin=DEL,BookingCode=R,Destination=AMD,FlightNumber=2033,Carrier=6E,DepartureDate=2026-02-05T0710,id=1,Cabin=Economy,ArrivalDate=2026-02-05T0855&Segment2=Origin=AMD,BookingCode=R,Destination=NMI,FlightNumber=%20836,Carrier=6E,DepartureDate=2026-02-05T1155,id=2,Cabin=Economy,ArrivalDate=2026-02-05T1300"
+      },
+      {
+        "segment_id": 7,
+        "segment_key": "7",
+        "origin": "DEL",
+        "destination": "NMI",
+        "journey_time": "06h 20m",
+        "is_refundable": true,
+        "total_stops": 1,
+        "direction": "outbound",
+        "legs": [
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": " 964",
+            "origin": "DEL",
+            "destination": "JAI",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "12:35",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "13:25",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "00h 50m",
+            "baggage": "15 Kgs"
+          },
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": " 955",
+            "origin": "JAI",
+            "destination": "NMI",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "17:10",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "18:55",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "01h 45m",
+            "baggage": "15 Kgs"
+          }
+        ],
+        "fare_options": [
+          {
+            "fare_id": "1798,ADT:BF=4416 Tax=1085,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5501`1085`4416`3999`2999`0`0`RCIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1085,CTB=,ITB=,TBA=4416,TTA=1085,TFA=5501,CCode`,RTSearch=0,POS=IN,RBD=RR",
+            "fare_name": "Saver",
+            "base_fare": 4416.0,
+            "total_fare": 5501.0,
+            "total_tax": 1085.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1972,ADT:BF=4858 Tax=1107,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5965`1107`4858`3999`2999`0`0`RUIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1107,CTB=,ITB=,TBA=4858,TTA=1107,TFA=5965,CCode`,RTSearch=0,POS=IN,RBD=JJ",
+            "fare_name": "Flexi plus",
+            "base_fare": 4858.0,
+            "total_fare": 5965.0,
+            "total_tax": 1107.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1929,ADT:BF=7416 Tax=1235,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=8651`1235`7416`3999`2999`0`0`RLIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1235,CTB=,ITB=,TBA=7416,TTA=1235,TFA=8651,CCode`,RTSearch=0,POS=IN,RBD=OO",
+            "fare_name": "Super 6E",
+            "base_fare": 7416.0,
+            "total_fare": 8651.0,
+            "total_tax": 1235.0,
+            "discount": 150.0
+          }
+        ],
+        "deepLink": "https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=1&Child=0&Infant=0&ReferralId=UserID&UserLanguage=en&DisplayedPriceCurrency=INR&UserCurrency=INR&DisplayedPrice=5501.00&PointOfSaleCountry=IN&TripType=OneWay&Origin1=DEL&Destination1=NMI&DepartureDate1=2026-02-05&Cabin1=Economy&BookingCode1=R&FlightNumber1=%20964&cc=&Slice1=1%2C2&Segment1=Origin=DEL,BookingCode=R,Destination=JAI,FlightNumber=%20964,Carrier=6E,DepartureDate=2026-02-05T1235,id=1,Cabin=Economy,ArrivalDate=2026-02-05T1325&Segment2=Origin=JAI,BookingCode=R,Destination=NMI,FlightNumber=%20955,Carrier=6E,DepartureDate=2026-02-05T1710,id=2,Cabin=Economy,ArrivalDate=2026-02-05T1855"
+      },
+      {
+        "segment_id": 4,
+        "segment_key": "4",
+        "origin": "DEL",
+        "destination": "NMI",
+        "journey_time": "07h 20m",
+        "is_refundable": true,
+        "total_stops": 1,
+        "direction": "outbound",
+        "legs": [
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": "2262",
+            "origin": "DEL",
+            "destination": "AMD",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "05:40",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "07:20",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "01h 40m",
+            "baggage": "15 Kgs"
+          },
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": " 836",
+            "origin": "AMD",
+            "destination": "NMI",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "11:55",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "13:00",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "01h 05m",
+            "baggage": "15 Kgs"
+          }
+        ],
+        "fare_options": [
+          {
+            "fare_id": "1798,ADT:BF=4416 Tax=1085,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5501`1085`4416`3999`2999`0`0`RCIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1085,CTB=,ITB=,TBA=4416,TTA=1085,TFA=5501,CCode`,RTSearch=0,POS=IN,RBD=RR",
+            "fare_name": "Saver",
+            "base_fare": 4416.0,
+            "total_fare": 5501.0,
+            "total_tax": 1085.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1972,ADT:BF=4858 Tax=1107,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5965`1107`4858`3999`2999`0`0`RUIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1107,CTB=,ITB=,TBA=4858,TTA=1107,TFA=5965,CCode`,RTSearch=0,POS=IN,RBD=JJ",
+            "fare_name": "Flexi plus",
+            "base_fare": 4858.0,
+            "total_fare": 5965.0,
+            "total_tax": 1107.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1929,ADT:BF=7416 Tax=1235,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=8651`1235`7416`3999`2999`0`0`RLIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1235,CTB=,ITB=,TBA=7416,TTA=1235,TFA=8651,CCode`,RTSearch=0,POS=IN,RBD=OO",
+            "fare_name": "Super 6E",
+            "base_fare": 7416.0,
+            "total_fare": 8651.0,
+            "total_tax": 1235.0,
+            "discount": 150.0
+          }
+        ],
+        "deepLink": "https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=1&Child=0&Infant=0&ReferralId=UserID&UserLanguage=en&DisplayedPriceCurrency=INR&UserCurrency=INR&DisplayedPrice=5501.00&PointOfSaleCountry=IN&TripType=OneWay&Origin1=DEL&Destination1=NMI&DepartureDate1=2026-02-05&Cabin1=Economy&BookingCode1=R&FlightNumber1=2262&cc=&Slice1=1%2C2&Segment1=Origin=DEL,BookingCode=R,Destination=AMD,FlightNumber=2262,Carrier=6E,DepartureDate=2026-02-05T0540,id=1,Cabin=Economy,ArrivalDate=2026-02-05T0720&Segment2=Origin=AMD,BookingCode=R,Destination=NMI,FlightNumber=%20836,Carrier=6E,DepartureDate=2026-02-05T1155,id=2,Cabin=Economy,ArrivalDate=2026-02-05T1300"
+      },
+      {
+        "segment_id": 3,
+        "segment_key": "3",
+        "origin": "DEL",
+        "destination": "NMI",
+        "journey_time": "08h 30m",
+        "is_refundable": true,
+        "total_stops": 1,
+        "direction": "outbound",
+        "legs": [
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": "2308",
+            "origin": "DEL",
+            "destination": "AMD",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "04:30",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "06:05",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "01h 35m",
+            "baggage": "15 Kgs"
+          },
+          {
+            "airline_code": "6E",
+            "airline_name": "IndiGo",
+            "flight_number": " 836",
+            "origin": "AMD",
+            "destination": "NMI",
+            "departure_date": "Thu-05Feb2026",
+            "departure_time": "11:55",
+            "arrival_date": "Thu-05Feb2026",
+            "arrival_time": "13:00",
+            "cabin": "ECONOMY",
+            "fare_class": "R",
+            "booking_code": "R",
+            "duration": "01h 05m",
+            "baggage": "15 Kgs"
+          }
+        ],
+        "fare_options": [
+          {
+            "fare_id": "1798,ADT:BF=4416 Tax=1085,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5501`1085`4416`3999`2999`0`0`RCIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1085,CTB=,ITB=,TBA=4416,TTA=1085,TFA=5501,CCode`,RTSearch=0,POS=IN,RBD=RR",
+            "fare_name": "Saver",
+            "base_fare": 4416.0,
+            "total_fare": 5501.0,
+            "total_tax": 1085.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1972,ADT:BF=4858 Tax=1107,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=5965`1107`4858`3999`2999`0`0`RUIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1107,CTB=,ITB=,TBA=4858,TTA=1107,TFA=5965,CCode`,RTSearch=0,POS=IN,RBD=JJ",
+            "fare_name": "Flexi plus",
+            "base_fare": 4858.0,
+            "total_fare": 5965.0,
+            "total_tax": 1107.0,
+            "discount": 150.0
+          },
+          {
+            "fare_id": "1929,ADT:BF=7416 Tax=1235,CHD:BF=0 Tax=0,INF:BF=0 Tax=0,DFValue=0,DFValue=0,APFV=8651`1235`7416`3999`2999`0`0`RLIP``Kgs`15`True`0`0`0`0`,CPFV=,IPFV=,ATB=`Tax:1235,CTB=,ITB=,TBA=7416,TTA=1235,TFA=8651,CCode`,RTSearch=0,POS=IN,RBD=OO",
+            "fare_name": "Super 6E",
+            "base_fare": 7416.0,
+            "total_fare": 8651.0,
+            "total_tax": 1235.0,
+            "discount": 150.0
+          }
+        ],
+        "deepLink": "https://flight.easemytrip.com/RemoteSearchHandlers/index?Adult=1&Child=0&Infant=0&ReferralId=UserID&UserLanguage=en&DisplayedPriceCurrency=INR&UserCurrency=INR&DisplayedPrice=5501.00&PointOfSaleCountry=IN&TripType=OneWay&Origin1=DEL&Destination1=NMI&DepartureDate1=2026-02-05&Cabin1=Economy&BookingCode1=R&FlightNumber1=2308&cc=&Slice1=1%2C2&Segment1=Origin=DEL,BookingCode=R,Destination=AMD,FlightNumber=2308,Carrier=6E,DepartureDate=2026-02-05T0430,id=1,Cabin=Economy,ArrivalDate=2026-02-05T0605&Segment2=Origin=AMD,BookingCode=R,Destination=NMI,FlightNumber=%20836,Carrier=6E,DepartureDate=2026-02-05T1155,id=2,Cabin=Economy,ArrivalDate=2026-02-05T1300"
+      }
+    ],
+    "return_flights": [],
+    "is_roundtrip": false,
+    "is_international": false,
+    "international_combos": [],
+    "origin": "DEL",
+    "destination": "BOM"
+  },
+  "html": null,
+  "is_error": false
+}
