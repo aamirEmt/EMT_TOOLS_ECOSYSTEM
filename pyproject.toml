@@ -22,7 +22,8 @@ classifiers = [
 dependencies = [
     "python-dotenv>=0.9.9",
     "httpx>=0.28.1",
-    "pydantic>=2.12.5",
+    "pycryptodome",
+        "pycryptodome>=3.23.0",
 ]
 
 [project.optional-dependencies]
@@ -36,3 +37,10 @@ packages = [
     "emt_client",
     "tools_factory",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest-html>=4.1.1",
+]
+
+
