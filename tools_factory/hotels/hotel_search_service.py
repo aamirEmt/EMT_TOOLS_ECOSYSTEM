@@ -15,7 +15,7 @@ class HotelSearchService:
         """Execute hotel search workflow"""
         
         try:
-            # Step 1: Resolve city name
+            # Step 1: Resolve city names
             resolved_city = await resolve_city_name(search_input.city_name)
             
             # Step 2: Generate search key
@@ -121,7 +121,7 @@ class HotelSearchService:
         resolved_key = response.get("key") or response.get("SearchKey") or search_key
         
         results = []
-        for hotel in hotels[:15]:  # Limit to 15 for display
+        for hotel in hotels[:]:  
             deep_link_data = self._build_deep_link(
                 city_name=resolved_city,
                 check_in=search_input.check_in_date,

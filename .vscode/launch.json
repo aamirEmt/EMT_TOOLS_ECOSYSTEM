@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+   {
+  "name": "Debug Pytest - Single File (uv venv)",
+  "type": "python",
+  "request": "launch",
+  "module": "pytest",
+  "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+  "args": [
+    "tests/test_bookings.py::test_bookings_require_login",
+    "-v",
+    "-s"
+  ],
+  "justMyCode": false,
+  "console": "integratedTerminal"
+}
+
+  ]
+}
