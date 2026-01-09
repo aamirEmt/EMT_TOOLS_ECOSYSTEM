@@ -708,6 +708,250 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
 (function () {
   let selectedOnwardFlight = null;
   let selectedReturnFlight = null;
+  let selectedOnwardFlightData = null;
+  let selectedReturnFlightData = null;
+  let passengers= {{ passengers | tojson }};
+
+  // Helper functions from RoundTripSelector.jsx
+  const getSafeNumber = (value, fallback = 0) => {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : fallback;
+  };
+
+  const cleanCode = (value, fallback = "") => {
+    if (!value || typeof value !== "string") return fallback;
+    return value.trim().toUpperCase();
+  };
+
+  const cleanCodeNoSpaces = (value, fallback = "") =>
+    cleanCode(value, fallback).replace(/\s+/g, "");
+
+  const normalizeCabin = (value) => {
+    if (!value || typeof value !== "string") return "Economy";
+    const lower = value.trim().toLowerCase();
+    if (lower === "economy") return "Economy";
+    if (lower === "business") return "Business";
+    if (lower === "first") return "First";
+    return value.trim();
+  };
+
+  const normalizeFlightNumber = (value) => {
+    if (value === undefined || value === null) return "";
+    return String(value).replace(/\s+/g, "");
+  };
+
+  const parseTextualDate = (value) => {
+    const str = String(value);
+    const match = str.match(/(\d{1,2})[^\dA-Za-z]*([A-Za-z]{3})[^\d]*?(\d{4})/);
+    if (!match) return "";
+    const [, dRaw, monRaw, yRaw] = match;
+    const monthMap = {
+      jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
+      jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12"
+    };
+    const m = monthMap[monRaw.toLowerCase()];
+    if (!m) return "";
+    const d = String(dRaw).padStart(2, "0");
+    return `${yRaw}-${m}-${d}`;
+  };
+
+  const toDateString = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") {
+      const isoMatch = value.match(/^(\d{4}-\d{2}-\d{2})/);
+      if (isoMatch) return isoMatch[1];
+      const tIndex = value.indexOf("T");
+      if (tIndex > 0) {
+        const datePart = value.slice(0, tIndex);
+        const isoPart = datePart.match(/^(\d{4}-\d{2}-\d{2})/);
+        if (isoPart) return isoPart[1];
+      }
+      const parsedText = parseTextualDate(value);
+      if (parsedText) return parsedText;
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toISOString().slice(0, 10);
+  };
+
+  const toTimeString = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") {
+      const raw = value.includes("T") ? value.split("T")[1] : value;
+      const digits = raw.replace(/[^0-9]/g, "");
+      if (digits.length >= 1) return digits.padStart(4, "0").slice(0, 4);
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${hours}${minutes}`;
+  };
+
+  const composeDateTime = (dateValue, timeValue) => {
+    const datePart = toDateString(dateValue);
+    const timePart = toTimeString(timeValue);
+    if (datePart && timePart) return `${datePart}T${timePart}`;
+    if (typeof dateValue === "string" && dateValue.includes("T")) {
+      const fallbackDate = toDateString(dateValue);
+      const fallbackTime = toTimeString(dateValue);
+      if (fallbackDate && fallbackTime) return `${fallbackDate}T${fallbackTime}`;
+    }
+    if (typeof timeValue === "string" && timeValue.includes("T")) return timeValue;
+    return datePart || "";
+  };
+
+  const extractFare = (flight) => {
+    const fareOption = flight?.fare_options?.[0] || flight?.fare_options?.fare;
+    const candidates = [
+      fareOption?.total_fare,
+      fareOption?.total,
+      fareOption?.base_fare,
+      flight?.fare,
+      flight?.price
+    ];
+    for (const candidate of candidates) {
+      const num = getSafeNumber(candidate, null);
+      if (num !== null) return num;
+    }
+    return 0;
+  };
+
+  const formatPrice = (value) => getSafeNumber(value, 0).toFixed(2);
+
+  const extractSegments = (flight) => {
+    const legs = Array.isArray(flight?.legs) ? flight.legs : [];
+    const segmentsSource = legs.length ? legs : [flight || {}];
+
+    return segmentsSource.map((leg) => {
+      const departureDate = toDateString(
+        leg.departure_date || leg.departureDate || leg.departure_time_iso || 
+        leg.departure_time || leg.departureDateTime
+      );
+      const arrivalDate = toDateString(
+        leg.arrival_date || leg.arrivalDate || leg.arrival_time_iso || 
+        leg.arrival_time || leg.arrivalDateTime
+      );
+      const cabin = normalizeCabin(
+        leg.cabin || leg.cabin_class || leg.cabinClass || flight?.cabin || "Economy"
+      );
+      const bookingCode = cleanCodeNoSpaces(
+        leg.booking_code || leg.bookingCode || leg.booking_class || leg.fare_class ||
+        flight?.booking_code || flight?.bookingCode || flight?.booking_class || 
+        flight?.fare_class || ""
+      ) || "Y";
+      const flightNumber = normalizeFlightNumber(
+        leg.flight_number || leg.flightNumber || flight?.flight_number || flight?.flightNumber || ""
+      );
+      const carrier = cleanCode(
+        leg.airline_code || leg.carrier || flight?.airline_code || 
+        flight?.carrier || flight?.marketing_carrier
+      ) || "";
+
+      return {
+        origin: cleanCode(leg.origin || flight?.origin || ""),
+        destination: cleanCode(leg.destination || flight?.destination || ""),
+        bookingCode,
+        flightNumber,
+        carrier,
+        cabin,
+        departureDate,
+        arrivalDate,
+        departureTime: toTimeString(leg.departure_time_iso || leg.departure_time || leg.departureDateTime),
+        arrivalTime: toTimeString(leg.arrival_time_iso || leg.arrival_time || leg.arrivalDateTime)
+      };
+    });
+  };
+
+  const buildSegmentString = (segment, id) => {
+    const departureDateTime = composeDateTime(segment.departureDate, segment.departureTime);
+    const arrivalDateTime = composeDateTime(segment.arrivalDate || segment.departureDate, segment.arrivalTime);
+
+    const parts = [
+      `Origin=${segment.origin || ""}`,
+      `BookingCode=${segment.bookingCode || ""}`,
+      `Destination=${segment.destination || ""}`,
+      `FlightNumber=${segment.flightNumber || ""}`,
+      `Carrier=${segment.carrier || ""}`,
+      `DepartureDate=${departureDateTime}`,
+      `id=${id}`,
+      `Cabin=${segment.cabin || ""}`,
+      `ArrivalDate=${arrivalDateTime}`
+    ];
+    return parts.join(",");
+  };
+
+  const encodeSegmentParam = (segment) =>
+    encodeURIComponent(segment || "")
+      .replace(/%2C/g, ",")
+      .replace(/%3D/g, "=");
+
+  const buildRoundTripDeepLink = (onwardFlight, returnFlight, options = {}) => {
+    const {
+      adults = 1,
+      children = 0,
+      infants = 0,
+      referralId = "UserID",
+      language = "ln-hi",
+      displayedCurrency = "INR",
+      userCurrency = "INR",
+      pointOfSaleCountry = "IN",
+      cc = ""
+    } = options;
+
+    if (!onwardFlight || !returnFlight) return "";
+
+    const onwardSegments = extractSegments(onwardFlight);
+    const returnSegments = extractSegments(returnFlight);
+
+    if (!onwardSegments.length || !returnSegments.length) return "";
+
+    const onwardFirst = onwardSegments[0];
+    const onwardLast = onwardSegments[onwardSegments.length - 1];
+    const returnFirst = returnSegments[0];
+    const returnLast = returnSegments[returnSegments.length - 1];
+
+    const baseUrl = "https://flight.easemytrip.com/RemoteSearchHandlers/index";
+    const price = formatPrice(extractFare(onwardFlight) + extractFare(returnFlight));
+
+    const query = {
+      Adult: adults ?? 1,
+      Child: children ?? 0,
+      Infant: infants ?? 0,
+      ReferralId: referralId || "UserID",
+      UserLanguage: language || "en",
+      DisplayedPriceCurrency: displayedCurrency || "INR",
+      UserCurrency: userCurrency || displayedCurrency || "INR",
+      DisplayedPrice: price,
+      PointOfSaleCountry: pointOfSaleCountry || "IN",
+      TripType: "RoundTrip",
+      Origin1: onwardFirst.origin,
+      Destination1: onwardLast.destination,
+      DepartureDate1: onwardFirst.departureDate,
+      Cabin1: onwardFirst.cabin || "Economy",
+      BookingCode1: onwardFirst.bookingCode,
+      FlightNumber1: onwardFirst.flightNumber,
+      Origin2: returnFirst.origin,
+      Destination2: returnLast.destination,
+      DepartureDate2: returnFirst.departureDate,
+      Cabin2: returnFirst.cabin || "Economy",
+      BookingCode2: returnFirst.bookingCode,
+      FlightNumber2: returnFirst.flightNumber,
+      cc: cc || "",
+      Slice1: Array.from({ length: onwardSegments.length }, (_, i) => i + 1).join(","),
+      Slice2: Array.from({ length: returnSegments.length }, (_, i) => onwardSegments.length + i + 1).join(",")
+    };
+
+    const segments = [...onwardSegments, ...returnSegments];
+    const baseQuery = Object.entries(query)
+      .map(([key, val]) => `${key}=${encodeURIComponent(val ?? "")}`)
+      .join("&");
+    const segmentQuery = segments
+      .map((segment, idx) => `Segment${idx + 1}=${encodeSegmentParam(buildSegmentString(segment, idx + 1))}`)
+      .join("&");
+
+    return `${baseUrl}?${baseQuery}&${segmentQuery}`;
+  };
 
   function updateUI(name, target) {
     document.querySelectorAll('input[name="' + name + '"]').forEach(input => {
@@ -718,23 +962,25 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
 
   function updateBookButton() {
     const btn = document.querySelector('.round-trip-selector .bkbtn');
-    btn.disabled = !(selectedOnwardFlight && selectedReturnFlight);
+    btn.disabled = !(selectedOnwardFlightData && selectedReturnFlightData);
   }
 
   document.addEventListener('change', function (e) {
     if (e.target.type !== 'radio') return;
 
     const wrapper = e.target.closest('.selectable-flight');
-    const flight = JSON.parse(wrapper.dataset.flight);
+    const flightUI = JSON.parse(wrapper.dataset.flight);
     const leg = wrapper.dataset.leg;
 
     if (leg === 'onward') {
-      selectedOnwardFlight = flight;
+      selectedOnwardFlight = flightUI;
+      selectedOnwardFlightData = flightUI.raw_data || flightUI;
       updateUI('onward-flight', e.target);
     }
 
     if (leg === 'return') {
-      selectedReturnFlight = flight;
+      selectedReturnFlight = flightUI;
+      selectedReturnFlightData = flightUI.raw_data || flightUI;
       updateUI('return-flight', e.target);
     }
 
@@ -742,9 +988,27 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
   });
 
   window.handleDomesticRoundtripBook = function () {
-    if (!selectedOnwardFlight || !selectedReturnFlight) return;
-    const link = selectedReturnFlight.booking_link || selectedOnwardFlight.booking_link;
-    window.open(link, '_blank', 'noopener,noreferrer');
+   console.log('Booking roundtrip with:', { selectedOnwardFlightData, selectedReturnFlightData, passengers });
+    if (!selectedOnwardFlightData || !selectedReturnFlightData) return;
+    
+    const link = buildRoundTripDeepLink(
+      selectedOnwardFlightData,
+      selectedReturnFlightData,
+      {
+        adults: {{ passengers.adults | default(1) }},
+        children: {{ passengers.children | default(0) }},
+        infants: {{ passengers.infants | default(0) }},
+        referralId: "{{ referral_id | default('UserID') }}",
+        language: "{{ language | default('ln-hi') }}",
+        displayedCurrency: "{{ currency | default('INR') }}",
+        userCurrency: "{{ currency | default('INR') }}",
+        pointOfSaleCountry: "{{ pos_country | default('IN') }}"
+      }
+    );
+    
+    if (link) {
+      window.open(link, '_blank', 'noopener,noreferrer');
+    }
   };
 })();
 </script>
@@ -1051,7 +1315,8 @@ def _normalize_flight_for_ui(flight: Dict[str, Any], trip_type: str = "Oneway") 
         'fare': _format_currency(fare_amount),
         'booking_link': booking_link,
         'trip_type': trip_type,
-        'departure_date': departure_date, 
+        'departure_date': departure_date,
+        'raw_data': flight,  # Keep raw flight data for deeplink building
     }
 
 def _calculate_journey_time(legs: List[Dict[str, Any]]) -> str:
@@ -1205,42 +1470,53 @@ def render_oneway_flights(flight_results: Dict[str, Any]) -> str:
 def render_domestic_roundtrip_flights(flight_results: Dict[str, Any]) -> str:
     """
     Render domestic roundtrip flight results with selection interface.
-    
-    Args:
-        flight_results: Dictionary containing flight search results with keys:
-            - outbound_flights: List of outbound flight dictionaries
-            - return_flights: List of return flight dictionaries
-            - origin: Origin airport code
-            - destination: Destination airport code
-    
-    Returns:
-        HTML string for the flight carousel with selection UI
     """
+
     onward_flights = flight_results.get('outbound_flights', [])
     return_flights = flight_results.get('return_flights', [])
-    
+
     if not onward_flights or not return_flights:
-        return "<div class='flight-carousel'><main><div class='emt-empty'>No flights found</div></main></div>"
-    
-    # Get origin and destination
+        return (
+            "<div class='flight-carousel'>"
+            "<main><div class='emt-empty'>No flights found</div></main>"
+            "</div>"
+        )
+
+    # --------------------------------------------------
+    # Route info
+    # --------------------------------------------------
     onward_origin = flight_results.get('origin') or onward_flights[0].get('origin') or '--'
     onward_destination = flight_results.get('destination') or onward_flights[0].get('destination') or '--'
     return_origin = onward_destination
     return_destination = onward_origin
-    
-    # Normalize flights
-    onward_ui = [_normalize_flight_for_ui(flight, 'Onward') for flight in onward_flights]
-    return_ui = [_normalize_flight_for_ui(flight, 'Return') for flight in return_flights]
-    
+
+    # --------------------------------------------------
+    # Normalize flights for UI
+    # --------------------------------------------------
+    onward_ui = [_normalize_flight_for_ui(f, 'Onward') for f in onward_flights]
+    return_ui = [_normalize_flight_for_ui(f, 'Return') for f in return_flights]
+
     onward_ui = [f for f in onward_ui if f]
     return_ui = [f for f in return_ui if f]
 
     onward_date = onward_ui[0]['departure_date'] if onward_ui else "--"
     return_date = return_ui[0]['departure_date'] if return_ui else "--"
-    
+
+    # --------------------------------------------------
+    # ✅ PASSENGER CONTEXT (FIXED)
+    # --------------------------------------------------
+    passengers = flight_results.get("passengers") or {
+        "adults": flight_results.get("adults", 1),
+        "children": flight_results.get("children", 0),
+        "infants": flight_results.get("infants", 0),
+    }
+
+    # --------------------------------------------------
     # Render template
+    # --------------------------------------------------
     combined_styles = f"{BASE_FLIGHT_STYLES}\n{DOMESTIC_ROUNDTRIP_STYLES}"
     template = _jinja_env.from_string(DOMESTIC_ROUNDTRIP_TEMPLATE)
+
     return template.render(
         styles=combined_styles,
         onward_origin=onward_origin,
@@ -1251,10 +1527,16 @@ def render_domestic_roundtrip_flights(flight_results: Dict[str, Any]) -> str:
         return_destination=return_destination,
         return_count=len(return_ui),
         return_flights=return_ui,
-        onward_date=onward_date,  
+        onward_date=onward_date,
         return_date=return_date,
-    )
 
+        # ✅ this is what your JS reads
+        passengers=passengers,
+        referral_id='UserID',
+        language='ln-hi',
+        currency='INR',
+        pos_country='IN',
+    )
 
 def render_international_roundtrip_flights(flight_results: Dict[str, Any]) -> str:
     combos = flight_results.get('international_combos', [])

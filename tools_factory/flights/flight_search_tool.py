@@ -70,7 +70,11 @@ class FlightSearchTool(BaseTool):
             infants=payload.infants,
             cabin=payload.cabin,
         )
-
+        flight_results["passengers"] = {
+            "adults": payload.adults,
+            "children": payload.children,
+            "infants": payload.infants, }
+        
         # Apply limit to results if requested
         if limit is not None:
             if "outbound_flights" in flight_results:
