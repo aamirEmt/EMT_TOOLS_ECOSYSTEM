@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from tools_factory.base import BaseTool, ToolMetadata
 from pydantic import ValidationError
-
+from emt_client.utils import generate_short_link
 from .flight_scehma import FlightSearchInput
 from .flight_search_service import search_flights
 
@@ -43,14 +43,48 @@ class FlightSearchTool(BaseTool):
             cabin=payload.cabin,
 
         )
+        outbound_count = 0
+        return_count = 0
+        international_combos_count = 0
 
-        outbound_count = len(flight_results.get("outbound_flights", []))
+        is_roundtrip = flight_results.get("is_roundtrip")
+        is_international = flight_results.get("is_international")
+
+        international_combos = flight_results.get("international_combos") or []
+
+        if is_international and international_combos:
+            international_combos_count = len(international_combos)
+            flight_results["international_combos"] = generate_short_link(
+                international_combos,
+                product_type="flight"
+            )
+            flight_results["outbound_flights"] = []
+            flight_results["return_flights"] = []
+
+        else:
+            outbound_flights = flight_results.get("outbound_flights") or []
+            outbound_count = len(outbound_flights)
+            flight_results["outbound_flights"] = generate_short_link(
+                outbound_flights, product_type="flight"
+            )
+
+            if is_roundtrip:
+                return_flights = flight_results.get("return_flights") or []
+                return_count = len(return_flights)
+                flight_results["return_flights"] = generate_short_link(
+                    return_flights, product_type="flight"
+                )
+
+
+    
         return_count = len(flight_results.get("return_flights", []))
 
         if flight_results.get("error"):
             text = f"No flights found. {flight_results.get('message', '')}"
-        elif flight_results.get("is_roundtrip"):
+        elif flight_results.get("is_roundtrip") and not flight_results.get("is_international"):
             text = f"Found {outbound_count} outbound and {return_count} return flights!"
+        elif international_combos:
+             text = f"Found {international_combos_count} flights!"
         else:
             text = f"Found {outbound_count} flights!"
 

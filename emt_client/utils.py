@@ -1,10 +1,12 @@
 import uuid
 import time
+import json
 from datetime import datetime
-from typing import Tuple, List, Dict,Optional
+from typing import Tuple, List, Dict, Optional, Any
 from emt_client.clients.flight_client import FlightApiClient
 from .config import AUTOSUGGEST_URL
 import httpx
+import requests
 
 def gen_trace_id(prefix="trace"):
     return f"{prefix}{int(time.time()*1000)}{str(uuid.uuid4())[:6]}"
@@ -36,6 +38,30 @@ def extract_first_code_and_country(suggestions: List[Dict]) -> Tuple[str, str]:
 async def fetch_first_code_and_country(client: FlightApiClient, search_term: str) -> Tuple[str, str]:
     suggestions = await fetch_autosuggest(client, search_term)
     return extract_first_code_and_country(suggestions)
+
+def extract_first_city_code_country(suggestions: List[Dict]) -> Tuple[str, str, str]:
+    if not suggestions:
+        raise ValueError("Empty suggestions list.")
+    first = suggestions[0] or {}
+    city_field = first.get("City") or first.get("CityName") or first.get("Name") or ""
+    country = (first.get("Country") or "").strip()
+
+    city_field = str(city_field).strip()
+    if "(" in city_field and ")" in city_field:
+        name_part, code_part = city_field.split("(", 1)
+        city_name = name_part.strip() or city_field
+        city_code = code_part.split(")", 1)[0].strip() or city_field
+    else:
+        city_name = city_field
+        city_code = city_field
+
+    return city_code, country, city_name
+
+async def fetch_first_city_code_country(
+    client: FlightApiClient, search_term: str
+) -> Tuple[str, str, str]:
+    suggestions = await fetch_autosuggest(client, search_term)
+    return extract_first_city_code_country(suggestions)
 
 
 SOLR_AUTOSUGGEST_URL = "https://solr.easemytrip.com/v1/api/auto/GetHotelAutoSuggest_SolrUItest"
@@ -105,3 +131,55 @@ def generate_hotel_search_key(
     )
     
     return search_key
+
+
+DEEPLINK_API_URL = "https://deeplinkapi.easemytrip.com/api/fire/GetShortLinkRawV1"
+
+
+def generate_short_link(
+    results: List[Dict[str, Any]],
+    product_type: str,
+) -> List[Dict[str, Any]]:
+    """
+    Create shortened EMT deeplinks for a list of results using the public shortener API.
+
+    Args:
+        results: List of result dicts that contain a "deepLink".
+        product_type: EMT product type identifier (e.g., "flight", "hotel").
+
+    Returns:
+        The same list with short link data merged into each result.
+    """
+    headers = {"Content-Type": "application/json"}
+
+    for item in results:
+        original_link = item.get("deepLink") or item.get("originalDeepLink")
+        if not original_link:
+            continue
+
+        payload = json.dumps(
+            {
+                "Link": original_link,
+                "UserId": "",
+                "Mobile": "",
+                "Email": "",
+                "PageType": "2",
+                "ProductType": product_type,
+                "PlatformId": "6",
+                "Authentication": {
+                    "UserName": "EMT",
+                    "Password": "123123",
+                },
+            }
+        )
+
+        deeplink_api_res = requests.post(
+            DEEPLINK_API_URL, headers=headers, data=payload, timeout=10
+        )
+        deeplink_api_res.raise_for_status()
+        data = deeplink_api_res.json()
+        short_link_value = data.get("ShortLink")
+        item["deepLink"] = short_link_value
+        
+
+    return results

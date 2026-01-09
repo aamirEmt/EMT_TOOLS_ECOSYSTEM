@@ -8,9 +8,13 @@ This module handles all flight search operations including:
 
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 from emt_client.clients.flight_client import FlightApiClient
-from emt_client.utils import gen_trace_id,fetch_first_code_and_country
+from emt_client.utils import (
+    gen_trace_id,
+    fetch_first_city_code_country,
+    generate_short_link,
+)
 from emt_client.config import FLIGHT_BASE_URL, FLIGHT_DEEPLINK
 from enum import Enum
 import re
@@ -466,7 +470,7 @@ def _process_international_combos(
 
 
 def build_deep_link(
-    *,
+    is_international,
     flight: Dict[str, Any],
     passengers: Dict[str, int],
     trip_type: str,
@@ -496,6 +500,8 @@ def build_deep_link(
         fare_value = float(fare_value_raw) if fare_value_raw is not None else None
     except (TypeError, ValueError):
         fare_value = None
+    if not is_international and trip_type=="RoundTrip":
+        trip_type="OneWay"
 
     params: List[tuple[str, str]] = [
         ("Adult", str(passengers.get("adults", 1))),
@@ -544,6 +550,187 @@ def build_deep_link(
 
     return {"deepLink": deep_link}
 
+def build_roundtrip_combo_deep_link(
+    *,
+    onward_flight: Dict[str, Any],
+    return_flight: Dict[str, Any],
+    passengers: Dict[str, int],
+    referral_id: str = "UserID",
+    language: str = "en",
+    currency: str = "INR",
+    pos_country: str = "IN",
+) -> str:
+    """
+    Build EMT deep link for combo roundtrip (multi-leg onward + return)
+    """
+
+    onward_legs = onward_flight.get("legs") or []
+    return_legs = return_flight.get("legs") or []
+
+    if not onward_legs or not return_legs:
+        return FLIGHT_DEEPLINK
+
+    
+    def _fare(f):
+        fares = f.get("fare_options") or []
+        try:
+            return float(fares[0].get("total_fare") or fares[0].get("base_fare") or 0)
+        except Exception:
+            return 0.0
+
+    total_price = _fare(onward_flight) + _fare(return_flight)
+
+    # ---- basic params ----
+    params = {
+        "Adult": passengers.get("adults", 1),
+        "Child": passengers.get("children", 0),
+        "Infant": passengers.get("infants", 0),
+        "ReferralId": referral_id,
+        "UserLanguage": language,
+        "DisplayedPriceCurrency": currency,
+        "UserCurrency": currency,
+        "DisplayedPrice": f"{total_price:.2f}",
+        "PointOfSaleCountry": pos_country,
+        "TripType": "RoundTrip",
+
+        # onward
+        "Origin1": onward_legs[0]["origin"],
+        "Destination1": onward_legs[-1]["destination"],
+        "DepartureDate1": _parse_date_to_iso(onward_legs[0]["departure_date"]),
+        "Cabin1": _normalize_cabin(onward_legs[0].get("cabin")),
+        "BookingCode1": onward_legs[0].get("booking_code") or onward_legs[0].get("fare_class", ""),
+        "FlightNumber1": onward_legs[0].get("flight_number", ""),
+
+        # return
+        "Origin2": return_legs[0]["origin"],
+        "Destination2": return_legs[-1]["destination"],
+        "DepartureDate2": _parse_date_to_iso(return_legs[0]["departure_date"]),
+        "Cabin2": _normalize_cabin(return_legs[0].get("cabin")),
+        "BookingCode2": return_legs[0].get("booking_code") or return_legs[0].get("fare_class", ""),
+        "FlightNumber2": return_legs[0].get("flight_number", ""),
+
+        "cc": "",
+    }
+
+    # ---- slices ----
+    slice1 = ",".join(str(i + 1) for i in range(len(onward_legs)))
+    slice2 = ",".join(
+        str(len(onward_legs) + i + 1) for i in range(len(return_legs))
+    )
+
+    params["Slice1"] = slice1
+    params["Slice2"] = slice2
+
+    # ---- segments ----
+    all_legs = onward_legs + return_legs
+    segment_strings = _build_segment_strings(
+        all_legs,
+        _parse_date_to_iso(onward_legs[0]["departure_date"])
+    )
+
+    query = "&".join(
+        f"{k}={quote(str(v), safe='')}" for k, v in params.items()
+    )
+
+    segment_query = "&".join(
+        f"Segment{i+1}={quote(seg, safe='=,:-T')}"
+        for i, seg in enumerate(segment_strings)
+        if seg
+    )
+
+    return f"{FLIGHT_DEEPLINK}?{query}&{segment_query}"
+
+
+def _format_listing_date(raw_date: Optional[str]) -> str:
+    if not raw_date:
+        return ""
+
+    raw_text = str(raw_date).strip()
+    if not raw_text:
+        return ""
+
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%d-%b-%Y", "%d%b%Y"):
+        try:
+            return datetime.strptime(raw_text, fmt).strftime("%d/%m/%Y")
+        except ValueError:
+            continue
+
+    return raw_text
+
+
+def _build_view_all_link(search_context: Optional[Dict[str, Any]]) -> str:
+    if not search_context:
+        return ""
+
+    def _format_location(code: str, name: str, country: str) -> str:
+        parts = [code, name, country]
+        return "-".join([p for p in parts if p])
+
+    def _safe_int(value: Any, default: int) -> int:
+        try:
+            parsed = int(value)
+            return parsed if parsed >= 0 else default
+        except (TypeError, ValueError):
+            return default
+
+    origin_code = search_context.get("origin") or ""
+    destination_code = search_context.get("destination") or ""
+    origin_name = search_context.get("origin_name") or origin_code
+    destination_name = search_context.get("destination_name") or destination_code
+    origin_country = search_context.get("origin_country") or ""
+    destination_country = search_context.get("destination_country") or ""
+
+    outbound_date = _format_listing_date(search_context.get("outbound_date"))
+    return_date = _format_listing_date(search_context.get("return_date"))
+
+    if not origin_code or not destination_code or not outbound_date:
+        return ""
+
+    is_roundtrip = bool(return_date)
+    is_domestic = not bool(search_context.get("is_international"))
+
+    srch_parts = [
+        _format_location(origin_code, origin_name, origin_country),
+        _format_location(destination_code, destination_name, destination_country),
+        outbound_date,
+    ]
+
+    srch_value = "|".join(srch_parts)
+    if is_roundtrip:
+        srch_value = f"{srch_value}-{return_date}"
+
+    passengers = search_context.get("passengers") or {}
+    adults = _safe_int(passengers.get("adults", 1), 1)
+    children = _safe_int(passengers.get("children", 0), 0)
+    infants = _safe_int(passengers.get("infants", 0), 0)
+
+    query_params = {
+        "srch": srch_value,
+        "px": f"{adults}-{children}-{infants}",
+        "cbn": search_context.get("cabin", 0),
+        "ar": "undefined",
+        "isow": str(not is_roundtrip).lower(),
+        "isdm": str(is_domestic).lower(),
+        "lang": "en-us",
+        "IsDoubleSeat": "false",
+        "CCODE": "IN",
+        "curr": "INR",
+        "apptype": "B2C",
+    }
+
+    base_url = "https://www.easemytrip.com/flight-search/listing"
+    raw_link = f"{base_url}?{urlencode(query_params, quote_via=quote)}"
+
+    try:
+        short_link = generate_short_link(
+            [{"deepLink": raw_link}],
+            product_type="flight",
+        )[0].get("deepLink")
+        return short_link or raw_link
+    except Exception:
+        return raw_link
+
+
 async def search_flights(
     origin: str,
     destination: str,
@@ -572,21 +759,50 @@ async def search_flights(
     trace_id = gen_trace_id()
     client = FlightApiClient()
     is_roundtrip = return_date is not None
-    origin_code, origin_country=await fetch_first_code_and_country(client,origin)
-    destination_code, destination_country=await fetch_first_code_and_country(client,destination)
+    try:
+        origin_code, origin_country, origin_name = await fetch_first_city_code_country(
+            client, origin
+        )
+    except Exception:
+        origin_code, origin_country, origin_name = origin, "", origin
 
-    is_international=not((origin_country=="India") and (destination_country=="India"))
+    try:
+        destination_code, destination_country, destination_name = await fetch_first_city_code_country(
+            client, destination
+        )
+    except Exception:
+        destination_code, destination_country, destination_name = destination, "", destination
+
+    if origin_country and destination_country:
+        is_international = not (
+            origin_country.strip().lower() == "india"
+            and destination_country.strip().lower() == "india"
+        )
+    else:
+        is_international = False
     cabin_enum = resolve_cabin_enum(cabin)
+
+    passengers = {
+        "adults": adults,
+        "children": children,
+        "infants": infants,
+    }
 
     search_context = {
         "origin": origin_code,
         "destination": destination_code,
+        "origin_name": origin_name or origin,
+        "destination_name": destination_name or destination,
+        "origin_country": origin_country,
+        "destination_country": destination_country,
         "outbound_date": outbound_date,
         "return_date": return_date,
         "adults": adults,
         "children": children,
         "infants": infants,
+        "passengers": passengers,
         "cabin": cabin_enum.value,
+        "is_international": is_international,
     }
 
   
@@ -709,14 +925,35 @@ def process_flight_results(
                 elif journey_index == 1 and is_roundtrip:
                     return_flights.append(processed_flight)
 
+    if is_international and is_roundtrip:
+        combos = _process_international_combos(journeys, flight_details_dict)
+
+        if combos and search_context:
+            passengers = {
+                "adults": search_context.get("adults", 1),
+                "children": search_context.get("children", 0),
+                "infants": search_context.get("infants", 0),
+                }
+
+            for combo in combos:
+                combo["deepLink"] = build_roundtrip_combo_deep_link(
+                onward_flight=combo["onward_flight"],
+                return_flight=combo["return_flight"],
+                passengers=passengers,
+                )
+    else:
+        combos=[]
+
+    view_all_link = _build_view_all_link(search_context)
+
     return {
         "outbound_flights": outbound_flights[:10],
         "return_flights": return_flights[:10],
         "is_roundtrip": is_roundtrip,
-        "is_international":is_international,
-        "international_combos": _process_international_combos(journeys, flight_details_dict),
-    }
-
+        "is_international": is_international,
+        "international_combos": combos,
+        "viewAll": view_all_link,
+        }
 
 def process_segment(
     segment: dict,
@@ -860,6 +1097,7 @@ def process_segment(
     trip_type = "RoundTrip" if search_context and search_context.get("return_date") else "OneWay"
 
     flight["deepLink"] = build_deep_link(
+        is_international,
         flight=flight,
         passengers=passengers,
         trip_type=trip_type,
