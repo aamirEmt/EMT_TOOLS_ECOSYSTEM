@@ -60,7 +60,7 @@ class HotelSearchService:
         """Execute hotel search workflow"""
         
         try:
-            # Step 1: Resolve city name
+            # Step 1: Resolve city names
             resolved_city = await resolve_city_name(search_input.city_name)
             
             # Step 2: Generate search key

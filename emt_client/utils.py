@@ -17,7 +17,7 @@ def today_str():
 
 
 
-async def fetch_autosuggest(client: FlightApiClient, search_term: str) -> List[Dict]:
+async def fetch_autosuggest(client: "FlightApiClient", search_term: str) -> List[Dict]:
     if not search_term:
         raise ValueError("Search term must be provided.")
     payload = {"Prefix": search_term, "Search": search_term}
@@ -35,7 +35,7 @@ def extract_first_code_and_country(suggestions: List[Dict]) -> Tuple[str, str]:
     country = first.get("Country", "") or ""
     return code, country
 
-async def fetch_first_code_and_country(client: FlightApiClient, search_term: str) -> Tuple[str, str]:
+async def fetch_first_code_and_country(client: "FlightApiClient", search_term: str) -> Tuple[str, str]:
     suggestions = await fetch_autosuggest(client, search_term)
     return extract_first_code_and_country(suggestions)
 
