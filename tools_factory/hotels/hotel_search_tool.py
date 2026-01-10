@@ -4,11 +4,12 @@ Wrapper for hotel search functionality in the Tool Factory
 """
 from typing import Dict, Any, Optional
 from pydantic import ValidationError
-
 from ..base import BaseTool, ToolMetadata
+from emt_client.utils import generate_short_link
 from .hotel_schema import HotelSearchInput
 from .hotel_search_service import HotelSearchService
 from .hotel_renderer import render_hotel_results
+import asyncio
 
 
 class HotelSearchTool(BaseTool):
@@ -102,6 +103,25 @@ class HotelSearchTool(BaseTool):
             
             # Execute search through service layer
             results = await self.service.search(search_input)
+            hotels = results.get("hotels") or []
+
+
+            try:
+                if hotels:
+                    results["hotels"] = generate_short_link(
+                        hotels,
+                        product_type="hotel"
+                    )
+            except Exception as e:
+                # DO NOT FAIL hotel search because of short-link issues
+                results["hotels"] = hotels
+
+            
+            # --------------------------
+            # Apply limit to results if requested
+            # --------------------------
+            if limit is not None and "hotels" in results:
+                results["hotels"] = results["hotels"][:limit]
             
             # --------------------------
             # Apply limit to results if requested

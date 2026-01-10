@@ -1,13 +1,58 @@
 from typing import Dict, Any
 from emt_client.clients.hotel_client import HotelApiClient
 from emt_client.config import HOTEL_SEARCH_URL
-from emt_client.utils import resolve_city_name, generate_hotel_search_key
+from emt_client.utils import resolve_city_name, generate_hotel_search_key, generate_short_link
 from .hotel_schema import HotelSearchInput
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 
 class HotelSearchService:
     """Service layer for hotel search operations"""
+    def _generate_view_all(self, deeplink: str) -> str:
+        """
+        Convert a hotel details deeplink into a 'view all hotels' search link.
+        """
+        if not deeplink:
+            return ""
+
+        parsed = urlparse(deeplink)
+
+        # Replace details → search
+        new_path = parsed.path.replace("details", "search")
+
+        query_params = parse_qs(parsed.query)
+
+        allowed_keys = {
+            "cityName",
+            "sText",
+            "checkinDate",
+            "checkoutDate",
+            "Rooms",
+            "pax",
+        }
+
+        filtered_params = {
+            key: value[0]
+            for key, value in query_params.items()
+            if key in allowed_keys
+        }
+
+        new_query = urlencode(filtered_params)
+
+        raw_link = urlunparse(
+            parsed._replace(path=new_path, query=new_query)
+        )
+
+        try:
+            short_link = generate_short_link(
+                [{"deepLink": raw_link}],
+                product_type="hotel",
+            )[0].get("deepLink")
+            return short_link or raw_link
+        except Exception:
+            return raw_link
     
+
     def __init__(self):
         self.client = HotelApiClient()  # ✅ Use HotelApiClient
     
@@ -109,19 +154,20 @@ class HotelSearchService:
             }
     
     def _process_response(
-        self,
-        response: Dict[str, Any],
-        resolved_city: str,
-        search_input: HotelSearchInput,
-        search_key: str
+    self,
+    response: Dict[str, Any],
+    resolved_city: str,
+    search_input: HotelSearchInput,
+    search_key: str
     ) -> Dict[str, Any]:
-        """Process API response and build structured results"""
-        
+
         hotels = response.get("htllist", []) or []
         resolved_key = response.get("key") or response.get("SearchKey") or search_key
-        
+
         results = []
-        for hotel in hotels[:]:  
+        view_all_link = ""
+
+        for index, hotel in enumerate(hotels):
             deep_link_data = self._build_deep_link(
                 city_name=resolved_city,
                 check_in=search_input.check_in_date,
@@ -132,7 +178,10 @@ class HotelSearchService:
                 emt_id=hotel.get("ecid", ""),
                 hotel_id=hotel.get("hid", ""),
             )
-            
+
+            if index == 0:
+                view_all_link = self._generate_view_all(deep_link_data["deepLink"])
+
             results.append({
                 "hotelId": hotel.get("hid"),
                 "emtId": hotel.get("ecid"),
@@ -149,25 +198,22 @@ class HotelSearchService:
                 "deepLink": deep_link_data["deepLink"],
                 "traceId": deep_link_data["traceId"],
             })
-        
-        return {
-            "searchKey": resolved_key,
-            "city": resolved_city,
-            "city_name": resolved_city,
-            "check_in": search_input.check_in_date,
-            "check_in_date": search_input.check_in_date,
-            "checkIn": search_input.check_in_date,
-            "check_out": search_input.check_out_date,
-            "check_out_date": search_input.check_out_date,
-            "checkOut": search_input.check_out_date,
-            "num_rooms": search_input.num_rooms,
-            "num_adults": search_input.num_adults,
-            "num_children": search_input.num_children,
-            "totalResults": len(hotels),
-            "total_results": len(hotels),
-            "results": results,
-            "hotels": results,
-        }
+
+            return {
+                "searchKey": resolved_key,
+                "city": resolved_city,
+                "city_name": resolved_city,
+                "check_in": search_input.check_in_date,
+                "check_out": search_input.check_out_date,
+                "num_rooms": search_input.num_rooms,
+                "num_adults": search_input.num_adults,
+                "num_children": search_input.num_children,
+                "totalResults": len(hotels),
+                "results": results,
+                "hotels": results,
+                "viewAll": view_all_link,  
+            }
+                
     
     def _build_deep_link(self, **kwargs) -> Dict[str, str]:
         """Create the EMT hotel deep-link and trace id."""
