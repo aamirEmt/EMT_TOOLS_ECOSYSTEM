@@ -275,6 +275,28 @@ HOTEL_CAROUSEL_TEMPLATE = """
   font-size: 14px;
 }
 
+.hotel-carousel .view-all-link {
+  margin-left: 12px;
+  padding: 6px 14px;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  color: #2093ef;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.hotel-carousel .view-all-link:hover {
+  background: #2093ef;
+  color: #fff;
+  border-color: #2093ef;
+}
+
 .hotel-carousel.dark {
   background: #000;
   color: #fff;
@@ -393,7 +415,12 @@ HOTEL_CAROUSEL_TEMPLATE = """
 <div class="hotel-carousel">
   <main>
     <div class="htlhd">
-      <div class="htlttl">{{ title }}</div>
+      <div class="htlttl">
+        {{ title }}
+        {% if view_all_link %}
+        <a href="{{ view_all_link }}" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
+        {% endif %}
+      </div>
       <div class="htlsub">{{ subtitle }}</div>
     </div>
 
@@ -758,5 +785,6 @@ def render_hotel_results(hotel_results: Dict[str, Any]) -> str:
     return template.render(
         title=title,
         subtitle=subtitle,
-        hotels=hotels_ui
+        hotels=hotels_ui,
+        view_all_link=hotel_results.get('viewAll'),
     )

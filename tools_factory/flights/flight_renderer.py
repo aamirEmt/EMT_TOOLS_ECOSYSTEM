@@ -241,6 +241,26 @@ BASE_FLIGHT_STYLES = """
   object-fit: contain;
   vertical-align: baseline;
 }
+
+.flight-carousel .view-all-link {
+  margin-left: 12px;
+  padding: 6px 14px;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  color: #2093ef;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.flight-carousel .view-all-link:hover {
+  background: #2093ef;
+  color: #fff;
+  border-color: #2093ef;
+}
 """
 
 # Specific styles for domestic roundtrip
@@ -464,6 +484,9 @@ ONEWAY_FLIGHT_TEMPLATE = """
           alt="→"
         />
         <span>{{ destination }}</span>
+        {% if view_all_link %}
+        <a href="{{ view_all_link }}" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
+        {% endif %}
       </div>
       <div class="ntfsbt">
         <span>Oneway</span> •
@@ -558,6 +581,9 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
             alt="→"
           />
           <span>{{ onward_destination }}</span>
+          {% if view_all_link %}
+          <a href="{{ view_all_link }}" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
+          {% endif %}
         </div>
         <div class="meta">
           <span>Onward</span> |
@@ -1039,6 +1065,9 @@ INTERNATIONAL_ROUNDTRIP_TEMPLATE = """
       alt="→"
     />
     <span>{{ origin }}</span>
+    {% if view_all_link %}
+    <a href="{{ view_all_link }}" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
+    {% endif %}
   </div>
   <div class="ntfsbt">
     <span>Roundtrip</span> •
@@ -1463,7 +1492,8 @@ def render_oneway_flights(flight_results: Dict[str, Any]) -> str:
         destination=destination,
         flight_count=len(flights_ui),
         flights=flights_ui,
-        departure_date=departure_date, 
+        departure_date=departure_date,
+        view_all_link=flight_results.get('viewAll'),
     )
 
 
@@ -1529,6 +1559,7 @@ def render_domestic_roundtrip_flights(flight_results: Dict[str, Any]) -> str:
         return_flights=return_ui,
         onward_date=onward_date,
         return_date=return_date,
+        view_all_link=flight_results.get('viewAll'),
 
         # ✅ this is what your JS reads
         passengers=passengers,
@@ -1565,6 +1596,7 @@ def render_international_roundtrip_flights(flight_results: Dict[str, Any]) -> st
         onward_date=onward_date,
         return_date=return_date,
         combo_count=len(combos_ui),
+        view_all_link=flight_results.get('viewAll'),
     )
 
 def render_flight_results(flight_results: Dict[str, Any]) -> str:
