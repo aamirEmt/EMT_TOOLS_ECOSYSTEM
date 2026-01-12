@@ -722,7 +722,7 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     </div>
 
     <div class="book-action">
-      <button type="button" class="bkbtn" disabled onclick="handleDomesticRoundtripBook()">
+      <button type="button" class="bkbtn" disabled onclick="handleDomesticRoundtripBook()" style="margin-right:40px;">
         Book Now
       </button>
     </div>
