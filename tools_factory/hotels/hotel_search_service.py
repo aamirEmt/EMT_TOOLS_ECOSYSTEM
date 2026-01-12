@@ -199,20 +199,20 @@ class HotelSearchService:
                 "traceId": deep_link_data["traceId"],
             })
 
-            return {
-                "searchKey": resolved_key,
-                "city": resolved_city,
-                "city_name": resolved_city,
-                "check_in": search_input.check_in_date,
-                "check_out": search_input.check_out_date,
-                "num_rooms": search_input.num_rooms,
-                "num_adults": search_input.num_adults,
-                "num_children": search_input.num_children,
-                "totalResults": len(hotels),
-                "results": results,
-                "hotels": results,
-                "viewAll": view_all_link,  
-            }
+        return {
+            "searchKey": resolved_key,
+            "city": resolved_city,
+            "city_name": resolved_city,
+            "check_in": search_input.check_in_date,
+            "check_out": search_input.check_out_date,
+            "num_rooms": search_input.num_rooms,
+            "num_adults": search_input.num_adults,
+            "num_children": search_input.num_children,
+            "totalResults": len(hotels),
+            "results": results,
+            "hotels": results,
+            "viewAll": view_all_link,  
+        }
                 
     
     def _build_deep_link(self, **kwargs) -> Dict[str, str]:

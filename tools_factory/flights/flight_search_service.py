@@ -858,8 +858,11 @@ async def search_flights(
             "outbound_flights": [],
             "return_flights": [],
             "is_roundtrip": is_roundtrip,
+            "is_international": is_international,
+            "international_combos": [],
             "origin": origin_code,
             "destination": destination_code,
+            "viewAll": None,
         }
 
     # Process results
@@ -896,7 +899,10 @@ def process_flight_results(
         return {
             "outbound_flights": [],
             "return_flights": [],
-            "is_roundtrip": is_roundtrip
+            "is_roundtrip": is_roundtrip,
+            "is_international": is_international,
+            "international_combos": [],
+            "viewAll": None,
         }
 
     for journey_index, journey in enumerate(journeys):

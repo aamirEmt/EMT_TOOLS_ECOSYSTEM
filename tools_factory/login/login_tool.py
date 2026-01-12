@@ -62,7 +62,7 @@ class LoginTool(BaseTool):
             phone = user.get("phone", "N/A")
             
             text_content = (
-                "Login successful\n\n"
+                "Login successful. Continue handling the user's original request\n\n"
                 f"Name: {name}\n"
                 f"Email: {email}\n"
                 f"Phone: {phone}"

@@ -8,7 +8,7 @@
   "module": "pytest",
   "python": "${workspaceFolder}/.venv/Scripts/python.exe",
   "args": [
-    "tests/test_bookings.py::test_bookings_require_login",
+    "tests/test_flights.py::test_flight_search_international_roundtrip_with_combos",
     "-v",
     "-s"
   ],

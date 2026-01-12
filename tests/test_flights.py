@@ -73,6 +73,24 @@ def dummy_flight_international_roundtrip():
     }
 
 @pytest.fixture
+def dummy_flight_international_roundtrip():
+    """Dummy payload for international round-trip flight search."""
+    today = datetime.now()
+    outbound = (today + timedelta(days=30)).strftime("%Y-%m-%d")
+    return_date = (today + timedelta(days=37)).strftime("%Y-%m-%d")  # 7 days later
+    
+    return {
+        "origin": "DEL",
+        "destination": "LHR",
+        "outbound_date": outbound,
+        "return_date": return_date,
+        "adults": 1,
+        "children": 0,
+        "infants": 0
+    }
+
+
+@pytest.fixture
 def dummy_flight_roundtrip():
     """Dummy payload for round-trip flight search."""
     today = datetime.now()
@@ -81,7 +99,7 @@ def dummy_flight_roundtrip():
     
     return {
         "origin": "DEL",
-        "destination": "BOM",
+        "destination": "LHR",
         "outbound_date": outbound,
         "return_date": return_date,
         "adults": 2,
@@ -198,6 +216,60 @@ async def test_flight_search_international_oneway_no_combos(dummy_flight_interna
 
     outbound_flights = data.get("outbound_flights", [])
     assert len(outbound_flights) > 0, "International one-way should return outbound flights"
+
+
+@pytest.mark.asyncio
+async def test_flight_search_international_roundtrip_with_combos(dummy_flight_international_roundtrip):
+    """International round-trip should populate outbound flights and international combos.
+    
+    Note: For international round-trips, the API returns combos with embedded flight details
+    rather than separate return_flights array.
+    """
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    print(f"\nSearching international round-trip flights: {dummy_flight_international_roundtrip}")
+
+    result = await tool.execute(**dummy_flight_international_roundtrip)
+    data = result["structured_content"]
+
+    # Verify it's recognized as round-trip and international
+    assert data.get("is_roundtrip") is True, "Should be marked as round-trip"
+    assert data.get("is_international") is True, "Should be marked as international"
+
+
+
+    # Verify international combos exist and have proper structure
+    assert "international_combos" in data, "Should have international_combos key"
+    international_combos = data.get("international_combos", [])
+    assert len(international_combos) > 0, "International round-trip should return international combos"
+    print(f"Found {len(international_combos)} international combos")
+
+    # Verify combo structure - combos contain full flight objects
+    first_combo = international_combos[0]
+    
+    # Check combo has the expected fields
+    assert "id" in first_combo, "Combo should have id"
+    assert "combo_fare" in first_combo, "Combo should have combo_fare"
+    assert "onward_flight" in first_combo, "Combo should have onward_flight"
+    assert "return_flight" in first_combo, "Combo should have return_flight"
+    
+    # Verify onward flight structure
+    onward = first_combo["onward_flight"]
+    assert "destination" in onward, "Onward flight should have destination"
+    assert "direction" in onward, "Onward flight should have direction"
+    assert onward["direction"] == "outbound", "Onward flight direction should be 'outbound'"
+    
+    # Verify return flight structure
+    return_flight = first_combo["return_flight"]
+    assert "destination" in return_flight, "Return flight should have destination"
+    assert "direction" in return_flight, "Return flight should have direction"
+    assert return_flight["direction"] == "return", "Return flight direction should be 'return'"
+    
+    print(f"First combo fare: Rs.{first_combo.get('combo_fare')}")
+    print(f"Combo structure validated: {onward['destination']} -> {return_flight['destination']}")
+
+
 
 
 @pytest.mark.asyncio
@@ -702,6 +774,7 @@ async def test_flight_search_international_oneway_no_combos(dummy_flight_interna
 
     outbound_flights = data.get("outbound_flights", [])
     assert len(outbound_flights) > 0, "International one-way should return outbound flights"
+    print(f"\n✅ International one-way has {len(outbound_flights)} outbound flights, no combos")
 
 @pytest.mark.asyncio
 async def test_flight_response_has_fare_options(dummy_flight_oneway):
