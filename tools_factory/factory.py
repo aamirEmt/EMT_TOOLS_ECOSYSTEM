@@ -6,6 +6,7 @@ from tools_factory.bookings.flight_bookings_tool import GetFlightBookingsTool
 from tools_factory.bookings.hotel_bookings_tool import GetHotelBookingsTool
 from tools_factory.bookings.train_bookings_tool import GetTrainBookingsTool
 from tools_factory.bookings.bus_bookings_tool import GetBusBookingsTool
+from tools_factory.price_lock import PriceLockTool
 from typing import Dict, Optional, List
 
 class ToolFactory:
@@ -22,6 +23,7 @@ class ToolFactory:
         
         login_tool = LoginTool()
         self.register_tool(login_tool)
+        self.register_tool(PriceLockTool())
         
         # Register booking tools with shared login token provider
         self.register_tool(GetFlightBookingsTool(login_tool))
