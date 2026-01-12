@@ -2,10 +2,20 @@ from typing import Dict, Any, List
 from jinja2 import Environment, BaseLoader, select_autoescape
 
 
+def _truncate_text(text: str, max_length: int = 20) -> str:
+    """Truncate text to max_length characters and add ellipsis if truncated"""
+    if not text:
+        return text
+    text_str = str(text)
+    if len(text_str) <= max_length:
+        return text_str
+    return text_str[:max_length] + "..."
+
 _jinja_env = Environment(
     loader=BaseLoader(),
     autoescape=select_autoescape(["html", "xml"]),
 )
+_jinja_env.filters['truncate_text'] = _truncate_text
 
 # =====================================================================
 # 🏨 HOTEL RESULTS CAROUSEL TEMPLATE (EASEMYTRIP REACT-PARITY)
@@ -441,7 +451,7 @@ HOTEL_CAROUSEL_TEMPLATE = """
                       <img src="{% if hotel.rating and i < hotel.rating|round %}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFC107'%3E%3Cpath d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/%3E%3C/svg%3E{% else %}data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23BDBDBD'%3E%3Cpath d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/%3E%3C/svg%3E{% endif %}" alt="rating star">
                     {% endfor %}
                   </div>
-                  <div class="htlnme" title="{{ hotel.name }}">{{ hotel.name }}</div>
+                  <div class="htlnme" title="{{ hotel.name }}">{{ hotel.name | truncate_text(20) }}</div>
                   <div class="htllcn" title="{{ hotel.location }}">{{ hotel.location }}</div>
                 </div>
                 <div class="htlprcbx">
