@@ -144,13 +144,22 @@ def _build_segment_strings(
     return segments
 
 
-def _build_leg_from_detail(detail: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def _build_leg_from_detail(detail: Dict[str, Any], airlines_map: Optional[Dict[str, str]] = None) -> Optional[Dict[str, Any]]:
     """Map dctFltDtl entry to a leg structure."""
     if not detail or not isinstance(detail, dict):
         return None
 
     airline_code = detail.get("AC", "") or detail.get("airline_code", "")
-    airline_name = detail.get("ALN") or detail.get("AN") or detail.get("airline_name") or airline_code
+    
+    # Get airline name from airlines_map, extracting just the name part before the pipe
+    airline_name = airline_code
+    if airlines_map and airline_code in airlines_map:
+        full_info = airlines_map.get(airline_code, "")
+        # Format is "Airline Name|number|number", extract just the name
+        airline_name = full_info.split("|")[0] if "|" in full_info else full_info
+    elif not airlines_map:
+        # Fallback to detail fields if airlines_map not provided
+        airline_name = detail.get("ALN") or detail.get("AN") or detail.get("airline_name") or airline_code
 
     return {
         "airline_code": airline_code,
@@ -242,6 +251,7 @@ def _get_flight_details_for_refs(refs, flight_details_dict):
 def _process_international_combos(
     journeys: List[Dict[str, Any]],
     flight_details_dict: Dict[str, Any],
+    airlines_map: Optional[Dict[str, str]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Build pre-combined international outbound + return flight combos.
@@ -381,13 +391,13 @@ def _process_international_combos(
             #     or flight_details_dict.get(inbound_ref) #TODO: MAY BE UNCOMMENT LATER COMMENTING FOR TESTING
             # )
 
-            # outbound_leg = _build_leg_from_detail(outbound_detail)
-            # inbound_leg = _build_leg_from_detail(inbound_detail)
+            # outbound_leg = _build_leg_from_detail(outbound_detail, airlines_map)
+            # inbound_leg = _build_leg_from_detail(inbound_detail, airlines_map)
             outbound_leg = [
-                _build_leg_from_detail(d) for d in outbound_detail if d
+                _build_leg_from_detail(d, airlines_map) for d in outbound_detail if d
             ]
             inbound_leg = [
-                _build_leg_from_detail(d) for d in inbound_detail if d
+                _build_leg_from_detail(d, airlines_map) for d in inbound_detail if d
             ]
 
             if not outbound_leg or not inbound_leg:
@@ -932,7 +942,7 @@ def process_flight_results(
                     return_flights.append(processed_flight)
 
     if is_international and is_roundtrip:
-        combos = _process_international_combos(journeys, flight_details_dict)
+        combos = _process_international_combos(journeys, flight_details_dict, airlines_map)
 
         if combos and search_context:
             passengers = {
