@@ -15,7 +15,7 @@ Mark as integration tests:
 import pytest
 from datetime import datetime, timedelta
 from tools_factory.factory import get_tool_factory
-
+from unittest.mock import AsyncMock, patch
 
 # Mark all tests in this file as integration tests (slow)
 pytestmark = pytest.mark.integration
@@ -721,3 +721,54 @@ async def test_hotel_search_with_specific_amenities():
     hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
     
     print(f"✅ Found {len(hotels)} hotels with required amenities")
+
+# ============================================================================
+# HOTEL WHATSAPP JSON RESPONSE TEST - REAL API
+# ============================================================================
+@pytest.mark.asyncio
+async def test_hotel_search_whatsapp_real_api(dummy_hotel_basic):
+    """
+    Test hotel search with real API call for WhatsApp JSON response.
+    Verifies:
+        - _iscomingfromwhatsapp=True
+        - Returns WhatsApp-ready JSON format
+        - At most 3 hotels in the response
+        - All required fields present
+    """
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_hotels")
+
+    print(f"\n🔍 Searching hotels for WhatsApp JSON: {dummy_hotel_basic}")
+
+    # Make the real API call
+    result = await tool.execute(
+        **dummy_hotel_basic,
+        is_coming_from_whatsapp=True,
+        _limit=10  # optional: limit to first 10 hotels for faster response
+    )
+
+    # Extract WhatsApp response
+    whatsapp_data = result.get("whatsapp_response")
+    assert whatsapp_data is not None, "Response must have 'whatsapp_response' key"
+
+    # ------------------------
+    # Check high-level structure
+    # ------------------------
+    assert "hotels" in whatsapp_data, "WhatsApp response must have 'hotels' key"
+    assert "view_all_hotels_url" in whatsapp_data, "WhatsApp response must have 'view_all_hotels_url'"
+    assert len(whatsapp_data["hotels"]) <= 3, "WhatsApp JSON should have at most 3 hotels"
+
+    # Check each hotel has required fields
+    for hotel in whatsapp_data["hotels"]:
+        assert "hotel_name" in hotel
+        assert "location" in hotel
+        assert "rating" in hotel
+        assert "price" in hotel
+        assert "price_unit" in hotel
+        assert hotel["price_unit"] == "per night"
+        assert "image_url" in hotel
+        assert "amenities" in hotel
+        assert "booking_url" in hotel
+
+    print(f"✅ WhatsApp JSON test passed with {len(whatsapp_data['hotels'])} hotels")
+    print(f"View all hotels URL: {whatsapp_data['view_all_hotels_url']}")

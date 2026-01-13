@@ -29,6 +29,7 @@ class FlightSearchTool(BaseTool):
         # Runtime flags (internal)
         limit = kwargs.pop("_limit", None)
         render_html = kwargs.pop("_html", False)
+        
 
         try:
             payload = FlightSearchInput.model_validate(kwargs)
