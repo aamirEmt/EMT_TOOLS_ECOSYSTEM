@@ -52,11 +52,6 @@ class PriceLockTool(BaseTool):
         except Exception as exc:  # noqa: BLE001
             return {
                 "text": f"Failed to lock price: {exc}",
-                "structured_content": {
-                    "error": "LOCK_FAILED",
-                    "message": str(exc),
-                },
-                "html": None,
                 "is_error": True,
             }
 
@@ -64,22 +59,15 @@ class PriceLockTool(BaseTool):
         price_lock_id = result.get("priceLockId")
         is_error = price_lock_id is None
 
-        text_parts = []
-        if price_lock_id:
-            text_parts.append(
-                f"Locked flight #{payload.flight_index + 1} ({payload.direction})."
-            )
-            if checkout_url:
-                text_parts.append(f"Checkout URL: {checkout_url}")
-        else:
-            text_parts.append(
-                f"Price lock did not return an ID for flight #{payload.flight_index + 1}."
-            )
-            text_parts.append("Check lockResponse for API details.")
+        # Only return the checkout URL (safepay) or a concise error message.
+        if not is_error and checkout_url:
+            return {
+                "text": checkout_url,
+                "is_error": False,
+            }
 
+        # Fallback error text if checkout URL is missing.
         return {
-            "text": " ".join(text_parts),
-            "structured_content": result,
-            "html": None,
-            "is_error": is_error,
+            "text": "Price lock did not return a checkout URL.",
+            "is_error": True,
         }
