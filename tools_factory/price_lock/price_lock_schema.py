@@ -32,6 +32,12 @@ class PriceLockInput(BaseModel):
         description="Which direction list to pick the flight from. Defaults to outbound flights.",
     )
 
+    lock_period_hours: Literal[4, 8, 12, 24, 48] = Field(
+        8,
+        alias="lockPeriodHours",
+        description="Number of hours to lock the fare (4, 8, 12, 24, or 48).",
+    )
+
     model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     @field_validator("login_key")

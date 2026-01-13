@@ -269,11 +269,16 @@ class PriceLockService:
         return float(fares[fare_index].get("total_fare", 0) or fares[fare_index].get("base_fare", 0) or 0)
 
     @staticmethod
-    def _build_lock_payload(seg_key: str, login_key: str, lock_amount: float) -> Dict[str, Any]:
+    def _build_lock_payload(
+        seg_key: str,
+        login_key: str,
+        lock_amount: float,
+        lock_period_hours: int,
+    ) -> Dict[str, Any]:
         return {
             "IsLock": True,
             "LockAmount": lock_amount,
-            "LockPeriod": "8Hours",
+            "LockPeriod": f"{lock_period_hours}Hours",
             "SegKey": seg_key,
             "LoginKey": login_key,
             "TransRefId": "",
@@ -305,6 +310,7 @@ class PriceLockService:
         fare_index: int,
         search_response: Dict[str, Any],
         direction: str,
+        lock_period_hours: int = 8,
     ) -> Dict[str, Any]:
         """Run reprice + lock for a selected flight."""
         structured = self._normalize_search_response(search_response)
@@ -359,7 +365,12 @@ class PriceLockService:
             self._fallback_fare_from_flight(selected_flight, fare_index),
         )
 
-        lock_payload = self._build_lock_payload(seg_key_repriced, login_key, lock_amount)
+        lock_payload = self._build_lock_payload(
+            seg_key_repriced,
+            login_key,
+            lock_amount,
+            lock_period_hours,
+        )
         lock_response = await self._post_json(self.lock_endpoint, lock_payload)
 
         price_lock_id = lock_response.get("PriceLockID") or lock_response.get("PriceLockId")

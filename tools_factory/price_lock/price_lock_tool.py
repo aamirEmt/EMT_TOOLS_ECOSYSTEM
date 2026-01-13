@@ -48,6 +48,7 @@ class PriceLockTool(BaseTool):
                 fare_index=payload.fare_index,
                 search_response=payload.search_response,
                 direction=payload.direction,
+                lock_period_hours=payload.lock_period_hours,
             )
         except Exception as exc:  # noqa: BLE001
             return {
