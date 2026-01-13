@@ -66,9 +66,61 @@ class PriceLockService:
 
     @staticmethod
     def _pick_flights(search_response: Dict[str, Any], direction: str) -> List[Dict[str, Any]]:
+        """
+        Pick flights based on direction, with fallbacks:
+        - First try the requested direction list.
+        - If empty, fall back to whichever list has flights.
+        - If still empty, fall back to international combos (best-effort).
+        """
         if direction == "return":
-            return search_response.get("return_flights") or []
-        return search_response.get("outbound_flights") or []
+            flights = search_response.get("return_flights") or []
+        else:
+            flights = search_response.get("outbound_flights") or []
+
+        if not flights:
+            flights = (
+                search_response.get("outbound_flights")
+                or search_response.get("return_flights")
+                or []
+            )
+
+        if not flights:
+            flights = search_response.get("international_combos") or []
+
+        return flights
+
+    @staticmethod
+    def _ensure_processed_flights(
+        structured: Dict[str, Any],
+        raw_search: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        If processed flight lists are missing, try to derive them from the raw search
+        using the shared flight search processing logic. This mirrors the original
+        lock_script behavior that depended on processed outbound flights.
+        """
+        has_outbound = bool(structured.get("outbound_flights"))
+        has_return = bool(structured.get("return_flights"))
+        if has_outbound or has_return:
+            return structured
+
+        try:
+            from tools_factory.flights.flight_search_service import process_flight_results
+
+            processed = process_flight_results(
+                raw_search,
+                structured.get("is_roundtrip", False),
+                structured.get("is_international", False),
+                structured,
+            )
+            structured.setdefault("outbound_flights", processed.get("outbound_flights", []))
+            structured.setdefault("return_flights", processed.get("return_flights", []))
+            structured.setdefault("international_combos", processed.get("international_combos", []))
+        except Exception:
+            # If processing fails, just return structured as-is; caller will error with a clear message.
+            return structured
+
+        return structured
 
     @staticmethod
     def _passenger_counts(search_response: Dict[str, Any]) -> Dict[str, int]:
@@ -257,6 +309,7 @@ class PriceLockService:
         """Run reprice + lock for a selected flight."""
         structured = self._normalize_search_response(search_response)
         raw_search = self._extract_raw_search(structured)
+        structured = self._ensure_processed_flights(structured, raw_search)
         flights = self._pick_flights(structured, direction)
 
         if not flights:
