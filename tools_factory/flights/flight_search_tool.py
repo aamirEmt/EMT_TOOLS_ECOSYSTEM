@@ -26,10 +26,12 @@ class FlightSearchTool(BaseTool):
         Execute flight search with provided parameters.
         """
 
+        # --------------------------------------------------
         # Runtime flags (internal)
+        # --------------------------------------------------
         limit = kwargs.pop("_limit", None)
         render_html = kwargs.pop("_html", False)
-        
+        is_coming_from_whatsapp = kwargs.pop("_is_coming_from_whatsapp", False)
 
         try:
             payload = FlightSearchInput.model_validate(kwargs)
@@ -59,7 +61,7 @@ class FlightSearchTool(BaseTool):
         )
 
         # --------------------------------------------------
-        # ✅ Passenger context (required for deeplinks)
+        # Passenger context (required for deeplinks)
         # --------------------------------------------------
         flight_results["passengers"] = {
             "adults": payload.adults,
@@ -68,15 +70,17 @@ class FlightSearchTool(BaseTool):
         }
 
         # --------------------------------------------------
-        # Apply limit (if requested)
+        # Apply limit (explicit or WhatsApp default = 3)
         # --------------------------------------------------
-        if limit is not None:
+        applied_limit = limit if limit is not None else (3 if is_coming_from_whatsapp else None)
+
+        if applied_limit is not None:
             if "outbound_flights" in flight_results:
-                flight_results["outbound_flights"] = flight_results["outbound_flights"][:limit]
+                flight_results["outbound_flights"] = flight_results["outbound_flights"][:applied_limit]
             if "return_flights" in flight_results:
-                flight_results["return_flights"] = flight_results["return_flights"][:limit]
+                flight_results["return_flights"] = flight_results["return_flights"][:applied_limit]
             if "international_combos" in flight_results:
-                flight_results["international_combos"] = flight_results["international_combos"][:limit]
+                flight_results["international_combos"] = flight_results["international_combos"][:applied_limit]
 
         # --------------------------------------------------
         # Normalize & short-link results
@@ -116,7 +120,43 @@ class FlightSearchTool(BaseTool):
                 )
 
         # --------------------------------------------------
-        # Human-readable text
+        # WhatsApp-specific JSON response
+        # --------------------------------------------------
+        if is_coming_from_whatsapp and not flight_results.get("error"):
+            flights = []
+
+            for flight in flight_results.get("outbound_flights", []):
+                flights.append({
+                    "airline": flight.get("airline_name"),
+                    "flight_number": flight.get("flight_number"),
+                    "origin": payload.origin,
+                    "destination": payload.destination,
+                    "departure_time": flight.get("departure_time"),
+                    "arrival_time": flight.get("arrival_time"),
+                    "duration": flight.get("duration"),
+                    "stops": flight.get("stops", 0),
+                    "date": payload.outbound_date,  # already string
+                    "price": str(flight.get("price")),
+                    "booking_url": flight.get("booking_url"),
+                })
+
+            view_all_url = (
+                f"https://flight.easemytrip.com/search?"
+                f"from={payload.origin}&to={payload.destination}"
+                f"&date={payload.outbound_date}"
+            )
+
+            return {
+                "response_text": f"Here are some flight options from {payload.origin} to {payload.destination}",
+                "response_json": {
+                    "type": "flight_collection",
+                    "flights": flights,
+                    "view_all_flights_url": view_all_url,
+                },
+            }
+
+        # --------------------------------------------------
+        # Human-readable text (existing behavior)
         # --------------------------------------------------
         if flight_results.get("error"):
             text = f"No flights found. {flight_results.get('message', '')}"
@@ -128,7 +168,7 @@ class FlightSearchTool(BaseTool):
             text = f"Found {outbound_count} flights!"
 
         # --------------------------------------------------
-        # Response
+        # Default response (existing behavior)
         # --------------------------------------------------
         response: Dict[str, Any] = {
             "text": text,

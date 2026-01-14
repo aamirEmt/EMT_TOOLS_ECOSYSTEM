@@ -409,6 +409,61 @@ async def test_flight_search_with_multiple_passengers():
     print(f"✅ Found {len(flights)} flights for 2 adults, 2 children, 1 infant")
 
 
+@pytest.mark.asyncio
+async def test_flight_search_whatsapp_json(dummy_flight_oneway):
+    """
+    Test flight search returns WhatsApp-ready JSON structure.
+    """
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+
+    # Add the WhatsApp flag
+    payload = {**dummy_flight_oneway, "_is_coming_from_whatsapp": True}
+
+    print(f"\n🔍 Searching flights for WhatsApp JSON: {payload}")
+
+    result = await tool.execute(**payload)
+
+    # Verify top-level keys
+    assert "response_text" in result, "WhatsApp response should have 'response_text'"
+    assert "response_json" in result, "WhatsApp response should have 'response_json'"
+
+    response_json = result["response_json"]
+    assert response_json.get("type") == "flight_collection", "response_json type must be 'flight_collection'"
+    assert "flights" in response_json, "response_json should have 'flights' array"
+    assert isinstance(response_json["flights"], list), "'flights' should be a list"
+
+    flights = response_json["flights"]
+    print(f"📊 WhatsApp JSON has {len(flights)} flights")
+
+    if flights:
+        first_flight = flights[0]
+
+        # Validate required fields
+        for key in [
+            "airline",
+            "flight_number",
+            "origin",
+            "destination",
+            "departure_time",
+            "arrival_time",
+            "duration",
+            "stops",
+            "date",
+            "price",
+            "booking_url",
+        ]:
+            assert key in first_flight, f"First flight should have '{key}'"
+
+        print(f"✅ First flight WhatsApp JSON validated: {first_flight['airline']} {first_flight['flight_number']}")
+
+    # Ensure 'view_all_flights_url' exists
+    assert "view_all_flights_url" in response_json, "response_json should have 'view_all_flights_url'"
+    assert response_json["view_all_flights_url"].startswith("http"), "view_all_flights_url should be a valid URL"
+
+    print(f"✅ WhatsApp flight response structure is correct")
+
+
 
 # ============================================================================
 # FLIGHT SEARCH CLASSES TEST - REAL API
