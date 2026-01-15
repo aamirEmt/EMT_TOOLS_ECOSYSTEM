@@ -1,0 +1,1292 @@
+
+<style>
+
+@import url(&#39;https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&amp;family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap&#39;);
+
+.flight-carousel {
+  font-family: poppins, sans-serif;
+}
+
+.flight-carousel * {
+  font-family: poppins, sans-serif;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.flight-carousel main {
+  max-width: 700px;
+  margin: auto;
+  padding: 20px 0;
+}
+
+.flight-carousel .rslt-heading {
+  margin-bottom: 12px;
+}
+
+.flight-carousel .rslttp {
+  padding: 0 0 8px;
+}
+
+.flight-carousel .ntfctl {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.flight-carousel .ntfsbt {
+  font-size: 8px;
+  color: #868686;
+  font-weight: 500;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flight-carousel .fltcardbx {
+  width: 100%;
+  padding: 8px 6px;
+}
+
+.flight-carousel .rsltcvr {
+  max-width: 100%;
+  overflow-x: auto;
+  display: flex;
+  gap: 20px;
+  cursor: grab;
+}
+
+.flight-carousel .rsltcvr::-webkit-scrollbar {
+  height: 7px;
+}
+
+.flight-carousel .rsltcvr::-webkit-scrollbar-track {
+  background: #fff;
+}
+
+.flight-carousel .rsltcvr::-webkit-scrollbar-thumb {
+  background: #373737;
+  border-radius: 5px;
+}
+
+.flight-carousel .rsltcvr:active {
+  cursor: grabbing;
+}
+
+.flight-carousel .fltcard {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  min-width: 250px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.flight-carousel .ntfchdr {
+  padding: 0 0 8px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.flight-carousel .ntflogo {
+  height: 35px;
+  width: 35px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.flight-carousel .ntflogo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.flight-carousel .ntfctlx {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  flex: 1;
+}
+
+.flight-carousel .fltbdy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.flight-carousel .flttme {
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.flight-carousel .jrny {
+  text-align: center;
+}
+
+.flight-carousel .jrnttl {
+  font-size: 11px;
+  color: #868686;
+}
+
+.flight-carousel .j-br {
+  width: 55px;
+  border-bottom: 1px solid #9e9da1;
+  position: relative;
+  margin: 4px 0;
+}
+
+.flight-carousel .j-br.lyovr::after {
+  content: &#34;&#34;;
+  height: 6px;
+  width: 6px;
+  background: #2196f3;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.flight-carousel .fltftr {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.flight-carousel .ntfsbt-ftr {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.flight-carousel .st {
+  color: #d05404;
+  font-weight: 600;
+}
+
+.flight-carousel .fltprcbx {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* pushes both to the right */
+    text-align: right;
+    justify-content: space-between;
+}
+
+.flight-carousel .sbttl {
+  font-size: 9px;
+  color: #868686;
+}
+
+.flight-carousel .fltprc {
+  font-size: 18px;
+  font-weight: 700;
+  margin-left: 15px;
+}
+
+.flight-carousel .bkbtn {
+  border-radius: 40px;
+  background: #ef6614;
+  color: #fff;
+  text-align: center;
+  font-size: 12px;
+  padding: 9px 15px;
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+.flight-carousel .bkbtn:hover {
+  background: #e75806;
+}
+
+.flight-carousel .emt-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: #646d74;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.flight-carousel .emt-inline-arrow {
+  width: 14px;
+  height: auto;
+  object-fit: contain;
+  vertical-align: baseline;
+}
+
+.flight-carousel .view-all-link {
+  margin-left: 12px;
+  padding: 6px 14px;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  color: #2093ef;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.flight-carousel .view-all-link:hover {
+  background: #2093ef;
+  color: #fff;
+  border-color: #2093ef;
+}
+
+
+.fltcardInternational {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  min-width: 475px;
+  width: 475px;
+  background: #fff;
+}
+
+.trpcvr {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.rndtrpcvr {
+  flex: 1;
+}
+
+.trpdvdr {
+  width: 1px;
+  background: #e0e0e0;
+}
+
+.rndhd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.rndttl {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fltprcbx {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.arlnme {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tryp {
+  color: #2093ef;
+}
+
+
+.bkbtnInternational {
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 40px;
+  background: #ef6614;
+  color: #fff;
+  font-size: 12px;
+  padding: 9px 15px;
+  border: 0;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.bkbtnInternational:hover {
+  background: #e75806;
+}
+
+</style>
+<div class="flight-carousel">
+  <main>
+  <div class="rslttp rslt-heading">
+  <div class="ntfctl">
+    <span>DEL</span>
+    <img
+      class="emt-inline-arrow"
+      src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+      alt="→"
+    />
+    <span>LHR</span>
+    <img
+      class="emt-inline-arrow"
+      src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+      alt="→"
+    />
+    <span>DEL</span>
+    
+    <a href="https://emt.bio/QbTBmv" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
+    
+  </div>
+  <div class="ntfsbt">
+    <span>Roundtrip</span> •
+    <span>Sat, 14 Feb 2026 – Sat, 21 Feb 2026</span> •
+    <span>10 options</span>
+  </div>
+</div>
+    <div class="fltcardbx">
+      <div class="rsltcvr">
+        
+        <div class="fltcardInternational item">
+          <!-- HEADER -->
+          <div class="rndhd">
+            <div class="rndttl">Roundtrip</div>
+            <div class="fltprcbx">
+              <div class="fltprc">₹51,057</div>
+              <div class="sbttl">total fare</div>
+            </div>
+          </div>
+
+          <div class="trpcvr">
+            <!-- ONWARD -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>DEL</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>LHR</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/AY.png" alt="AY" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">AY</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Onward</span> •
+                    122 •
+                    Sat, 14 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">07:50</div>
+                <div class="jrny">
+                  <div class="jrnttl">13h 10m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">1 Stop</div>
+                </div>
+                <div class="flttme">09:10</div>
+              </div>
+            </div>
+
+            <div class="trpdvdr"></div>
+
+            <!-- RETURN -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>LHR</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>DEL</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/AY.png" alt="AY" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">AY</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Return</span> •
+                    1332 •
+                    Sat, 21 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">10:20</div>
+                <div class="jrny">
+                  <div class="jrnttl">11h 30m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">1 Stop</div>
+                </div>
+                <div class="flttme">06:05</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://emt.bio/gmrYlF" target="_blank" rel="noopener noreferrer" class="bkbtnInternational">
+            Book Now
+          </a>
+        </div>
+        
+        <div class="fltcardInternational item">
+          <!-- HEADER -->
+          <div class="rndhd">
+            <div class="rndttl">Roundtrip</div>
+            <div class="fltprcbx">
+              <div class="fltprc">₹53,419</div>
+              <div class="sbttl">total fare</div>
+            </div>
+          </div>
+
+          <div class="trpcvr">
+            <!-- ONWARD -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>DEL</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>LHR</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/AY.png" alt="AY" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">AY</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Onward</span> •
+                    122 •
+                    Sat, 14 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">07:50</div>
+                <div class="jrny">
+                  <div class="jrnttl">12h 50m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">1 Stop</div>
+                </div>
+                <div class="flttme">17:00</div>
+              </div>
+            </div>
+
+            <div class="trpdvdr"></div>
+
+            <!-- RETURN -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>LHR</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>DEL</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/AY.png" alt="AY" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">AY</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Return</span> •
+                    1332 •
+                    Sat, 21 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">10:20</div>
+                <div class="jrny">
+                  <div class="jrnttl">11h 30m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">1 Stop</div>
+                </div>
+                <div class="flttme">06:05</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://emt.bio/tIq80e" target="_blank" rel="noopener noreferrer" class="bkbtnInternational">
+            Book Now
+          </a>
+        </div>
+        
+        <div class="fltcardInternational item">
+          <!-- HEADER -->
+          <div class="rndhd">
+            <div class="rndttl">Roundtrip</div>
+            <div class="fltprcbx">
+              <div class="fltprc">₹56,076</div>
+              <div class="sbttl">total fare</div>
+            </div>
+          </div>
+
+          <div class="trpcvr">
+            <!-- ONWARD -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>DEL</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>LHR</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/6E.png" alt="6E" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">6E</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Onward</span> •
+                       3 •
+                    Sat, 14 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">11:55</div>
+                <div class="jrny">
+                  <div class="jrnttl">10h 45m</div>
+                  <div class="j-br"></div>
+                  <div class="jrnttl">Non Stop</div>
+                </div>
+                <div class="flttme">17:10</div>
+              </div>
+            </div>
+
+            <div class="trpdvdr"></div>
+
+            <!-- RETURN -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>LHR</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>DEL</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/6E.png" alt="6E" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">6E</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Return</span> •
+                       4 •
+                    Sat, 21 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">19:10</div>
+                <div class="jrny">
+                  <div class="jrnttl">9h 30m</div>
+                  <div class="j-br"></div>
+                  <div class="jrnttl">Non Stop</div>
+                </div>
+                <div class="flttme">10:10</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://emt.bio/YopCHa" target="_blank" rel="noopener noreferrer" class="bkbtnInternational">
+            Book Now
+          </a>
+        </div>
+        
+        <div class="fltcardInternational item">
+          <!-- HEADER -->
+          <div class="rndhd">
+            <div class="rndttl">Roundtrip</div>
+            <div class="fltprcbx">
+              <div class="fltprc">₹56,526</div>
+              <div class="sbttl">total fare</div>
+            </div>
+          </div>
+
+          <div class="trpcvr">
+            <!-- ONWARD -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>DEL</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>LHR</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/6E.png" alt="6E" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">6E</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Onward</span> •
+                       3 •
+                    Sat, 14 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">11:55</div>
+                <div class="jrny">
+                  <div class="jrnttl">10h 45m</div>
+                  <div class="j-br"></div>
+                  <div class="jrnttl">Non Stop</div>
+                </div>
+                <div class="flttme">17:10</div>
+              </div>
+            </div>
+
+            <div class="trpdvdr"></div>
+
+            <!-- RETURN -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>LHR</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>DEL</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/6E.png" alt="6E" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">6E</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Return</span> •
+                       2 •
+                    Sat, 21 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">21:30</div>
+                <div class="jrny">
+                  <div class="jrnttl">11h 25m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">1 Stop</div>
+                </div>
+                <div class="flttme">17:10</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://emt.bio/AM9pFg" target="_blank" rel="noopener noreferrer" class="bkbtnInternational">
+            Book Now
+          </a>
+        </div>
+        
+        <div class="fltcardInternational item">
+          <!-- HEADER -->
+          <div class="rndhd">
+            <div class="rndttl">Roundtrip</div>
+            <div class="fltprcbx">
+              <div class="fltprc">₹58,825</div>
+              <div class="sbttl">total fare</div>
+            </div>
+          </div>
+
+          <div class="trpcvr">
+            <!-- ONWARD -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>DEL</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>LHR</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/LH.png" alt="LH" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">LH</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Onward</span> •
+                    5227 •
+                    Sat, 14 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">03:40</div>
+                <div class="jrny">
+                  <div class="jrnttl">12h 40m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">2 Stops</div>
+                </div>
+                <div class="flttme">14:45</div>
+              </div>
+            </div>
+
+            <div class="trpdvdr"></div>
+
+            <!-- RETURN -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>LHR</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>DEL</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/LH.png" alt="LH" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">LH</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Return</span> •
+                    4201 •
+                    Sat, 21 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">20:15</div>
+                <div class="jrny">
+                  <div class="jrnttl">9h 15m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">1 Stop</div>
+                </div>
+                <div class="flttme">00:05</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://emt.bio/qwgBea" target="_blank" rel="noopener noreferrer" class="bkbtnInternational">
+            Book Now
+          </a>
+        </div>
+        
+        <div class="fltcardInternational item">
+          <!-- HEADER -->
+          <div class="rndhd">
+            <div class="rndttl">Roundtrip</div>
+            <div class="fltprcbx">
+              <div class="fltprc">₹60,800</div>
+              <div class="sbttl">total fare</div>
+            </div>
+          </div>
+
+          <div class="trpcvr">
+            <!-- ONWARD -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>DEL</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>LHR</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/LH.png" alt="LH" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">LH</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Onward</span> •
+                    5227 •
+                    Sat, 14 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">03:40</div>
+                <div class="jrny">
+                  <div class="jrnttl">12h 40m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">2 Stops</div>
+                </div>
+                <div class="flttme">17:05</div>
+              </div>
+            </div>
+
+            <div class="trpdvdr"></div>
+
+            <!-- RETURN -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>LHR</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>DEL</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/LH.png" alt="LH" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">LH</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Return</span> •
+                    4201 •
+                    Sat, 21 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">20:15</div>
+                <div class="jrny">
+                  <div class="jrnttl">10h 30m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">2 Stops</div>
+                </div>
+                <div class="flttme">01:30</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://emt.bio/R8rmwo" target="_blank" rel="noopener noreferrer" class="bkbtnInternational">
+            Book Now
+          </a>
+        </div>
+        
+        <div class="fltcardInternational item">
+          <!-- HEADER -->
+          <div class="rndhd">
+            <div class="rndttl">Roundtrip</div>
+            <div class="fltprcbx">
+              <div class="fltprc">₹61,034</div>
+              <div class="sbttl">total fare</div>
+            </div>
+          </div>
+
+          <div class="trpcvr">
+            <!-- ONWARD -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>DEL</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>LHR</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/J2.png" alt="J2" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">J2</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Onward</span> •
+                    58 •
+                    Sat, 14 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">04:25</div>
+                <div class="jrny">
+                  <div class="jrnttl">10h 55m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">1 Stop</div>
+                </div>
+                <div class="flttme">20:25</div>
+              </div>
+            </div>
+
+            <div class="trpdvdr"></div>
+
+            <!-- RETURN -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>LHR</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>DEL</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/6E.png" alt="6E" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">6E</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Return</span> •
+                       2 •
+                    Sat, 21 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">21:30</div>
+                <div class="jrny">
+                  <div class="jrnttl">11h 30m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">1 Stop</div>
+                </div>
+                <div class="flttme">20:15</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://emt.bio/fwIbQO" target="_blank" rel="noopener noreferrer" class="bkbtnInternational">
+            Book Now
+          </a>
+        </div>
+        
+        <div class="fltcardInternational item">
+          <!-- HEADER -->
+          <div class="rndhd">
+            <div class="rndttl">Roundtrip</div>
+            <div class="fltprcbx">
+              <div class="fltprc">₹61,081</div>
+              <div class="sbttl">total fare</div>
+            </div>
+          </div>
+
+          <div class="trpcvr">
+            <!-- ONWARD -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>DEL</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>LHR</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/LH.png" alt="LH" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">LH</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Onward</span> •
+                    5227 •
+                    Sat, 14 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">03:40</div>
+                <div class="jrny">
+                  <div class="jrnttl">12h 40m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">2 Stops</div>
+                </div>
+                <div class="flttme">17:05</div>
+              </div>
+            </div>
+
+            <div class="trpdvdr"></div>
+
+            <!-- RETURN -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>LHR</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>DEL</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/LH.png" alt="LH" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">LH</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Return</span> •
+                    4201 •
+                    Sat, 21 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">20:15</div>
+                <div class="jrny">
+                  <div class="jrnttl">11h 5m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">2 Stops</div>
+                </div>
+                <div class="flttme">01:50</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://emt.bio/XtGMTE" target="_blank" rel="noopener noreferrer" class="bkbtnInternational">
+            Book Now
+          </a>
+        </div>
+        
+        <div class="fltcardInternational item">
+          <!-- HEADER -->
+          <div class="rndhd">
+            <div class="rndttl">Roundtrip</div>
+            <div class="fltprcbx">
+              <div class="fltprc">₹61,397</div>
+              <div class="sbttl">total fare</div>
+            </div>
+          </div>
+
+          <div class="trpcvr">
+            <!-- ONWARD -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>DEL</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>LHR</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/LH.png" alt="LH" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">LH</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Onward</span> •
+                    5227 •
+                    Sat, 14 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">03:40</div>
+                <div class="jrny">
+                  <div class="jrnttl">12h 40m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">2 Stops</div>
+                </div>
+                <div class="flttme">17:05</div>
+              </div>
+            </div>
+
+            <div class="trpdvdr"></div>
+
+            <!-- RETURN -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>LHR</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>DEL</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/LH.png" alt="LH" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">LH</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Return</span> •
+                    925 •
+                    Sat, 21 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">08:30</div>
+                <div class="jrny">
+                  <div class="jrnttl">12h 15m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">2 Stops</div>
+                </div>
+                <div class="flttme">07:45</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://emt.bio/MulkzI" target="_blank" rel="noopener noreferrer" class="bkbtnInternational">
+            Book Now
+          </a>
+        </div>
+        
+        <div class="fltcardInternational item">
+          <!-- HEADER -->
+          <div class="rndhd">
+            <div class="rndttl">Roundtrip</div>
+            <div class="fltprcbx">
+              <div class="fltprc">₹61,516</div>
+              <div class="sbttl">total fare</div>
+            </div>
+          </div>
+
+          <div class="trpcvr">
+            <!-- ONWARD -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>DEL</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>LHR</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/J2.png" alt="J2" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">J2</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Onward</span> •
+                    58 •
+                    Sat, 14 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">04:25</div>
+                <div class="jrny">
+                  <div class="jrnttl">10h 55m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">1 Stop</div>
+                </div>
+                <div class="flttme">20:25</div>
+              </div>
+            </div>
+
+            <div class="trpdvdr"></div>
+
+            <!-- RETURN -->
+            <div class="rndtrpcvr">
+              <div class="ntfctl">
+                <span>LHR</span>
+                <img
+                  class="emt-inline-arrow"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+                  alt="→"
+                />
+                <span>DEL</span>
+              </div>
+
+              <div class="ntfchdr">
+                <div class="ntflogo">
+                  <img src="https://flight.easemytrip.com/Content/AirlineLogon/J2.png" alt="J2" />
+                </div>
+                <div class="ntfctlx">
+                  <div class="arlnme">J2</div>
+                  <div class="ntfsbt">
+                    <span class="tryp">Return</span> •
+                    8 •
+                    Sat, 21 Feb 2026
+                  </div>
+                </div>
+              </div>
+
+              <div class="fltbdy">
+                <div class="flttme">21:50</div>
+                <div class="jrny">
+                  <div class="jrnttl">9h 55m</div>
+                  <div class="j-br lyovr"></div>
+                  <div class="jrnttl">1 Stop</div>
+                </div>
+                <div class="flttme">03:25</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://emt.bio/gh0b7L" target="_blank" rel="noopener noreferrer" class="bkbtnInternational">
+            Book Now
+          </a>
+        </div>
+        
+      </div>
+    </div>
+    
+    
+  </main>
+</div>

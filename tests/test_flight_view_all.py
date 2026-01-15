@@ -338,9 +338,13 @@ async def test_flight_view_all_real_api_domestic_oneway():
     }
 
     result = await tool.execute(**payload)
-    data = result["structured_content"]
 
-    view_all = data.get("viewAll")
+    # data = result["structured_content"]
+    # view_all = data.get("viewAll")
+
+    data = result.structured_content
+    view_all = data.get("viewAll") if data else None
+    
     assert view_all, "viewAll should be present in response"
     assert view_all.startswith("https://emt.bio/") or view_all.startswith(
         "https://www.easemytrip.com/flight-search/listing?"

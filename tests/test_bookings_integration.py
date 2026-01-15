@@ -11,6 +11,24 @@ YOUR_PHONE_NUMBER = "santoshkr86420@gmail.com"  # ← CHANGE THIS TO YOUR ACTUAL
 # YOUR_IP_ADDRESS = "49.249.40.58"  # Commented out - not needed
 # ============================================================================
 
+def normalize_tool_response(result):
+    """
+    Normalize ToolResponse / Pydantic / dict into a dict
+    so legacy tests using `.get()` don't break.
+    """
+    if isinstance(result, dict):
+        return result
+
+    # Pydantic v2
+    if hasattr(result, "model_dump"):
+        return result.model_dump()
+
+    # Fallback
+    if hasattr(result, "__dict__"):
+        return result.__dict__
+
+    return {}
+
 
 @pytest.mark.asyncio
 async def test_full_booking_workflow():
@@ -34,10 +52,14 @@ async def test_full_booking_workflow():
     login_tool = factory.get_tool("login_user")
     assert login_tool is not None, "Login tool not found"
     
-    login_result = await login_tool.execute(
-        phone_number=YOUR_PHONE_NUMBER,
-        # ip_address=YOUR_IP_ADDRESS  # Commented out - not needed
-    )
+    # login_result = await login_tool.execute(
+    #     phone_number=YOUR_PHONE_NUMBER,
+    #     # ip_address=YOUR_IP_ADDRESS  # Commented out - not needed
+    # )
+
+    raw_login_result = await login_tool.execute(phone_number=YOUR_PHONE_NUMBER)
+    login_result = normalize_tool_response(raw_login_result)
+
     
     print(f"\nLogin Result:")
     print(f"  Success: {login_result.get('success')}")
@@ -59,7 +81,9 @@ async def test_full_booking_workflow():
     flight_tool = factory.get_tool("get_flight_bookings")
     assert flight_tool is not None, "Flight bookings tool not found"
     
-    flight_result = await flight_tool.execute()
+    #flight_result = await flight_tool.execute()
+    raw_flight_result = await flight_tool.execute()
+    flight_result = normalize_tool_response(raw_flight_result)
     
     print(f"\nFlight Bookings Result:")
     print(f"  Success: {flight_result.get('success')}")
@@ -91,8 +115,10 @@ async def test_full_booking_workflow():
     hotel_tool = factory.get_tool("get_hotel_bookings")
     assert hotel_tool is not None, "Hotel bookings tool not found"
     
-    hotel_result = await hotel_tool.execute()
-    
+    #hotel_result = await hotel_tool.execute()
+    raw_hotel_result = await hotel_tool.execute()
+    hotel_result = normalize_tool_response(raw_hotel_result)
+
     print(f"\nHotel Bookings Result:")
     print(f"  Success: {hotel_result.get('success')}")
     print(f"  Error: {hotel_result.get('error', 'None')}")
@@ -124,8 +150,10 @@ async def test_full_booking_workflow():
     train_tool = factory.get_tool("get_train_bookings")
     assert train_tool is not None, "Train bookings tool not found"
     
-    train_result = await train_tool.execute()
-    
+    #train_result = await train_tool.execute()
+    raw_train_result = await train_tool.execute()
+    train_result = normalize_tool_response(raw_train_result)
+
     print(f"\nTrain Bookings Result:")
     print(f"  Success: {train_result.get('success')}")
     print(f"  Error: {train_result.get('error', 'None')}")
@@ -156,8 +184,10 @@ async def test_full_booking_workflow():
     bus_tool = factory.get_tool("get_bus_bookings")
     assert bus_tool is not None, "Bus bookings tool not found"
     
-    bus_result = await bus_tool.execute()
-    
+    #bus_result = await bus_tool.execute()
+    raw_bus_result = await bus_tool.execute()
+    bus_result = normalize_tool_response(raw_bus_result)
+
     print(f"\nBus Bookings Result:")
     print(f"  Success: {bus_result.get('success')}")
     print(f"  Error: {bus_result.get('error', 'None')}")
@@ -201,10 +231,13 @@ async def test_login_only():
     factory = get_tool_factory()
     
     login_tool = factory.get_tool("login_user")
-    result = await login_tool.execute(
-        phone_number=YOUR_PHONE_NUMBER,
-        # ip_address=YOUR_IP_ADDRESS  # Commented out - not needed
-    )
+    # result = await login_tool.execute(
+    #     phone_number=YOUR_PHONE_NUMBER,
+    #     # ip_address=YOUR_IP_ADDRESS  # Commented out - not needed
+    # )
+
+    raw_result = await login_tool.execute(phone_number=YOUR_PHONE_NUMBER)
+    result = normalize_tool_response(raw_result)
     
     assert result.get("success") is True, f"Login failed: {result.get('error')}"
     print(f"✅ Login successful with phone {YOUR_PHONE_NUMBER}")
