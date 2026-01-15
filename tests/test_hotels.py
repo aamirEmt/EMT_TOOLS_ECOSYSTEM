@@ -94,12 +94,12 @@ async def test_hotel_search_basic_real_api(dummy_hotel_basic):
     result = await tool.execute(**dummy_hotel_basic)
     
     # Verify response structure
-    assert "text" in result
-    assert "structured_content" in result
+    assert hasattr(result, 'response_text')
+    assert hasattr(result, 'structured_content')
     
-    print(f"✅ Response: {result['text']}")
+    print(f"✅ Response: {result.response_text}")
     
-    data = result["structured_content"]
+    data = result.structured_content
     
     # Verify structure
     assert "hotels" in data or "results" in data
@@ -131,8 +131,8 @@ async def test_hotel_search_with_filters_real_api(dummy_hotel_with_filters):
     
     result = await tool.execute(**dummy_hotel_with_filters)
     
-    assert "structured_content" in result
-    data = result["structured_content"]
+    assert hasattr(result, 'structured_content')
+    data = result.structured_content
     
     hotels = data.get("hotels", data.get("results", []))
     print(f"✅ Found {len(hotels)} hotels with filters")
@@ -151,7 +151,7 @@ async def test_hotel_search_popular_destination(dummy_hotel_popular):
     
     result = await tool.execute(**dummy_hotel_popular)
     
-    data = result["structured_content"]
+    data = result.structured_content
     hotels = data.get("hotels", data.get("results", []))
     
     # Popular destinations should have many results
@@ -192,8 +192,8 @@ async def test_hotel_search_multiple_rooms():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    data = result["structured_content"]
+    assert hasattr(result, "structured_content")
+    data = result.structured_content
     
     hotels = data.get("hotels", data.get("results", []))
     print(f"✅ Found {len(hotels)} hotels for group booking")
@@ -221,8 +221,8 @@ async def test_hotel_search_extended_stay():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    data = result["structured_content"]
+    assert hasattr(result, "structured_content")
+    data = result.structured_content
     
     hotels = data.get("hotels", data.get("results", []))
     print(f"✅ Found {len(hotels)} hotels for extended stay")
@@ -252,8 +252,8 @@ async def test_hotel_search_budget_hotels():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    data = result["structured_content"]
+    assert hasattr(result, "structured_content")
+    data = result.structured_content
     
     hotels = data.get("hotels", data.get("results", []))
     print(f"✅ Found {len(hotels)} budget hotels")
@@ -290,8 +290,8 @@ async def test_hotel_search_luxury_hotels():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    data = result["structured_content"]
+    assert hasattr(result, "structured_content")
+    data = result.structured_content
     
     hotels = data.get("hotels", data.get("results", []))
     print(f"✅ Found {len(hotels)} luxury hotels")
@@ -324,9 +324,9 @@ async def test_hotel_search_far_future_date():
     result = await tool.execute(**payload)
     
     # Should handle gracefully (may or may not have results)
-    assert "structured_content" in result
+    assert hasattr(result, "structured_content")
     
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     print(f"✅ Far future search returned {len(hotels)} hotels")
 
 
@@ -352,8 +352,8 @@ async def test_hotel_search_last_minute():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    assert hasattr(result, "structured_content")
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     print(f"✅ Last-minute search returned {len(hotels)} hotels")
 
@@ -380,8 +380,8 @@ async def test_hotel_search_less_popular_destination():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    assert hasattr(result, "structured_content")
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     print(f"✅ Less popular destination returned {len(hotels)} hotels")
 
@@ -413,8 +413,8 @@ async def test_hotel_search_weekend_stay():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    assert hasattr(result, "structured_content")
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     print(f"✅ Weekend search returned {len(hotels)} hotels")
 
@@ -441,8 +441,8 @@ async def test_hotel_search_single_night():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    assert hasattr(result, "structured_content")
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     print(f"✅ Single night search returned {len(hotels)} hotels")
 
@@ -458,7 +458,7 @@ async def test_hotel_response_has_required_fields(dummy_hotel_basic):
     tool = factory.get_tool("search_hotels")
     
     result = await tool.execute(**dummy_hotel_basic)
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     if hotels:
         first_hotel = hotels[0]
@@ -477,7 +477,7 @@ async def test_hotel_response_has_pricing_details(dummy_hotel_basic):
     tool = factory.get_tool("search_hotels")
     
     result = await tool.execute(**dummy_hotel_basic)
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     if hotels:
         first_hotel = hotels[0]
@@ -497,7 +497,7 @@ async def test_hotel_response_has_amenities(dummy_hotel_basic):
     tool = factory.get_tool("search_hotels")
     
     result = await tool.execute(**dummy_hotel_basic)
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     if hotels:
         first_hotel = hotels[0]
@@ -517,7 +517,7 @@ async def test_hotel_response_has_rating(dummy_hotel_basic):
     tool = factory.get_tool("search_hotels")
     
     result = await tool.execute(**dummy_hotel_basic)
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     if hotels:
         first_hotel = hotels[0]
@@ -537,7 +537,7 @@ async def test_hotel_response_has_location(dummy_hotel_basic):
     tool = factory.get_tool("search_hotels")
     
     result = await tool.execute(**dummy_hotel_basic)
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     if hotels:
         first_hotel = hotels[0]
@@ -559,7 +559,7 @@ async def test_hotel_response_has_images(dummy_hotel_basic):
     tool = factory.get_tool("search_hotels")
     
     result = await tool.execute(**dummy_hotel_basic)
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     if hotels:
         first_hotel = hotels[0]
@@ -579,7 +579,7 @@ async def test_hotel_response_has_booking_link(dummy_hotel_basic):
     tool = factory.get_tool("search_hotels")
     
     result = await tool.execute(**dummy_hotel_basic)
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     if hotels:
         first_hotel = hotels[0]
@@ -613,7 +613,7 @@ async def test_hotel_search_response_time(dummy_hotel_basic):
     
     # Should complete within 60 seconds
     assert elapsed < 60, f"Search took too long: {elapsed}s"
-    assert "structured_content" in result
+    assert hasattr(result, "structured_content")
 
 
 # ============================================================================
@@ -651,9 +651,9 @@ async def test_hotel_multiple_consecutive_searches():
         }
         
         result = await tool.execute(**payload)
-        assert "structured_content" in result
+        assert hasattr(result, "structured_content")
         
-        hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+        hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
         print(f"   {city}: {len(hotels)} hotels")
     
     print("✅ All consecutive searches completed")
@@ -688,8 +688,8 @@ async def test_hotel_search_price_and_rating_filters():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    assert hasattr(result, "structured_content")
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     print(f"✅ Found {len(hotels)} hotels matching filters")
 
@@ -717,8 +717,8 @@ async def test_hotel_search_with_specific_amenities():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", result["structured_content"].get("results", []))
+    assert hasattr(result, "structured_content")
+    hotels = result.structured_content.get("hotels", result.structured_content.get("results", []))
     
     print(f"✅ Found {len(hotels)} hotels with required amenities")
 
@@ -748,18 +748,22 @@ async def test_hotel_search_whatsapp_real_api(dummy_hotel_basic):
     )
 
     # Extract WhatsApp response
-    whatsapp_data = result.get("whatsapp_response")
-    assert whatsapp_data is not None, "Response must have 'whatsapp_response' key"
+    whatsapp_response = result.whatsapp_response
+    assert whatsapp_response is not None, "Response must have 'whatsapp_response' attribute"
+    
+    whatsapp_data = whatsapp_response.whatsapp_json
+    assert whatsapp_data is not None, "WhatsApp response must have 'whatsapp_json' attribute"
 
     # ------------------------
     # Check high-level structure
     # ------------------------
-    assert "hotels" in whatsapp_data, "WhatsApp response must have 'hotels' key"
-    assert "view_all_hotels_url" in whatsapp_data, "WhatsApp response must have 'view_all_hotels_url'"
-    assert len(whatsapp_data["hotels"]) <= 3, "WhatsApp JSON should have at most 3 hotels"
+    assert hasattr(whatsapp_data, "options"), "WhatsApp JSON must have 'options' attribute"
+    assert hasattr(whatsapp_data, "view_all_hotels_url"), "WhatsApp JSON must have 'view_all_hotels_url'"
+    assert len(whatsapp_data.options) <= 3, "WhatsApp JSON should have at most 3 hotels"
 
     # Check each hotel has required fields
-    for hotel in whatsapp_data["hotels"]:
+    for hotel in whatsapp_data.options:
+        assert "option_id" in hotel
         assert "hotel_name" in hotel
         assert "location" in hotel
         assert "rating" in hotel
@@ -770,5 +774,5 @@ async def test_hotel_search_whatsapp_real_api(dummy_hotel_basic):
         assert "amenities" in hotel
         assert "booking_url" in hotel
 
-    print(f"✅ WhatsApp JSON test passed with {len(whatsapp_data['hotels'])} hotels")
-    print(f"View all hotels URL: {whatsapp_data['view_all_hotels_url']}")
+    print(f"✅ WhatsApp JSON test passed with {len(whatsapp_data.options)} hotels")
+    print(f"View all hotels URL: {whatsapp_data.view_all_hotels_url}")

@@ -38,7 +38,7 @@ async def test_hotel_search_short_link_real_api():
     print("\n🏨 Running real hotel search for short link test")
 
     result = await hotel_tool.execute(**payload)
-    hotels = result["structured_content"].get("hotels", [])
+    hotels = result.structured_content.get("hotels", [])
 
     assert hotels, "❌ No hotels returned from real API"
 
@@ -300,7 +300,7 @@ async def test_hotel_multiple_rooms_short_link_real_api():
     print("\n🏨 Hotel multiple rooms short link test")
 
     result = await hotel_tool.execute(**payload)
-    hotels = result["structured_content"].get("hotels", [])
+    hotels = result.structured_content.get("hotels", [])
 
     assert hotels, "❌ No hotels returned"
 
@@ -329,8 +329,8 @@ async def test_short_link_length_real_api():
 
     # Handle both possible keys defensively
     hotels = (
-        result["structured_content"].get("hotels")
-        or result["structured_content"].get("results")
+        result.structured_content.get("hotels")
+        or result.structured_content.get("results")
         or []
     )
 

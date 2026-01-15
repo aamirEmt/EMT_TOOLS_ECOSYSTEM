@@ -19,22 +19,22 @@ async def main():
         _html=True  # Generate HTML
     )
     
-    print(f"Status: {result['text']}")
-    print(f"Error: {result['is_error']}")
-    print(f"Total Hotels Found: {len(result['structured_content'].get('hotels', []))}")
+    print(f"Status: {result.response_text}")
+    print(f"Error: {result.is_error}")
+    print(f"Total Hotels Found: {len(result.structured_content.get('hotels', []))}")
 
     print(f"Total Hotels Found: {result}")
 
-    if result['html']:
+    if result.html:
         # Save HTML to file
         with open("hotel_results.html", "w", encoding="utf-8") as f:
-            f.write(result['html'])
+            f.write(result.html)
         print("\n✅ HTML saved to hotel_results.html")
         print("Open it in your browser to see the UI!")
     else:
         print("\n❌ No HTML generated")
-        if result['structured_content']:
-            print(f"Hotels found: {len(result['structured_content'].get('hotels', []))}")
+        if result.structured_content:
+            print(f"Hotels found: {len(result.structured_content.get('hotels', []))}")
 
 
 if __name__ == "__main__":

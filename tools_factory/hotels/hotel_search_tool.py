@@ -6,7 +6,7 @@ from typing import Dict, Any
 from pydantic import ValidationError
 from ..base import BaseTool, ToolMetadata
 from emt_client.utils import generate_short_link
-from .hotel_schema import HotelSearchInput
+from .hotel_schema import HotelSearchInput, HotelResponseFormat, WhatsappHotelFinalResponse, WhatsappHotelFormat
 from .hotel_search_service import HotelSearchService
 from .hotel_renderer import render_hotel_results
 
@@ -32,7 +32,7 @@ class HotelSearchTool(BaseTool):
             tags=["hotel", "search", "booking", "travel"],
         )
 
-    async def execute(self, **kwargs) -> Dict[str, Any]:
+    async def execute(self, **kwargs) -> HotelResponseFormat:
         # --------------------------
         # Extract runtime flags
         # --------------------------
@@ -92,25 +92,32 @@ class HotelSearchTool(BaseTool):
             if is_coming_from_whatsapp:
                 whatsapp_hotels = []
 
-                for hotel in hotels[:3]:
+                for idx, hotel in enumerate(hotels[:3], start=1):
                     whatsapp_hotels.append({
+                        "option_id": idx,
                         "hotel_name": hotel.get("name"),
                         "location": hotel.get("location"),
                         "rating": hotel.get("rating"),
-                        "price": str(
-                            hotel.get("price", {}).get("amount", "")
-                        ),
+                        "price": hotel.get("price", {}).get("amount", ""),
                         "price_unit": "per night",
                         "image_url": hotel.get("hotelImage"),
                         "amenities": hotel.get("highlights") or "Not specified",
                         "booking_url": hotel.get("deepLink"),
                     })
 
-                whatsapp_resp = {
-                    "type": "hotel_collection",
-                    "hotels": whatsapp_hotels,
-                    "view_all_hotels_url": results.get("viewAll", ""),
-                }
+                whatsapp_json: WhatsappHotelFormat = WhatsappHotelFormat(
+                    type="hotel_collection",
+                    options=whatsapp_hotels,
+                    check_in_date=search_input.check_in_date,
+                    check_out_date=search_input.check_out_date,
+                    currency=results.get("currency", "INR"),
+                    view_all_hotels_url=results.get("viewAll", ""),
+                )
+
+                whatsapp_response: WhatsappHotelFinalResponse = WhatsappHotelFinalResponse(
+                    response_text=f"Here are the best hotel options in {search_input.city_name}",
+                    whatsapp_json=whatsapp_json
+                )
 
             # =========================================================
             # NORMAL RESPONSE MODE
@@ -120,41 +127,39 @@ class HotelSearchTool(BaseTool):
             else:
                 text = f"Found {hotel_count} hotels in {search_input.city_name}!"
 
-            response: Dict[str, Any] = {
-                "text": text,
-                "structured_content": results,
-                "html": None,
-                "whatsapp_response": whatsapp_resp if is_coming_from_whatsapp else None,
-                "is_error": results.get("error") is not None,
-            }
-
-            # Render HTML if requested
-            if render_html and not results.get("error"):
-                response["html"] = render_hotel_results(results)
+            response: HotelResponseFormat = HotelResponseFormat(
+                response_text=text,
+                structured_content=results if not is_coming_from_whatsapp else {},
+                html=render_hotel_results(results) if render_html and not results.get("error") else None,
+                whatsapp_response=whatsapp_response if is_coming_from_whatsapp and not results.get("error") else None,
+                is_error=results.get("error") is not None,
+            )
 
             return response
 
         except ValidationError as exc:
-            return {
-                "text": "Invalid hotel search input",
-                "structured_content": {
+            return HotelResponseFormat(
+                response_text="Invalid hotel search input",
+                structured_content={
                     "error": "VALIDATION_ERROR",
                     "details": exc.errors(),
                 },
-                "html": None,
-                "is_error": True,
-            }
+                html=None,
+                whatsapp_response=None,
+                is_error=True,
+            )
 
         except Exception as e:
-            return {
-                "text": f"Hotel search failed: {str(e)}",
-                "structured_content": {
+            return HotelResponseFormat(
+                response_text=f"Hotel search failed: {str(e)}",
+                structured_content={
                     "error": "SEARCH_ERROR",
                     "message": str(e),
                 },
-                "html": None,
-                "is_error": True,
-            }
+                html=None,
+                whatsapp_response=None,
+                is_error=True,
+            )
 
 
 def create_hotel_search_tool() -> HotelSearchTool:

@@ -188,7 +188,7 @@ async def test_session_persists_across_hotel_search():
         num_rooms=1,
         num_adults=2
     )
-    print(f"Hotel search: {hotel_search_result.get('success', 'N/A')}")
+    print(f"Hotel search: {getattr(hotel_search_result, 'response_text', 'N/A')}")
     
     # Step 4: Get flight bookings again (should NOT login again)
     print("\n=== Step 4: Second Booking Call (after hotel search) ===")
