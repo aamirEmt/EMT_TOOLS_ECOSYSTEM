@@ -36,9 +36,28 @@ class HotelSearchTool(BaseTool):
         # --------------------------
         # Extract runtime flags
         # --------------------------
+        
+        # limit = kwargs.pop("_limit", None)
+        # render_html = kwargs.pop("_html", False)
+        # is_coming_from_whatsapp = kwargs.pop("is_coming_from_whatsapp", False)
+
+        # --------------------------
+        # Extract runtime flags (with backward compatibility)
+        # --------------------------
         limit = kwargs.pop("_limit", None)
-        render_html = kwargs.pop("_html", False)
-        is_coming_from_whatsapp = kwargs.pop("is_coming_from_whatsapp", False)
+
+        # Handle legacy flags
+        if "_user_type" not in kwargs:
+            if kwargs.pop("is_coming_from_whatsapp", False):
+                kwargs["_user_type"] = "whatsapp"
+            elif kwargs.pop("_html", False):
+                kwargs["_user_type"] = "web"
+
+        # Unified user type handling
+        user_type = kwargs.pop("_user_type", "web")
+        render_html = user_type.lower() != "whatsapp"
+        is_coming_from_whatsapp = user_type.lower() == "whatsapp"
+
 
         try:
             # Validate input
