@@ -209,7 +209,6 @@ class HotelSearchService:
             "num_adults": search_input.num_adults,
             "num_children": search_input.num_children,
             "totalResults": len(hotels),
-            "results": results,
             "hotels": results,
             "viewAll": view_all_link,  
         }
