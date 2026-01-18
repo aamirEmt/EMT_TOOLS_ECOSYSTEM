@@ -40,12 +40,11 @@ async def test_full_booking_workflow():
     )
     
     print(f"\nLogin Result:")
-    print(f"  Success: {login_result.get('success')}")
-    print(f"  Error: {login_result.get('error', 'None')}")
-    if login_result.get('success'):
-        print(f"  User Info: {login_result.get('user_info', {})}")
+    print(f"  Success: {login_result.is_error is False}")
+    if not login_result.is_error:
+        print(f"  User Info: {login_result.structured_content.get('user_info', {})}")
     
-    assert login_result.get("success") is True, f"Login failed: {login_result.get('error')}"
+    assert login_result.is_error is False, f"Login failed: {login_result.response_text}"
     print("✅ Login successful!")
     
     
@@ -62,22 +61,22 @@ async def test_full_booking_workflow():
     flight_result = await flight_tool.execute()
     
     print(f"\nFlight Bookings Result:")
-    print(f"  Success: {flight_result.get('success')}")
-    print(f"  Error: {flight_result.get('error', 'None')}")
-    print(f"  Email: {flight_result.get('email')}")
-    print(f"  Total: {flight_result.get('total', 0)}")
+    print(f"  Success: {flight_result.is_error is False}")
+    print(f"  Error: {flight_result.structured_content.get('error', 'None')}")
+    print(f"  Email: {flight_result.structured_content.get('uid')}")
+    print(f"  Total: {flight_result.structured_content.get('total', 0)}")
     
-    if flight_result.get('success'):
-        bookings = flight_result.get('bookings', [])
+    if not flight_result.is_error:
+        bookings = flight_result.structured_content.get('bookings', [])
         print(f"\n  Bookings ({len(bookings)}):")
         for i, booking in enumerate(bookings, 1):
             print(f"    {i}. {booking.get('status')} | {booking.get('source')} → {booking.get('destination')}")
             print(f"       Booking ID: {booking.get('booking_id')}")
             print(f"       Flight: {booking.get('flight_number')} | Depart: {booking.get('departure')}")
     else:
-        print(f"  ⚠️  Error: {flight_result.get('error')}")
+        print(f"  ⚠️  Error: {flight_result.is_error}")
     
-    assert flight_result.get("success") is True, f"Flight bookings fetch failed: {flight_result.get('error')}"
+    assert flight_result.is_error is False, f"Flight bookings fetch failed: {flight_result.response_text}"
     print("✅ Flight bookings fetched!")
     
     
@@ -94,13 +93,13 @@ async def test_full_booking_workflow():
     hotel_result = await hotel_tool.execute()
     
     print(f"\nHotel Bookings Result:")
-    print(f"  Success: {hotel_result.get('success')}")
-    print(f"  Error: {hotel_result.get('error', 'None')}")
-    print(f"  Email: {hotel_result.get('email')}")
-    print(f"  Total: {hotel_result.get('total', 0)}")
+    print(f"  Success: {hotel_result.is_error is False}")
+    print(f"  Error: {hotel_result.structured_content.get('error', 'None')}")
+    print(f"  Email: {hotel_result.structured_content.get('uid')}")
+    print(f"  Total: {hotel_result.structured_content.get('total', 0)}")
     
-    if hotel_result.get('success'):
-        bookings = hotel_result.get('bookings', [])
+    if not hotel_result.is_error:
+        bookings = hotel_result.structured_content.get('bookings', [])
         print(f"\n  Bookings ({len(bookings)}):")
         for i, booking in enumerate(bookings, 1):
             print(f"    {i}. {booking.get('status')} | {booking.get('hotel_name')}")
@@ -108,9 +107,9 @@ async def test_full_booking_workflow():
             print(f"       Check-in: {booking.get('checkin')} | Check-out: {booking.get('checkout')}")
             print(f"       Rooms: {booking.get('rooms')} | Guests: {booking.get('guests')}")
     else:
-        print(f"  ⚠️  Error: {hotel_result.get('error')}")
+        print(f"  ⚠️  Error: {hotel_result.is_error}")
     
-    assert hotel_result.get("success") is True, f"Hotel bookings fetch failed: {hotel_result.get('error')}"
+    assert hotel_result.is_error is False, f"Hotel bookings fetch failed: {hotel_result.response_text}"
     print("✅ Hotel bookings fetched!")
     
     
@@ -127,22 +126,22 @@ async def test_full_booking_workflow():
     train_result = await train_tool.execute()
     
     print(f"\nTrain Bookings Result:")
-    print(f"  Success: {train_result.get('success')}")
-    print(f"  Error: {train_result.get('error', 'None')}")
-    print(f"  Email: {train_result.get('email')}")
-    print(f"  Total: {train_result.get('total', 0)}")
-    
-    if train_result.get('success'):
-        bookings = train_result.get('bookings', [])
+    print(f"  Success: {train_result.is_error is False}")
+    print(f"  Error: {train_result.structured_content.get('error', 'None')}")
+    print(f"  Email: {train_result.structured_content.get('uid')}")
+    print(f"  Total: {train_result.structured_content.get('total', 0)}")
+
+    if not train_result.is_error:
+        bookings = train_result.structured_content.get('bookings', [])
         print(f"\n  Bookings ({len(bookings)}):")
         for i, booking in enumerate(bookings, 1):
             print(f"    {i}. {booking.get('status')} | {booking.get('source')} → {booking.get('destination')}")
             print(f"       Booking ID: {booking.get('booking_id')}")
             print(f"       PNR: {booking.get('pnr')} | Depart: {booking.get('departure')}")
     else:
-        print(f"  ⚠️  Error: {train_result.get('error')}")
+        print(f"  ⚠️  Error: {train_result.is_error}")
     
-    assert train_result.get("success") is True, f"Train bookings fetch failed: {train_result.get('error')}"
+    assert train_result.is_error is False, f"Train bookings fetch failed: {train_result.response_text}"
     print("✅ Train bookings fetched!")
     
     
@@ -159,13 +158,13 @@ async def test_full_booking_workflow():
     bus_result = await bus_tool.execute()
     
     print(f"\nBus Bookings Result:")
-    print(f"  Success: {bus_result.get('success')}")
-    print(f"  Error: {bus_result.get('error', 'None')}")
-    print(f"  Email: {bus_result.get('email')}")
-    print(f"  Total: {bus_result.get('total', 0)}")
-    
-    if bus_result.get('success'):
-        bookings = bus_result.get('bookings', [])
+    print(f"  Success: {bus_result.is_error is False}")
+    print(f"  Error: {bus_result.structured_content.get('error', 'None')}")
+    print(f"  Email: {bus_result.structured_content.get('uid')}")
+    print(f"  Total: {bus_result.structured_content.get('total', 0)}")
+
+    if not bus_result.is_error:
+        bookings = bus_result.structured_content.get('bookings', [])
         print(f"\n  Bookings ({len(bookings)}):")
         for i, booking in enumerate(bookings, 1):
             print(f"    {i}. {booking.get('status')} | {booking.get('source')} → {booking.get('destination')}")
@@ -173,9 +172,9 @@ async def test_full_booking_workflow():
             print(f"       Route: {booking.get('route')} | Type: {booking.get('bus_type')}")
             print(f"       Operator: {booking.get('operator')} | Journey: {booking.get('journey_date')}")
     else:
-        print(f"  ⚠️  Error: {bus_result.get('error')}")
-    
-    assert bus_result.get("success") is True, f"Bus bookings fetch failed: {bus_result.get('error')}"
+        print(f"  ⚠️  Error: {bus_result.is_error}")
+
+    assert bus_result.is_error is False, f"Bus bookings fetch failed: {bus_result.response_text}"
     print("✅ Bus bookings fetched!")
     
     
@@ -187,11 +186,11 @@ async def test_full_booking_workflow():
     print("="*80)
     print(f"\n✅ All tests passed!")
     print(f"\nBookings Summary:")
-    print(f"  • Flights: {flight_result.get('total', 0)}")
-    print(f"  • Hotels: {hotel_result.get('total', 0)}")
-    print(f"  • Trains: {train_result.get('total', 0)}")
-    print(f"  • Buses: {bus_result.get('total', 0)}")
-    print(f"  • Total: {flight_result.get('total', 0) + hotel_result.get('total', 0) + train_result.get('total', 0) + bus_result.get('total', 0)}")
+    print(f"  • Flights: {flight_result.structured_content.get('total', 0)}")
+    print(f"  • Hotels: {hotel_result.structured_content.get('total', 0)}")
+    print(f"  • Trains: {train_result.structured_content.get('total', 0)}")
+    print(f"  • Buses: {bus_result.structured_content.get('total', 0)}")
+    print(f"  • Total: {flight_result.structured_content.get('total', 0) + hotel_result.structured_content.get('total', 0) + train_result.structured_content.get('total', 0) + bus_result.structured_content.get('total', 0)}")
     print("\n" + "="*80)
 
 
@@ -206,9 +205,9 @@ async def test_login_only():
         # ip_address=YOUR_IP_ADDRESS  # Commented out - not needed
     )
     
-    assert result.get("success") is True, f"Login failed: {result.get('error')}"
+    assert result.is_error is False, f"Login failed: {result.response_text}"
     print(f"✅ Login successful with phone {YOUR_PHONE_NUMBER}")
-    print(f"   User: {result.get('user_info', {})}")
+    print(f"   User: {result.structured_content.get('user', {})}")
 
 
 @pytest.mark.asyncio

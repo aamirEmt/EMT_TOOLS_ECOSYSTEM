@@ -5,7 +5,7 @@ This module handles all flight search operations including:
 - Processing flight results
 - Processing individual flight segments
 """
-
+from .flight_scehma import FlightSearchInput,WhatsappFlightFinalResponse,WhatsappFlightFormat
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote, urlencode
@@ -1121,3 +1121,121 @@ def process_segment(
     )["deepLink"]
 
     return flight
+
+def extract_segment_summary(segment: dict) -> dict:
+    legs = segment.get("legs") or []
+
+    if not legs:
+        return {
+            "airline": None,
+            "flight_number": None,
+            "departure_time": None,
+            "arrival_time": None,
+            "duration": segment.get("journey_time"),
+            "stops": segment.get("total_stops", 0),
+        }
+
+    first_leg = legs[0]
+    last_leg = legs[-1]
+
+    return {
+        "airline": first_leg.get("airline_name"),
+        "flight_number": " / ".join(
+            f"{leg.get('airline_code')}{leg.get('flight_number')}"
+            for leg in legs
+            if leg.get("flight_number")
+        ),
+        "departure_time": first_leg.get("departure_time"),
+        "arrival_time": last_leg.get("arrival_time"),
+        "duration": segment.get("journey_time"),
+        "stops": segment.get("total_stops", 0),
+    }
+
+
+# 🧹 IMPROVEMENT: extracted WhatsApp builder for clarity & testability
+def build_whatsapp_flight_response(
+    payload: FlightSearchInput,
+    flight_results: dict,
+) -> WhatsappFlightFinalResponse:
+
+    options = []
+
+    is_roundtrip = flight_results.get("is_roundtrip")
+    is_international = flight_results.get("is_international")
+
+    # ---------- ONEWAY ----------
+    if not is_roundtrip:
+        for idx, flight in enumerate(flight_results.get("outbound_flights", []), start=1):
+            summary = extract_segment_summary(flight)
+            fare = (flight.get("fare_options") or [{}])[0]
+
+            options.append({
+                "option_id": idx,
+                "outbound_flight": {
+                    "airline": summary["airline"],
+                    "flight_number": summary["flight_number"],
+                    "origin": payload.origin,
+                    "destination": payload.destination,
+                    "departure_time": summary["departure_time"],
+                    "arrival_time": summary["arrival_time"],
+                    "duration": summary["duration"],
+                    "stops": summary["stops"],
+                    "date": payload.outbound_date,
+                },
+                "price": fare.get("total_fare"),
+                "booking_url": flight.get("booking_url"),
+            })
+
+        trip_type = "oneway"
+
+    # ---------- ROUNDTRIP DOMESTIC ----------
+    elif is_roundtrip and not is_international:
+        for idx, (out_f, ret_f) in enumerate(
+            zip(
+                flight_results.get("outbound_flights", []),
+                flight_results.get("return_flights", []),
+            ),
+            start=1,
+        ):
+            out_summary = extract_segment_summary(out_f)
+            ret_summary = extract_segment_summary(ret_f)
+
+            out_fare = (out_f.get("fare_options") or [{}])[0]
+            ret_fare = (ret_f.get("fare_options") or [{}])[0]
+
+            options.append({
+                "option_id": idx,
+                "outbound_flight": out_summary,
+                "inbound_flight": ret_summary,
+                "total_price": (out_fare.get("total_fare") or 0)
+                               + (ret_fare.get("total_fare") or 0),
+                "booking_url": out_f.get("booking_url"),
+            })
+
+        trip_type = "roundtrip"
+
+    # ---------- ROUNDTRIP INTERNATIONAL ----------
+    else:
+        for idx, combo in enumerate(flight_results.get("international_combos", []), start=1):
+            options.append({
+                "option_id": idx,
+                "outbound_flight": extract_segment_summary(combo.get("onward_flight", {})),
+                "inbound_flight": extract_segment_summary(combo.get("return_flight", {})),
+                "total_price": combo.get("combo_fare"),
+                "booking_url": combo.get("deepLink"),
+            })
+
+        trip_type = "roundtrip"
+
+    whatsapp_json = WhatsappFlightFormat(
+        options=options,
+        trip_type=trip_type,
+        journey_type="international" if is_international else "domestic",
+        currency=flight_results.get("currency", "INR"),
+        view_all_flights_url=flight_results.get("view_all_flights_url", ""),
+    )
+
+    return WhatsappFlightFinalResponse(
+        response_text=f"Here are the best flight options from {payload.origin} to {payload.destination}",
+        whatsapp_json=whatsapp_json,
+    )

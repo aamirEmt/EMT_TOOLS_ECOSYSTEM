@@ -15,7 +15,7 @@ Mark as integration tests:
 import pytest
 from datetime import datetime, timedelta
 from tools_factory.factory import get_tool_factory
-
+from tools_factory.base_schema import ToolResponseFormat
 
 # Mark all tests in this file as integration tests (slow)
 pytestmark = pytest.mark.integration
@@ -172,15 +172,22 @@ async def test_flight_search_oneway_real_api(dummy_flight_oneway):
     
     print(f"\n🔍 Searching flights: {dummy_flight_oneway}")
     
+    # result = await tool.execute(**dummy_flight_oneway)
+    
+    # # Verify response structure
+    # assert "text" in result
+    # assert result.structured_content is not None
+    
     result = await tool.execute(**dummy_flight_oneway)
+    assert hasattr(result, "response_text")
+    print(result.response_text)
+
+    assert result.structured_content is not None
+
+    print(f"✅ Response: {result.response_text}")
     
-    # Verify response structure
-    assert "text" in result
-    assert "structured_content" in result
-    
-    print(f"✅ Response: {result['text']}")
-    
-    data = result["structured_content"]
+    # data = result.structured_content
+    data = result.structured_content
     
     # Verify API response structure
     assert "outbound_flights" in data
@@ -207,7 +214,7 @@ async def test_flight_search_international_oneway_no_combos(dummy_flight_interna
     tool = factory.get_tool("search_flights")
 
     result = await tool.execute(**dummy_flight_international_oneway)
-    data = result["structured_content"]
+    data = result.structured_content
 
     assert data.get("is_roundtrip") is False
     assert data.get("is_international") is True
@@ -231,7 +238,7 @@ async def test_flight_search_international_roundtrip_with_combos(dummy_flight_in
     print(f"\nSearching international round-trip flights: {dummy_flight_international_roundtrip}")
 
     result = await tool.execute(**dummy_flight_international_roundtrip)
-    data = result["structured_content"]
+    data = result.structured_content
 
     # Verify it's recognized as round-trip and international
     assert data.get("is_roundtrip") is True, "Should be marked as round-trip"
@@ -282,8 +289,8 @@ async def test_flight_search_roundtrip_real_api(dummy_flight_roundtrip):
     
     result = await tool.execute(**dummy_flight_roundtrip)
     
-    assert "structured_content" in result
-    data = result["structured_content"]
+    assert result.structured_content is not None
+    data = result.structured_content
     
     # Verify round-trip structure
     assert data["is_roundtrip"] == True
@@ -309,7 +316,7 @@ async def test_flight_search_international_roundtrip_with_combos(dummy_flight_in
     print(f"\nSearching international round-trip flights: {dummy_flight_international_roundtrip}")
 
     result = await tool.execute(**dummy_flight_international_roundtrip)
-    data = result["structured_content"]
+    data = result.structured_content
 
     # Verify it's recognized as round-trip and international
     assert data.get("is_roundtrip") is True, "Should be marked as round-trip"
@@ -357,7 +364,7 @@ async def test_flight_search_popular_route(dummy_flight_popular_route):
     
     result = await tool.execute(**dummy_flight_popular_route)
     
-    data = result["structured_content"]
+    data = result.structured_content
     flights = data.get("outbound_flights", [])
     
     # Popular routes should have results
@@ -402,11 +409,74 @@ async def test_flight_search_with_multiple_passengers():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    data = result["structured_content"]
+    assert result.structured_content is not None
+    data = result.structured_content
     
     flights = data.get("outbound_flights", [])
     print(f"✅ Found {len(flights)} flights for 2 adults, 2 children, 1 infant")
+
+# -----------------------------
+# TEST CASES FOR 4 COMBOS (WhatsApp)
+# -----------------------------
+
+@pytest.mark.asyncio
+async def test_flight_oneway_whatsapp(dummy_flight_oneway):
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+    payload = {**dummy_flight_oneway, "_user_type": "whatsapp"}
+
+    result: ToolResponseFormat = await tool.execute(**payload)
+
+    assert result.whatsapp_response is not None
+    assert result.whatsapp_response["whatsapp_json"]["type"] == "flight_collection"
+    assert isinstance(result.whatsapp_response["whatsapp_json"]["options"], list)
+
+    # Print WhatsApp JSON
+    print("\n📱 ONEWAY WhatsApp JSON:\n", result.whatsapp_response["whatsapp_json"])
+
+@pytest.mark.asyncio
+async def test_flight_roundtrip_whatsapp(dummy_flight_roundtrip):
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+    payload = {**dummy_flight_roundtrip, "_user_type": "whatsapp"}
+
+    result: ToolResponseFormat = await tool.execute(**payload)
+
+    assert result.whatsapp_response is not None
+    assert result.whatsapp_response["whatsapp_json"]["type"] == "flight_collection"
+    assert isinstance(result.whatsapp_response["whatsapp_json"]["options"], list)
+
+    print("\n📱 ROUNDTRIP DOMESTIC WhatsApp JSON:\n", result.whatsapp_response["whatsapp_json"])
+
+
+@pytest.mark.asyncio
+async def test_flight_international_roundtrip_whatsapp(dummy_flight_international_roundtrip):
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+    payload = {**dummy_flight_international_roundtrip, "_user_type": "whatsapp"}
+
+    result: ToolResponseFormat = await tool.execute(**payload)
+
+    assert result.whatsapp_response is not None
+    assert result.whatsapp_response["whatsapp_json"]["type"] == "flight_collection"
+    assert isinstance(result.whatsapp_response["whatsapp_json"]["options"], list)
+
+    print("\n📱 ROUNDTRIP INTERNATIONAL WhatsApp JSON:\n", result.whatsapp_response["whatsapp_json"])
+
+@pytest.mark.asyncio
+async def test_flight_oneway_international_whatsapp(dummy_flight_oneway):
+    # If you have one-way international scenario
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_flights")
+    payload = {**dummy_flight_oneway, "destination": "LHR", "_user_type": "whatsapp"}
+
+    result: ToolResponseFormat = await tool.execute(**payload)
+
+    assert result.whatsapp_response is not None
+    assert result.whatsapp_response["whatsapp_json"]["type"] == "flight_collection"
+    assert isinstance(result.whatsapp_response["whatsapp_json"]["options"], list)   
+    print("\n📱 ONEWAY INTERNATIONAL WhatsApp JSON:\n", result.whatsapp_response["whatsapp_json"])
+
 
 
 
@@ -427,7 +497,7 @@ async def test_flight_search_with_economy_cabin(dummy_flight_oneway):
     print(f"\n🔍 Searching economy class flights: {payload}")
 
     result = await tool.execute(**payload)
-    data = result["structured_content"]
+    data = result.structured_content
 
     assert "outbound_flights" in data
     flights = data.get("outbound_flights", [])
@@ -462,7 +532,7 @@ async def test_flight_search_with_business_cabin(dummy_flight_international_onew
     print(f"\n🔍 Searching business class flights: {payload}")
 
     result = await tool.execute(**payload)
-    data = result["structured_content"]
+    data = result.structured_content
 
     assert data.get("is_international") is True
     flights = data.get("outbound_flights", [])
@@ -498,7 +568,7 @@ async def test_flight_search_with_premium_economy_cabin(dummy_flight_internation
     print(f"\n🔍 Searching premium economy flights: {payload}")
 
     result = await tool.execute(**payload)
-    data = result["structured_content"]
+    data = result.structured_content
 
     flights = data.get("outbound_flights", [])
     assert flights, "❌ No outbound flights returned"
@@ -532,7 +602,7 @@ async def test_flight_search_with_first_class_cabin(dummy_flight_international_o
     print(f"\n🔍 Searching first class flights: {payload}")
 
     result = await tool.execute(**payload)
-    data = result["structured_content"]
+    data = result.structured_content
 
     flights = data.get("outbound_flights", [])
     assert flights, "❌ No outbound flights returned"
@@ -566,7 +636,7 @@ async def test_flight_search_with_unknown_cabin_fallback(dummy_flight_oneway):
     print(f"\n🔍 Searching with unknown cabin (fallback): {payload}")
 
     result = await tool.execute(**payload)
-    data = result["structured_content"]
+    data = result.structured_content
 
     flights = data.get("outbound_flights", [])
     assert flights is not None
@@ -587,7 +657,7 @@ async def test_flight_search_with_mixed_case_cabin(dummy_flight_oneway):
     print(f"\n🔍 Searching with mixed-case cabin input: {payload}")
 
     result = await tool.execute(**payload)
-    data = result["structured_content"]
+    data = result.structured_content
 
     flights = data.get("outbound_flights", [])
     assert flights, "❌ No outbound flights returned"
@@ -622,11 +692,11 @@ async def test_flight_search_with_mixed_case_cabin(dummy_flight_oneway):
     
 #     # Verify response structure
 #     assert "text" in result
-#     assert "structured_content" in result
+#     assert result.structured_content is not None
     
-#     print(f"✅ Response: {result['text']}")
+#     print(f"✅ Response: {result.response_text}")
     
-#     data = result["structured_content"]
+#     data = result.structured_content
     
 #     # Verify structure (exact fields depend on your hotel_search implementation)
 #     assert "hotels" in data or "results" in data
@@ -644,8 +714,8 @@ async def test_flight_search_with_mixed_case_cabin(dummy_flight_oneway):
     
 #     result = await tool.execute(**dummy_hotel_with_filters)
     
-#     assert "structured_content" in result
-#     data = result["structured_content"]
+#     assert result.structured_content is not None
+#     data = result.structured_content
     
 #     print(f"✅ Hotel search with filters completed")
 #     print(f"   City: {dummy_hotel_with_filters['city_name']}")
@@ -678,9 +748,11 @@ async def test_flight_search_far_future_date():
     result = await tool.execute(**payload)
     
     # Should handle gracefully (may or may not have results)
-    assert "structured_content" in result
+    assert result.structured_content is not None
     
-    flights = result["structured_content"].get("outbound_flights", [])
+    # flights = result.structured_content.get("outbound_flights", [])
+    flights = result.structured_content.get("outbound_flights", [])
+
     print(f"✅ Far future search returned {len(flights)} flights")
 
 
@@ -704,8 +776,8 @@ async def test_flight_search_near_date():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    flights = result["structured_content"].get("outbound_flights", [])
+    assert result.structured_content is not None
+    flights = result.structured_content.get("outbound_flights", [])
     
     # Near date might have fewer flights
     print(f"✅ Near date search returned {len(flights)} flights")
@@ -731,8 +803,8 @@ async def test_flight_search_uncommon_route():
     
     result = await tool.execute(**payload)
     
-    assert "structured_content" in result
-    flights = result["structured_content"].get("outbound_flights", [])
+    assert result.structured_content is not None
+    flights = result.structured_content.get("outbound_flights", [])
     
     print(f"✅ Uncommon route returned {len(flights)} flights")
 
@@ -748,7 +820,7 @@ async def test_flight_response_has_deeplinks(dummy_flight_oneway):
     tool = factory.get_tool("search_flights")
     
     result = await tool.execute(**dummy_flight_oneway)
-    flights = result["structured_content"].get("outbound_flights", [])
+    flights = result.structured_content.get("outbound_flights", [])
     
     if flights:
         first_flight = flights[0]
@@ -765,7 +837,7 @@ async def test_flight_search_international_oneway_no_combos(dummy_flight_interna
     tool = factory.get_tool("search_flights")
 
     result = await tool.execute(**dummy_flight_international_oneway)
-    data = result["structured_content"]
+    data = result.structured_content
 
     assert data.get("is_roundtrip") is False
     assert data.get("is_international") is True
@@ -783,7 +855,7 @@ async def test_flight_response_has_fare_options(dummy_flight_oneway):
     tool = factory.get_tool("search_flights")
     
     result = await tool.execute(**dummy_flight_oneway)
-    flights = result["structured_content"].get("outbound_flights", [])
+    flights = result.structured_content.get("outbound_flights", [])
     
     if flights:
         first_flight = flights[0]
@@ -805,7 +877,7 @@ async def test_flight_response_has_legs(dummy_flight_oneway):
     tool = factory.get_tool("search_flights")
     
     result = await tool.execute(**dummy_flight_oneway)
-    flights = result["structured_content"].get("outbound_flights", [])
+    flights = result.structured_content.get("outbound_flights", [])
     
     if flights:
         first_flight = flights[0]
@@ -843,7 +915,7 @@ async def test_flight_search_response_time(dummy_flight_oneway):
     
     # Should complete within 60 seconds
     assert elapsed < 60, f"Search took too long: {elapsed}s"
-    assert "structured_content" in result
+    assert result.structured_content is not None
 
 
 # ============================================================================
@@ -877,9 +949,9 @@ async def test_multiple_consecutive_searches():
         }
         
         result = await tool.execute(**payload)
-        assert "structured_content" in result
+        assert result.structured_content is not None
         
-        flights = result["structured_content"].get("outbound_flights", [])
+        flights = result.structured_content.get("outbound_flights", [])
         print(f"   {origin} → {destination}: {len(flights)} flights")
     
     print("✅ All consecutive searches completed")

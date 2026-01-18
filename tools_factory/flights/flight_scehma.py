@@ -56,3 +56,16 @@ class FlightSearchInput(BaseModel):
         except ValueError:
             raise ValueError("Date must be in YYYY-MM-DD format")
         return v
+    
+
+class WhatsappFlightFormat(BaseModel):
+        type: str = "flight_collection"
+        options: list
+        trip_type: str
+        journey_type: str
+        currency: str
+        view_all_flights_url: str
+
+class WhatsappFlightFinalResponse(BaseModel):
+    response_text: str
+    whatsapp_json: WhatsappFlightFormat

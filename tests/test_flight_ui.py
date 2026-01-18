@@ -20,14 +20,16 @@ async def test_oneway_flight():
         outbound_date=outbound,
         adults=2,
         _limit=10,
-        _html=True,
+        _user_type="website"
     )
 
-    assert not result["is_error"]
+    # ✅ Updated attribute access
+    assert not result.is_error
 
-    if result["html"]:
+    # Keep HTML saving logic
+    if result.html:
         with open("flight_oneway_results.html", "w", encoding="utf-8") as f:
-            f.write(result["html"])
+            f.write(result.html)
 
 
 @pytest.mark.asyncio
@@ -46,18 +48,20 @@ async def test_domestic_roundtrip():
         adults=2,
         children=1,
         _limit=8,
-        _html=True,
+        _user_type="website"
     )
 
-    assert not result["is_error"]
+    # ✅ Updated attribute access
+    assert not result.is_error
 
-    data = result["structured_content"]
+    # Access structured_content as attribute
+    data = result.structured_content
     assert len(data.get("outbound_flights", [])) > 0
     assert len(data.get("return_flights", [])) > 0
 
-    if result["html"]:
+    if result.html:
         with open("flight_domestic_roundtrip_results.html", "w", encoding="utf-8") as f:
-            f.write(result["html"])
+            f.write(result.html)
 
 
 @pytest.mark.asyncio
@@ -75,15 +79,16 @@ async def test_international_roundtrip():
         return_date=return_date,
         adults=1,
         _limit=10,
-        _html=True,
+        _user_type="website"
     )
 
-    assert not result["is_error"]
+    # ✅ Updated attribute access
+    assert not result.is_error
 
-    data = result["structured_content"]
+    data = result.structured_content
     assert data.get("is_international") is True
     assert data.get("is_roundtrip") is True
 
-    if result["html"]:
+    if result.html:
         with open("flight_international_roundtrip_results.html", "w", encoding="utf-8") as f:
-            f.write(result["html"])
+            f.write(result.html)

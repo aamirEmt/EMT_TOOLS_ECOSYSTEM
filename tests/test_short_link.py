@@ -1,4 +1,5 @@
 
+
 from emt_client.utils import generate_short_link
 import pytest
 import re
@@ -38,7 +39,7 @@ async def test_hotel_search_short_link_real_api():
     print("\n🏨 Running real hotel search for short link test")
 
     result = await hotel_tool.execute(**payload)
-    hotels = result["structured_content"].get("hotels", [])
+    hotels = result.structured_content.get("hotels", [])
 
     assert hotels, "❌ No hotels returned from real API"
 
@@ -125,20 +126,25 @@ async def test_flight_search_short_link_real_api():
     print("\n✈️ Running real flight search for short link test")
 
     result = await flight_tool.execute(**payload)
-    flights = result["structured_content"].get("outbound_flights", [])
+    flights = result.structured_content.get("outbound_flights", [])
 
     assert flights, "❌ No flights returned from real API"
 
     first_flight = flights[0]
+    # assert hasattr(first_flight, "deepLink"), "❌ Flight does not contain deepLink"
     assert "deepLink" in first_flight, "❌ Flight does not contain deepLink"
+
 
     print(f"🔗 Original flight deepLink: {first_flight['deepLink']}")
 
+    print(f"🔗 Original flight deepLink: {first_flight['deepLink']}")
+    short_link_result = generate_short_link([first_flight], product_type="flight")
+
     # Generate short link
-    short_link_result = generate_short_link(
-        results=[first_flight],
-        product_type="flight",
-    )
+    # short_link_result = generate_short_link(
+    #     results=[first_flight],
+    #     product_type="flight",
+    # )
 
     short_link = short_link_result[0]["deepLink"]
 
@@ -168,15 +174,21 @@ async def test_flight_search_international_roundtrip_with_combos_and_short_link(
     print(f"\nSearching international round-trip flights: {dummy_flight_international_roundtrip}")
 
     result = await tool.execute(**dummy_flight_international_roundtrip)
-    data = result["structured_content"]
+    data = result.structured_content
 
     # Verify it's recognized as round-trip and international
     assert data.get("is_roundtrip") is True, "Should be marked as round-trip"
     assert data.get("is_international") is True, "Should be marked as international"
-
+    # assert getattr(data, "is_roundtrip", False) is True, "Should be marked as round-trip"
+    # assert getattr(data, "is_international", False) is True, "Should be marked as international"
+    
     # Verify international combos exist
-    assert "international_combos" in data, "Should have international_combos key"
+    # assert "international_combos" in data, "Should have international_combos key"
     international_combos = data.get("international_combos", [])
+
+    # international_combos = getattr(data, "international_combos", [])
+    assert international_combos, "International round-trip should return international combos"
+
     assert len(international_combos) > 0, "International round-trip should return international combos"
     print(f"Found {len(international_combos)} international combos")
 
@@ -200,12 +212,15 @@ async def test_flight_search_international_roundtrip_with_combos_and_short_link(
     # ============================================================================
 
     original_deeplink = extract_deeplink_from_international_combo(first_combo)
+    
     print(f"🔗 Original deepLink: {original_deeplink}")
 
-    short_link_result = generate_short_link(
-        results=[{"deepLink": original_deeplink}],
-        product_type="flight",
-    )
+    # short_link_result = generate_short_link(
+    #     results=[{"deepLink": original_deeplink}],
+    #     product_type="flight",
+    # )
+    short_link_result = generate_short_link([{"deepLink": original_deeplink}], "flight")
+
 
     short_link = short_link_result[0]["deepLink"]
     slug = short_link.split("/")[-1]
@@ -232,14 +247,14 @@ async def test_economy_flight_short_link_real_api():
     print("\n✈️ Economy cabin flight short link test")
 
     result = await flight_tool.execute(**payload)
-    flights = result["structured_content"].get("outbound_flights", [])
+    flights = result.structured_content.get("outbound_flights", [])
 
     assert flights, "❌ No flights returned"
 
     flight = flights[0]
     print(f"🔗 Original deepLink: {flight['deepLink']}")
 
-    short_link = generate_short_link([flight], "flight")[0]["deepLink"]
+    short_link = generate_short_link([{"deepLink": flight['deepLink']}], "flight")[0]["deepLink"]
     print(f"✅ Short link: {short_link}")
 
     assert short_link.startswith("https://emt.bio/")
@@ -260,12 +275,12 @@ async def test_business_flight_short_link_real_api():
     print("\n✈️ Business cabin flight short link test")
 
     result = await flight_tool.execute(**payload)
-    flights = result["structured_content"].get("outbound_flights", [])
+    flights = result.structured_content.get("outbound_flights", [])
 
     assert flights, "❌ No flights returned"
 
     flight = flights[0]
-    short_link = generate_short_link([flight], "flight")[0]["deepLink"]
+    short_link = generate_short_link([{"deepLink": flight['deepLink']}], "flight")[0]["deepLink"]
 
     print(f"✅ Short link: {short_link}")
     assert short_link.startswith("https://emt.bio/")
@@ -286,7 +301,7 @@ async def test_hotel_multiple_rooms_short_link_real_api():
     print("\n🏨 Hotel multiple rooms short link test")
 
     result = await hotel_tool.execute(**payload)
-    hotels = result["structured_content"].get("hotels", [])
+    hotels = result.structured_content.get("hotels", [])
 
     assert hotels, "❌ No hotels returned"
 
@@ -315,8 +330,8 @@ async def test_short_link_length_real_api():
 
     # Handle both possible keys defensively
     hotels = (
-        result["structured_content"].get("hotels")
-        or result["structured_content"].get("results")
+        result.structured_content.get("hotels")
+        or result.structured_content.get("results")
         or []
     )
 

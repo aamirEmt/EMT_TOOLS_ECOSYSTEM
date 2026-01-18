@@ -2,6 +2,20 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime, timedelta
 
+
+class WhatsappHotelFormat(BaseModel):
+    type: str = "hotel_collection"
+    options: list
+    check_in_date: str
+    check_out_date: str
+    currency: str
+    view_all_hotels_url: str
+
+class WhatsappHotelFinalResponse(BaseModel):
+    response_text: str
+    whatsapp_json: WhatsappHotelFormat
+
+
 class HotelSearchInput(BaseModel):
     """Schema for hotel search input validation"""
     

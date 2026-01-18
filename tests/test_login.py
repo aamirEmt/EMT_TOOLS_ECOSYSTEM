@@ -34,8 +34,8 @@ async def test_login_missing_params():
     
     # Missing phone_number
     result = await tool.execute()  # ip_address="192.168.1.1"
-    assert result["success"] is False
-    assert "phone" in result["error"].lower()
+    assert result.is_error is True
+    assert "phone" in result.response_text.lower()
     
     # # Missing ip_address - no longer needed
     # result = await tool.execute(phone_number="9876543210")
