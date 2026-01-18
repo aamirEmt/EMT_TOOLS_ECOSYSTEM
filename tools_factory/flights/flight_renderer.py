@@ -567,7 +567,7 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
 }
 </style>
 
-<div class="flight-carousel round-trip-selector">
+<div class="flight-carousel round-trip-selector" data-instance-id="{{ unique_id }}">
   <main>
 
     <!-- Onward Flights -->
@@ -596,13 +596,10 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     <div class="fltcardbx">
       <div class="rsltcvr">
         {% for flight in onward_flights %}
-        <label class="selectable-flight"
-               for="onward-{{ loop.index0 }}"
-               data-flight='{{ flight | tojson }}'
-               data-leg="onward">
+        <label class="selectable-flight" for="onward-{{ unique_id }}-{{ loop.index0 }}" data-flight='{{ flight | tojson }}' data-leg="onward">
 
           <div class="selectable-flight__radio">
-            <input id="onward-{{ loop.index0 }}" type="radio" name="onward-flight" style="display: none;"/>
+          <input id="onward-{{ unique_id }}-{{ loop.index0 }}" type="radio" name="onward-flight-{{ unique_id }}" style="display: none;"/>
             <span class="dtlchkmark" aria-hidden="true"></span>
             <span class="selectable-flight__hint">Select Onward</span>
           </div>
@@ -670,16 +667,13 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     <div class="fltcardbx">
       <div class="rsltcvr">
         {% for flight in return_flights %}
-        <label class="selectable-flight"
-               for="return-{{ loop.index0 }}"
-               data-flight='{{ flight | tojson }}'
-               data-leg="return">
+        <label class="selectable-flight" for="return-{{ unique_id }}-{{ loop.index0 }}" data-flight='{{ flight | tojson }}' data-leg="return">
 
-          <div class="selectable-flight__radio">
-            <input id="return-{{ loop.index0 }}" type="radio" name="return-flight" style="display: none;"/>
-            <span class="dtlchkmark" aria-hidden="true"></span>
-            <span class="selectable-flight__hint">Select Return</span>
-          </div>
+        <div class="selectable-flight__radio">
+          <input id="return-{{ unique_id }}-{{ loop.index0 }}" type="radio" name="return-flight-{{ unique_id }}" style="display: none;"/>
+          <span class="dtlchkmark" aria-hidden="true"></span>
+          <span class="selectable-flight__hint">Select Return</span>
+        </div>
 
           <div class="fltcard">
             <div class="ntfchdr">
@@ -722,9 +716,9 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     </div>
 
     <div class="book-action">
-      <button type="button" class="bkbtn" disabled onclick="handleDomesticRoundtripBook()" style="margin-right:40px;">
-        Book Now
-      </button>
+   <button type="button" class="bkbtn" disabled style="margin-right:40px;">
+     Book Now
+   </button>
     </div>
 
   </main>
@@ -732,14 +726,33 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
 
 <script>
 (function () {
-  let selectedOnwardFlight = null;
-  let selectedReturnFlight = null;
+  'use strict';
+
+  const instanceId = '{{ unique_id }}';
+  const container = document.querySelector(`[data-instance-id="${instanceId}"]`);
+
+  if (!container) {
+    console.error(`[${instanceId}] Widget container not found. Ensure HTML has data-instance-id="{{ unique_id }}"`);
+    return;
+  }
+  
+  if (container.hasAttribute('data-initialized')) {
+    return;
+  }
+  
+  container.setAttribute('data-initialized', 'true');
+  container.classList.add('initialized');
+
+  const widgetId = 'widget_' + instanceId;
+  console.log(`[${widgetId}] Initializing...`);
+  
   let selectedOnwardFlightData = null;
   let selectedReturnFlightData = null;
-  let passengers= {{ passengers | tojson }};
+  const passengers = {{ passengers | tojson }};
 
-  // Helper functions from RoundTripSelector.jsx
-  const getSafeNumber = (value, fallback = 0) => {
+  /* ---------------- HELPERS (Extracted) ---------------- */
+
+ const getSafeNumber = (value, fallback = 0) => {
     const num = Number(value);
     return Number.isFinite(num) ? num : fallback;
   };
@@ -888,8 +901,7 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
       };
     });
   };
-
-  const buildSegmentString = (segment, id) => {
+ const buildSegmentString = (segment, id) => {
     const departureDateTime = composeDateTime(segment.departureDate, segment.departureTime);
     const arrivalDateTime = composeDateTime(segment.arrivalDate || segment.departureDate, segment.arrivalTime);
 
@@ -911,6 +923,7 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     encodeURIComponent(segment || "")
       .replace(/%2C/g, ",")
       .replace(/%3D/g, "=");
+
 
   const buildRoundTripDeepLink = (onwardFlight, returnFlight, options = {}) => {
     const {
@@ -979,19 +992,16 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     return `${baseUrl}?${baseQuery}&${segmentQuery}`;
   };
 
+
+  /* ---------------- EVENT LOGIC ---------------- */
+
   function updateUI(name, target) {
-    document.querySelectorAll('input[name="' + name + '"]').forEach(input => {
-      input.closest('.selectable-flight')
-           .classList.toggle('is-selected', input === target);
+    container.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+      input.closest('.selectable-flight').classList.toggle('is-selected', input === target);
     });
   }
 
-  function updateBookButton() {
-    const btn = document.querySelector('.round-trip-selector .bkbtn');
-    btn.disabled = !(selectedOnwardFlightData && selectedReturnFlightData);
-  }
-
-  document.addEventListener('change', function (e) {
+  container.addEventListener('change', function (e) {
     if (e.target.type !== 'radio') return;
 
     const wrapper = e.target.closest('.selectable-flight');
@@ -999,43 +1009,32 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     const leg = wrapper.dataset.leg;
 
     if (leg === 'onward') {
-      selectedOnwardFlight = flightUI;
       selectedOnwardFlightData = flightUI.raw_data || flightUI;
-      updateUI('onward-flight', e.target);
-    }
-
-    if (leg === 'return') {
-      selectedReturnFlight = flightUI;
+      updateUI(`onward-flight-${instanceId}`, e.target);
+    } else {
       selectedReturnFlightData = flightUI.raw_data || flightUI;
-      updateUI('return-flight', e.target);
+      updateUI(`return-flight-${instanceId}`, e.target);
     }
 
-    updateBookButton();
+    const btn = container.querySelector('.bkbtn');
+    if (btn) btn.disabled = !(selectedOnwardFlightData && selectedReturnFlightData);
   });
 
-  window.handleDomesticRoundtripBook = function () {
-   console.log('Booking roundtrip with:', { selectedOnwardFlightData, selectedReturnFlightData, passengers });
-    if (!selectedOnwardFlightData || !selectedReturnFlightData) return;
-    
-    const link = buildRoundTripDeepLink(
-      selectedOnwardFlightData,
-      selectedReturnFlightData,
-      {
-        adults: {{ passengers.adults | default(1) }},
-        children: {{ passengers.children | default(0) }},
-        infants: {{ passengers.infants | default(0) }},
-        referralId: "{{ referral_id | default('UserID') }}",
-        language: "{{ language | default('ln-hi') }}",
-        displayedCurrency: "{{ currency | default('INR') }}",
-        userCurrency: "{{ currency | default('INR') }}",
-        pointOfSaleCountry: "{{ pos_country | default('IN') }}"
-      }
-    );
-    
-    if (link) {
-      window.open(link, '_blank', 'noopener,noreferrer');
-    }
-  };
+  const bookButton = container.querySelector('.bkbtn');
+  if (bookButton) {
+    bookButton.addEventListener('click', function(e) {
+      if (!selectedOnwardFlightData || !selectedReturnFlightData) return;
+      
+      const link = buildRoundTripDeepLink(selectedOnwardFlightData, selectedReturnFlightData, {
+          adults: {{ passengers.adults | default(1) }},
+          children: {{ passengers.children | default(0) }},
+          infants: {{ passengers.infants | default(0) }},
+          referralId: "{{ referral_id | default('UserID') }}"
+      });
+      
+      if (link) window.open(link, '_blank', 'noopener,noreferrer');
+    });
+  }
 })();
 </script>
 """
@@ -1497,7 +1496,7 @@ def render_oneway_flights(flight_results: Dict[str, Any]) -> str:
     )
 
 
-def render_domestic_roundtrip_flights(flight_results: Dict[str, Any]) -> str:
+def render_domestic_roundtrip_flights(flight_results: Dict[str, Any], unique_id: str) -> str:
     """
     Render domestic roundtrip flight results with selection interface.
     """
@@ -1560,7 +1559,7 @@ def render_domestic_roundtrip_flights(flight_results: Dict[str, Any]) -> str:
         onward_date=onward_date,
         return_date=return_date,
         view_all_link=flight_results.get('viewAll'),
-
+        unique_id=unique_id,
         # ✅ this is what your JS reads
         passengers=passengers,
         referral_id='UserID',
@@ -1616,7 +1615,9 @@ def render_flight_results(flight_results: Dict[str, Any]) -> str:
     
     # Check if domestic roundtrip
     elif flight_results.get('is_roundtrip'):
-        return render_domestic_roundtrip_flights(flight_results)
+        import uuid
+        unique_id = str(uuid.uuid4())[:8]
+        return render_domestic_roundtrip_flights(flight_results,unique_id)
     
     # Default to one-way
     else:
