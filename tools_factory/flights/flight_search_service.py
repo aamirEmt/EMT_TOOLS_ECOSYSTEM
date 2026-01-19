@@ -1183,7 +1183,7 @@ def build_whatsapp_flight_response(
                     "date": payload.outbound_date,
                 },
                 "price": fare.get("total_fare"),
-                "booking_url": flight.get("booking_url"),
+                "booking_url": flight.get("deepLink"),
             })
 
         trip_type = "oneway"
@@ -1232,7 +1232,7 @@ def build_whatsapp_flight_response(
         trip_type=trip_type,
         journey_type="international" if is_international else "domestic",
         currency=flight_results.get("currency", "INR"),
-        view_all_flights_url=flight_results.get("view_all_flights_url", ""),
+        view_all_flights_url=flight_results.get("viewAll", ""),
     )
 
     return WhatsappFlightFinalResponse(
