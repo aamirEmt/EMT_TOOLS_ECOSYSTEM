@@ -788,6 +788,10 @@ async def search_flights(
             origin_country.strip().lower() == "india"
             and destination_country.strip().lower() == "india"
         )
+    # if origin_country and destination_country:
+    #     is_international = not (
+    #         origin_country.strip().lower() == destination_country.strip().lower()
+    #     )
     else:
         is_international = False
     cabin_enum = resolve_cabin_enum(cabin)

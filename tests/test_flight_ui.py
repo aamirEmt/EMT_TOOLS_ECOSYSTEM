@@ -41,8 +41,8 @@ async def test_domestic_roundtrip():
     return_date = (today + timedelta(days=37)).strftime("%Y-%m-%d")
 
     result = await tool.execute(
-        origin="DEL",
-        destination="BOM",
+        origin="FUK",
+        destination="CTS",
         outbound_date=outbound,
         return_date=return_date,
         adults=2,
