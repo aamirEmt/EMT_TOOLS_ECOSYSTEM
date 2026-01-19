@@ -261,7 +261,7 @@ class HotelSearchService:
 
     def build_whatsapp_hotel_response(
             self,
-    hotels: List[Dict[str, Any]],
+    results: Dict[str, Any],
     search_input: HotelSearchInput,
     ) -> WhatsappHotelFinalResponse:
         """
@@ -271,7 +271,7 @@ class HotelSearchService:
         - Assumes hotels are ALREADY limited by parent
         - No slicing / UI limits enforced here
         """
-
+        hotels = results.get("hotels", [])
         whatsapp_hotels = []
 
         for idx, hotel in enumerate(hotels, start=1):
@@ -293,7 +293,7 @@ class HotelSearchService:
             check_in_date=search_input.check_in_date,
             check_out_date=search_input.check_out_date,
             currency=hotel.get("currency", "INR"),
-            view_all_hotels_url=hotel.get("viewAll", ""),
+            view_all_hotels_url=results.get("viewAll", ""),
         )
 
         return WhatsappHotelFinalResponse(

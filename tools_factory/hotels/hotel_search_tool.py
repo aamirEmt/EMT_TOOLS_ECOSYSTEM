@@ -124,19 +124,18 @@ class HotelSearchTool(BaseTool):
                 whatsapp_response=None,
                 is_error=True,
             )
-        hotels = results.get("hotels") or []
-
+       
         if limit is not None and "hotels" in results:
                 results["hotels"] = results["hotels"][:limit]
         try:
-            if hotels:
+            if results["hotels"]:
                 results["hotels"] = generate_short_link(
-                    hotels,
+                    results["hotels"],
                     product_type="hotel"
                 )
         except Exception as e:
             # DO NOT FAIL hotel search because of short-link issues
-            results["hotels"] = hotels
+            results["hotels"] = results["hotels"]
 
             
            
@@ -148,7 +147,7 @@ class HotelSearchTool(BaseTool):
         whatsapp_response = None
         if is_whatsapp and not results.get("error"):
             whatsapp_response = self.service.build_whatsapp_hotel_response(
-                hotels=hotels,
+                results=results,
                 search_input=search_input
             )
             

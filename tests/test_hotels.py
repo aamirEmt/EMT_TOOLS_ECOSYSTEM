@@ -744,7 +744,7 @@ async def test_hotel_search_whatsapp_real_api(dummy_hotel_basic):
     result = await tool.execute(
         **dummy_hotel_basic,
         _user_type="whatsapp",
-        _limit=10  # optional: limit to first 10 hotels for faster response
+        _limit=3  # optional: limit to first 10 hotels for faster response
     )
 
     # Extract WhatsApp response
