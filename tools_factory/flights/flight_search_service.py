@@ -883,6 +883,8 @@ async def search_flights(
     processed_data = process_flight_results(data, is_roundtrip,is_international, search_context)
     processed_data["origin"] = origin_code
     processed_data["destination"] = destination_code
+    processed_data["outbound_date"] = outbound_date
+    processed_data["return_date"] = return_date
     return processed_data
 
 

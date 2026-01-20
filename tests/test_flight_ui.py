@@ -12,11 +12,11 @@ from tools_factory.flights.flight_search_tool import FlightSearchTool
 async def test_oneway_flight():
     tool = FlightSearchTool()
 
-    outbound = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
+    outbound = (datetime.now() + timedelta(days=37)).strftime("%Y-%m-%d")
 
     result = await tool.execute(
         origin="DEL",
-        destination="LHR",
+        destination="BOM",
         outbound_date=outbound,
         adults=2,
         _limit=10,
@@ -41,8 +41,8 @@ async def test_domestic_roundtrip():
     return_date = (today + timedelta(days=37)).strftime("%Y-%m-%d")
 
     result = await tool.execute(
-        origin="FUK",
-        destination="CTS",
+        origin="DEL",
+        destination="BOM",
         outbound_date=outbound,
         return_date=return_date,
         adults=2,
