@@ -755,6 +755,57 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
 
   /* ---------------- HELPERS (Extracted) ---------------- */
 
+ const buildDateTime = (date, time) => {
+  if (!date || !time) return null;
+  const hh = time.slice(0, 2);
+  const mm = time.slice(2, 4);
+  return new Date(`${date}T${hh}:${mm}:00`);  // ✅ Use backticks
+};
+
+const validateRoundTripTiming = (onwardFlight, returnFlight) => {
+  const onwardSegments = extractSegments(onwardFlight);
+  const returnSegments = extractSegments(returnFlight);
+
+  if (!onwardSegments.length || !returnSegments.length) {
+    return { valid: false, message: "Invalid flight data." };
+  }
+
+  const onwardLast = onwardSegments[onwardSegments.length - 1];
+  const returnFirst = returnSegments[0];
+
+  const onwardArrival = buildDateTime(
+    onwardLast.arrivalDate || onwardLast.departureDate,
+    onwardLast.arrivalTime
+  );
+
+  const returnDeparture = buildDateTime(
+    returnFirst.departureDate,
+    returnFirst.departureTime
+  );
+
+  if (!onwardArrival || !returnDeparture) {
+    return { valid: false, message: "Unable to validate flight timings." };
+  }
+
+  const diffHours = (returnDeparture - onwardArrival) / (1000 * 60 * 60);
+
+  if (diffHours < 4) {
+    return {
+      valid: false,
+      message: "Hey, these flights timing is overlap, please change the selection."
+    };
+  }
+
+  if (diffHours >= 4 && diffHours <= 6) {
+    return {
+      valid: true,
+      warning: "Flying time difference is less than 6 hours. Are you sure you want to book?"
+    };
+  }
+
+  return { valid: true };
+};
+
  const getSafeNumber = (value, fallback = 0) => {
     const num = Number(value);
     return Number.isFinite(num) ? num : fallback;
@@ -1027,6 +1078,20 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
   if (bookButton) {
     bookButton.addEventListener('click', function(e) {
       if (!selectedOnwardFlightData || !selectedReturnFlightData) return;
+      const timingCheck = validateRoundTripTiming(
+    selectedOnwardFlightData,
+    selectedReturnFlightData
+  );
+
+  if (!timingCheck.valid) {
+    alert(timingCheck.message);
+    return;
+  }
+
+  if (timingCheck.warning) {
+    const ok = confirm(timingCheck.warning);
+    if (!ok) return;
+  }
       
       const link = buildRoundTripDeepLink(selectedOnwardFlightData, selectedReturnFlightData, {
           adults: {{ passengers.adults | default(1) }},
