@@ -48,6 +48,15 @@ def resolve_cabin_enum(user_cabin: Optional[str]) -> CabinClassEnum:
     return CabinClassEnum.ECONOMY
 
 
+def get_cabin_display_name(cabin_enum: CabinClassEnum) -> str:
+    """Convert CabinClassEnum to readable display text."""
+    cabin_map = {
+        CabinClassEnum.ECONOMY: "Economy",
+        CabinClassEnum.FIRST: "First Class",
+        CabinClassEnum.BUSINESS: "Business",
+        CabinClassEnum.PREMIUM_ECONOMY: "Premium Economy",
+    }
+    return cabin_map.get(cabin_enum, "Economy")
 
 
 def _normalize_cabin(cabin: str) -> str:
@@ -885,6 +894,7 @@ async def search_flights(
     processed_data["destination"] = destination_code
     processed_data["outbound_date"] = outbound_date
     processed_data["return_date"] = return_date
+    processed_data["cabin"] = get_cabin_display_name(cabin_enum)
     return processed_data
 
 

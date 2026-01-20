@@ -19,6 +19,7 @@ async def test_oneway_flight():
         destination="BOM",
         outbound_date=outbound,
         adults=2,
+        cabin="Business",
         _limit=10,
         _user_type="website"
     )
@@ -47,6 +48,7 @@ async def test_domestic_roundtrip():
         return_date=return_date,
         adults=2,
         children=1,
+        cabin="First",
         _limit=8,
         _user_type="website"
     )
@@ -78,6 +80,7 @@ async def test_international_roundtrip():
         outbound_date=outbound,
         return_date=return_date,
         adults=1,
+        cabin="Premium Economy",
         _limit=10,
         _user_type="website"
     )

@@ -491,7 +491,8 @@ ONEWAY_FLIGHT_TEMPLATE = """
       <div class="ntfsbt">
         <span>Oneway</span> •
         <span>{{ departure_date }}</span> •
-        <span>{{ flight_count }} option{{ 's' if flight_count != 1 else '' }}</span>
+        {# <span>{{ flight_count }} option{{ 's' if flight_count != 1 else '' }}</span> #}
+        <span>{{ cabin }}</span>
       </div>
     </div>
 
@@ -588,7 +589,8 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
         <div class="meta">
           <span>Onward</span> |
           <span>{{ onward_date }}</span> |
-          <span>{{ onward_count }} option{{ 's' if onward_count != 1 else '' }}</span>
+          {# <span>{{ onward_count }} option{{ 's' if onward_count != 1 else '' }}</span> #}
+          <span>{{ cabin }}</span>
         </div>
       </div>
     </div>
@@ -659,7 +661,8 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
         <div class="meta">
           <span>Return</span> |
           <span>{{ return_date }}</span> |
-          <span>{{ return_count }} option{{ 's' if return_count != 1 else '' }}</span>
+          {# <span>{{ return_count }} option{{ 's' if return_count != 1 else '' }}</span> #}
+          <span>{{ cabin }}</span>
         </div>
       </div>
     </div>
@@ -1071,7 +1074,8 @@ INTERNATIONAL_ROUNDTRIP_TEMPLATE = """
   <div class="ntfsbt">
     <span>Roundtrip</span> •
     <span>{{ onward_date }} – {{ return_date }}</span> •
-    <span>{{ combo_count }} option{{ 's' if combo_count != 1 else '' }}</span>
+    {# <span>{{ combo_count }} option{{ 's' if combo_count != 1 else '' }}</span> #}
+    <span>{{ cabin }}</span>
   </div>
 </div>
     <div class="fltcardbx">
@@ -1488,9 +1492,10 @@ def render_oneway_flights(flight_results: Dict[str, Any]) -> str:
         styles=BASE_FLIGHT_STYLES,
         origin=origin,
         destination=destination,
-        flight_count=len(flights_ui),
+        flight_count=len(flights_ui),  # Keep for compatibility
         flights=flights_ui,
         departure_date=departure_date,
+        cabin=flight_results.get('cabin', 'Economy'),
         view_all_link=flight_results.get('viewAll'),
     )
 
@@ -1550,14 +1555,15 @@ def render_domestic_roundtrip_flights(flight_results: Dict[str, Any], unique_id:
         styles=combined_styles,
         onward_origin=onward_origin,
         onward_destination=onward_destination,
-        onward_count=len(onward_ui),
+        onward_count=len(onward_ui),  # Keep for compatibility
         onward_flights=onward_ui,
         return_origin=return_origin,
         return_destination=return_destination,
-        return_count=len(return_ui),
+        return_count=len(return_ui),  # Keep for compatibility
         return_flights=return_ui,
         onward_date=onward_date,
         return_date=return_date,
+        cabin=flight_results.get('cabin', 'Economy'),
         view_all_link=flight_results.get('viewAll'),
         unique_id=unique_id,
         # ✅ this is what your JS reads
@@ -1597,7 +1603,8 @@ def render_international_roundtrip_flights(flight_results: Dict[str, Any]) -> st
         destination=destination,
         onward_date=onward_date,
         return_date=return_date,
-        combo_count=len(combos_ui),
+        combo_count=len(combos_ui),  # Keep for compatibility
+        cabin=flight_results.get('cabin', 'Economy'),
         view_all_link=flight_results.get('viewAll'),
     )
 
