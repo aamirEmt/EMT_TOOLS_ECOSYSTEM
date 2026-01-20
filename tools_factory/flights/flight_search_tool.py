@@ -4,7 +4,7 @@ from pydantic import ValidationError
 
 from emt_client.utils import generate_short_link
 from .flight_scehma import FlightSearchInput,WhatsappFlightFinalResponse,WhatsappFlightFormat
-from .flight_search_service import search_flights,build_whatsapp_flight_response
+from .flight_search_service import search_flights,build_whatsapp_flight_response,filter_domestic_roundtrip_flights
 from .flight_renderer import render_flight_results
 from tools_factory.base_schema import ToolResponseFormat 
 
@@ -111,6 +111,10 @@ class FlightSearchTool(BaseTool):
             "children": payload.children,
             "infants": payload.infants,
         }
+        is_roundtrip = flight_results.get("is_roundtrip")
+        is_international = flight_results.get("is_international")
+        if is_whatsapp and not is_international:
+           flight_results= filter_domestic_roundtrip_flights(flight_results)
 
         # --------------------------------------------------
         if limit is not None:
@@ -127,8 +131,7 @@ class FlightSearchTool(BaseTool):
         return_count = len(return_flights)
         combo_count = len(international_combos)
 
-        is_roundtrip = flight_results.get("is_roundtrip")
-        is_international = flight_results.get("is_international")
+        
 
         if is_international and international_combos:
             flight_results["international_combos"] = generate_short_link(

@@ -7,7 +7,7 @@ This module handles all flight search operations including:
 """
 from .flight_scehma import FlightSearchInput,WhatsappFlightFinalResponse,WhatsappFlightFormat
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional,Set
 from urllib.parse import quote, urlencode
 from emt_client.clients.flight_client import FlightApiClient
 from emt_client.utils import (
@@ -967,8 +967,8 @@ def process_flight_results(
     view_all_link = _build_view_all_link(search_context)
 
     return {
-        "outbound_flights": outbound_flights[:10],
-        "return_flights": return_flights[:10],
+        "outbound_flights": outbound_flights[:20],
+        "return_flights": return_flights[:20],
         "is_roundtrip": is_roundtrip,
         "is_international": is_international,
         "international_combos": combos,
@@ -1134,6 +1134,8 @@ def extract_segment_summary(segment: dict) -> dict:
             "airline": None,
             "flight_number": None,
             "departure_time": None,
+             "departure_date": None,
+            "arrival_date": None,
             "arrival_time": None,
             "duration": segment.get("journey_time"),
             "stops": segment.get("total_stops", 0),
@@ -1149,6 +1151,8 @@ def extract_segment_summary(segment: dict) -> dict:
             for leg in legs
             if leg.get("flight_number")
         ),
+        "departure_date": first_leg.get("departure_date"),
+        "arrival_date": last_leg.get("arrival_date"),
         "departure_time": first_leg.get("departure_time"),
         "arrival_time": last_leg.get("arrival_time"),
         "duration": segment.get("journey_time"),
@@ -1194,6 +1198,11 @@ def build_whatsapp_flight_response(
 
     # ---------- ROUNDTRIP DOMESTIC ----------
     elif is_roundtrip and not is_international:
+        passengers = {
+            "adults": payload.adults,
+            "children": payload.children,
+            "infants": payload.infants,
+        }
         for idx, (out_f, ret_f) in enumerate(
             zip(
                 flight_results.get("outbound_flights", []),
@@ -1206,6 +1215,18 @@ def build_whatsapp_flight_response(
 
             out_fare = (out_f.get("fare_options") or [{}])[0]
             ret_fare = (ret_f.get("fare_options") or [{}])[0]
+            combo_deep_link = build_roundtrip_combo_deep_link(
+                onward_flight=out_f,
+                return_flight=ret_f,
+                passengers=passengers,
+            )
+            try:
+                booking_url = generate_short_link(
+                    [{"deepLink": combo_deep_link}],
+                    product_type="flight",
+                )[0].get("deepLink") or combo_deep_link
+            except Exception:
+                booking_url = combo_deep_link
 
             options.append({
                 "option_id": idx,
@@ -1213,7 +1234,7 @@ def build_whatsapp_flight_response(
                 "inbound_flight": ret_summary,
                 "total_price": (out_fare.get("total_fare") or 0)
                                + (ret_fare.get("total_fare") or 0),
-                "booking_url": out_f.get("booking_url"),
+                "booking_url": booking_url,
             })
 
         trip_type = "roundtrip"
@@ -1243,3 +1264,112 @@ def build_whatsapp_flight_response(
         response_text=f"Here are the best flight options from {payload.origin} to {payload.destination}",
         whatsapp_json=whatsapp_json,
     )
+
+def normalize_time(time_str: Optional[str]) -> Optional[str]:
+    """
+    Converts:
+    - '17:15' → '1715'
+    - '1715'  → '1715'
+    - '17.15' → '1715'
+    """
+    if not time_str:
+        return None
+
+    digits = re.sub(r"\D", "", time_str)
+
+    if len(digits) >= 4:
+        return digits[:4]
+
+    return None
+def build_datetime(date_str: Optional[str], time_str: Optional[str]) -> Optional[datetime]:
+    if not date_str or not time_str:
+        return None
+    date_str =_parse_date_to_iso(date_str)
+    time_str = normalize_time(time_str)
+    try:
+        hh = time_str[:2]
+        mm = time_str[2:4]
+        return datetime.fromisoformat(f"{date_str}T{hh}:{mm}:00")
+    except Exception:
+        return None
+
+
+def is_valid_domestic_roundtrip(out_flight: dict, ret_flight: dict) -> bool:
+    """
+    STRICT RULE:
+    Return flight must depart >= 4 hours after onward arrival
+    """
+    out_summary = extract_segment_summary(out_flight)
+    ret_summary = extract_segment_summary(ret_flight)
+
+    out_arrival = build_datetime(
+        out_summary.get("arrival_date"),
+        out_summary.get("arrival_time"),
+    )
+    ret_departure = build_datetime(
+        ret_summary.get("departure_date"),
+        ret_summary.get("departure_time"),
+    )
+
+    if not out_arrival or not ret_departure:
+        return False
+
+    diff_hours = (ret_departure - out_arrival).total_seconds() / 3600
+    return diff_hours > 4
+from typing import Dict, List, Tuple
+
+
+def filter_domestic_roundtrip_flights(flight_results: Dict) -> Dict:
+    """
+    Reorders outbound & return flights so that
+    valid roundtrip pairs appear FIRST and MATCHED.
+    """
+
+    if not flight_results.get("is_roundtrip"):
+        return flight_results
+
+    if flight_results.get("is_international"):
+        return flight_results
+
+    outbound_flights = flight_results.get("outbound_flights", [])
+    return_flights = flight_results.get("return_flights", [])
+
+    if not outbound_flights or not return_flights:
+        flight_results["outbound_flights"] = []
+        flight_results["return_flights"] = []
+        return flight_results
+
+    valid_pairs: List[Tuple[int, int]] = []
+
+    # Step 1: collect valid PAIRS (preserve order)
+    for o_idx, out_f in enumerate(outbound_flights):
+        for r_idx, ret_f in enumerate(return_flights):
+            if is_valid_domestic_roundtrip(out_f, ret_f):
+                valid_pairs.append((o_idx, r_idx))
+
+    if not valid_pairs:
+        flight_results["outbound_flights"] = []
+        flight_results["return_flights"] = []
+        return flight_results
+
+    # Step 2: build ordered unique lists based on PAIRS
+    ordered_outbounds = []
+    ordered_returns = []
+
+    seen_out = set()
+    seen_ret = set()
+
+    for o_idx, r_idx in valid_pairs:
+        if o_idx not in seen_out:
+            ordered_outbounds.append(outbound_flights[o_idx])
+            seen_out.add(o_idx)
+
+        if r_idx not in seen_ret:
+            ordered_returns.append(return_flights[r_idx])
+            seen_ret.add(r_idx)
+
+    flight_results["outbound_flights"] = ordered_outbounds
+    flight_results["return_flights"] = ordered_returns
+
+    return flight_results
+
