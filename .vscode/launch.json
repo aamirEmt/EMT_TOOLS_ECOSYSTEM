@@ -8,7 +8,7 @@
   "module": "pytest",
   "python": "${workspaceFolder}/.venv/Scripts/python.exe",
   "args": [
-    "tests/test_hotels.py::test_hotel_search_whatsapp_real_api",
+    "tests/test_flight_ui.py::test_international_roundtrip",
     "-v",
     "-s"
   ],

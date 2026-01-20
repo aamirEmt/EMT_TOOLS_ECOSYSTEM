@@ -491,7 +491,8 @@ ONEWAY_FLIGHT_TEMPLATE = """
       <div class="ntfsbt">
         <span>Oneway</span> •
         <span>{{ departure_date }}</span> •
-        <span>{{ flight_count }} option{{ 's' if flight_count != 1 else '' }}</span>
+        {# <span>{{ flight_count }} option{{ 's' if flight_count != 1 else '' }}</span> #}
+        <span>{{ cabin }}</span>
       </div>
     </div>
 
@@ -588,7 +589,8 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
         <div class="meta">
           <span>Onward</span> |
           <span>{{ onward_date }}</span> |
-          <span>{{ onward_count }} option{{ 's' if onward_count != 1 else '' }}</span>
+          {# <span>{{ onward_count }} option{{ 's' if onward_count != 1 else '' }}</span> #}
+          <span>{{ cabin }}</span>
         </div>
       </div>
     </div>
@@ -659,7 +661,8 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
         <div class="meta">
           <span>Return</span> |
           <span>{{ return_date }}</span> |
-          <span>{{ return_count }} option{{ 's' if return_count != 1 else '' }}</span>
+          {# <span>{{ return_count }} option{{ 's' if return_count != 1 else '' }}</span> #}
+          <span>{{ cabin }}</span>
         </div>
       </div>
     </div>
@@ -1071,7 +1074,8 @@ INTERNATIONAL_ROUNDTRIP_TEMPLATE = """
   <div class="ntfsbt">
     <span>Roundtrip</span> •
     <span>{{ onward_date }} – {{ return_date }}</span> •
-    <span>{{ combo_count }} option{{ 's' if combo_count != 1 else '' }}</span>
+    {# <span>{{ combo_count }} option{{ 's' if combo_count != 1 else '' }}</span> #}
+    <span>{{ cabin }}</span>
   </div>
 </div>
     <div class="fltcardbx">
@@ -1218,33 +1222,31 @@ def _format_time(time_value: Any) -> str:
     return "--:--"
 
 
+from typing import Any
+from datetime import datetime
+
 def _format_date(date_value: Any) -> str:
     """Format date as Day, DD MMM YYYY"""
     if not date_value:
         return "--"
 
     try:
-        from datetime import datetime
-
         if isinstance(date_value, str):
-            # ISO with time
-            if 'T' in date_value:
-                date_value = date_value.split('T')[0]
+            s = date_value.strip()
 
+            # Try ISO formats first (date or datetime, with or without Z)
             try:
-                dt = datetime.fromisoformat(date_value.replace('Z', '+00:00'))
+                dt = datetime.fromisoformat(s.replace('Z', '+00:00'))
             except ValueError:
-                # Handle: Sat-07Feb2026
-                dt = datetime.strptime(date_value, "%a-%d%b%Y")
+                # Handle: Thu-26Feb2026, Tue-07Feb2026, etc.
+                dt = datetime.strptime(s, "%a-%d%b%Y")
         else:
             dt = date_value
 
-        # ✅ FINAL FORMAT
         return dt.strftime("%a, %d %b %Y")
 
     except Exception:
         return str(date_value)
-
 
 
 def _format_stops(stops: int) -> str:
@@ -1481,7 +1483,8 @@ def render_oneway_flights(flight_results: Dict[str, Any]) -> str:
     flights_ui = [_normalize_flight_for_ui(flight, 'Oneway') for flight in flights]
     flights_ui = [f for f in flights_ui if f]
 
-    departure_date = flights_ui[0]['departure_date'] if flights_ui else "--"
+    # Get departure date from search context only
+    departure_date = _format_date(flight_results.get('outbound_date') or flight_results.get('departure_date'))
     
     # Render template
     template = _jinja_env.from_string(ONEWAY_FLIGHT_TEMPLATE)
@@ -1489,9 +1492,10 @@ def render_oneway_flights(flight_results: Dict[str, Any]) -> str:
         styles=BASE_FLIGHT_STYLES,
         origin=origin,
         destination=destination,
-        flight_count=len(flights_ui),
+        flight_count=len(flights_ui),  # Keep for compatibility
         flights=flights_ui,
         departure_date=departure_date,
+        cabin=flight_results.get('cabin', 'Economy'),
         view_all_link=flight_results.get('viewAll'),
     )
 
@@ -1528,8 +1532,9 @@ def render_domestic_roundtrip_flights(flight_results: Dict[str, Any], unique_id:
     onward_ui = [f for f in onward_ui if f]
     return_ui = [f for f in return_ui if f]
 
-    onward_date = onward_ui[0]['departure_date'] if onward_ui else "--"
-    return_date = return_ui[0]['departure_date'] if return_ui else "--"
+    # Get dates from search context only
+    onward_date = _format_date(flight_results.get('outbound_date') or flight_results.get('departure_date'))
+    return_date = _format_date(flight_results.get('return_date'))
 
     # --------------------------------------------------
     # ✅ PASSENGER CONTEXT (FIXED)
@@ -1550,14 +1555,15 @@ def render_domestic_roundtrip_flights(flight_results: Dict[str, Any], unique_id:
         styles=combined_styles,
         onward_origin=onward_origin,
         onward_destination=onward_destination,
-        onward_count=len(onward_ui),
+        onward_count=len(onward_ui),  # Keep for compatibility
         onward_flights=onward_ui,
         return_origin=return_origin,
         return_destination=return_destination,
-        return_count=len(return_ui),
+        return_count=len(return_ui),  # Keep for compatibility
         return_flights=return_ui,
         onward_date=onward_date,
         return_date=return_date,
+        cabin=flight_results.get('cabin', 'Economy'),
         view_all_link=flight_results.get('viewAll'),
         unique_id=unique_id,
         # ✅ this is what your JS reads
@@ -1581,8 +1587,11 @@ def render_international_roundtrip_flights(flight_results: Dict[str, Any]) -> st
 
     origin = first_combo['onward']['origin']
     destination = first_combo['onward']['destination']
-    onward_date = first_combo['onward']['departure_date']
-    return_date = first_combo['return']['departure_date']
+    
+    # Get dates from search context (more reliable than individual flights)
+    onward_date = _format_date(flight_results.get('outbound_date') or flight_results.get('departure_date'))
+    return_date = _format_date(flight_results.get('return_date'))
+
 
     combined_styles = f"{BASE_FLIGHT_STYLES}\n{INTERNATIONAL_ROUNDTRIP_STYLES}"
     template = _jinja_env.from_string(INTERNATIONAL_ROUNDTRIP_TEMPLATE)
@@ -1594,7 +1603,8 @@ def render_international_roundtrip_flights(flight_results: Dict[str, Any]) -> st
         destination=destination,
         onward_date=onward_date,
         return_date=return_date,
-        combo_count=len(combos_ui),
+        combo_count=len(combos_ui),  # Keep for compatibility
+        cabin=flight_results.get('cabin', 'Economy'),
         view_all_link=flight_results.get('viewAll'),
     )
 
