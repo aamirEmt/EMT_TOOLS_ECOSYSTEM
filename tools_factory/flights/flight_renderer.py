@@ -48,6 +48,10 @@ BASE_FLIGHT_STYLES = """
   align-items: center;
 }
 
+.flight-carousel .ntfctl span {
+  white-space: nowrap;
+}
+
 .flight-carousel .ntfsbt {
   font-size: 8px;
   color: #868686;
@@ -195,6 +199,8 @@ BASE_FLIGHT_STYLES = """
     align-items: flex-end; /* pushes both to the right */
     text-align: right;
     justify-content: space-between;
+    min-width: fit-content;
+    flex-shrink: 0;
 }
 
 .flight-carousel .sbttl {
@@ -206,6 +212,7 @@ BASE_FLIGHT_STYLES = """
   font-size: 18px;
   font-weight: 700;
   margin-left: 15px;
+  white-space: nowrap;
 }
 
 .flight-carousel .bkbtn {
@@ -260,6 +267,101 @@ BASE_FLIGHT_STYLES = """
   background: #2093ef;
   color: #fff;
   border-color: #2093ef;
+}
+
+/* View All Card Styles */
+.flight-carousel .view-all-card {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  min-width: 250px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  position: relative;
+  overflow: visible;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.flight-carousel .view-all-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #2093ef;
+}
+
+/* Layered edge effect (book pages) */
+.flight-carousel .view-all-card::before,
+.flight-carousel .view-all-card::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #f0f1f3 0%, #d8dce0 100%);
+  z-index: -1;
+}
+
+.flight-carousel .view-all-card::before {
+  right: -3px;
+  height: 98%;
+  top: 1%;
+  opacity: 0.7;
+}
+
+.flight-carousel .view-all-card::after {
+  right: -6px;
+  height: 96%;
+  top: 2%;
+  opacity: 0.5;
+}
+
+.flight-carousel .view-all-card:hover::before {
+  right: -4px;
+}
+
+.flight-carousel .view-all-card:hover::after {
+  right: -8px;
+}
+
+.flight-carousel .view-all-card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2093ef 0%, #1976d2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(32, 147, 239, 0.3);
+}
+
+.flight-carousel .view-all-card-icon svg {
+  width: 28px;
+  height: 28px;
+  color: #fff;
+}
+
+.flight-carousel .view-all-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202020;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.flight-carousel .view-all-card-subtitle {
+  font-size: 13px;
+  color: #646d74;
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.4;
 }
 """
 
@@ -546,6 +648,18 @@ ONEWAY_FLIGHT_TEMPLATE = """
           </div>
         </div>
         {% endfor %}
+
+        {% if view_all_link %}
+        <a href="{{ view_all_link }}" target="_blank" rel="noopener noreferrer" class="view-all-card">
+          <div class="view-all-card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+          <div class="view-all-card-title">View All</div>
+          <div class="view-all-card-subtitle">Explore more flight options</div>
+        </a>
+        {% endif %}
       </div>
     </div>
   </main>
@@ -643,6 +757,18 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
           </div>
         </label>
         {% endfor %}
+
+        {% if view_all_link %}
+        <a href="{{ view_all_link }}" target="_blank" rel="noopener noreferrer" class="view-all-card">
+          <div class="view-all-card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+          <div class="view-all-card-title">View All</div>
+          <div class="view-all-card-subtitle">Explore more flights</div>
+        </a>
+        {% endif %}
       </div>
     </div>
 
@@ -715,6 +841,18 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
           </div>
         </label>
         {% endfor %}
+
+        {% if view_all_link %}
+        <a href="{{ view_all_link }}" target="_blank" rel="noopener noreferrer" class="view-all-card">
+          <div class="view-all-card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+          <div class="view-all-card-title">View All</div>
+          <div class="view-all-card-subtitle">Explore more flights</div>
+        </a>
+        {% endif %}
       </div>
     </div>
 
@@ -1246,6 +1384,18 @@ INTERNATIONAL_ROUNDTRIP_TEMPLATE = """
           </a>
         </div>
         {% endfor %}
+
+        {% if view_all_link %}
+        <a href="{{ view_all_link }}" target="_blank" rel="noopener noreferrer" class="view-all-card">
+          <div class="view-all-card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+          <div class="view-all-card-title">View All</div>
+          <div class="view-all-card-subtitle">Explore more flight combinations</div>
+        </a>
+        {% endif %}
       </div>
     </div>
     
