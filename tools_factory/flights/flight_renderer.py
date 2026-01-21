@@ -63,7 +63,7 @@ BASE_FLIGHT_STYLES = """
 }
 
 .flight-carousel .fltcardbx {
-  width: 100%;
+  width: 90%;
   padding: 8px 6px;
 }
 
