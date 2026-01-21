@@ -101,7 +101,7 @@ FLIGHT_TOKEN_URL = _get_config_value(
 FLIGHT_BASE_URL = _get_config_value(
     'FLIGHT_BASE_URL',
     'FLIGHT_BASE_URL',
-    default='https://flightservice-web.easemytrip.com/EmtAppService'
+    default='https://flightservice-node.easemytrip.com'
 )
 
 FLIGHT_ATK_TOKEN = _get_config_value(

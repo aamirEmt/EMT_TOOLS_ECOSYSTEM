@@ -789,19 +789,26 @@ const validateRoundTripTiming = (onwardFlight, returnFlight) => {
 
   const diffHours = (returnDeparture - onwardArrival) / (1000 * 60 * 60);
 
-  if (diffHours < 4) {
-    return {
-      valid: false,
-      message: "Hey, these flights timing is overlap, please change the selection."
-    };
-  }
+  if (diffHours <= 0) {
+  return {
+    valid: false,
+    message: "Selected return flight departs before the onward flight arrives."
+  };
+}
 
-  if (diffHours >= 4 && diffHours <= 6) {
-    return {
-      valid: true,
-      warning: "Flying time difference is less than 6 hours. Are you sure you want to book?"
-    };
-  }
+  if (diffHours < 4) {
+  return {
+    valid: false,
+    message: "The flight timings are too close. Please select a return flight with a gap of more than four hours."
+  };
+}
+
+  if (diffHours < 6) {
+  return {
+    valid: true,
+    warning: "Flying time difference is less than 6 hours. Are you sure you want to book?"
+  };
+}
 
   return { valid: true };
 };

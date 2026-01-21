@@ -72,7 +72,7 @@ async def test_international_roundtrip():
 
     today = datetime.now()
     outbound = (today + timedelta(days=30)).strftime("%Y-%m-%d")
-    return_date = (today + timedelta(days=29)).strftime("%Y-%m-%d")
+    return_date = (today + timedelta(days=37)).strftime("%Y-%m-%d")
 
     result = await tool.execute(
         origin="DEL",
