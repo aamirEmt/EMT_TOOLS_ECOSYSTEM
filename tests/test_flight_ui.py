@@ -39,16 +39,16 @@ async def test_domestic_roundtrip():
 
     today = datetime.now()
     outbound = (today + timedelta(days=30)).strftime("%Y-%m-%d")
-    return_date = (today + timedelta(days=37)).strftime("%Y-%m-%d")
+    return_date = (today + timedelta(days=30)).strftime("%Y-%m-%d")
 
     result = await tool.execute(
         origin="DEL",
         destination="BOM",
         outbound_date=outbound,
         return_date=return_date,
-        adults=2,
-        children=1,
-        cabin="First",
+        adults=1,
+        children=0,
+        cabin="Economy",
         _limit=8,
         _user_type="website"
     )
