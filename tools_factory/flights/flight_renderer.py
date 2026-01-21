@@ -48,6 +48,10 @@ BASE_FLIGHT_STYLES = """
   align-items: center;
 }
 
+.flight-carousel .ntfctl span {
+  white-space: nowrap;
+}
+
 .flight-carousel .ntfsbt {
   font-size: 8px;
   color: #868686;
@@ -195,6 +199,8 @@ BASE_FLIGHT_STYLES = """
     align-items: flex-end; /* pushes both to the right */
     text-align: right;
     justify-content: space-between;
+    min-width: fit-content;
+    flex-shrink: 0;
 }
 
 .flight-carousel .sbttl {
@@ -206,6 +212,7 @@ BASE_FLIGHT_STYLES = """
   font-size: 18px;
   font-weight: 700;
   margin-left: 15px;
+  white-space: nowrap;
 }
 
 .flight-carousel .bkbtn {
