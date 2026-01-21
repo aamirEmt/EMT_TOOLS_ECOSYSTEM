@@ -76,6 +76,7 @@ HOTEL_CAROUSEL_TEMPLATE = """
 }
 
 .hotel-carousel .rsltcvr {
+  width: 90%;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
