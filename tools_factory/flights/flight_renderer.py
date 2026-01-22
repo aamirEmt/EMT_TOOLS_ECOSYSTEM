@@ -491,7 +491,8 @@ ONEWAY_FLIGHT_TEMPLATE = """
       <div class="ntfsbt">
         <span>Oneway</span> •
         <span>{{ departure_date }}</span> •
-        <span>{{ flight_count }} option{{ 's' if flight_count != 1 else '' }}</span>
+        {# <span>{{ flight_count }} option{{ 's' if flight_count != 1 else '' }}</span> #}
+        <span>{{ cabin }}</span>
       </div>
     </div>
 
@@ -567,7 +568,7 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
 }
 </style>
 
-<div class="flight-carousel round-trip-selector">
+<div class="flight-carousel round-trip-selector" data-instance-id="{{ unique_id }}">
   <main>
 
     <!-- Onward Flights -->
@@ -588,7 +589,8 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
         <div class="meta">
           <span>Onward</span> |
           <span>{{ onward_date }}</span> |
-          <span>{{ onward_count }} option{{ 's' if onward_count != 1 else '' }}</span>
+          {# <span>{{ onward_count }} option{{ 's' if onward_count != 1 else '' }}</span> #}
+          <span>{{ cabin }}</span>
         </div>
       </div>
     </div>
@@ -596,13 +598,10 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     <div class="fltcardbx">
       <div class="rsltcvr">
         {% for flight in onward_flights %}
-        <label class="selectable-flight"
-               for="onward-{{ loop.index0 }}"
-               data-flight='{{ flight | tojson }}'
-               data-leg="onward">
+        <label class="selectable-flight" for="onward-{{ unique_id }}-{{ loop.index0 }}" data-flight='{{ flight | tojson }}' data-leg="onward">
 
           <div class="selectable-flight__radio">
-            <input id="onward-{{ loop.index0 }}" type="radio" name="onward-flight" style="display: none;"/>
+          <input id="onward-{{ unique_id }}-{{ loop.index0 }}" type="radio" name="onward-flight-{{ unique_id }}" style="display: none;"/>
             <span class="dtlchkmark" aria-hidden="true"></span>
             <span class="selectable-flight__hint">Select Onward</span>
           </div>
@@ -662,7 +661,8 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
         <div class="meta">
           <span>Return</span> |
           <span>{{ return_date }}</span> |
-          <span>{{ return_count }} option{{ 's' if return_count != 1 else '' }}</span>
+          {# <span>{{ return_count }} option{{ 's' if return_count != 1 else '' }}</span> #}
+          <span>{{ cabin }}</span>
         </div>
       </div>
     </div>
@@ -670,16 +670,13 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     <div class="fltcardbx">
       <div class="rsltcvr">
         {% for flight in return_flights %}
-        <label class="selectable-flight"
-               for="return-{{ loop.index0 }}"
-               data-flight='{{ flight | tojson }}'
-               data-leg="return">
+        <label class="selectable-flight" for="return-{{ unique_id }}-{{ loop.index0 }}" data-flight='{{ flight | tojson }}' data-leg="return">
 
-          <div class="selectable-flight__radio">
-            <input id="return-{{ loop.index0 }}" type="radio" name="return-flight" style="display: none;"/>
-            <span class="dtlchkmark" aria-hidden="true"></span>
-            <span class="selectable-flight__hint">Select Return</span>
-          </div>
+        <div class="selectable-flight__radio">
+          <input id="return-{{ unique_id }}-{{ loop.index0 }}" type="radio" name="return-flight-{{ unique_id }}" style="display: none;"/>
+          <span class="dtlchkmark" aria-hidden="true"></span>
+          <span class="selectable-flight__hint">Select Return</span>
+        </div>
 
           <div class="fltcard">
             <div class="ntfchdr">
@@ -722,9 +719,9 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     </div>
 
     <div class="book-action">
-      <button type="button" class="bkbtn" disabled onclick="handleDomesticRoundtripBook()" style="margin-right:40px;">
-        Book Now
-      </button>
+   <button type="button" class="bkbtn" disabled style="margin-right:40px;">
+     Book Now
+   </button>
     </div>
 
   </main>
@@ -732,14 +729,91 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
 
 <script>
 (function () {
-  let selectedOnwardFlight = null;
-  let selectedReturnFlight = null;
+  'use strict';
+
+  const instanceId = '{{ unique_id }}';
+  const container = document.querySelector(`[data-instance-id="${instanceId}"]`);
+
+  if (!container) {
+    console.error(`[${instanceId}] Widget container not found. Ensure HTML has data-instance-id="{{ unique_id }}"`);
+    return;
+  }
+  
+  if (container.hasAttribute('data-initialized')) {
+    return;
+  }
+  
+  container.setAttribute('data-initialized', 'true');
+  container.classList.add('initialized');
+
+  const widgetId = 'widget_' + instanceId;
+  console.log(`[${widgetId}] Initializing...`);
+  
   let selectedOnwardFlightData = null;
   let selectedReturnFlightData = null;
-  let passengers= {{ passengers | tojson }};
+  const passengers = {{ passengers | tojson }};
 
-  // Helper functions from RoundTripSelector.jsx
-  const getSafeNumber = (value, fallback = 0) => {
+  /* ---------------- HELPERS (Extracted) ---------------- */
+
+ const buildDateTime = (date, time) => {
+  if (!date || !time) return null;
+  const hh = time.slice(0, 2);
+  const mm = time.slice(2, 4);
+  return new Date(`${date}T${hh}:${mm}:00`); 
+};
+
+const validateRoundTripTiming = (onwardFlight, returnFlight) => {
+  const onwardSegments = extractSegments(onwardFlight);
+  const returnSegments = extractSegments(returnFlight);
+
+  if (!onwardSegments.length || !returnSegments.length) {
+    return { valid: false, message: "Invalid flight data." };
+  }
+
+  const onwardLast = onwardSegments[onwardSegments.length - 1];
+  const returnFirst = returnSegments[0];
+
+  const onwardArrival = buildDateTime(
+    onwardLast.arrivalDate || onwardLast.departureDate,
+    onwardLast.arrivalTime
+  );
+
+  const returnDeparture = buildDateTime(
+    returnFirst.departureDate,
+    returnFirst.departureTime
+  );
+
+  if (!onwardArrival || !returnDeparture) {
+    return { valid: false, message: "Unable to validate flight timings." };
+  }
+
+  const diffHours = (returnDeparture - onwardArrival) / (1000 * 60 * 60);
+
+  if (diffHours <= 0) {
+  return {
+    valid: false,
+    message: "Selected return flight departs before the onward flight arrives."
+  };
+}
+
+  if (diffHours < 4) {
+  return {
+    valid: false,
+    message: "The flight timings are too close. Please select a return flight with a gap of more than four hours."
+  };
+}
+
+  if (diffHours < 6) {
+  return {
+    valid: true,
+    warning: "Flying time difference is less than 6 hours. Are you sure you want to book?"
+  };
+}
+
+  return { valid: true };
+};
+
+ const getSafeNumber = (value, fallback = 0) => {
     const num = Number(value);
     return Number.isFinite(num) ? num : fallback;
   };
@@ -888,8 +962,7 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
       };
     });
   };
-
-  const buildSegmentString = (segment, id) => {
+ const buildSegmentString = (segment, id) => {
     const departureDateTime = composeDateTime(segment.departureDate, segment.departureTime);
     const arrivalDateTime = composeDateTime(segment.arrivalDate || segment.departureDate, segment.arrivalTime);
 
@@ -911,6 +984,7 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     encodeURIComponent(segment || "")
       .replace(/%2C/g, ",")
       .replace(/%3D/g, "=");
+
 
   const buildRoundTripDeepLink = (onwardFlight, returnFlight, options = {}) => {
     const {
@@ -979,19 +1053,16 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     return `${baseUrl}?${baseQuery}&${segmentQuery}`;
   };
 
+
+  /* ---------------- EVENT LOGIC ---------------- */
+
   function updateUI(name, target) {
-    document.querySelectorAll('input[name="' + name + '"]').forEach(input => {
-      input.closest('.selectable-flight')
-           .classList.toggle('is-selected', input === target);
+    container.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+      input.closest('.selectable-flight').classList.toggle('is-selected', input === target);
     });
   }
 
-  function updateBookButton() {
-    const btn = document.querySelector('.round-trip-selector .bkbtn');
-    btn.disabled = !(selectedOnwardFlightData && selectedReturnFlightData);
-  }
-
-  document.addEventListener('change', function (e) {
+  container.addEventListener('change', function (e) {
     if (e.target.type !== 'radio') return;
 
     const wrapper = e.target.closest('.selectable-flight');
@@ -999,43 +1070,46 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
     const leg = wrapper.dataset.leg;
 
     if (leg === 'onward') {
-      selectedOnwardFlight = flightUI;
       selectedOnwardFlightData = flightUI.raw_data || flightUI;
-      updateUI('onward-flight', e.target);
-    }
-
-    if (leg === 'return') {
-      selectedReturnFlight = flightUI;
+      updateUI(`onward-flight-${instanceId}`, e.target);
+    } else {
       selectedReturnFlightData = flightUI.raw_data || flightUI;
-      updateUI('return-flight', e.target);
+      updateUI(`return-flight-${instanceId}`, e.target);
     }
 
-    updateBookButton();
+    const btn = container.querySelector('.bkbtn');
+    if (btn) btn.disabled = !(selectedOnwardFlightData && selectedReturnFlightData);
   });
 
-  window.handleDomesticRoundtripBook = function () {
-   console.log('Booking roundtrip with:', { selectedOnwardFlightData, selectedReturnFlightData, passengers });
-    if (!selectedOnwardFlightData || !selectedReturnFlightData) return;
-    
-    const link = buildRoundTripDeepLink(
-      selectedOnwardFlightData,
-      selectedReturnFlightData,
-      {
-        adults: {{ passengers.adults | default(1) }},
-        children: {{ passengers.children | default(0) }},
-        infants: {{ passengers.infants | default(0) }},
-        referralId: "{{ referral_id | default('UserID') }}",
-        language: "{{ language | default('ln-hi') }}",
-        displayedCurrency: "{{ currency | default('INR') }}",
-        userCurrency: "{{ currency | default('INR') }}",
-        pointOfSaleCountry: "{{ pos_country | default('IN') }}"
-      }
-    );
-    
-    if (link) {
-      window.open(link, '_blank', 'noopener,noreferrer');
-    }
-  };
+  const bookButton = container.querySelector('.bkbtn');
+  if (bookButton) {
+    bookButton.addEventListener('click', function(e) {
+      if (!selectedOnwardFlightData || !selectedReturnFlightData) return;
+      const timingCheck = validateRoundTripTiming(
+    selectedOnwardFlightData,
+    selectedReturnFlightData
+  );
+
+  if (!timingCheck.valid) {
+    alert(timingCheck.message);
+    return;
+  }
+
+  if (timingCheck.warning) {
+    const ok = confirm(timingCheck.warning);
+    if (!ok) return;
+  }
+      
+      const link = buildRoundTripDeepLink(selectedOnwardFlightData, selectedReturnFlightData, {
+          adults: {{ passengers.adults | default(1) }},
+          children: {{ passengers.children | default(0) }},
+          infants: {{ passengers.infants | default(0) }},
+          referralId: "{{ referral_id | default('UserID') }}"
+      });
+      
+      if (link) window.open(link, '_blank', 'noopener,noreferrer');
+    });
+  }
 })();
 </script>
 """
@@ -1072,7 +1146,8 @@ INTERNATIONAL_ROUNDTRIP_TEMPLATE = """
   <div class="ntfsbt">
     <span>Roundtrip</span> •
     <span>{{ onward_date }} – {{ return_date }}</span> •
-    <span>{{ combo_count }} option{{ 's' if combo_count != 1 else '' }}</span>
+    {# <span>{{ combo_count }} option{{ 's' if combo_count != 1 else '' }}</span> #}
+    <span>{{ cabin }}</span>
   </div>
 </div>
     <div class="fltcardbx">
@@ -1219,33 +1294,31 @@ def _format_time(time_value: Any) -> str:
     return "--:--"
 
 
+from typing import Any
+from datetime import datetime
+
 def _format_date(date_value: Any) -> str:
     """Format date as Day, DD MMM YYYY"""
     if not date_value:
         return "--"
 
     try:
-        from datetime import datetime
-
         if isinstance(date_value, str):
-            # ISO with time
-            if 'T' in date_value:
-                date_value = date_value.split('T')[0]
+            s = date_value.strip()
 
+            # Try ISO formats first (date or datetime, with or without Z)
             try:
-                dt = datetime.fromisoformat(date_value.replace('Z', '+00:00'))
+                dt = datetime.fromisoformat(s.replace('Z', '+00:00'))
             except ValueError:
-                # Handle: Sat-07Feb2026
-                dt = datetime.strptime(date_value, "%a-%d%b%Y")
+                # Handle: Thu-26Feb2026, Tue-07Feb2026, etc.
+                dt = datetime.strptime(s, "%a-%d%b%Y")
         else:
             dt = date_value
 
-        # ✅ FINAL FORMAT
         return dt.strftime("%a, %d %b %Y")
 
     except Exception:
         return str(date_value)
-
 
 
 def _format_stops(stops: int) -> str:
@@ -1482,7 +1555,8 @@ def render_oneway_flights(flight_results: Dict[str, Any]) -> str:
     flights_ui = [_normalize_flight_for_ui(flight, 'Oneway') for flight in flights]
     flights_ui = [f for f in flights_ui if f]
 
-    departure_date = flights_ui[0]['departure_date'] if flights_ui else "--"
+    # Get departure date from search context only
+    departure_date = _format_date(flight_results.get('outbound_date') or flight_results.get('departure_date'))
     
     # Render template
     template = _jinja_env.from_string(ONEWAY_FLIGHT_TEMPLATE)
@@ -1490,14 +1564,15 @@ def render_oneway_flights(flight_results: Dict[str, Any]) -> str:
         styles=BASE_FLIGHT_STYLES,
         origin=origin,
         destination=destination,
-        flight_count=len(flights_ui),
+        flight_count=len(flights_ui),  # Keep for compatibility
         flights=flights_ui,
         departure_date=departure_date,
+        cabin=flight_results.get('cabin', 'Economy'),
         view_all_link=flight_results.get('viewAll'),
     )
 
 
-def render_domestic_roundtrip_flights(flight_results: Dict[str, Any]) -> str:
+def render_domestic_roundtrip_flights(flight_results: Dict[str, Any], unique_id: str) -> str:
     """
     Render domestic roundtrip flight results with selection interface.
     """
@@ -1529,8 +1604,9 @@ def render_domestic_roundtrip_flights(flight_results: Dict[str, Any]) -> str:
     onward_ui = [f for f in onward_ui if f]
     return_ui = [f for f in return_ui if f]
 
-    onward_date = onward_ui[0]['departure_date'] if onward_ui else "--"
-    return_date = return_ui[0]['departure_date'] if return_ui else "--"
+    # Get dates from search context only
+    onward_date = _format_date(flight_results.get('outbound_date') or flight_results.get('departure_date'))
+    return_date = _format_date(flight_results.get('return_date'))
 
     # --------------------------------------------------
     # ✅ PASSENGER CONTEXT (FIXED)
@@ -1551,16 +1627,17 @@ def render_domestic_roundtrip_flights(flight_results: Dict[str, Any]) -> str:
         styles=combined_styles,
         onward_origin=onward_origin,
         onward_destination=onward_destination,
-        onward_count=len(onward_ui),
+        onward_count=len(onward_ui),  # Keep for compatibility
         onward_flights=onward_ui,
         return_origin=return_origin,
         return_destination=return_destination,
-        return_count=len(return_ui),
+        return_count=len(return_ui),  # Keep for compatibility
         return_flights=return_ui,
         onward_date=onward_date,
         return_date=return_date,
+        cabin=flight_results.get('cabin', 'Economy'),
         view_all_link=flight_results.get('viewAll'),
-
+        unique_id=unique_id,
         # ✅ this is what your JS reads
         passengers=passengers,
         referral_id='UserID',
@@ -1582,8 +1659,11 @@ def render_international_roundtrip_flights(flight_results: Dict[str, Any]) -> st
 
     origin = first_combo['onward']['origin']
     destination = first_combo['onward']['destination']
-    onward_date = first_combo['onward']['departure_date']
-    return_date = first_combo['return']['departure_date']
+    
+    # Get dates from search context (more reliable than individual flights)
+    onward_date = _format_date(flight_results.get('outbound_date') or flight_results.get('departure_date'))
+    return_date = _format_date(flight_results.get('return_date'))
+
 
     combined_styles = f"{BASE_FLIGHT_STYLES}\n{INTERNATIONAL_ROUNDTRIP_STYLES}"
     template = _jinja_env.from_string(INTERNATIONAL_ROUNDTRIP_TEMPLATE)
@@ -1595,7 +1675,8 @@ def render_international_roundtrip_flights(flight_results: Dict[str, Any]) -> st
         destination=destination,
         onward_date=onward_date,
         return_date=return_date,
-        combo_count=len(combos_ui),
+        combo_count=len(combos_ui),  # Keep for compatibility
+        cabin=flight_results.get('cabin', 'Economy'),
         view_all_link=flight_results.get('viewAll'),
     )
 
@@ -1616,7 +1697,9 @@ def render_flight_results(flight_results: Dict[str, Any]) -> str:
     
     # Check if domestic roundtrip
     elif flight_results.get('is_roundtrip'):
-        return render_domestic_roundtrip_flights(flight_results)
+        import uuid
+        unique_id = str(uuid.uuid4())[:8]
+        return render_domestic_roundtrip_flights(flight_results,unique_id)
     
     # Default to one-way
     else:

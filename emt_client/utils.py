@@ -143,13 +143,10 @@ def generate_short_link(
     """
     Create shortened EMT deeplinks for a list of results using the public shortener API.
 
-    Args:
-        results: List of result dicts that contain a "deepLink".
-        product_type: EMT product type identifier (e.g., "flight", "hotel").
-
-    Returns:
-        The same list with short link data merged into each result.
+    - If the API fails for any item, the original link is kept.
+    - Processing continues for remaining items.
     """
+
     headers = {"Content-Type": "application/json"}
 
     for item in results:
@@ -157,29 +154,43 @@ def generate_short_link(
         if not original_link:
             continue
 
-        payload = json.dumps(
-            {
-                "Link": original_link,
-                "UserId": "",
-                "Mobile": "",
-                "Email": "",
-                "PageType": "2",
-                "ProductType": product_type,
-                "PlatformId": "6",
-                "Authentication": {
-                    "UserName": "EMT",
-                    "Password": "123123",
-                },
-            }
-        )
+        payload = {
+            "Link": original_link,
+            "UserId": "",
+            "Mobile": "",
+            "Email": "",
+            "PageType": "2",
+            "ProductType": product_type,
+            "PlatformId": "6",
+            "Authentication": {
+                "UserName": "EMT",
+                "Password": "123123",
+            },
+        }
 
-        deeplink_api_res = requests.post(
-            DEEPLINK_API_URL, headers=headers, data=payload, timeout=10
-        )
-        deeplink_api_res.raise_for_status()
-        data = deeplink_api_res.json()
-        short_link_value = data.get("ShortLink")
-        item["deepLink"] = short_link_value
-        
+        try:
+            response = requests.post(
+                DEEPLINK_API_URL,
+                headers=headers,
+                json=payload,      # ✅ use json instead of data=json.dumps
+                timeout=10,
+            )
+
+            response.raise_for_status()
+            data = response.json()
+
+            short_link = data.get("ShortLink")
+
+            # Only replace if a valid short link exists
+            if short_link:
+                item["deepLink"] = short_link
+            else:
+                item["deepLink"] = original_link
+
+        except (requests.RequestException, ValueError) as e:
+            # ❗ Any API / network / JSON error → keep original link
+            item["deepLink"] = original_link
+            # Optional: log the error
+            # logger.warning("Short link failed for %s: %s", original_link, str(e))
 
     return results

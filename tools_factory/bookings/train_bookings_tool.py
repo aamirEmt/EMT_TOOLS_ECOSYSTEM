@@ -6,7 +6,7 @@ from ..base import BaseTool, ToolMetadata
 from .train_bookings_service import TrainBookingsService
 from tools_factory.login.login_tool import LoginTool
 from .booking_schema import GetBookingsInput
-
+from tools_factory.base_schema import ToolResponseFormat
 logger = logging.getLogger(__name__)
 
 
@@ -27,28 +27,30 @@ class GetTrainBookingsTool(BaseTool):
             tags=["bookings", "train"]
         )
     
-    async def execute(self, **kwargs) -> Dict[str, Any]:
+    async def execute(self, **kwargs) -> ToolResponseFormat:
         try:
             result = await self.service.get_train_bookings()
             
             if not result.get("success"):
                 error_message = result.get("error", "Unknown error")
-                return {
-                    "success": False,
-                    "error": error_message,
-                    "text_content": f"❌ Failed to fetch train bookings: {error_message}"
-                }
+                return ToolResponseFormat(
+                    response_text=f"❌ Failed to fetch train bookings: {error_message}",
+                    structured_content=result,
+                    is_error=True
+                )
             
             bookings = result.get("bookings", [])
-            
+            uid = result.get("uid")
+
             if not bookings:
-                return {
-                    "success": True,
-                    "uid": result.get("uid"),
-                    "total": 0,
-                    "bookings": [],
-                    "text_content": f"No train bookings found for {result.get('uid')}"
-                }
+                return ToolResponseFormat(
+                    response_text=f"No train bookings found for account {uid}.",
+                    structured_content={
+                        "uid": uid,
+                        "total": 0,
+                        "bookings": []
+                    }
+                )
            
             lines = []
             for b in bookings:
@@ -67,26 +69,25 @@ class GetTrainBookingsTool(BaseTool):
                 
                 lines.append(line)
             
-            text_content = (
+            response_text = (
                 f"Bookings found \\n\\n"
                 f"Account: {result.get('uid')}\n"
                 f"Total bookings: {len(bookings)}\n\n"
                 + "\n".join(lines)
             )
             
-            return {
-                "success": True,
-                "uid": result.get("uid"),
-                "total": len(bookings),
-                "bookings": bookings,
-                "text_content": text_content,
-                "structured_content": result
-            }
+            return ToolResponseFormat(
+                response_text=response_text,
+                structured_content={
+                    "uid": uid,
+                    "total": len(bookings),
+                    "bookings": bookings
+                }
+            )
         
         except Exception as e:
-            logger.error(f"Error executing get train bookings: {str(e)}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e),
-                "text_content": f"❌ Error: {str(e)}"
-            }
+            logger.error("Error executing get_train_bookings", exc_info=True)
+            return ToolResponseFormat(
+                response_text=f"❌ Error fetching train bookings: {str(e)}",
+                is_error=True
+            )

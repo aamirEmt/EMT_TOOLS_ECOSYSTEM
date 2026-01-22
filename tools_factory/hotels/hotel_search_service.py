@@ -1,4 +1,10 @@
-from typing import Dict, Any
+from typing import Dict, Any,List
+
+from .hotel_schema import (
+    WhatsappHotelFormat,
+    WhatsappHotelFinalResponse,
+)
+from .hotel_schema import HotelSearchInput
 from emt_client.clients.hotel_client import HotelApiClient
 from emt_client.config import HOTEL_SEARCH_URL
 from emt_client.utils import resolve_city_name, generate_hotel_search_key, generate_short_link
@@ -210,7 +216,6 @@ class HotelSearchService:
             "num_adults": search_input.num_adults,
             "num_children": search_input.num_children,
             "totalResults": len(hotels),
-            "results": results,
             "hotels": results,
             "viewAll": view_all_link,  
         }
@@ -253,3 +258,46 @@ class HotelSearchService:
         )
 
         return {"deepLink": deep_link, "traceId": link_trace_id}
+    
+
+    def build_whatsapp_hotel_response(
+            self,
+    results: Dict[str, Any],
+    search_input: HotelSearchInput,
+    ) -> WhatsappHotelFinalResponse:
+        """
+        Build WhatsApp-specific hotel response.
+
+        IMPORTANT:
+        - Assumes hotels are ALREADY limited by parent
+        - No slicing / UI limits enforced here
+        """
+        hotels = results.get("hotels", [])
+        whatsapp_hotels = []
+
+        for idx, hotel in enumerate(hotels, start=1):
+            whatsapp_hotels.append({
+                "option_id": idx,
+                "hotel_name": hotel.get("name"),
+                "location": hotel.get("location"),
+                "rating": hotel.get("rating"),
+                "price": hotel.get("price", {}).get("amount", ""),
+                "price_unit": "per night",
+                "image_url": hotel.get("hotelImage"),
+                "amenities": hotel.get("highlights") or "Not specified",
+                "booking_url": hotel.get("deepLink"),
+            })
+
+        whatsapp_json = WhatsappHotelFormat(
+            type="hotel_collection",
+            options=whatsapp_hotels,
+            check_in_date=search_input.check_in_date,
+            check_out_date=search_input.check_out_date,
+            currency=hotel.get("currency", "INR"),
+            view_all_hotels_url=results.get("viewAll", ""),
+        )
+
+        return WhatsappHotelFinalResponse(
+            response_text=f"Here are the best hotel options in {search_input.city_name}",
+            whatsapp_json=whatsapp_json,
+        )

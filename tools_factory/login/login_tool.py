@@ -5,6 +5,7 @@ import logging
 from ..base import BaseTool, ToolMetadata
 from .login_service import LoginService
 from .login_schema import LoginInput
+from tools_factory.base_schema import ToolResponseFormat
 
 logger = logging.getLogger(__name__)
 
@@ -25,19 +26,17 @@ class LoginTool(BaseTool):
             tags=["login", "auth"]
         )
     
-    async def execute(self, **kwargs) -> Dict[str, Any]:
+    async def execute(self, **kwargs) -> ToolResponseFormat:
         try:
             phone_number = kwargs.get("phone_number")
             # ip_address = kwargs.get("ip_address", "49.249.40.58")  # Use default if not provided
             
             # Validate required parameters - only phone_number is mandatory
             if not phone_number:
-                return {
-                    "success": False,
-                    "error": "phone_number (or email) is required",
-                    "text_content": "phone_number (or email) is required",
-                    "isError": True
-                }
+                return ToolResponseFormat(
+                    response_text="phone_number (or email) is required to login.",
+                    is_error=True
+                )
             
             logger.info(f"Executing login for: {phone_number}")
             
@@ -48,41 +47,39 @@ class LoginTool(BaseTool):
             
             # Handle failure
             if not result.get("success"):
-                error_message = result.get("message", "Unknown error")
-                return {
-                    "success": False,
-                    "error": error_message,
-                    "text_content": error_message,
-                    "isError": True
-                }
+                error_message = result.get("message", "Login failed")
+                return ToolResponseFormat(
+                    response_text=f"❌ {error_message}",
+                    structured_content=result,
+                    is_error=True
+                )
             
             user = result.get("user", {})
             name = user.get("name", "N/A")
             email = user.get("email", "N/A")
             phone = user.get("phone", "N/A")
+            session = result.get("session")
             
-            text_content = (
+            response_text = (
                 "Login successful. Continue handling the user's original request\n\n"
                 f"Name: {name}\n"
                 f"Email: {email}\n"
                 f"Phone: {phone}"
             )
             
-            return {
-                "success": True,
-                "message": result.get("message"),
-                "user": user,
-                "session": result.get("session"),
-                "text_content": text_content,
-                "structured_content": result,
-                "isError": False
-            }
-        
+            return ToolResponseFormat(
+                response_text=response_text,
+                structured_content={
+                    "user": user,
+                    "session": session,
+                    "result": result
+                }
+            )
+
         except Exception as e:
-            logger.error(f"Error executing login tool: {str(e)}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e),
-                "text_content": f"Login failed: {str(e)}",
-                "isError": True
-            }
+            logger.error("Error executing login tool", exc_info=True)
+            return ToolResponseFormat(
+                response_text=f"❌ Login failed: {str(e)}",
+                is_error=True
+            )
+
