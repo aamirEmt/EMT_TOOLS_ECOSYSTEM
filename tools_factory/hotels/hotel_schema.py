@@ -99,8 +99,7 @@ class HotelSearchInput(BaseModel):
         description="""Guest/User rating filter (based on reviews). Pass list of values:
         - '5' : Excellent (4.2+) - when user wants top/best/excellent/highly rated hotels
         - '4' : Very Good (3.5+) - when user wants very good/great rated hotels
-        - '3' : Good (3+) - when user wants good/decent rated hotels
-        Multiple selections allowed. Example: ['5', '4'] for excellent and very good hotels"""
+        - '3' : Good (3+) - when user wants good/decent rated hotels"""
     )
     
     @field_validator("sort_type", mode="before")

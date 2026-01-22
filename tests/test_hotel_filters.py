@@ -329,8 +329,8 @@ async def test_hotel_search_sort_by_price_low_to_high(base_search_payload):
 
     result = await tool.execute(**payload)
 
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", [])
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
 
     print(f"[OK] Found {len(hotels)} hotels")
 
@@ -365,8 +365,8 @@ async def test_hotel_search_sort_by_price_high_to_low(base_search_payload):
 
     result = await tool.execute(**payload)
 
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", [])
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
 
     print(f"[OK] Found {len(hotels)} hotels")
 
@@ -395,8 +395,8 @@ async def test_hotel_search_sort_by_popularity(base_search_payload):
 
     result = await tool.execute(**payload)
 
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", [])
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
 
     print(f"[OK] Found {len(hotels)} hotels (sorted by popularity)")
 
@@ -420,8 +420,8 @@ async def test_hotel_search_sort_with_user_friendly_input(base_search_payload):
 
     result = await tool.execute(**payload)
 
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", [])
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
 
     print(f"[OK] Found {len(hotels)} hotels")
 
@@ -445,8 +445,8 @@ async def test_hotel_search_with_excellent_rating(base_search_payload):
 
     result = await tool.execute(**payload)
 
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", [])
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
 
     print(f"[OK] Found {len(hotels)} excellent rated hotels")
 
@@ -469,8 +469,8 @@ async def test_hotel_search_with_very_good_rating(base_search_payload):
 
     result = await tool.execute(**payload)
 
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", [])
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
 
     print(f"[OK] Found {len(hotels)} very good rated hotels")
 
@@ -490,8 +490,8 @@ async def test_hotel_search_with_multiple_user_ratings(base_search_payload):
 
     result = await tool.execute(**payload)
 
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", [])
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
 
     print(f"[OK] Found {len(hotels)} hotels with 4+ guest rating")
 
@@ -512,8 +512,8 @@ async def test_hotel_search_with_user_friendly_rating_input(base_search_payload)
 
     result = await tool.execute(**payload)
 
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", [])
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
 
     print(f"[OK] Found {len(hotels)} hotels")
 
@@ -541,8 +541,8 @@ async def test_hotel_search_sort_and_user_rating_combined(base_search_payload):
 
     result = await tool.execute(**payload)
 
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", [])
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
 
     print(f"[OK] Found {len(hotels)} hotels matching combined filters")
 
@@ -581,8 +581,8 @@ async def test_hotel_search_all_filters_combined(base_search_payload):
 
     result = await tool.execute(**payload)
 
-    assert "structured_content" in result
-    hotels = result["structured_content"].get("hotels", [])
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
 
     print(f"[OK] Found {len(hotels)} hotels matching all filters")
 
