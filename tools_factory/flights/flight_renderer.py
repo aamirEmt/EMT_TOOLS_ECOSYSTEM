@@ -1274,6 +1274,8 @@ def _resolve_airline_logo(flight: Dict[str, Any]) -> str:
     """Get airline logo URL"""
     # Try to get from legs
     legs = flight.get('legs', [])
+    if legs and isinstance(legs[0], list):
+        legs = [leg for group in legs if isinstance(group, list) for leg in group]
     if legs and len(legs) > 0:
         airline_code = legs[0].get('airline_code')
         if airline_code:
@@ -1291,6 +1293,8 @@ def _resolve_airline_logo(flight: Dict[str, Any]) -> str:
 def _normalize_flight_for_ui(flight: Dict[str, Any], trip_type: str = "Oneway") -> Dict[str, Any]:
     """Normalize a single flight for UI rendering"""
     legs = flight.get('legs', [])
+    if legs and isinstance(legs[0], list):
+        legs = [leg for group in legs if isinstance(group, list) for leg in group]
     first_leg = legs[0] if legs else flight
     last_leg = legs[-1] if legs else flight
     

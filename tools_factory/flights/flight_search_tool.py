@@ -101,6 +101,8 @@ class FlightSearchTool(BaseTool):
             children=payload.children,
             infants=payload.infants,
             cabin=payload.cabin,
+            is_multicity=payload.is_multicity,
+            multi_city_segments=payload.multi_city_segments,
         )
         has_error = bool(flight_results.get("error")) 
         # --------------------------------------------------
@@ -129,6 +131,7 @@ class FlightSearchTool(BaseTool):
 
         is_roundtrip = flight_results.get("is_roundtrip")
         is_international = flight_results.get("is_international")
+        is_multicity = flight_results.get("is_multicity") or payload.is_multicity
 
         if is_international and international_combos:
             flight_results["international_combos"] = generate_short_link(
@@ -158,6 +161,8 @@ class FlightSearchTool(BaseTool):
 
         if has_error:
             text = f"No flights found. {flight_results.get('message', '')}"
+        elif is_multicity:
+            text = f"Found {outbound_count} multi-city options!"
         elif is_international and is_roundtrip:
             text = f"Found {combo_count} international round-trip combinations!"
         elif is_roundtrip:
@@ -179,3 +184,4 @@ class FlightSearchTool(BaseTool):
             ),
             is_error=has_error,
         )
+    

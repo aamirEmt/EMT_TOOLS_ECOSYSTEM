@@ -1,6 +1,48 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict, field_validator
+
+
+class MultiCitySegment(BaseModel):
+    """Single leg definition for a multi-city search."""
+
+    origin: str = Field(
+        ...,
+        alias="org",
+        description="Origin airport code for this leg (e.g., 'DEL')",
+    )
+    destination: str = Field(
+        ...,
+        alias="dept",
+        description="Destination airport code for this leg (e.g., 'BOM')",
+    )
+    departure_date: str = Field(
+        ...,
+        alias="deptDT",
+        description="Departure date for this leg in YYYY-MM-DD format",
+    )
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="forbid",
+    )
+
+    @field_validator("origin", "destination")
+    @classmethod
+    def normalize_airport_code(cls, v: str) -> str:
+        v = v.strip().upper()
+        if len(v) != 3:
+            raise ValueError("Airport code must be a 3-letter IATA code")
+        return v
+
+    @field_validator("departure_date")
+    @classmethod
+    def validate_date(cls, v: str) -> str:
+        try:
+            datetime.strptime(v, "%Y-%m-%d")
+        except ValueError:
+            raise ValueError("Date must be in YYYY-MM-DD format")
+        return v
 
 
 class FlightSearchInput(BaseModel):
@@ -27,6 +69,18 @@ class FlightSearchInput(BaseModel):
     cabin: Optional[str] = Field(
         None,
         description="Cabin preference like economy, premium economy, business, or first"
+    )
+    is_multicity: bool = Field(
+        False,
+        description="Indicates if the trip is multi-city (True/False)",
+    )
+    multi_city_segments: Optional[List[MultiCitySegment]] = Field(
+        None,
+        alias="multiCitySegments",
+        max_length=6,
+        description=(
+            "For multi-city searches, provide up to 6 legs as objects with org, dept, and deptDT"
+        ),
     )
     
     adults: int = Field(1, ge=1, le=9)
@@ -55,6 +109,20 @@ class FlightSearchInput(BaseModel):
             datetime.strptime(v, "%Y-%m-%d")
         except ValueError:
             raise ValueError("Date must be in YYYY-MM-DD format")
+        return v
+    
+    @field_validator("multi_city_segments")
+    @classmethod
+    def validate_multi_city_segments(cls, v: Optional[List[MultiCitySegment]]) -> Optional[List[MultiCitySegment]]:
+        if v is None:
+            return v
+
+        if len(v) == 0:
+            raise ValueError("Multi-city segments must include at least one item")
+
+        if len(v) > 6:
+            raise ValueError("Multi-city segments cannot exceed 6 legs")
+
         return v
     
 
