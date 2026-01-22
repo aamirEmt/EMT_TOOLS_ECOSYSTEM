@@ -98,6 +98,7 @@ class HotelSearchService:
                 "wlcode": "",
                 "selectedAmen": search_input.amenities or [],
                 "selectedRating": search_input.rating or [],
+                "selectedTARating": search_input.user_rating or [],
             }
             
             # Step 4: Call API (tokens injected automatically)
