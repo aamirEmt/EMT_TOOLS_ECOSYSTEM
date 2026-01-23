@@ -293,6 +293,156 @@ class TestUserRatingValidation:
 
 
 # ============================================================================
+# UNIT TESTS - MIN PRICE AND MAX PRICE VALIDATION
+# ============================================================================
+
+class TestMinMaxPriceValidation:
+    """Unit tests for min_price and max_price field validation."""
+
+    def test_min_price_default_none(self):
+        """Test that default min_price is None."""
+        input_data = HotelSearchInput(
+            city_name="Mumbai",
+            check_in_date="2025-03-01",
+            check_out_date="2025-03-03"
+        )
+        assert input_data.min_price is None
+
+    def test_max_price_default_value(self):
+        """Test that default max_price is 10,000,000."""
+        input_data = HotelSearchInput(
+            city_name="Mumbai",
+            check_in_date="2025-03-01",
+            check_out_date="2025-03-03"
+        )
+        assert input_data.max_price == 10_000_000
+
+    def test_min_price_valid_value(self):
+        """Test valid min_price value."""
+        input_data = HotelSearchInput(
+            city_name="Mumbai",
+            check_in_date="2025-03-01",
+            check_out_date="2025-03-03",
+            min_price=1000
+        )
+        assert input_data.min_price == 1000
+
+    def test_max_price_valid_value(self):
+        """Test valid max_price value."""
+        input_data = HotelSearchInput(
+            city_name="Mumbai",
+            check_in_date="2025-03-01",
+            check_out_date="2025-03-03",
+            max_price=5000
+        )
+        assert input_data.max_price == 5000
+
+    def test_min_price_minimum_boundary(self):
+        """Test min_price at minimum boundary (1)."""
+        input_data = HotelSearchInput(
+            city_name="Mumbai",
+            check_in_date="2025-03-01",
+            check_out_date="2025-03-03",
+            min_price=1
+        )
+        assert input_data.min_price == 1
+
+    def test_max_price_minimum_boundary(self):
+        """Test max_price at minimum boundary (1)."""
+        input_data = HotelSearchInput(
+            city_name="Mumbai",
+            check_in_date="2025-03-01",
+            check_out_date="2025-03-03",
+            max_price=1
+        )
+        assert input_data.max_price == 1
+
+    def test_min_price_zero_raises_error(self):
+        """Test that min_price=0 raises validation error."""
+        with pytest.raises(ValueError):
+            HotelSearchInput(
+                city_name="Mumbai",
+                check_in_date="2025-03-01",
+                check_out_date="2025-03-03",
+                min_price=0
+            )
+
+    def test_max_price_zero_raises_error(self):
+        """Test that max_price=0 raises validation error."""
+        with pytest.raises(ValueError):
+            HotelSearchInput(
+                city_name="Mumbai",
+                check_in_date="2025-03-01",
+                check_out_date="2025-03-03",
+                max_price=0
+            )
+
+    def test_min_price_negative_raises_error(self):
+        """Test that negative min_price raises validation error."""
+        with pytest.raises(ValueError):
+            HotelSearchInput(
+                city_name="Mumbai",
+                check_in_date="2025-03-01",
+                check_out_date="2025-03-03",
+                min_price=-100
+            )
+
+    def test_max_price_negative_raises_error(self):
+        """Test that negative max_price raises validation error."""
+        with pytest.raises(ValueError):
+            HotelSearchInput(
+                city_name="Mumbai",
+                check_in_date="2025-03-01",
+                check_out_date="2025-03-03",
+                max_price=-100
+            )
+
+    def test_min_and_max_price_together(self):
+        """Test both min_price and max_price set together."""
+        input_data = HotelSearchInput(
+            city_name="Mumbai",
+            check_in_date="2025-03-01",
+            check_out_date="2025-03-03",
+            min_price=2000,
+            max_price=8000
+        )
+        assert input_data.min_price == 2000
+        assert input_data.max_price == 8000
+
+    def test_min_price_equals_max_price(self):
+        """Test min_price equal to max_price (valid edge case)."""
+        input_data = HotelSearchInput(
+            city_name="Mumbai",
+            check_in_date="2025-03-01",
+            check_out_date="2025-03-03",
+            min_price=5000,
+            max_price=5000
+        )
+        assert input_data.min_price == 5000
+        assert input_data.max_price == 5000
+
+    def test_min_price_large_value(self):
+        """Test min_price with large value."""
+        input_data = HotelSearchInput(
+            city_name="Mumbai",
+            check_in_date="2025-03-01",
+            check_out_date="2025-03-03",
+            min_price=100000
+        )
+        assert input_data.min_price == 100000
+
+    def test_max_price_large_value(self):
+        """Test max_price with large value."""
+        input_data = HotelSearchInput(
+            city_name="Mumbai",
+            check_in_date="2025-03-01",
+            check_out_date="2025-03-03",
+            max_price=50000000
+        )
+        assert input_data.max_price == 50000000
+
+
+# ============================================================================
 # INTEGRATION TESTS - SORT TYPE WITH REAL API
 # ============================================================================
 
@@ -516,6 +666,185 @@ async def test_hotel_search_with_user_friendly_rating_input(base_search_payload)
     hotels = result.structured_content.get("hotels", [])
 
     print(f"[OK] Found {len(hotels)} hotels")
+
+
+# ============================================================================
+# INTEGRATION TESTS - MIN/MAX PRICE WITH REAL API
+# ============================================================================
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_hotel_search_with_min_price(base_search_payload):
+    """Test hotel search with min_price filter."""
+    from tools_factory.factory import get_tool_factory
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_hotels")
+
+    payload = {**base_search_payload, "min_price": 3000}
+
+    print(f"\n[SEARCH] Searching hotels with min_price=3000")
+
+    result = await tool.execute(**payload)
+
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
+
+    print(f"[OK] Found {len(hotels)} hotels with price >= ₹3000")
+
+    for hotel in hotels[:5]:
+        price = hotel.get("price", {})
+        if isinstance(price, dict):
+            price_val = price.get("amount", 0)
+        else:
+            price_val = price or 0
+        print(f"   {hotel.get('name', 'N/A')}: ₹{price_val}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_hotel_search_with_max_price(base_search_payload):
+    """Test hotel search with max_price filter."""
+    from tools_factory.factory import get_tool_factory
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_hotels")
+
+    payload = {**base_search_payload, "max_price": 5000}
+
+    print(f"\n[SEARCH] Searching hotels with max_price=5000")
+
+    result = await tool.execute(**payload)
+
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
+
+    print(f"[OK] Found {len(hotels)} hotels with price <= ₹5000")
+
+    for hotel in hotels[:5]:
+        price = hotel.get("price", {})
+        if isinstance(price, dict):
+            price_val = price.get("amount", 0)
+        else:
+            price_val = price or 0
+        print(f"   {hotel.get('name', 'N/A')}: ₹{price_val}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_hotel_search_with_min_and_max_price(base_search_payload):
+    """Test hotel search with both min_price and max_price filters."""
+    from tools_factory.factory import get_tool_factory
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_hotels")
+
+    payload = {**base_search_payload, "min_price": 2000, "max_price": 8000}
+
+    print(f"\n[SEARCH] Searching hotels with price range ₹2000 - ₹8000")
+
+    result = await tool.execute(**payload)
+
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
+
+    print(f"[OK] Found {len(hotels)} hotels in price range ₹2000 - ₹8000")
+
+    for hotel in hotels[:5]:
+        price = hotel.get("price", {})
+        if isinstance(price, dict):
+            price_val = price.get("amount", 0)
+        else:
+            price_val = price or 0
+        print(f"   {hotel.get('name', 'N/A')}: ₹{price_val}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_hotel_search_with_narrow_price_range(base_search_payload):
+    """Test hotel search with a narrow price range."""
+    from tools_factory.factory import get_tool_factory
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_hotels")
+
+    payload = {**base_search_payload, "min_price": 4000, "max_price": 5000}
+
+    print(f"\n[SEARCH] Searching hotels with narrow price range ₹4000 - ₹5000")
+
+    result = await tool.execute(**payload)
+
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
+
+    print(f"[OK] Found {len(hotels)} hotels in price range ₹4000 - ₹5000")
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_hotel_search_with_high_min_price(base_search_payload):
+    """Test hotel search with high min_price for luxury hotels."""
+    from tools_factory.factory import get_tool_factory
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_hotels")
+
+    payload = {**base_search_payload, "min_price": 10000}
+
+    print(f"\n[SEARCH] Searching luxury hotels with min_price=10000")
+
+    result = await tool.execute(**payload)
+
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
+
+    print(f"[OK] Found {len(hotels)} luxury hotels (price >= ₹10000)")
+
+    for hotel in hotels[:5]:
+        price = hotel.get("price", {})
+        if isinstance(price, dict):
+            price_val = price.get("amount", 0)
+        else:
+            price_val = price or 0
+        print(f"   {hotel.get('name', 'N/A')}: ₹{price_val}")
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_hotel_search_price_filter_with_sort(base_search_payload):
+    """Test hotel search with price filter and price sorting."""
+    from tools_factory.factory import get_tool_factory
+
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_hotels")
+
+    payload = {
+        **base_search_payload,
+        "min_price": 2000,
+        "max_price": 10000,
+        "sort_type": "price|ASC"
+    }
+
+    print(f"\n[SEARCH] Searching hotels ₹2000-₹10000, sorted by price low to high")
+
+    result = await tool.execute(**payload)
+
+    assert hasattr(result, 'structured_content')
+    hotels = result.structured_content.get("hotels", [])
+
+    print(f"[OK] Found {len(hotels)} hotels")
+
+    prices = []
+    for hotel in hotels[:5]:
+        price = hotel.get("price", {})
+        if isinstance(price, dict):
+            price_val = price.get("amount", 0)
+        else:
+            price_val = price or 0
+        prices.append(price_val)
+        print(f"   {hotel.get('name', 'N/A')}: ₹{price_val}")
+
+    print(f"   Prices: {prices}")
 
 
 # ============================================================================
