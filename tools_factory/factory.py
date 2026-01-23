@@ -6,6 +6,7 @@ from tools_factory.bookings.flight_bookings_tool import GetFlightBookingsTool
 from tools_factory.bookings.hotel_bookings_tool import GetHotelBookingsTool
 from tools_factory.bookings.train_bookings_tool import GetTrainBookingsTool
 from tools_factory.bookings.bus_bookings_tool import GetBusBookingsTool
+from tools_factory.fare_calendar.fare_calendar_tool import FareCalendarTool
 from typing import Dict, Optional, List
 
 class ToolFactory:
@@ -19,6 +20,7 @@ class ToolFactory:
         """Register all available tools"""
         self.register_tool(FlightSearchTool())
         self.register_tool(HotelSearchTool())
+        self.register_tool(FareCalendarTool())
         
         login_tool = LoginTool()
         self.register_tool(login_tool)
