@@ -9,7 +9,7 @@ from emt_client.utils import generate_short_link
 from .hotel_schema import HotelSearchInput
 from .hotel_search_service import HotelSearchService
 from .hotel_renderer import render_hotel_results
-import asyncio
+from tools_factory.base_schema import ToolResponseFormat
 
 
 class HotelSearchTool(BaseTool):
@@ -49,7 +49,7 @@ class HotelSearchTool(BaseTool):
             tags=["hotel", "search", "booking", "travel", "accommodation"]
         )
     
-    async def execute(self, **kwargs) -> Dict[str, Any]:
+    async def execute(self, **kwargs) -> ToolResponseFormat:
         """
         Execute hotel search with provided parameters.
         
@@ -91,102 +91,89 @@ class HotelSearchTool(BaseTool):
             >>> print(result["text"])
             Found 150 hotels!
         """
-        # --------------------------
-        # Extract extra runtime flags
-        # --------------------------
         limit = kwargs.pop("_limit", None)
-        render_html = kwargs.pop("_html", False)
+        user_type = kwargs.pop("_user_type", "website")
+        render_html = user_type.lower() == "website"
+        is_whatsapp = user_type.lower() == "whatsapp"
         
         try:
-            # Validate input against schema
-            search_input = HotelSearchInput(**kwargs)
-            
-            # Execute search through service layer
-            results = await self.service.search(search_input)
-            hotels = results.get("hotels") or []
-
-
-            try:
-                if hotels:
-                    results["hotels"] = generate_short_link(
-                        hotels,
-                        product_type="hotel"
-                    )
-            except Exception as e:
-                # DO NOT FAIL hotel search because of short-link issues
-                results["hotels"] = hotels
-
-            
-            # --------------------------
-            # Apply limit to results if requested
-            # --------------------------
-            if limit is not None and "hotels" in results:
-                results["hotels"] = results["hotels"][:limit]
-            
-            # --------------------------
-            # Apply limit to results if requested
-            # --------------------------
-            if limit is not None and "hotels" in results:
-                results["hotels"] = results["hotels"][:limit]
-            
-            # Count hotels found
-            hotel_count = len(results.get("hotels", []))
-            
-            # Create human-readable message
-            if results.get("error"):
-                text = f"No hotels found. {results.get('message', '')}"
-            else:
-                text = f"Found {hotel_count} hotels in {search_input.city_name}!"
-            
-            # --------------------------
-            # Prepare generic response
-            # --------------------------
-            response: Dict[str, Any] = {
-                "text": text,
-                "structured_content": results,
-                "html": None,  # placeholder for rendered HTML
-                "is_error": results.get("error") is not None,
-            }
-            
-            # --------------------------
-            # Render HTML carousel if requested
-            # --------------------------
-            if render_html and not results.get("error"):
-                response["html"] = render_hotel_results(results)
-            
-            return response
-        
+            search_input = HotelSearchInput.model_validate(kwargs)
         except ValidationError as exc:
-            # Handle input validation errors
-            return {
-                "text": "Invalid hotel search input",
-                "structured_content": {
+            return ToolResponseFormat(
+                response_text="Invalid hotel search input",
+                structured_content={
                     "error": "VALIDATION_ERROR",
                     "details": exc.errors(),
                 },
-                "html": None,
-                "is_error": True,
-            }
-        
-        except Exception as e:
-            # Handle unexpected errors
-            return {
-                "text": f"Hotel search failed: {str(e)}",
-                "structured_content": {
+                html=None,
+                whatsapp_response=None,
+                is_error=True,
+            )
+            
+            # Execute search through service layer
+        try:
+            results: Dict[str, Any] = await self.service.search(search_input)
+        except Exception as exc:
+            return ToolResponseFormat(
+                response_text="Hotel search failed",
+                structured_content={
                     "error": "SEARCH_ERROR",
-                    "message": str(e),
+                    "message": str(exc),
                 },
-                "html": None,
-                "is_error": True,
-            }
+                html=None,
+                whatsapp_response=None,
+                is_error=True,
+            )
+       
+        if limit is not None and "hotels" in results:
+                results["hotels"] = results["hotels"][:limit]
+        try:
+            if results["hotels"]:
+                results["hotels"] = generate_short_link(
+                    results["hotels"],
+                    product_type="hotel"
+                )
+        except Exception as e:
+            # DO NOT FAIL hotel search because of short-link issues
+            results["hotels"] = results["hotels"]
+
+            
+           
+          
+            
+        hotels = results.get("hotels", [])
+        hotel_count = len(hotels)
+
+        whatsapp_response = None
+        if is_whatsapp and not results.get("error"):
+            whatsapp_response = self.service.build_whatsapp_hotel_response(
+                results=results,
+                search_input=search_input
+            )
+            
+            # Create human-readable message
+        if results.get("error"):
+            text = f"No hotels found. {results.get('message', '')}"
+        else:
+            text = f"Found {hotel_count} hotels in {search_input.city_name}!"
+
+        # --------------------------------------------------
+        # Final unified response
+        # --------------------------------------------------
+        return ToolResponseFormat(
+            response_text=text,
+            structured_content=results if not is_whatsapp else {},
+            html=render_hotel_results(results)
+            if render_html and not results.get("error")
+            else None,
+             whatsapp_response=(
+                whatsapp_response.model_dump()
+                if whatsapp_response
+                else None
+            ),
+            is_error=results.get("error") is not None,
+        )
 
 
-# Factory registration helper
 def create_hotel_search_tool() -> HotelSearchTool:
-    """
-    Factory function to create a HotelSearchTool instance.
-    
-    Returns:
-        Configured HotelSearchTool instance
-    """
     return HotelSearchTool()

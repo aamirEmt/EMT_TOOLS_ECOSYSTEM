@@ -76,6 +76,7 @@ HOTEL_CAROUSEL_TEMPLATE = """
 }
 
 .hotel-carousel .rsltcvr {
+  width: 90%;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
@@ -333,8 +334,101 @@ HOTEL_CAROUSEL_TEMPLATE = """
 .hotel-carousel.dark .htlamnts li {
   color: #bcbcbc;
 }
-  color: #666;
-  margin-left: auto;
+
+/* View All Card Styles */
+.hotel-carousel .view-all-card {
+  width: 300px;
+  min-width: 300px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  position: relative;
+  overflow: visible;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.hotel-carousel .view-all-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #2093ef;
+}
+
+/* Layered edge effect (book pages) */
+.hotel-carousel .view-all-card::before,
+.hotel-carousel .view-all-card::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #f0f1f3 0%, #d8dce0 100%);
+  z-index: -1;
+}
+
+.hotel-carousel .view-all-card::before {
+  right: -3px;
+  height: 98%;
+  top: 1%;
+  opacity: 0.7;
+}
+
+.hotel-carousel .view-all-card::after {
+  right: -6px;
+  height: 96%;
+  top: 2%;
+  opacity: 0.5;
+}
+
+.hotel-carousel .view-all-card:hover::before {
+  right: -4px;
+}
+
+.hotel-carousel .view-all-card:hover::after {
+  right: -8px;
+}
+
+.hotel-carousel .view-all-card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2093ef 0%, #1976d2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(32, 147, 239, 0.3);
+}
+
+.hotel-carousel .view-all-card-icon svg {
+  width: 28px;
+  height: 28px;
+  color: #fff;
+}
+
+.hotel-carousel .view-all-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202020;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.hotel-carousel .view-all-card-subtitle {
+  font-size: 13px;
+  color: #646d74;
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .dtldte {
@@ -473,6 +567,18 @@ HOTEL_CAROUSEL_TEMPLATE = """
             </div>
           </div>
         {% endfor %}
+
+        {% if view_all_link %}
+        <a href="{{ view_all_link }}" target="_blank" rel="noopener noreferrer" class="view-all-card">
+          <div class="view-all-card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+          <div class="view-all-card-title">View All</div>
+          <div class="view-all-card-subtitle">Explore more hotel options</div>
+        </a>
+        {% endif %}
         </div>
       </div>
     </div>

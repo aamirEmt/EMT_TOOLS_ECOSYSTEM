@@ -24,10 +24,10 @@ class ToolFactory:
         self.register_tool(login_tool)
         
         # Register booking tools with shared login token provider
-        self.register_tool(GetFlightBookingsTool(login_tool))
-        self.register_tool(GetHotelBookingsTool(login_tool))
-        self.register_tool(GetTrainBookingsTool(login_tool))
-        self.register_tool(GetBusBookingsTool(login_tool))
+        # self.register_tool(GetFlightBookingsTool(login_tool))
+        # self.register_tool(GetHotelBookingsTool(login_tool))
+        # self.register_tool(GetTrainBookingsTool(login_tool))
+        # self.register_tool(GetBusBookingsTool(login_tool))
     
     def register_tool(self, tool: BaseTool):
         """Register a tool"""

@@ -1,6 +1,7 @@
 from typing import Callable, Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
+from .base_schema import ToolResponseFormat
 
 @dataclass
 class ToolMetadata:
@@ -24,6 +25,6 @@ class BaseTool(ABC):
         pass
     
     @abstractmethod
-    async def execute(self, **kwargs) -> Dict[str, Any]:
+    async def execute(self, **kwargs) -> ToolResponseFormat:
         """Execute the tool logic"""
         pass
