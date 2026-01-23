@@ -194,3 +194,103 @@ def generate_short_link(
             # logger.warning("Short link failed for %s: %s", original_link, str(e))
 
     return results
+
+# ============================================================================
+# BUS UTILITIES
+# ============================================================================
+
+def convert_date_for_bus_api(date_str: str) -> str:
+    """
+    Convert date from YYYY-MM-DD to dd-MM-yyyy format for Bus API.
+    
+    SearchDate should be entered as string in date format 'dd-MM-yyyy'
+    
+    Args:
+        date_str: Date in YYYY-MM-DD format
+        
+    Returns:
+        Date in dd-MM-yyyy format
+        
+    Examples:
+        "2025-11-08" → "08-11-2025"
+        "2026-01-15" → "15-01-2026"
+    """
+    try:
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+        return dt.strftime("%d-%m-%Y")
+    except ValueError:
+        # Return as-is if already in correct format or invalid
+        return date_str
+
+
+def build_bus_search_payload(
+    source_id: str,
+    destination_id: str,
+    date: str,
+    key: str,
+    is_vrl: str = "False",
+    is_volvo: str = "False",
+    is_android_ios_hit: bool = False,
+    agent_code: str = "",
+    country_code: str = "IN",
+    version: str = "1",
+) -> Dict[str, Any]:
+    """
+    Build payload for Bus Search API.
+    
+    POST http://busapi.easemytrip.com/v1/api/detail/List/
+    
+    Args:
+        source_id: Source city ID (e.g., "733" for Delhi)
+        destination_id: Destination city ID (e.g., "757" for Manali)
+        date: Journey date in dd-MM-yyyy format
+        key: API key
+        is_vrl: VRL filter ("True"/"False")
+        is_volvo: Volvo filter ("True"/"False")
+        is_android_ios_hit: Android/iOS flag
+        agent_code: Agent code (optional)
+        country_code: Country code (default "IN")
+        version: API version (default "1")
+        
+    Returns:
+        Dict payload for Bus Search API
+    """
+    return {
+        "sourceId": source_id,
+        "destinationId": destination_id,
+        "date": date,
+        "key": key,
+        "version": version,
+        "isVrl": is_vrl,
+        "isVolvo": is_volvo,
+        "IsAndroidIos_Hit": is_android_ios_hit,
+        "agentCode": agent_code,
+        "CountryCode": country_code,
+    }
+
+
+def build_bus_deeplink(
+    source_id: str,
+    destination_id: str,
+    journey_date: str,
+    bus_id: str,
+) -> str:
+    """
+    Build EaseMyTrip bus booking deeplink.
+    
+    Args:
+        source_id: Source city ID
+        destination_id: Destination city ID
+        journey_date: Journey date in YYYY-MM-DD format
+        bus_id: Bus ID from search results
+        
+    Returns:
+        Booking deeplink URL
+    """
+    # Convert date from YYYY-MM-DD to dd-MM-yyyy for URL
+    date_formatted = convert_date_for_bus_api(journey_date)
+    
+    return (
+        f"https://www.easemytrip.com/bus/booking/"
+        f"?src={source_id}&dest={destination_id}&date={date_formatted}&busId={bus_id}"
+    )
