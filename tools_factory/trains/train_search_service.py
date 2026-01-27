@@ -93,7 +93,10 @@ def _process_class_availability(
     quota: str = "GN",
     departure_date: str = "",
 ) -> List[TrainClassAvailability]:
-    """Process TrainClassWiseFare to extract class availability info."""
+    """Process TrainClassWiseFare to extract class availability info.
+
+    Note: "Tap To Refresh" is now handled client-side with a button in the UI.
+    """
     classes = []
 
     for class_info in train_class_wise_fare:
@@ -107,6 +110,9 @@ def _process_class_availability(
         avl_day_list = class_info.get("avlDayList", [])
         if avl_day_list and len(avl_day_list) > 0:
             availability_status = avl_day_list[0].get("availablityStatusNew", "N/A")
+
+        # Note: "Tap To Refresh" is now handled client-side with a button
+        # The UI will show a refresh button for N/A, Tap To Refresh, or empty status
 
         # Filter by preferred class if specified
         if preferred_class and class_code.upper() != preferred_class.upper():
@@ -220,7 +226,11 @@ def process_train_results(
         }
 
     for train in train_list:
-        processed_train = _process_single_train(train, preferred_class, quota)
+        processed_train = _process_single_train(
+            train,
+            preferred_class,
+            quota,
+        )
         if processed_train:
             trains.append(processed_train.model_dump())
 
@@ -295,8 +305,12 @@ async def search_trains(
             "total_count": 0,
         }
 
-    # Process results
-    processed_data = process_train_results(data, travel_class, quota)
+    # Process results (Tap To Refresh is handled client-side)
+    processed_data = process_train_results(
+        data,
+        travel_class,
+        quota,
+    )
     processed_data["from_station"] = from_station
     processed_data["to_station"] = to_station
     processed_data["journey_date"] = journey_date

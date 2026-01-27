@@ -3,6 +3,7 @@ from pydantic import ValidationError
 
 from .train_schema import TrainSearchInput
 from .train_search_service import search_trains, build_whatsapp_train_response
+from .train_renderer import render_train_results
 from tools_factory.base_schema import ToolResponseFormat
 
 
@@ -69,10 +70,15 @@ class TrainSearchTool(BaseTool):
         else:
             text = f"Found {train_count} trains from {payload.from_station} to {payload.to_station}!"
 
+        # Render HTML for website users
+        html_content = None
+        if not is_whatsapp and not has_error:
+            html_content = render_train_results(train_results)
+
         return ToolResponseFormat(
             response_text=text,
             structured_content=None if is_whatsapp else train_results,
-            html=None,  # Can add train renderer later if needed
+            html=html_content,
             whatsapp_response=(
                 whatsapp_response.model_dump()
                 if whatsapp_response
