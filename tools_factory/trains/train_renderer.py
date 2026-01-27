@@ -552,7 +552,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 }
 </style>
 
-<div class="train-carousel" data-instance-id="train-carousel-{{ instance_id }}">
+<div class="train-carousel round-trip-selector" data-instance-id="train-carousel-{{ instance_id }}">
   <main>
     <div class="trnhd">
       <div class="trnttl">
