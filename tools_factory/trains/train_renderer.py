@@ -552,7 +552,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 }
 </style>
 
-<div class="train-carousel">
+<div class="train-carousel" data-instance-id="train-carousel-{{ instance_id }}">
   <main>
     <div class="trnhd">
       <div class="trnttl">
@@ -945,6 +945,10 @@ def render_train_results(train_results: Dict[str, Any]) -> str:
         except ValueError:
             journey_date_api = journey_date
 
+    # Generate unique instance ID for script injection
+    import uuid
+    instance_id = str(uuid.uuid4())[:8]
+
     # Render template
     template = _jinja_env.from_string(TRAIN_CAROUSEL_TEMPLATE)
     return template.render(
@@ -956,4 +960,5 @@ def render_train_results(train_results: Dict[str, Any]) -> str:
         journey_date_api=journey_date_api,
         from_display=from_station,
         to_display=to_station,
+        instance_id=instance_id,
     )
