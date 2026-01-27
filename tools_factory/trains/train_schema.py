@@ -19,7 +19,7 @@ class TrainSearchInput(BaseModel):
     journey_date: str = Field(
         ...,
         alias="journeyDate",
-        description="Journey date in YYYY-MM-DD format",
+        description="Journey date in DD-MM-YYYY format",
     )
     travel_class: Optional[str] = Field(
         None,
@@ -42,9 +42,9 @@ class TrainSearchInput(BaseModel):
         if v is None:
             return v
         try:
-            datetime.strptime(v, "%Y-%m-%d")
+            datetime.strptime(v, "%d-%m-%Y")
         except ValueError:
-            raise ValueError("Date must be in YYYY-MM-DD format")
+            raise ValueError("Date must be in DD-MM-YYYY format")
         return v
 
 

@@ -902,8 +902,8 @@ def _format_journey_date(date_str: str) -> str:
         return ""
     try:
         from datetime import datetime
-        # Try parsing YYYY-MM-DD format
-        dt = datetime.strptime(date_str, "%Y-%m-%d")
+        # Parse DD-MM-YYYY format
+        dt = datetime.strptime(date_str, "%d-%m-%Y")
         return dt.strftime("%d %b %Y")
     except ValueError:
         return date_str
@@ -978,12 +978,8 @@ def render_train_results(train_results: Dict[str, Any]) -> str:
     # Convert journey_date to API format (DD/MM/YYYY) for refresh calls
     journey_date_api = ""
     if journey_date:
-        try:
-            from datetime import datetime
-            dt = datetime.strptime(journey_date, "%Y-%m-%d")
-            journey_date_api = dt.strftime("%d/%m/%Y")
-        except ValueError:
-            journey_date_api = journey_date
+        # Journey date is already in DD-MM-YYYY format, just replace hyphens with slashes
+        journey_date_api = journey_date.replace("-", "/")
 
     # Generate unique instance ID for script injection
     import uuid

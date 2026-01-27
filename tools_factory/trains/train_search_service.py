@@ -31,7 +31,7 @@ def generate_view_all_link(
     Args:
         from_station: Full station display (e.g., "Delhi All Stations (NDLS)")
         to_station: Full station display (e.g., "Bhubaneswar (BBS)")
-        journey_date: Journey date in YYYY-MM-DD format
+        journey_date: Journey date in DD-MM-YYYY format
 
     Returns:
         View all link URL
@@ -44,22 +44,10 @@ def generate_view_all_link(
         from_formatted = from_station.replace(" ", "-")
         to_formatted = to_station.replace(" ", "-")
 
-        # Convert date from YYYY-MM-DD to DD-MM-YYYY
-        dt = datetime.strptime(journey_date, "%Y-%m-%d")
-        date_formatted = dt.strftime("%d-%m-%Y")
-
-        return f"https://railways.easemytrip.com/TrainListInfo/{from_formatted}-to-{to_formatted}/2/{date_formatted}"
+        # Date is already in DD-MM-YYYY format, use it directly
+        return f"https://railways.easemytrip.com/TrainListInfo/{from_formatted}-to-{to_formatted}/2/{journey_date}"
     except Exception:
         return ""
-
-
-def _convert_date_to_api_format(date_str: str) -> str:
-    """Convert YYYY-MM-DD to DD/MM/YYYY format for API."""
-    try:
-        dt = datetime.strptime(date_str, "%Y-%m-%d")
-        return dt.strftime("%d/%m/%Y")
-    except ValueError:
-        return date_str
 
 
 def _build_train_deeplink(
@@ -290,7 +278,7 @@ async def search_trains(
     Args:
         from_station: Origin station - can be just name ("Jammu") or with code ("Jammu Tawi (JAT)")
         to_station: Destination station - can be just name ("Delhi") or with code ("Delhi All Stations (NDLS)")
-        journey_date: Journey date in YYYY-MM-DD format
+        journey_date: Journey date in DD-MM-YYYY format
         travel_class: Optional preferred class (1A, 2A, 3A, SL, etc.)
         quota: Booking quota (GN, TQ, SS, LD)
 
@@ -306,8 +294,8 @@ async def search_trains(
     if _needs_station_resolution(to_station):
         to_station = await resolve_train_station(to_station)
 
-    # Convert date format for API
-    api_date = _convert_date_to_api_format(journey_date)
+    # Convert date format from DD-MM-YYYY to DD/MM/YYYY for API
+    api_date = journey_date.replace("-", "/")
 
     payload = {
         "fromSec": from_station,
