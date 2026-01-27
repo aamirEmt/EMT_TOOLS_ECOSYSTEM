@@ -670,7 +670,6 @@ async function refreshAvailability(btn) {
   const fromDisplay = card.dataset.fromDisplay;
   const toDisplay = card.dataset.toDisplay;
 
-  // Show loading state
   btn.classList.add('loading');
   btn.innerHTML = '<svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Loading...';
 
@@ -737,7 +736,6 @@ async function refreshAvailability(btn) {
 
     const data = await response.json();
 
-    // Extract availability from response
     let availability = 'N/A';
     let fareUpdated = '';
 
@@ -748,12 +746,10 @@ async function refreshAvailability(btn) {
       fareUpdated = data.creationTime;
     }
 
-    // Update the availability display
     const availabilityEl = card.querySelector('.class-availability');
     if (availabilityEl) {
       availabilityEl.textContent = availability.length > 15 ? availability.substring(0, 15) + '...' : availability;
 
-      // Update CSS class based on new status
       availabilityEl.classList.remove('available', 'waitlist', 'rac', 'unavailable');
       if (availability.includes('AVAILABLE')) {
         availabilityEl.classList.add('available');
@@ -766,7 +762,6 @@ async function refreshAvailability(btn) {
       }
     }
 
-    // Update fare_updated if present
     if (fareUpdated) {
       let fareUpdatedEl = card.querySelector('.class-fare-updated');
       if (!fareUpdatedEl) {
@@ -780,7 +775,6 @@ async function refreshAvailability(btn) {
       fareUpdatedEl.textContent = fareUpdated;
     }
 
-    // Remove the refresh button after successful refresh
     btn.remove();
 
   } catch (error) {
