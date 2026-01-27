@@ -681,8 +681,51 @@ async function refreshAvailability(btn) {
       quotaSelectdd: quota,
       fromstation: fromCode,
       tostation: toCode,
-      e: `${journeyDate}|${fromDisplay}|${toDisplay}`
+      e: `${journeyDate}|${fromDisplay}|${toDisplay}`,
+      lstSearch: {
+        SelectQuta: "",
+        arrivalTime: "",
+        atasOpted: "",
+        avlClasses: [{ code: "", Name: "", TotalPrice: "" }],
+        departureTime: "",
+        distance: "",
+        duration: "",
+        flexiFlag: "",
+        fromStnName: "",
+        fromStnCode: "",
+        runningFri: "",
+        runningMon: "",
+        runningSat: "",
+        runningSun: "",
+        runningThu: "",
+        runningTue: "",
+        runningWed: "",
+        toStnCode: "",
+        toStnName: "",
+        trainName: "",
+        trainNumber: "",
+        trainType: [{ code: "", Name: "", TotalPrice: null }],
+        JourneyDate: null,
+        ArrivalDate: "",
+        departuredate: "",
+        _TrainAvilFare: [],
+        DistanceFromSrc: "",
+        DistanceFromDest: "",
+        DeptTime_12: null,
+        ArrTime_12: null,
+        TrainClassWiseFare: [],
+        isCheckAvaibility: false,
+        isShowClass: false,
+        isShowQuota: false,
+        NearByStation: ""
+      },
+
+      Searchsource: "",
+      Searchdestination: "",
+      tkn: "",
+      IPAdress: ""
     };
+
 
     const response = await fetch('https://railways.easemytrip.com/Train/AvailToCheck', {
       method: 'POST',
