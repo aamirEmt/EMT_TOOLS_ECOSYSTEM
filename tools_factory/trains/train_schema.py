@@ -47,6 +47,22 @@ class TrainSearchInput(BaseModel):
             raise ValueError("Date must be in DD-MM-YYYY format")
         return v
 
+    @field_validator("travel_class")
+    @classmethod
+    def validate_travel_class(cls, v: Optional[str]) -> Optional[str]:
+        """Convert 'NONE' string to None"""
+        if v is None or v.upper() == "NONE":
+            return None
+        return v
+
+    @field_validator("quota")
+    @classmethod
+    def validate_quota(cls, v: Optional[str]) -> str:
+        """Convert 'NONE' string to default 'GN'"""
+        if v is None or v.upper() == "NONE":
+            return "GN"
+        return v
+
 
 class TrainClassAvailability(BaseModel):
     """Availability info for a specific class."""
