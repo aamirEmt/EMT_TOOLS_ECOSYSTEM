@@ -667,7 +667,6 @@ function buildBookNowUrl(card, classCode) {
   const fromDisplay = card.dataset.fromDisplay;
   const toDisplay = card.dataset.toDisplay;
 
-  // Convert date from DD/MM/YYYY to DD-M-YYYY
   const dateParts = journeyDate.split('/');
   const dateFormatted = `${dateParts[0]}-${parseInt(dateParts[1])}-${dateParts[2]}`;
 
@@ -795,7 +794,6 @@ async function refreshAvailability(btn) {
 
     btn.remove();
 
-    // Show Book Now button with appropriate state
     const bookBtn = card.querySelector('.class-book-btn');
     if (!bookBtn) {
       const newBookBtn = document.createElement('a');
@@ -804,7 +802,6 @@ async function refreshAvailability(btn) {
       newBookBtn.target = '_blank';
       newBookBtn.rel = 'noopener noreferrer';
 
-      // Check if status is regret/cancelled/not available
       const isRegret = availability.includes('REGRET') ||
                        availability.includes('NOT AVAILABLE') ||
                        availability.includes('CANCELLED');
@@ -813,7 +810,6 @@ async function refreshAvailability(btn) {
         newBookBtn.href = 'javascript:void(0)';
         newBookBtn.classList.add('disabled');
       } else {
-        // Build book_now URL from card data
         const bookNowUrl = buildBookNowUrl(card, classCode);
         newBookBtn.href = bookNowUrl;
       }
