@@ -100,23 +100,24 @@ TRAIN_CAROUSEL_TEMPLATE = """
   border-bottom: 1px solid #e0e0e0;
   padding-bottom: 10px;
   margin-bottom: 10px;
+  gap: 10px;
 }
 
 .train-carousel .trn-info {
   flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-.train-carousel .trn-number {
-  font-size: 11px;
-  color: #868686;
-  font-weight: 500;
+.train-carousel .trn-details {
+  flex: 1;
 }
 
 .train-carousel .trn-name {
   font-size: 15px;
   font-weight: 600;
   color: #202020;
-  margin-top: 2px;
   line-height: 1.3;
 }
 
@@ -126,11 +127,19 @@ TRAIN_CAROUSEL_TEMPLATE = """
   margin-top: 4px;
 }
 
+.train-carousel .trn-number {
+  font-size: 11px;
+  color: #868686;
+  font-weight: 500;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
 .train-carousel .trn-timing {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 12px 0;
+  margin-bottom: 12px;
   padding: 10px;
   background: #f8f9fa;
   border-radius: 8px;
@@ -228,13 +237,6 @@ TRAIN_CAROUSEL_TEMPLATE = """
 /* Class Carousel inside train card */
 .train-carousel .class-carousel-wrapper {
   margin-top: auto;
-}
-
-.train-carousel .class-carousel-label {
-  font-size: 11px;
-  color: #646d74;
-  margin-bottom: 8px;
-  font-weight: 500;
 }
 
 .train-carousel .class-carousel {
@@ -423,7 +425,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 /* View All Card Styles */
 .train-carousel .view-all-card {
   width: 320px;
-  min-width: 320px;
+  min-width: 260px;
   border: 1px solid #e0e0e0;
   border-radius: 12px;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -537,7 +539,6 @@ TRAIN_CAROUSEL_TEMPLATE = """
 .train-carousel.dark .trn-duration,
 .train-carousel.dark .trn-distance,
 .train-carousel.dark .trnsub,
-.train-carousel.dark .class-carousel-label,
 .train-carousel.dark .class-fare-updated {
   color: #bcbcbc;
 }
@@ -572,9 +573,11 @@ TRAIN_CAROUSEL_TEMPLATE = """
           <div class="trncard">
             <div class="trn-header">
               <div class="trn-info">
+                <div class="trn-details">
+                  <div class="trn-name">{{ train.train_name | truncate_text(22) }}</div>
+                  <div class="trn-route">{{ train.from_station_code }} → {{ train.to_station_code }}</div>
+                </div>
                 <div class="trn-number">#{{ train.train_number }}</div>
-                <div class="trn-name">{{ train.train_name | truncate_text(22) }}</div>
-                <div class="trn-route">{{ train.from_station_code }} → {{ train.to_station_code }}</div>
               </div>
             </div>
 
@@ -605,7 +608,6 @@ TRAIN_CAROUSEL_TEMPLATE = """
             {% endif %}
 
             <div class="class-carousel-wrapper">
-              <div class="class-carousel-label">Select Class:</div>
               <div class="class-carousel">
                 {% for cls in train.classes %}
                 {% set is_bookable = 'AVAILABLE' in cls.availability_status or 'WL' in cls.availability_status or 'RAC' in cls.availability_status or cls.availability_status == 'Check Online' %}

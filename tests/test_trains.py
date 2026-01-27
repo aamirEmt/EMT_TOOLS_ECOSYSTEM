@@ -30,7 +30,7 @@ pytestmark = pytest.mark.integration
 def dummy_train_search_with_codes():
     """Dummy payload with pre-formatted station codes."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
 
     return {
         "from_station": "New Delhi (NDLS)",
@@ -43,7 +43,7 @@ def dummy_train_search_with_codes():
 def dummy_train_search_without_codes():
     """Dummy payload with just city names (no codes)."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
 
     return {
         "from_station": "Delhi",
@@ -56,7 +56,7 @@ def dummy_train_search_without_codes():
 def dummy_train_search_jammu_delhi():
     """Dummy payload for Jammu to Delhi route."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=10)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=10)).strftime("%d-%m-%Y")
 
     return {
         "from_station": "Jammu",
@@ -69,7 +69,7 @@ def dummy_train_search_jammu_delhi():
 def dummy_train_search_with_class():
     """Dummy payload with preferred travel class."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=14)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=14)).strftime("%d-%m-%Y")
 
     return {
         "from_station": "Delhi",
@@ -83,7 +83,7 @@ def dummy_train_search_with_class():
 def dummy_train_search_with_quota():
     """Dummy payload with specific quota."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=5)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=5)).strftime("%d-%m-%Y")
 
     return {
         "from_station": "Delhi",
@@ -97,7 +97,7 @@ def dummy_train_search_with_quota():
 def dummy_train_search_popular_route():
     """Dummy payload for popular route (likely to have many results)."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=21)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=21)).strftime("%d-%m-%Y")
 
     return {
         "from_station": "New Delhi (NDLS)",
@@ -494,7 +494,7 @@ async def test_train_response_has_timing_info(dummy_train_search_with_codes):
 async def test_train_search_far_future_date():
     """Test train search with date far in the future."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=90)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=90)).strftime("%d-%m-%Y")
 
     payload = {
         "from_station": "Delhi",
@@ -519,7 +519,7 @@ async def test_train_search_far_future_date():
 async def test_train_search_near_date():
     """Test train search with date very soon (tomorrow)."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=1)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=1)).strftime("%d-%m-%Y")
 
     payload = {
         "from_station": "Delhi",
@@ -544,7 +544,7 @@ async def test_train_search_near_date():
 async def test_train_search_short_route():
     """Test train search on short route."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
 
     payload = {
         "from_station": "Delhi",
@@ -574,7 +574,7 @@ async def test_train_search_short_route():
 async def test_train_search_long_route():
     """Test train search on long route."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=14)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=14)).strftime("%d-%m-%Y")
 
     payload = {
         "from_station": "Delhi",
@@ -675,7 +675,7 @@ async def test_multiple_consecutive_train_searches():
     tool = factory.get_tool("search_trains")
 
     today = datetime.now()
-    journey_date = (today + timedelta(days=14)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=14)).strftime("%d-%m-%Y")
 
     routes = [
         ("Delhi", "Mumbai"),
@@ -745,7 +745,7 @@ async def test_train_search_view_all_link_format():
     tool = factory.get_tool("search_trains")
 
     today = datetime.now()
-    journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
 
     # Test with Delhi to Agra (short route)
     payload = {
@@ -786,7 +786,7 @@ async def test_train_search_view_all_link_with_autoresolved_stations():
     tool = factory.get_tool("search_trains")
 
     today = datetime.now()
-    journey_date = (today + timedelta(days=10)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=10)).strftime("%d-%m-%Y")
 
     # Test with just city names (will be auto-resolved)
     payload = {
@@ -828,7 +828,7 @@ async def test_train_search_invalid_date_format():
     payload = {
         "from_station": "Delhi",
         "to_station": "Mumbai",
-        "journey_date": "25-01-2026",  # Wrong format (should be YYYY-MM-DD)
+        "journey_date": "2026-01-25",  # Wrong format (should be DD-MM-YYYY)
     }
 
     print(f"\n🔍 Testing invalid date format: {payload['journey_date']}")

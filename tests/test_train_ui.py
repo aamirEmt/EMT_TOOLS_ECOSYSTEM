@@ -13,7 +13,7 @@ async def test_train_search_delhi_to_agra():
     """Test train search from Delhi to Agra with UI rendering"""
     tool = TrainSearchTool()
 
-    journey_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+    journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
 
     result = await tool.execute(
         fromStation="Delhi",
@@ -50,7 +50,7 @@ async def test_train_search_mumbai_to_pune():
     """Test train search from Mumbai to Pune"""
     tool = TrainSearchTool()
 
-    journey_date = (datetime.now() + timedelta(days=10)).strftime("%Y-%m-%d")
+    journey_date = (datetime.now() + timedelta(days=10)).strftime("%d-%m-%Y")
 
     result = await tool.execute(
         fromStation="Mumbai",
@@ -75,7 +75,7 @@ async def test_train_search_with_class_filter():
     """Test train search with specific travel class filter"""
     tool = TrainSearchTool()
 
-    journey_date = (datetime.now() + timedelta(days=14)).strftime("%Y-%m-%d")
+    journey_date = (datetime.now() + timedelta(days=14)).strftime("%d-%m-%Y")
 
     result = await tool.execute(
         fromStation="New Delhi",
@@ -105,7 +105,7 @@ async def test_train_search_tatkal_quota():
     """Test train search with Tatkal quota"""
     tool = TrainSearchTool()
 
-    journey_date = (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d")
+    journey_date = (datetime.now() + timedelta(days=3)).strftime("%d-%m-%Y")
 
     result = await tool.execute(
         fromStation="Delhi",
@@ -132,7 +132,7 @@ async def test_train_search_whatsapp_response():
     """Test train search with WhatsApp response format"""
     tool = TrainSearchTool()
 
-    journey_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+    journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
 
     result = await tool.execute(
         fromStation="Chennai",
