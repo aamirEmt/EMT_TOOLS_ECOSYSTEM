@@ -21,6 +21,39 @@ from .train_schema import (
 TRAIN_API_URL = "https://railways.easemytrip.com/Train/_TrainBtwnStationList"
 
 
+def generate_view_all_link(
+    from_station: str,
+    to_station: str,
+    journey_date: str,
+) -> str:
+    """
+    Generate view all trains link for EaseMyTrip.
+
+    Args:
+        from_station: Full station display (e.g., "Delhi All Stations (NDLS)")
+        to_station: Full station display (e.g., "Bhubaneswar (BBS)")
+        journey_date: Journey date in YYYY-MM-DD format
+
+    Returns:
+        View all link URL
+
+    Example:
+        https://railways.easemytrip.com/TrainListInfo/Delhi-All-Stations-(NDLS)-to-Bhubaneswar-(BBS)/2/03-02-2026
+    """
+    try:
+        # Format station names: replace spaces with hyphens
+        from_formatted = from_station.replace(" ", "-")
+        to_formatted = to_station.replace(" ", "-")
+
+        # Convert date from YYYY-MM-DD to DD-MM-YYYY
+        dt = datetime.strptime(journey_date, "%Y-%m-%d")
+        date_formatted = dt.strftime("%d-%m-%Y")
+
+        return f"https://railways.easemytrip.com/TrainListInfo/{from_formatted}-to-{to_formatted}/2/{date_formatted}"
+    except Exception:
+        return ""
+
+
 def _convert_date_to_api_format(date_str: str) -> str:
     """Convert YYYY-MM-DD to DD/MM/YYYY format for API."""
     try:
@@ -316,6 +349,14 @@ async def search_trains(
     processed_data["journey_date"] = journey_date
     processed_data["travel_class"] = travel_class
     processed_data["quota"] = quota
+
+    # Generate view all link
+    view_all_link = generate_view_all_link(
+        from_station=from_station,
+        to_station=to_station,
+        journey_date=journey_date,
+    )
+    processed_data["view_all_link"] = view_all_link
 
     return processed_data
 
