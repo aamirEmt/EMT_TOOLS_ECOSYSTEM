@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from emt_client.clients.train_client import TrainApiClient
 from emt_client.utils import resolve_train_station
+from emt_client.config import TRAIN_API_URL
 from .train_schema import (
     TrainSearchInput,
     TrainClassAvailability,
@@ -17,8 +18,6 @@ from .train_schema import (
     WhatsappTrainFormat,
     WhatsappTrainFinalResponse,
 )
-
-TRAIN_API_URL = "https://railways.easemytrip.com/Train/_TrainBtwnStationList"
 
 
 def generate_view_all_link(

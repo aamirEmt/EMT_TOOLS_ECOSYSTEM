@@ -702,6 +702,120 @@ async def test_multiple_consecutive_train_searches():
 
 
 # ============================================================================
+# VIEW ALL LINK TESTS
+# ============================================================================
+
+@pytest.mark.asyncio
+async def test_train_search_view_all_link_generation(dummy_train_search_with_codes):
+    """Test that train search generates view all link."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_trains")
+
+    print(f"\n🔍 Testing view all link generation: {dummy_train_search_with_codes}")
+
+    result = await tool.execute(**dummy_train_search_with_codes)
+
+    assert result.structured_content is not None
+    data = result.structured_content
+
+    # Check that view_all_link exists
+    assert "view_all_link" in data, "Response should contain view_all_link"
+    view_all_link = data.get("view_all_link")
+
+    print(f"✅ View all link generated: {view_all_link}")
+
+    # Verify URL format
+    assert view_all_link.startswith("https://railways.easemytrip.com/TrainListInfo/"), \
+        f"View all link should start with TrainListInfo URL, got: {view_all_link}"
+
+    # Verify URL contains /2/ (hardcoded journey type)
+    assert "/2/" in view_all_link, "View all link should contain /2/ (journey type)"
+
+    # Verify URL structure
+    assert "-to-" in view_all_link, "View all link should contain '-to-'"
+
+    print(f"   URL structure verified ✅")
+    print(f"   Contains /2/ (journey type) ✅")
+
+
+@pytest.mark.asyncio
+async def test_train_search_view_all_link_format():
+    """Test view all link has correct format for different routes."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_trains")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
+
+    # Test with Delhi to Agra (short route)
+    payload = {
+        "from_station": "New Delhi (NDLS)",
+        "to_station": "Agra Cantt (AGC)",
+        "journey_date": journey_date,
+    }
+
+    print(f"\n🔍 Testing view all link format for {payload['from_station']} to {payload['to_station']}")
+
+    result = await tool.execute(**payload)
+
+    data = result.structured_content
+    view_all_link = data.get("view_all_link")
+
+    print(f"✅ Generated link: {view_all_link}")
+
+    # Verify station names are in URL (with hyphens replacing spaces)
+    assert "New-Delhi" in view_all_link or "NDLS" in view_all_link, \
+        "From station should be in URL"
+    assert "Agra" in view_all_link or "AGC" in view_all_link, \
+        "To station should be in URL"
+
+    # Verify date format (DD-MM-YYYY)
+    import re
+    date_pattern = r'\d{2}-\d{2}-\d{4}$'
+    assert re.search(date_pattern, view_all_link), \
+        f"URL should end with date in DD-MM-YYYY format, got: {view_all_link}"
+
+    print(f"   Station names verified ✅")
+    print(f"   Date format verified ✅")
+
+
+@pytest.mark.asyncio
+async def test_train_search_view_all_link_with_autoresolved_stations():
+    """Test view all link generation when stations are auto-resolved."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_trains")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=10)).strftime("%Y-%m-%d")
+
+    # Test with just city names (will be auto-resolved)
+    payload = {
+        "from_station": "Mumbai",
+        "to_station": "Pune",
+        "journey_date": journey_date,
+    }
+
+    print(f"\n🔍 Testing view all link with auto-resolved stations")
+    print(f"   From: {payload['from_station']} (will be resolved)")
+    print(f"   To: {payload['to_station']} (will be resolved)")
+
+    result = await tool.execute(**payload)
+
+    data = result.structured_content
+    view_all_link = data.get("view_all_link")
+
+    print(f"✅ Generated link: {view_all_link}")
+
+    # After auto-resolution, the resolved station names should be in URL
+    assert "Mumbai" in view_all_link, "Resolved Mumbai station should be in URL"
+    assert "Pune" in view_all_link, "Resolved Pune station should be in URL"
+    assert "-to-" in view_all_link
+    assert "/2/" in view_all_link
+
+    print(f"   Auto-resolved stations in URL ✅")
+
+
+# ============================================================================
 # ERROR HANDLING TESTS
 # ============================================================================
 

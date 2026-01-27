@@ -6,7 +6,12 @@ import random
 from datetime import datetime
 from typing import Tuple, List, Dict, Optional, Any
 from emt_client.clients.flight_client import FlightApiClient
-from .config import AUTOSUGGEST_URL
+from .config import (
+    AUTOSUGGEST_URL,
+    SOLR_AUTOSUGGEST_URL,
+    TRAIN_AUTOSUGGEST_URL,
+    DEEPLINK_API_URL,
+)
 import httpx
 import requests
 
@@ -65,9 +70,6 @@ async def fetch_first_city_code_country(
     suggestions = await fetch_autosuggest(client, search_term)
     return extract_first_city_code_country(suggestions)
 
-
-SOLR_AUTOSUGGEST_URL = "https://solr.easemytrip.com/v1/api/auto/GetHotelAutoSuggest_SolrUItest"
-TRAIN_AUTOSUGGEST_URL = "https://solr.easemytrip.com/api/auto/GetTrainAutoSuggest"
 
 async def resolve_city_name(raw_city: str) -> str:
     """
@@ -266,9 +268,6 @@ async def resolve_train_station(search_term: str) -> str:
     except Exception as e:
         print(f"[TrainStationResolver] Error: {e}. Using raw input: {search_term}")
         return search_term
-
-
-DEEPLINK_API_URL = "https://deeplinkapi.easemytrip.com/api/fire/GetShortLinkRawV1"
 
 
 def generate_short_link(
