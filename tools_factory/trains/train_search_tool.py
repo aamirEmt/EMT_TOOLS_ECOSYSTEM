@@ -70,9 +70,9 @@ class TrainSearchTool(BaseTool):
         else:
             text = f"Found {train_count} trains from {payload.from_station} to {payload.to_station}!"
 
-        # Render HTML for website users
+        # Render HTML for website users only when trains are found
         html_content = None
-        if not is_whatsapp and not has_error:
+        if not is_whatsapp and not has_error and train_count > 0:
             html_content = render_train_results(train_results)
 
         return ToolResponseFormat(
