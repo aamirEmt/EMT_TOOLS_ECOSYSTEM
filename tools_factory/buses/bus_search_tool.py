@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from .bus_schema import BusSearchInput
 from .bus_search_service import search_buses, build_whatsapp_bus_response
 from tools_factory.base_schema import ToolResponseFormat
-
+from .bus_renderer import render_bus_results
 
 class BusSearchTool(BaseTool):
     """Bus search tool for EaseMyTrip Bus Service."""
@@ -80,6 +80,11 @@ class BusSearchTool(BaseTool):
             else None
         )
 
+        # Render HTML if needed
+        html_output = None
+        if not has_error and not is_whatsapp:
+            html_output = render_bus_results(bus_results)
+
         if has_error:
             text = f"No buses found. {bus_results.get('message', '')}"
         else:
@@ -88,7 +93,7 @@ class BusSearchTool(BaseTool):
         return ToolResponseFormat(
             response_text=text,
             structured_content=None if is_whatsapp else bus_results,
-            html=None,
+            html=html_output,
             whatsapp_response=(
                 whatsapp_response.model_dump()
                 if whatsapp_response
