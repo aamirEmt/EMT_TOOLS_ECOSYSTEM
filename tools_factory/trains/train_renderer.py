@@ -609,7 +609,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
               <div class="class-carousel">
                 {% for cls in train.classes %}
                 {% set is_bookable = 'AVAILABLE' in cls.availability_status or 'WL' in cls.availability_status or 'RAC' in cls.availability_status or cls.availability_status == 'Check Online' %}
-                {% set is_regret = 'REGRET' in cls.availability_status or 'NOT AVAILABLE' in cls.availability_status %}
+                {% set is_regret = 'REGRET' in cls.availability_status or 'NOT AVAILABLE' in cls.availability_status or 'TRAIN CANCELLED' in cls.availability_status %}
                 {% set needs_refresh = cls.availability_status in ['N/A', 'Tap To Refresh', 'Check Online', ''] or not cls.availability_status %}
                 <div class="class-card" data-train-no="{{ train.train_number }}" data-class-code="{{ cls.class_code }}" data-from-code="{{ train.from_station_code }}" data-to-code="{{ train.to_station_code }}" data-quota="{{ quota }}" data-journey-date="{{ journey_date_api }}" data-from-display="{{ from_display }}" data-to-display="{{ to_display }}">
                   <div class="class-code">{{ cls.class_code }}</div>
@@ -627,8 +627,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
                     </svg>
                     Tap To Refresh
                   </button>
-                  {% endif %}
-                  {% if cls.book_now %}
+                  {% elif cls.book_now %}
                   <a href="{% if is_regret %}javascript:void(0){% else %}{{ cls.book_now }}{% endif %}" {% if not is_regret %}target="_blank" rel="noopener noreferrer"{% endif %} class="class-book-btn {% if is_regret %}disabled{% endif %}">Book Now</a>
                   {% endif %}
                 </div>
@@ -659,6 +658,25 @@ TRAIN_CAROUSEL_TEMPLATE = """
 </div>
 
 <script>
+function buildBookNowUrl(card, classCode) {
+  const trainNo = card.dataset.trainNo;
+  const fromCode = card.dataset.fromCode;
+  const toCode = card.dataset.toCode;
+  const quota = card.dataset.quota || 'GN';
+  const journeyDate = card.dataset.journeyDate;
+  const fromDisplay = card.dataset.fromDisplay;
+  const toDisplay = card.dataset.toDisplay;
+
+  // Convert date from DD/MM/YYYY to DD-M-YYYY
+  const dateParts = journeyDate.split('/');
+  const dateFormatted = `${dateParts[0]}-${parseInt(dateParts[1])}-${dateParts[2]}`;
+
+  const fromName = fromDisplay.split('(')[0].trim().replace(/ /g, '-');
+  const toName = toDisplay.split('(')[0].trim().replace(/ /g, '-');
+
+  return `https://railways.easemytrip.com/TrainInfo/${fromName}-to-${toName}/${classCode}/${trainNo}/${fromCode}/${toCode}/${quota}/${dateFormatted}`;
+}
+
 async function refreshAvailability(btn) {
   const card = btn.closest('.class-card');
   const trainNo = card.dataset.trainNo;
@@ -776,6 +794,32 @@ async function refreshAvailability(btn) {
     }
 
     btn.remove();
+
+    // Show Book Now button with appropriate state
+    const bookBtn = card.querySelector('.class-book-btn');
+    if (!bookBtn) {
+      const newBookBtn = document.createElement('a');
+      newBookBtn.className = 'class-book-btn';
+      newBookBtn.textContent = 'Book Now';
+      newBookBtn.target = '_blank';
+      newBookBtn.rel = 'noopener noreferrer';
+
+      // Check if status is regret/cancelled/not available
+      const isRegret = availability.includes('REGRET') ||
+                       availability.includes('NOT AVAILABLE') ||
+                       availability.includes('CANCELLED');
+
+      if (isRegret) {
+        newBookBtn.href = 'javascript:void(0)';
+        newBookBtn.classList.add('disabled');
+      } else {
+        // Build book_now URL from card data
+        const bookNowUrl = buildBookNowUrl(card, classCode);
+        newBookBtn.href = bookNowUrl;
+      }
+
+      card.appendChild(newBookBtn);
+    }
 
   } catch (error) {
     console.error('Error refreshing availability:', error);
