@@ -784,7 +784,6 @@ async function refreshAvailability(btn) {
   }
 }
 
-// Attach event listeners to all refresh buttons after function is defined
 document.querySelectorAll('.class-refresh-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     refreshAvailability(this);
