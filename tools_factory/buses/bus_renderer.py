@@ -1,24 +1,10 @@
-"""Bus Results Renderer.
-
-This module renders bus search results into HTML carousel format.
-
-POST http://busapi.easemytrip.com/v1/api/detail/List/
-
-"""
-
 from typing import Dict, Any, List, Optional
 from jinja2 import Environment, BaseLoader
-
 
 _jinja_env = Environment(
     loader=BaseLoader(),
     autoescape=False,
 )
-
-
-# =====================================================================
-# 🚌 BUS RESULTS CAROUSEL STYLES
-# =====================================================================
 
 BUS_CAROUSEL_STYLES = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
@@ -434,11 +420,6 @@ BUS_CAROUSEL_STYLES = """
 }
 """
 
-
-# =====================================================================
-# 🚌 BUS RESULTS CAROUSEL TEMPLATE
-# =====================================================================
-
 BUS_CAROUSEL_TEMPLATE = """
 <style>
 {{ styles }}
@@ -512,7 +493,7 @@ BUS_CAROUSEL_TEMPLATE = """
             <div class="bustme">{{ bus.arrival_time }}</div>
           </div>
 
-          <!-- Boarding/Dropping Points (from docA bdPoints, dpPoints) -->
+          <!-- Boarding/Dropping Points ( bdPoints, dpPoints) -->
           <div class="pointsrow">
             <div class="pointbox">
               <div class="pointlbl">Boarding</div>
@@ -524,14 +505,14 @@ BUS_CAROUSEL_TEMPLATE = """
             </div>
           </div>
 
-          <!-- Rating (from docA rt) -->
+          <!-- Rating ( rt) -->
           {% if bus.rating %}
           <div class="ratingrow">
             <span class="rtnvlu {{ bus.rating_class }}">★ {{ bus.rating }}</span>
           </div>
           {% endif %}
 
-          <!-- Amenities (from docA lstamenities) -->
+          <!-- Amenities ( lstamenities) -->
           {% if bus.amenities %}
           <ul class="busamnts">
             {% for amenity in bus.amenities[:4] %}
@@ -543,7 +524,7 @@ BUS_CAROUSEL_TEMPLATE = """
           </ul>
           {% endif %}
 
-          <!-- Features (from docA liveTrackingAvailable, mTicketEnabled) -->
+          <!-- Features ( liveTrackingAvailable, mTicketEnabled) -->
           {% if bus.live_tracking or bus.m_ticket %}
           <div class="featuresrow">
             {% if bus.live_tracking %}
@@ -596,13 +577,7 @@ BUS_CAROUSEL_TEMPLATE = """
 </div>
 """
 
-
-# =====================================================================
-# HELPER FUNCTIONS
-# =====================================================================
-
 def _format_currency(value: Any) -> str:
-    """Format price in Indian Rupees."""
     if not value:
         return "₹0"
     try:
@@ -611,28 +586,22 @@ def _format_currency(value: Any) -> str:
     except (ValueError, TypeError):
         return f"₹{value}"
 
-
 def _format_time(time_value: Any) -> str:
-    """Format time to HH:MM format."""
     if not time_value:
         return "--:--"
     
     time_str = str(time_value)
     
-    # Already in HH:MM format
     if ":" in time_str and len(time_str) >= 4:
         return time_str[:5]
     
-    # HHMM format
     digits = ''.join(filter(str.isdigit, time_str))
     if len(digits) >= 4:
         return f"{digits[:2]}:{digits[2:4]}"
     
     return time_str
 
-
 def _format_date(date_value: Any) -> str:
-    """Format date as DD Mon YYYY."""
     if not date_value:
         return "--"
     
@@ -640,18 +609,14 @@ def _format_date(date_value: Any) -> str:
         from datetime import datetime
         
         if isinstance(date_value, str):
-            # Try YYYY-MM-DD format
             dt = datetime.strptime(date_value, "%Y-%m-%d")
         else:
             dt = date_value
-        
         return dt.strftime("%d %b %Y")
     except (ValueError, TypeError):
         return str(date_value)
 
-
 def _truncate_text(text: str, max_length: int = 25) -> str:
-    """Truncate text with ellipsis."""
     if not text:
         return ""
     text_str = str(text)
@@ -659,9 +624,7 @@ def _truncate_text(text: str, max_length: int = 25) -> str:
         return text_str
     return text_str[:max_length] + "..."
 
-
 def _get_rating_class(rating: Any) -> str:
-    """Get CSS class for rating badge based on value (docA rt field)."""
     if not rating:
         return ""
     try:
@@ -674,9 +637,7 @@ def _get_rating_class(rating: Any) -> str:
     except (ValueError, TypeError):
         return ""
 
-
 def _get_first_boarding_point(boarding_points: List[Dict[str, Any]]) -> str:
-    """Extract first boarding point name (docA bdPoints → bdLongName)."""
     if not boarding_points:
         return "N/A"
     
@@ -689,9 +650,7 @@ def _get_first_boarding_point(boarding_points: List[Dict[str, Any]]) -> str:
     )
     return _truncate_text(name, 20)
 
-
 def _get_first_dropping_point(dropping_points: List[Dict[str, Any]]) -> str:
-    """Extract first dropping point name (docA dpPoints → dpName)."""
     if not dropping_points:
         return "N/A"
     
@@ -703,24 +662,19 @@ def _get_first_dropping_point(dropping_points: List[Dict[str, Any]]) -> str:
     )
     return _truncate_text(name, 20)
 
-
 def _extract_amenities(amenities: Any) -> List[str]:
-    """Extract amenity names (docA lstamenities → [{name, id}])."""
     if not amenities:
         return []
     
     if isinstance(amenities, list):
-        # If already list of strings (processed)
         if amenities and isinstance(amenities[0], str):
             return amenities
-        # If list of dicts (raw from API)
         return [a.get("name") for a in amenities if isinstance(a, dict) and a.get("name")]
     
     return []
 
 
 def _get_seats_label(seats: Any) -> str:
-    """Get seats left label (docA AvailableSeats)."""
     if not seats:
         return ""
     
@@ -736,60 +690,28 @@ def _get_seats_label(seats: Any) -> str:
 
 
 def _normalize_bus_for_ui(bus: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """
-    Normalize a single bus for UI rendering.
-    
-    Maps AvailableTrips fields to UI format:
-        - Travels → operator_name
-        - busType → bus_type
-        - departureTime → departure_time
-        - ArrivalTime → arrival_time
-        - duration → duration
-        - price/fares → fare
-        - AvailableSeats → seats_label
-        - AC → is_ac
-        - nonAC → is_non_ac
-        - isVolvo → is_volvo
-        - seater → is_seater
-        - sleeper → is_sleeper
-        - rt → rating
-        - bdPoints → boarding_point
-        - dpPoints → dropping_point
-        - lstamenities → amenities
-        - liveTrackingAvailable → live_tracking
-        - mTicketEnabled → m_ticket
-        - isCancellable → is_cancellable
-    """
     if not bus:
         return None
     
-    # Get price (docA price or fares array)
     price = bus.get("price")
     fares = bus.get("fares", [])
     if not price and fares:
         price = fares[0] if isinstance(fares, list) and fares else "0"
     
-    # Get boarding/dropping points
     boarding_points = bus.get("boarding_points", []) or bus.get("bdPoints", [])
     dropping_points = bus.get("dropping_points", []) or bus.get("dpPoints", [])
     
-    # Get amenities (docA lstamenities)
     amenities = bus.get("amenities", []) or bus.get("lstamenities", [])
     
-    # Get rating (docA rt)
     rating = bus.get("rating") or bus.get("rt")
     
-    # Get M-ticket (can be string "True" or bool)
     m_ticket_raw = bus.get("m_ticket_enabled") or bus.get("mTicketEnabled") or ""
     m_ticket = str(m_ticket_raw).lower() == "true"
     
-    # Get live tracking (docA liveTrackingAvailable)
     live_tracking = bus.get("live_tracking_available") or bus.get("liveTrackingAvailable", False)
     
-    # Get cancellable (docA isCancellable)
     is_cancellable = bus.get("is_cancellable") or bus.get("isCancellable", False)
     
-    # Get booking link
     booking_link = bus.get("book_now") or bus.get("deepLink") or bus.get("booking_link") or "#"
     if isinstance(booking_link, str):
         booking_link = booking_link.strip()
@@ -818,30 +740,7 @@ def _normalize_bus_for_ui(bus: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "booking_link": booking_link,
     }
 
-
-# =====================================================================
-# MAIN RENDER FUNCTION
-# =====================================================================
-
 def render_bus_results(bus_results: Dict[str, Any]) -> str:
-    """
-    Render bus search results carousel.
-    
-    Args:
-        bus_results: Dictionary containing bus search results from search_buses()
-            Expected keys:
-            - buses: List of processed AvailableTrips
-            - total_count: Number of buses
-            - ac_count: AcCount from API
-            - non_ac_count: NonAcCount from API
-            - source_id: Source city ID
-            - destination_id: Destination city ID
-            - journey_date: Journey date (YYYY-MM-DD)
-    
-    Returns:
-        HTML string for the bus carousel
-    """
-    # Unwrap structured_content if present
     if "structured_content" in bus_results:
         bus_results = bus_results["structured_content"]
     
@@ -850,26 +749,21 @@ def render_bus_results(bus_results: Dict[str, Any]) -> str:
     if not buses:
         return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
     
-    # Normalize buses for UI
     buses_ui = [_normalize_bus_for_ui(bus) for bus in buses]
     buses_ui = [b for b in buses_ui if b]
     
     if not buses_ui:
         return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
     
-    # Get route info - use city names if available, otherwise IDs
     source_city = bus_results.get("source_name") or bus_results.get("source_id", "")
     destination_city = bus_results.get("destination_name") or bus_results.get("destination_id", "")
     
-    # Format journey date
     journey_date = _format_date(bus_results.get("journey_date"))
     
-    # Get counts (from docA AcCount, NonAcCount)
     ac_count = bus_results.get("ac_count", 0)
     non_ac_count = bus_results.get("non_ac_count", 0)
     bus_count = bus_results.get("total_count") or len(buses_ui)
     
-    # Render template
     template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
     return template.render(
         styles=BUS_CAROUSEL_STYLES,
@@ -884,11 +778,6 @@ def render_bus_results(bus_results: Dict[str, Any]) -> str:
         show_view_all_card=False,
         total_bus_count=bus_count,
     )
-
-
-# =====================================================================
-# SEAT LAYOUT STYLES
-# =====================================================================
 
 SEAT_LAYOUT_STYLES = """
 .seat-layout {
@@ -1112,11 +1001,6 @@ SEAT_LAYOUT_STYLES = """
 }
 """
 
-
-# =====================================================================
-# SEAT LAYOUT TEMPLATE
-# =====================================================================
-
 SEAT_LAYOUT_TEMPLATE = """
 <style>
 {{ styles }}
@@ -1228,13 +1112,7 @@ SEAT_LAYOUT_TEMPLATE = """
 </div>
 """
 
-
-# =====================================================================
-# SEAT LAYOUT HELPER FUNCTIONS
-# =====================================================================
-
 def _get_seat_status_class(seat: Dict[str, Any]) -> str:
-    """Get CSS class for seat based on status."""
     if seat.get("is_booked"):
         return "booked"
     if seat.get("is_blocked"):
@@ -1245,9 +1123,7 @@ def _get_seat_status_class(seat: Dict[str, Any]) -> str:
         return "available"
     return "booked"
 
-
 def _build_deck_rows(deck: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
-    """Build row-wise seat arrangement for rendering."""
     if not deck or not deck.get("seats"):
         return []
     
@@ -1255,10 +1131,8 @@ def _build_deck_rows(deck: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
     rows = deck.get("rows", 10)
     columns = deck.get("columns", 5)
     
-    # Create empty grid
     grid = [[{"is_empty": True} for _ in range(columns)] for _ in range(rows)]
     
-    # Place seats in grid
     for seat in seats:
         row = seat.get("row", 0)
         col = seat.get("column", 0)
@@ -1278,7 +1152,6 @@ def _build_deck_rows(deck: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
 
 
 def _normalize_deck_for_ui(deck: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """Normalize deck data for UI rendering."""
     if not deck:
         return None
     
@@ -1291,28 +1164,11 @@ def _normalize_deck_for_ui(deck: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "rows_data": rows_data,
     }
 
-
-# =====================================================================
-# RENDER FUNCTIONS WITH VIEW ALL SUPPORT
-# =====================================================================
-
 def render_bus_results_with_limit(
     bus_results: Dict[str, Any],
     display_limit: int = 5,
     show_view_all: bool = True,
 ) -> str:
-    """
-    Render bus search results carousel with display limit and View All card.
-    
-    Args:
-        bus_results: Dictionary containing bus search results
-        display_limit: Maximum number of bus cards to show (default: 5)
-        show_view_all: Whether to show View All card when more buses available
-    
-    Returns:
-        HTML string for the bus carousel with View All card
-    """
-    # Unwrap structured_content if present
     if "structured_content" in bus_results:
         bus_results = bus_results["structured_content"]
     
@@ -1323,59 +1179,42 @@ def render_bus_results_with_limit(
     
     total_buses = len(buses)
     
-    # Limit buses for display
     display_buses = buses[:display_limit]
     
-    # Normalize buses for UI
     buses_ui = [_normalize_bus_for_ui(bus) for bus in display_buses]
     buses_ui = [b for b in buses_ui if b]
     
     if not buses_ui:
         return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
     
-    # Get route info - use city names if available
     source_city = bus_results.get("source_name") or bus_results.get("source_id", "")
     destination_city = bus_results.get("destination_name") or bus_results.get("destination_id", "")
     journey_date = _format_date(bus_results.get("journey_date"))
     
-    # Get counts
     ac_count = bus_results.get("ac_count", 0)
     non_ac_count = bus_results.get("non_ac_count", 0)
     
-    # Get view all link
     view_all_link = bus_results.get("view_all_link", "")
     
-    # Determine if View All card should be shown
-    # Show when: show_view_all is True AND total buses > display_limit AND we have a valid link
     should_show_view_all = show_view_all and total_buses > display_limit and view_all_link
     
-    # Render template
     template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
     return template.render(
         styles=BUS_CAROUSEL_STYLES,
         source_city=source_city,
         destination_city=destination_city,
         journey_date=journey_date,
-        bus_count=total_buses,  # Show total count in header
+        bus_count=total_buses,  
         ac_count=ac_count,
         non_ac_count=non_ac_count,
         buses=buses_ui,
         view_all_link=view_all_link,
         show_view_all_card=should_show_view_all,
-        total_bus_count=total_buses,  # For View All card - show ALL buses count
+        total_bus_count=total_buses,  
     )
 
 
 def render_seat_layout(seat_layout_response: Dict[str, Any]) -> str:
-    """
-    Render seat layout HTML.
-    
-    Args:
-        seat_layout_response: Response from get_seat_layout()
-    
-    Returns:
-        HTML string for the seat layout
-    """
     if not seat_layout_response.get("success"):
         message = seat_layout_response.get('message', 'Failed to load seat layout')
         return f"""
@@ -1404,11 +1243,9 @@ def render_seat_layout(seat_layout_response: Dict[str, Any]) -> str:
 </div>
 """
     
-    # Normalize decks for UI
     lower_deck = _normalize_deck_for_ui(layout.get("lower_deck"))
     upper_deck = _normalize_deck_for_ui(layout.get("upper_deck"))
     
-    # Render template
     template = _jinja_env.from_string(SEAT_LAYOUT_TEMPLATE)
     return template.render(
         styles=SEAT_LAYOUT_STYLES,

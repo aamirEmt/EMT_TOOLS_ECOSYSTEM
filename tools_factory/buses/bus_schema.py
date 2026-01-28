@@ -193,7 +193,7 @@ class SeatInfo(BaseModel):
     is_booked: bool = False
     is_blocked: bool = False
 
-class DeckLayout(BaseModel):    
+class DeckLayout(BaseModel):   
     deck_name: str  
     rows: int 
     columns: int  
