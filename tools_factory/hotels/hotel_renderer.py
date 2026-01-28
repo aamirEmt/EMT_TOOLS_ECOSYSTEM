@@ -546,7 +546,7 @@ HOTEL_CAROUSEL_TEMPLATE = """
                     {% endfor %}
                   </div>
                   <div class="htlnme" title="{{ hotel.name }}">{{ hotel.name | truncate_text(20) }}</div>
-                  <div class="htllcn" title="{{ hotel.location }}">{{ hotel.location }}</div>
+                  <div class="htllcn" title="{{ hotel.location }}">{{ hotel.location | truncate_text(20) }}</div>
                 </div>
                 <div class="htlprcbx">
                   <div class="sbttl">{{ hotel.pricePrefix }}</div>
