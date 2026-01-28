@@ -1,18 +1,11 @@
 """Tests for Bus Seat Layout/Bind API and View All Card.
 
-These tests use REAL API endpoints - no mocking.
-Tests the SeatBind API (docA) and View All card rendering.
-
-File: tests/test_seat_bind.py
-
 Run with:
     pytest tests/test_seat_bind.py -v -s
 
 Generate HTML only:
     python tests/test_seat_bind.py
 
-API Reference (docA):
-    POST http://busapi.easemytrip.com/v1/api/detail/SeatBind/
 """
 
 import sys
@@ -177,7 +170,6 @@ async def fetch_seat_layout(
     """
     Fetch seat layout from live SeatBind API.
     
-    docA Endpoint: POST http://busapi.easemytrip.com/v1/api/detail/SeatBind/
     """
     from tools_factory.buses.bus_search_service import get_seat_layout
     
@@ -209,13 +201,7 @@ async def fetch_seat_layout(
 
 
 def extract_bus_details_for_seatbind(bus: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Extract required details from a bus for SeatBind API call.
-    
-    docA SeatBind requires:
-    - busId, routeId, engineId
-    - boardingPointId, droppingPointId
-    """
+
     # Get boarding points
     boarding_points = bus.get("boarding_points", [])
     first_boarding_id = ""

@@ -1,56 +1,12 @@
-"""Real API tests for Bus Search Tool.
-
-These tests make actual API calls and verify real responses.
-NO MOCKING - Real API integration tests.
-
-File: tests/test_buses.py
-
-Run with:
-    pytest tests/test_buses.py -v -s
-
-Mark as integration tests:
-    pytest -m integration
-
-API Reference:
-    POST http://busapi.easemytrip.com/v1/api/detail/List/
-    
-    Request payload:
-    {
-        "sourceId": "733",
-        "destinationId": "757",
-        "date": "08-11-2025",
-        "key": "dsasa4gfdg4543gfdg6ghgf45325gfd",
-        "version": "1",
-        "isVrl": "False",
-        "isVolvo": "False",
-        "IsAndroidIos_Hit": false,
-        "agentCode": "",
-        "CountryCode": "IN"
-    }
-"""
-
 import pytest
 from datetime import datetime, timedelta
 from tools_factory.factory import get_tool_factory
 from tools_factory.base_schema import ToolResponseFormat
 
-# Mark all tests in this file as integration tests (slow)
 pytestmark = pytest.mark.integration
-
-
-# ============================================================================
-# TEST FIXTURES - DUMMY PAYLOADS
-# Based on  example: sourceId "733" (Delhi), destinationId "757" (Manali)
-# ============================================================================
 
 @pytest.fixture
 def dummy_bus_search_delhi_manali():
-    """Dummy payload for Delhi to Manali route (from  example).
-    
-     example:
-        sourceId: "733" (Delhi)
-        destinationId: "757" (Manali)
-    """
     today = datetime.now()
     journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
 
@@ -63,7 +19,6 @@ def dummy_bus_search_delhi_manali():
 
 @pytest.fixture
 def dummy_bus_search_with_volvo_filter():
-    """Dummy payload with Volvo filter enabled (from : isVolvo field)."""
     today = datetime.now()
     journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
 
@@ -77,7 +32,6 @@ def dummy_bus_search_with_volvo_filter():
 
 @pytest.fixture
 def dummy_bus_search_popular_route():
-    """Dummy payload for popular route (likely to have many results)."""
     today = datetime.now()
     journey_date = (today + timedelta(days=14)).strftime("%Y-%m-%d")
 
@@ -90,12 +44,10 @@ def dummy_bus_search_popular_route():
 
 # ============================================================================
 # BUS SEARCH TESTS - REAL API
-# API: POST http://busapi.easemytrip.com/v1/api/detail/List/
 # ============================================================================
 
 @pytest.mark.asyncio
 async def test_bus_search_delhi_manali(dummy_bus_search_delhi_manali):
-    """Test bus search for Delhi (733) to Manali (757) route from ."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -109,7 +61,6 @@ async def test_bus_search_delhi_manali(dummy_bus_search_delhi_manali):
     assert result.structured_content is not None
     data = result.structured_content
 
-    # Verify API response structure (from )
     assert "buses" in data
     assert "total_count" in data
 
@@ -118,7 +69,6 @@ async def test_bus_search_delhi_manali(dummy_bus_search_delhi_manali):
 
     if buses:
         first_bus = buses[0]
-        # Fields from  AvailableTrips
         print(f"   First bus: {first_bus.get('operator_name')} - {first_bus.get('bus_type')}")
         print(f"   Departure: {first_bus.get('departure_time')}")
         print(f"   Duration: {first_bus.get('duration')}")
@@ -128,7 +78,6 @@ async def test_bus_search_delhi_manali(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_search_with_volvo_filter(dummy_bus_search_with_volvo_filter):
-    """Test bus search with Volvo filter (: isVolvo field)."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -144,14 +93,12 @@ async def test_bus_search_with_volvo_filter(dummy_bus_search_with_volvo_filter):
 
     print(f"📊 Found {len(buses)} Volvo buses")
 
-    # Verify Volvo filter applied
     for bus in buses[:3]:
         print(f"   {bus.get('operator_name')}: isVolvo={bus.get('is_volvo')}, busType={bus.get('bus_type')}")
 
 
 @pytest.mark.asyncio
 async def test_bus_search_popular_route(dummy_bus_search_popular_route):
-    """Test bus search on popular route (should have many results)."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -164,14 +111,12 @@ async def test_bus_search_popular_route(dummy_bus_search_popular_route):
 
     print(f"📊 Found {len(buses)} buses on popular route")
     
-    #  response fields
     print(f"   Total trips (TotalTrips): {data.get('total_trips', 0)}")
     print(f"   AC buses (AcCount): {data.get('ac_count', 0)}")
     print(f"   Non-AC buses (NonAcCount): {data.get('non_ac_count', 0)}")
     print(f"   Max Price: {data.get('max_price')}")
     print(f"   Min Price: {data.get('min_price')}")
 
-    # Print first 3 buses
     for i, bus in enumerate(buses[:3], 1):
         print(f"\n   Bus {i}:")
         print(f"      Operator (Travels): {bus.get('operator_name')}")
@@ -189,7 +134,6 @@ async def test_bus_search_popular_route(dummy_bus_search_popular_route):
 
 @pytest.mark.asyncio
 async def test_bus_search_whatsapp_format(dummy_bus_search_delhi_manali):
-    """Test bus search returns WhatsApp formatted response."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -226,7 +170,6 @@ async def test_bus_search_whatsapp_format(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_response_has_boarding_points(dummy_bus_search_delhi_manali):
-    """Verify bus results include boarding points (: bdPoints)."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -240,7 +183,6 @@ async def test_bus_response_has_boarding_points(dummy_bus_search_delhi_manali):
         boarding_points = first_bus["boarding_points"]
         if boarding_points:
             first_bp = boarding_points[0]
-            #  bdPoints fields
             assert "bd_id" in first_bp  # bdid
             assert "bd_long_name" in first_bp  # bdLongName
 
@@ -253,7 +195,6 @@ async def test_bus_response_has_boarding_points(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_response_has_dropping_points(dummy_bus_search_delhi_manali):
-    """Verify bus results include dropping points (: dpPoints)."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -267,7 +208,6 @@ async def test_bus_response_has_dropping_points(dummy_bus_search_delhi_manali):
         dropping_points = first_bus["dropping_points"]
         if dropping_points:
             first_dp = dropping_points[0]
-            #  dpPoints fields
             assert "dp_id" in first_dp  # dpId
             assert "dp_name" in first_dp  # dpName
 
@@ -279,7 +219,6 @@ async def test_bus_response_has_dropping_points(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_response_has_amenities(dummy_bus_search_delhi_manali):
-    """Verify bus results include amenities (: lstamenities)."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -293,12 +232,9 @@ async def test_bus_response_has_amenities(dummy_bus_search_delhi_manali):
         amenities = first_bus["amenities"]
         print(f"\n✅ Amenities (lstamenities): {amenities}")
         
-        #  example amenities: USB Charging Point, Water Bottle, AC, etc.
-
 
 @pytest.mark.asyncio
 async def test_bus_response_has_cancellation_policy(dummy_bus_search_delhi_manali):
-    """Verify bus results include cancellation policy (: cancelPolicyList)."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -313,13 +249,11 @@ async def test_bus_response_has_cancellation_policy(dummy_bus_search_delhi_manal
         if policies:
             print(f"\n✅ Cancellation policy (cancelPolicyList) verified:")
             for policy in policies:
-                #  fields: timeFrom, timeTo, percentageCharge, flatCharge, isFlat
                 print(f"   - {policy.get('time_from')}h to {policy.get('time_to')}h: {policy.get('percentage_charge')}% charge")
 
 
 @pytest.mark.asyncio
 async def test_bus_response_has_timing_info(dummy_bus_search_delhi_manali):
-    """Verify bus results include timing information from ."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -329,12 +263,11 @@ async def test_bus_response_has_timing_info(dummy_bus_search_delhi_manali):
     if buses:
         first_bus = buses[0]
 
-        #  AvailableTrips fields
-        assert "departure_time" in first_bus  # departureTime
-        assert "arrival_time" in first_bus  # ArrivalTime
-        assert "duration" in first_bus  # duration
-        assert "departure_date" in first_bus  # departureDate
-        assert "arrival_date" in first_bus  # arrivalDate
+        assert "departure_time" in first_bus  
+        assert "arrival_time" in first_bus  
+        assert "duration" in first_bus  
+        assert "departure_date" in first_bus  
+        assert "arrival_date" in first_bus  
 
         print(f"\n✅ Timing info verified:")
         print(f"   Departure (departureTime): {first_bus['departure_time']}")
@@ -346,7 +279,6 @@ async def test_bus_response_has_timing_info(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_response_has_seat_type_info(dummy_bus_search_delhi_manali):
-    """Verify bus results include seat type info (: seater, sleeper, isSemiSleeper)."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -356,10 +288,9 @@ async def test_bus_response_has_seat_type_info(dummy_bus_search_delhi_manali):
     if buses:
         first_bus = buses[0]
 
-        #  AvailableTrips seat type fields
-        assert "is_seater" in first_bus  # seater
-        assert "is_sleeper" in first_bus  # sleeper
-        assert "is_semi_sleeper" in first_bus  # isSemiSleeper
+        assert "is_seater" in first_bus  
+        assert "is_sleeper" in first_bus  
+        assert "is_semi_sleeper" in first_bus  
 
         print(f"\n✅ Seat type info verified:")
         print(f"   Seater (seater): {first_bus['is_seater']}")
@@ -369,7 +300,6 @@ async def test_bus_response_has_seat_type_info(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_response_has_ac_info(dummy_bus_search_delhi_manali):
-    """Verify bus results include AC info (: AC, nonAC)."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -379,9 +309,8 @@ async def test_bus_response_has_ac_info(dummy_bus_search_delhi_manali):
     if buses:
         first_bus = buses[0]
 
-        #  AvailableTrips AC fields
-        assert "is_ac" in first_bus  # AC
-        assert "is_non_ac" in first_bus  # nonAC
+        assert "is_ac" in first_bus  
+        assert "is_non_ac" in first_bus  
 
         print(f"\n✅ AC info verified:")
         print(f"   AC: {first_bus['is_ac']}")
@@ -390,7 +319,6 @@ async def test_bus_response_has_ac_info(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_response_has_operator_info(dummy_bus_search_delhi_manali):
-    """Verify bus results include operator info from ."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -400,11 +328,10 @@ async def test_bus_response_has_operator_info(dummy_bus_search_delhi_manali):
     if buses:
         first_bus = buses[0]
 
-        #  AvailableTrips operator fields
-        assert "operator_name" in first_bus  # Travels
-        assert "operator_id" in first_bus  # operatorid
-        assert "route_id" in first_bus  # routeId
-        assert "engine_id" in first_bus  # engineId
+        assert "operator_name" in first_bus  
+        assert "operator_id" in first_bus  
+        assert "route_id" in first_bus  
+        assert "engine_id" in first_bus  
 
         print(f"\n✅ Operator info verified:")
         print(f"   Operator (Travels): {first_bus['operator_name']}")
@@ -415,7 +342,6 @@ async def test_bus_response_has_operator_info(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_response_has_fare_info(dummy_bus_search_delhi_manali):
-    """Verify bus results include fare info (: price, fares)."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -425,9 +351,8 @@ async def test_bus_response_has_fare_info(dummy_bus_search_delhi_manali):
     if buses:
         first_bus = buses[0]
 
-        #  AvailableTrips fare fields
-        assert "price" in first_bus  # price
-        assert "fares" in first_bus  # fares array
+        assert "price" in first_bus  
+        assert "fares" in first_bus  
 
         print(f"\n✅ Fare info verified:")
         print(f"   Price: ₹{first_bus['price']}")
@@ -436,7 +361,6 @@ async def test_bus_response_has_fare_info(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_response_has_tracking_info(dummy_bus_search_delhi_manali):
-    """Verify bus results include tracking info (: liveTrackingAvailable, mTicketEnabled)."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -446,10 +370,9 @@ async def test_bus_response_has_tracking_info(dummy_bus_search_delhi_manali):
     if buses:
         first_bus = buses[0]
 
-        #  AvailableTrips tracking fields
-        assert "live_tracking_available" in first_bus  # liveTrackingAvailable
-        assert "m_ticket_enabled" in first_bus  # mTicketEnabled
-        assert "is_cancellable" in first_bus  # isCancellable
+        assert "live_tracking_available" in first_bus  
+        assert "m_ticket_enabled" in first_bus  
+        assert "is_cancellable" in first_bus  
 
         print(f"\n✅ Tracking info verified:")
         print(f"   Live Tracking (liveTrackingAvailable): {first_bus['live_tracking_available']}")
@@ -459,7 +382,6 @@ async def test_bus_response_has_tracking_info(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_response_has_book_now_link(dummy_bus_search_delhi_manali):
-    """Verify bus results include booking deeplink."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -483,14 +405,12 @@ async def test_bus_response_has_book_now_link(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_search_far_future_date():
-    """Test bus search with date far in the future."""
     today = datetime.now()
     journey_date = (today + timedelta(days=60)).strftime("%Y-%m-%d")
 
-    # Using  example city IDs
     payload = {
-        "source_id": "733",  # Delhi
-        "destination_id": "757",  # Manali
+        "source_id": "733",  
+        "destination_id": "757",
         "journey_date": journey_date,
     }
 
@@ -510,14 +430,12 @@ async def test_bus_search_far_future_date():
 
 @pytest.mark.asyncio
 async def test_bus_search_near_date():
-    """Test bus search with date very soon (tomorrow)."""
     today = datetime.now()
     journey_date = (today + timedelta(days=1)).strftime("%Y-%m-%d")
 
-    # Using  example city IDs
     payload = {
-        "source_id": "733",  # Delhi
-        "destination_id": "757",  # Manali
+        "source_id": "733",  
+        "destination_id": "757", 
         "journey_date": journey_date,
     }
 
@@ -540,7 +458,6 @@ async def test_bus_search_near_date():
 
 @pytest.mark.asyncio
 async def test_bus_search_with_limit(dummy_bus_search_delhi_manali):
-    """Test bus search with result limit."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -564,7 +481,6 @@ async def test_bus_search_with_limit(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_bus_search_response_time(dummy_bus_search_delhi_manali):
-    """Test that bus search completes in reasonable time."""
     import time
 
     factory = get_tool_factory()
@@ -576,7 +492,6 @@ async def test_bus_search_response_time(dummy_bus_search_delhi_manali):
 
     print(f"\n⏱️  Bus search took {elapsed:.2f} seconds")
 
-    # Should complete within 30 seconds
     assert elapsed < 30, f"Search took too long: {elapsed}s"
     assert result.structured_content is not None
 
@@ -587,15 +502,12 @@ async def test_bus_search_response_time(dummy_bus_search_delhi_manali):
 
 @pytest.mark.asyncio
 async def test_multiple_consecutive_bus_searches():
-    """Test multiple bus searches in sequence using  city IDs."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
     today = datetime.now()
     journey_date = (today + timedelta(days=14)).strftime("%Y-%m-%d")
 
-    # Using  example: Delhi (733) to Manali (757)
-    # Multiple searches with same route but different dates
     searches = [
         ("733", "757", journey_date),
         ("733", "757", (today + timedelta(days=21)).strftime("%Y-%m-%d")),
@@ -626,21 +538,19 @@ async def test_multiple_consecutive_bus_searches():
 
 @pytest.mark.asyncio
 async def test_bus_search_invalid_date_format():
-    """Test bus search with invalid date format."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
     payload = {
         "source_id": "733",
         "destination_id": "757",
-        "journey_date": "25-01-2026",  # Wrong format (should be YYYY-MM-DD)
+        "journey_date": "25-01-2026", 
     }
 
     print(f"\n🚌 Testing invalid date format: {payload['journey_date']}")
 
     result = await tool.execute(**payload)
 
-    # Should return an error response
     assert result.is_error is True
     print(f"✅ Correctly returned error for invalid date format")
     print(f"   Error: {result.response_text}")
@@ -648,20 +558,17 @@ async def test_bus_search_invalid_date_format():
 
 @pytest.mark.asyncio
 async def test_bus_search_missing_required_field():
-    """Test bus search with missing required field."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
     payload = {
         "source_id": "733",
-        # Missing destination_id and journey_date
     }
 
     print(f"\n🚌 Testing missing required fields")
 
     result = await tool.execute(**payload)
 
-    # Should return an error response
     assert result.is_error is True
     print(f"✅ Correctly returned error for missing fields")
     print(f"   Error: {result.response_text}")
@@ -669,7 +576,6 @@ async def test_bus_search_missing_required_field():
 
 @pytest.mark.asyncio
 async def test_bus_search_empty_source_id():
-    """Test bus search with empty source ID."""
     factory = get_tool_factory()
     tool = factory.get_tool("search_buses")
 
@@ -686,6 +592,5 @@ async def test_bus_search_empty_source_id():
 
     result = await tool.execute(**payload)
 
-    # Should handle gracefully
     print(f"   Response: {result.response_text}")
     print(f"   Is Error: {result.is_error}")

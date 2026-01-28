@@ -1,17 +1,11 @@
-"""UI Tests for Bus Search Tool - HTML Renderer with LIVE API.
-
-These tests fetch REAL data from EaseMyTrip Bus API and render HTML.
-NO MOCKING - Real API integration tests.
-
-File: tests/test_bus_ui.py
+"""UI Tests for Bus Search Tool 
 
 Run with:
     pytest tests/test_bus_ui.py -v -s
 
 Generate HTML only:
     python tests/test_bus_ui.py
-
-    POST http://busapi.easemytrip.com/v1/api/detail/List/
+    
 """
 
 import sys
