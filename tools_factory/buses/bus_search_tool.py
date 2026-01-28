@@ -1,19 +1,14 @@
-"""Bus Search Tool for EaseMyTrip.
-
-This module provides the bus search tool that integrates with
-the EaseMyTrip Bus API for searching buses between cities.
-
-"""
-
 from tools_factory.base import BaseTool, ToolMetadata
 from pydantic import ValidationError
 from .bus_schema import BusSearchInput
 from .bus_search_service import search_buses, build_whatsapp_bus_response
 from tools_factory.base_schema import ToolResponseFormat
 from .bus_renderer import render_bus_results
+from .bus_schema import SeatBindInput
+from .bus_search_service import get_seat_layout
+from .bus_renderer import render_seat_layout
 
 class BusSearchTool(BaseTool):
-    """Bus search tool for EaseMyTrip Bus Service."""
 
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
@@ -26,20 +21,7 @@ class BusSearchTool(BaseTool):
         )
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
-        """Execute bus search with provided parameters.
-        
-        Args (from ):
-            sourceId: Source city ID (e.g., "733" for Delhi)
-            destinationId: Destination city ID (e.g., "757" for Manali)
-            journeyDate: Journey date in YYYY-MM-DD format (converted to dd-MM-yyyy for API)
-            isVolvo: Optional filter for Volvo buses only
-            _limit: Optional limit for number of results
-            _user_type: User type ("website" or "whatsapp")
-            
-        Returns:
-            ToolResponseFormat with bus search results
-        """
-        # Extract runtime flags
+
         limit = kwargs.pop("_limit", None)
         user_type = kwargs.pop("_user_type", "website")
         is_whatsapp = user_type.lower() == "whatsapp"
@@ -56,7 +38,6 @@ class BusSearchTool(BaseTool):
                 is_error=True,
             )
 
-        # Search buses using  API endpoint
         bus_results = await search_buses(
             source_id=payload.source_id,
             destination_id=payload.destination_id,
@@ -66,21 +47,18 @@ class BusSearchTool(BaseTool):
 
         has_error = bool(bus_results.get("error"))
 
-        # Apply limit if specified
         if limit is not None and "buses" in bus_results:
             bus_results["buses"] = bus_results["buses"][:limit]
 
         buses = bus_results.get("buses", [])
         bus_count = len(buses)
 
-        # Build WhatsApp response if needed
         whatsapp_response = (
             build_whatsapp_bus_response(payload, bus_results)
             if is_whatsapp and not has_error
             else None
         )
 
-        # Render HTML if needed
         html_output = None
         if not has_error and not is_whatsapp:
             html_output = render_bus_results(bus_results)
@@ -101,21 +79,8 @@ class BusSearchTool(BaseTool):
             ),
             is_error=has_error,
         )
-    
-# =====================================================================
-# SEAT LAYOUT TOOL (docA: POST /v1/api/detail/SeatBind/)
-# =====================================================================
-
-from .bus_schema import SeatBindInput
-from .bus_search_service import get_seat_layout
-from .bus_renderer import render_seat_layout
-
 
 class BusSeatLayoutTool(BaseTool):
-    """Bus seat layout tool for EaseMyTrip Bus Service.
-    
-    Based on docA endpoint: POST http://busapi.easemytrip.com/v1/api/detail/SeatBind/
-    """
 
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
@@ -128,22 +93,7 @@ class BusSeatLayoutTool(BaseTool):
         )
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
-        """Execute seat layout request.
-        
-        Args (from docA):
-            sourceId: Source city ID
-            destinationId: Destination city ID
-            journeyDate: Journey date
-            busId: Bus ID from search results
-            routeId: Route ID from search results
-            engineId: Engine ID from search results
-            boardingPointId: Selected boarding point ID
-            droppingPointId: Selected dropping point ID
-            
-        Returns:
-            ToolResponseFormat with seat layout
-        """
-        # Extract runtime flags
+
         user_type = kwargs.pop("_user_type", "website")
         is_whatsapp = user_type.lower() == "whatsapp"
 
@@ -159,7 +109,6 @@ class BusSeatLayoutTool(BaseTool):
                 is_error=True,
             )
 
-        # Get seat layout from API
         layout_response = await get_seat_layout(
             source_id=payload.source_id,
             destination_id=payload.destination_id,
@@ -173,7 +122,6 @@ class BusSeatLayoutTool(BaseTool):
 
         has_error = not layout_response.get("success")
 
-        # Render HTML if needed
         html_output = None
         if not is_whatsapp:
             html_output = render_seat_layout(layout_response)
