@@ -112,11 +112,24 @@ def _process_class_availability(
     to_station_code: str = "",
     quota: str = "GN",
     departure_date: str = "",
-) -> List[TrainClassAvailability]:
+) -> Optional[List[TrainClassAvailability]]:
     """Process TrainClassWiseFare to extract class availability info.
 
     Note: "Tap To Refresh" is now handled client-side with a button in the UI.
+
+    If preferred_class is specified, checks if the train has that class.
+    If the train has the preferred class, returns ALL classes for that train.
+    If the train doesn't have the preferred class, returns None to exclude the train.
     """
+    # If preferred class is specified, first check if this train has it
+    if preferred_class:
+        has_preferred_class = any(
+            class_info.get("enqClass", "").upper() == preferred_class.upper()
+            for class_info in train_class_wise_fare
+        )
+        if not has_preferred_class:
+            return None  # Train doesn't have preferred class, exclude it
+
     classes = []
 
     for class_info in train_class_wise_fare:
@@ -133,10 +146,6 @@ def _process_class_availability(
 
         # Note: "Tap To Refresh" is now handled client-side with a button
         # The UI will show a refresh button for N/A, Tap To Refresh, or empty status
-
-        # Filter by preferred class if specified
-        if preferred_class and class_code.upper() != preferred_class.upper():
-            continue
 
         # Generate book_now deeplink for this class
         book_now = _build_train_deeplink(
@@ -181,6 +190,7 @@ def _process_single_train(
     departure_date = train.get("departuredate", "")
 
     # Process class availability with deeplink context
+    # Returns None if preferred_class is specified but train doesn't have it
     classes = _process_class_availability(
         train_class_wise_fare,
         preferred_class,
@@ -193,12 +203,9 @@ def _process_single_train(
         departure_date=departure_date,
     )
 
-    # If preferred class specified but not found, skip this train
-    if preferred_class and not classes:
-        return None
-
-    # If no classes available at all, skip
-    if not classes:
+    # If classes is None, train doesn't have preferred class - skip it
+    # If classes is empty list, no classes available at all - skip it
+    if classes is None or not classes:
         return None
 
     return TrainInfo(
