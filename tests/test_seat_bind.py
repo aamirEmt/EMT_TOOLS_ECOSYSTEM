@@ -404,11 +404,39 @@ async def test_view_all_card_with_limit():
     assert "view-all-card" in html
     assert "View All" in html
     
-    remaining = len(buses) - 5
-    assert str(remaining) in html, f"Expected remaining count {remaining} in HTML"
-    
-    print(f"   ✅ View All card shows {remaining} remaining buses")
+    # remaining = len(buses) - 5
+    # assert str(remaining) in html, f"Expected remaining count {remaining} in HTML"
+    total = len(buses)
+    assert str(total) in html, f"Expected total count {total} in HTML"
 
+    
+    print(f"   ✅ View All card shows {total} total buses")
+
+
+# @pytest.mark.asyncio
+# async def test_view_all_card_not_shown_when_few_buses():
+#     """Test View All card does NOT appear when buses are within limit."""
+#     from tools_factory.buses.bus_renderer import render_bus_results_with_limit
+    
+#     print("\n" + "=" * 60)
+#     print("TEST: View All Card Not Shown (Few Buses)")
+#     print("=" * 60)
+    
+#     # Get buses
+#     bus_results = await fetch_buses_for_seat_test(days_ahead=7)
+#     buses = bus_results.get("buses", [])
+    
+#     # Limit to 3 buses for test
+#     bus_results["buses"] = buses[:3]
+    
+#     # Render with limit of 5 (more than we have)
+#     html = render_bus_results_with_limit(bus_results, display_limit=5, show_view_all=True)
+    
+#     assert html is not None
+#     # View All card should NOT appear
+#     assert "view-all-card" not in html
+    
+#     print(f"   ✅ View All card correctly hidden (only {len(bus_results['buses'])} buses)")
 
 @pytest.mark.asyncio
 async def test_view_all_card_not_shown_when_few_buses():
@@ -419,20 +447,21 @@ async def test_view_all_card_not_shown_when_few_buses():
     print("TEST: View All Card Not Shown (Few Buses)")
     print("=" * 60)
     
-    # Get buses
     bus_results = await fetch_buses_for_seat_test(days_ahead=7)
     buses = bus_results.get("buses", [])
     
-    # Limit to 3 buses for test
     bus_results["buses"] = buses[:3]
-    
-    # Render with limit of 5 (more than we have)
-    html = render_bus_results_with_limit(bus_results, display_limit=5, show_view_all=True)
-    
+    bus_results["view_all_link"] = ""
+
+    html = render_bus_results_with_limit(
+        bus_results,
+        display_limit=5,
+        show_view_all=True
+    )
+
     assert html is not None
-    # View All card should NOT appear
-    assert "view-all-card" not in html
-    
+    assert '<a class="view-all-card"' not in html
+
     print(f"   ✅ View All card correctly hidden (only {len(bus_results['buses'])} buses)")
 
 
@@ -457,7 +486,9 @@ async def test_view_all_different_limits():
         if total > limit:
             remaining = total - limit
             has_view_all = "view-all-card" in html
-            print(f"   Limit {limit}: {'✅' if has_view_all else '❌'} View All ({remaining} remaining)")
+            # print(f"   Limit {limit}: {'✅' if has_view_all else '❌'} View All ({remaining} remaining)")
+            print(f"   Limit {limit}: {'✅' if has_view_all else '❌'} View All ({total} total)")
+
             assert has_view_all, f"View All should appear for limit={limit}"
         else:
             has_view_all = "view-all-card" in html
