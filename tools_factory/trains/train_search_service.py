@@ -37,15 +37,18 @@ def generate_view_all_link(
         View all link URL
 
     Example:
-        https://railways.easemytrip.com/TrainListInfo/Delhi-All-Stations-(NDLS)-to-Bhubaneswar-(BBS)/2/03-02-2026
+        https://railways.easemytrip.com/TrainListInfo/Delhi-All-Stations-(NDLS)-to-Bhubaneswar-(BBS)/2/3-2-2026
     """
     try:
         # Format station names: replace spaces with hyphens
         from_formatted = from_station.replace(" ", "-")
         to_formatted = to_station.replace(" ", "-")
 
-        # Date is already in DD-MM-YYYY format, use it directly
-        return f"https://railways.easemytrip.com/TrainListInfo/{from_formatted}-to-{to_formatted}/2/{journey_date}"
+        # Remove leading zeros from date (DD-MM-YYYY -> D-M-YYYY)
+        dt = datetime.strptime(journey_date, "%d-%m-%Y")
+        date_formatted = f"{dt.day}-{dt.month}-{dt.year}"
+
+        return f"https://railways.easemytrip.com/TrainListInfo/{from_formatted}-to-{to_formatted}/2/{date_formatted}"
     except Exception:
         return ""
 

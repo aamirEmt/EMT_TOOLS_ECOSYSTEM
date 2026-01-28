@@ -670,7 +670,7 @@ function buildBookNowUrl(card, classCode) {
   const toDisplay = card.dataset.toDisplay;
 
   const dateParts = journeyDate.split('/');
-  const dateFormatted = `${dateParts[0]}-${parseInt(dateParts[1])}-${dateParts[2]}`;
+  const dateFormatted = `${parseInt(dateParts[0])}-${parseInt(dateParts[1])}-${dateParts[2]}`;
 
   const fromName = fromDisplay.split('(')[0].trim().replace(/ /g, '-');
   const toName = toDisplay.split('(')[0].trim().replace(/ /g, '-');
