@@ -164,7 +164,7 @@ class HotelSearchTool(BaseTool):
             response_text=text,
             structured_content=results if not is_whatsapp else {},
             html=render_hotel_results(results)
-            if render_html and not results.get("error")
+            if render_html and not results.get("error") and hotel_count > 0
             else None,
              whatsapp_response=(
                 whatsapp_response.model_dump()

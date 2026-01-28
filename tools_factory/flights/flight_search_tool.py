@@ -168,12 +168,18 @@ class FlightSearchTool(BaseTool):
         else:
             text = f"Found {outbound_count} flights!"
 
-       
+        # Check if any flights were found
+        has_flights = (
+            (is_international and is_roundtrip and combo_count > 0) or
+            (not is_international and is_roundtrip and outbound_count > 0 and return_count > 0) or
+            (not is_roundtrip and outbound_count > 0)
+        )
+
         return ToolResponseFormat(
             response_text=text,
             structured_content=None if is_whatsapp else flight_results,
             html=render_flight_results(flight_results)
-            if render_html and not has_error
+            if render_html and not has_error and has_flights
             else None,
             whatsapp_response=(
                 whatsapp_response.model_dump()

@@ -1,10 +1,17 @@
 import uuid
 import time
 import json
+import asyncio
+import random
 from datetime import datetime
 from typing import Tuple, List, Dict, Optional, Any
 from emt_client.clients.flight_client import FlightApiClient
-from .config import AUTOSUGGEST_URL
+from .config import (
+    AUTOSUGGEST_URL,
+    SOLR_AUTOSUGGEST_URL,
+    TRAIN_AUTOSUGGEST_URL,
+    DEEPLINK_API_URL,
+)
 import httpx
 import requests
 
@@ -63,8 +70,6 @@ async def fetch_first_city_code_country(
     suggestions = await fetch_autosuggest(client, search_term)
     return extract_first_city_code_country(suggestions)
 
-
-SOLR_AUTOSUGGEST_URL = "https://solr.easemytrip.com/v1/api/auto/GetHotelAutoSuggest_SolrUItest"
 
 async def resolve_city_name(raw_city: str) -> str:
     """
@@ -133,7 +138,136 @@ def generate_hotel_search_key(
     return search_key
 
 
-DEEPLINK_API_URL = "https://deeplinkapi.easemytrip.com/api/fire/GetShortLinkRawV1"
+async def fetch_train_station_suggestions(
+    search_term: str,
+    max_retries: int = 5,
+    base_delay: float = 0.2,
+) -> List[Dict]:
+    """
+    Fetch train station suggestions from EaseMyTrip Solr API with retry and exponential backoff.
+
+    Args:
+        search_term: User-provided station/city name (e.g., "Jammu", "Delhi")
+        max_retries: Maximum number of retry attempts (default: 5)
+        base_delay: Initial delay in seconds before first retry (default: 0.2s / 200ms)
+
+    Returns:
+        List of station suggestions with Code, Name, State
+
+    Example Response:
+        [{"Code": "JAT", "Name": "Jammu Tawi", "State": "Jammu & Kashmir"}, ...]
+
+    Retry Strategy:
+        - Exponential backoff: delay doubles each attempt (200ms, 400ms, 800ms, 1.6s, 3.2s)
+        - Jitter: random variance (0-50%) to prevent thundering herd
+        - Retries on: HTTP 5xx errors, connection errors, timeouts
+    """
+    if not search_term:
+        raise ValueError("Search term must be provided.")
+
+    url = f"{TRAIN_AUTOSUGGEST_URL}/{search_term}"
+    last_exception = None
+
+    for attempt in range(max_retries + 1):
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+                data = response.json()
+
+            if not isinstance(data, list):
+                raise ValueError(f"Unexpected response type: {type(data)}")
+
+            return data
+
+        except httpx.HTTPStatusError as e:
+            last_exception = e
+            # Only retry on 5xx server errors
+            if e.response.status_code >= 500 and attempt < max_retries:
+                delay = _calculate_backoff_delay(attempt, base_delay)
+                print(f"[TrainAutosuggest] HTTP {e.response.status_code}, retrying in {delay:.0f}ms (attempt {attempt + 1}/{max_retries})")
+                await asyncio.sleep(delay)
+                continue
+            raise ValueError(f"Train autosuggest failed: {e}")
+
+        except (httpx.ConnectError, httpx.TimeoutException) as e:
+            last_exception = e
+            # Retry on connection/timeout errors
+            if attempt < max_retries:
+                delay = _calculate_backoff_delay(attempt, base_delay)
+                print(f"[TrainAutosuggest] {type(e).__name__}, retrying in {delay:.0f}ms (attempt {attempt + 1}/{max_retries})")
+                await asyncio.sleep(delay)
+                continue
+            raise ValueError(f"Train autosuggest failed: {e}")
+
+        except Exception as e:
+            # Don't retry on other errors (e.g., JSON parse errors)
+            raise ValueError(f"Train autosuggest failed: {e}")
+
+    # Should not reach here, but just in case
+    raise ValueError(f"Train autosuggest failed after {max_retries} retries: {last_exception}")
+
+
+def _calculate_backoff_delay(attempt: int, base_delay: float) -> float:
+    """
+    Calculate delay with exponential backoff and jitter.
+
+    Args:
+        attempt: Current attempt number (0-indexed)
+        base_delay: Base delay in seconds
+
+    Returns:
+        Delay in seconds with jitter applied
+
+    Formula: base_delay * (2 ^ attempt) * (1 + random(0, 0.5))
+    Example with base_delay=0.2 (200ms):
+        attempt 0: 0.2s * 1 * jitter = ~200-300ms
+        attempt 1: 0.2s * 2 * jitter = ~400-600ms
+        attempt 2: 0.2s * 4 * jitter = ~800-1200ms
+        attempt 3: 0.2s * 8 * jitter = ~1600-2400ms
+        attempt 4: 0.2s * 16 * jitter = ~3200-4800ms
+    """
+    exponential_delay = base_delay * (2 ** attempt)
+    jitter = 1 + random.uniform(0, 0.5)  # Add 0-50% random jitter
+    return exponential_delay * jitter
+
+
+async def resolve_train_station(search_term: str) -> str:
+    """
+    Resolve user input to formatted train station string.
+
+    Args:
+        search_term: User-provided station/city name (e.g., "Jammu", "Delhi")
+
+    Returns:
+        Formatted station string: "Station Name (CODE)"
+
+    Examples:
+        "Jammu" → "Jammu Tawi (JAT)"
+        "Delhi" → "Delhi All Stations (NDLS)"
+        "Mumbai" → "Mumbai Central (MMCT)"
+    """
+    try:
+        suggestions = await fetch_train_station_suggestions(search_term)
+
+        if not suggestions:
+            # Fallback: return original input
+            return search_term
+
+        first = suggestions[0]
+        code = first.get("Code", "")
+        name = first.get("Name", "") or first.get("Show", "")
+
+        if code and name:
+            return f"{name} ({code})"
+        elif code:
+            return f"{search_term} ({code})"
+        else:
+            return search_term
+
+    except Exception as e:
+        print(f"[TrainStationResolver] Error: {e}. Using raw input: {search_term}")
+        return search_term
 
 
 def generate_short_link(
