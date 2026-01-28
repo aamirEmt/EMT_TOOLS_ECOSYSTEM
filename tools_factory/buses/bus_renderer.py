@@ -55,6 +55,7 @@ BUS_CAROUSEL_STYLES = """
 }
 
 .bus-carousel .rsltcvr {
+  width:90%;
   max-width: 100%;
   overflow-x: auto;
   display: flex;
