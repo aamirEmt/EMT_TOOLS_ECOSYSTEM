@@ -615,9 +615,11 @@ TRAIN_CAROUSEL_TEMPLATE = """
                 {% set needs_refresh = cls.availability_status in ['N/A', 'Tap To Refresh', 'Check Online', ''] or not cls.availability_status %}
                 <div class="class-card" data-train-no="{{ train.train_number }}" data-class-code="{{ cls.class_code }}" data-from-code="{{ train.from_station_code }}" data-to-code="{{ train.to_station_code }}" data-quota="{{ quota }}" data-journey-date="{{ journey_date_api }}" data-from-display="{{ from_display }}" data-to-display="{{ to_display }}">
                   <div class="class-code">{{ cls.class_code }}</div>
+                  {% if cls.fare != "0" %}
                   <div class="class-fare">₹{{ cls.fare }}</div>
                   {% if cls.fare_updated %}
                   <div class="class-fare-updated">{{ cls.fare_updated }}</div>
+                  {% endif %}
                   {% endif %}
                   <div class="class-availability {% if 'AVAILABLE' in cls.availability_status %}available{% elif 'WL' in cls.availability_status %}waitlist{% elif 'RAC' in cls.availability_status %}rac{% elif cls.availability_status == 'Check Online' %}{% else %}unavailable{% endif %}">
                     {{ cls.availability_status | truncate_text(15) }}
@@ -757,12 +759,29 @@ async function refreshAvailability(btn) {
 
     let availability = 'N/A';
     let fareUpdated = '';
+    let totalFare = null;
 
     if (data.avlDayList && data.avlDayList.length > 0) {
       availability = data.avlDayList[0].availablityStatusNew || 'N/A';
     }
     if (data.creationTime) {
       fareUpdated = data.creationTime;
+    }
+    if (data.totalFare) {
+      totalFare = data.totalFare;
+    }
+
+    if (totalFare && totalFare !== '0') {
+      let fareEl = card.querySelector('.class-fare');
+      if (!fareEl) {
+        fareEl = document.createElement('div');
+        fareEl.className = 'class-fare';
+        const classCodeEl = card.querySelector('.class-code');
+        if (classCodeEl) {
+          classCodeEl.after(fareEl);
+        }
+      }
+      fareEl.textContent = '₹' + totalFare;
     }
 
     const availabilityEl = card.querySelector('.class-availability');
@@ -789,6 +808,11 @@ async function refreshAvailability(btn) {
         const fareEl = card.querySelector('.class-fare');
         if (fareEl) {
           fareEl.after(fareUpdatedEl);
+        } else {
+          const availabilityEl = card.querySelector('.class-availability');
+          if (availabilityEl) {
+            availabilityEl.before(fareUpdatedEl);
+          }
         }
       }
       fareUpdatedEl.textContent = fareUpdated;
