@@ -26,10 +26,10 @@ class TrainSearchInput(BaseModel):
         alias="travelClass",
         description="Preferred travel class (e.g., '1A', '2A', '3A', 'SL', '2S', 'CC')",
     )
-    quota: Optional[str] = Field(
-        "GN",
-        description="Booking quota (GN=General, TQ=Tatkal, SS=Senior Citizen, LD=Ladies)",
-    )
+    # quota: Optional[str] = Field(
+    #     "GN",
+    #     description="Booking quota (GN=General, TQ=Tatkal, SS=Senior Citizen, LD=Ladies)",
+    # )
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -55,13 +55,13 @@ class TrainSearchInput(BaseModel):
             return None
         return v
 
-    @field_validator("quota")
-    @classmethod
-    def validate_quota(cls, v: Optional[str]) -> str:
-        """Convert 'NONE' string to default 'GN'"""
-        if v is None or v.upper() == "NONE":
-            return "GN"
-        return v
+    # @field_validator("quota")
+    # @classmethod
+    # def validate_quota(cls, v: Optional[str]) -> str:
+    #     """Convert 'NONE' string to default 'GN'"""
+    #     if v is None or v.upper() == "NONE":
+    #         return "GN"
+    #     return v
 
 
 class TrainClassAvailability(BaseModel):
