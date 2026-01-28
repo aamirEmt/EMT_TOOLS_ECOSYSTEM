@@ -390,6 +390,48 @@ BUS_CAROUSEL_STYLES = """
   color: #fff;
   border-color: #2093ef;
 }
+
+.bus-carousel .view-all-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fff5f0 0%, #ffffff 100%);
+  border: 2px dashed #ef6614;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.bus-carousel .view-all-card:hover {
+  background: linear-gradient(135deg, #ffebe0 0%, #fff5f0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 102, 20, 0.15);
+}
+
+.bus-carousel .view-all-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.bus-carousel .view-all-icon svg {
+  width: 48px;
+  height: 48px;
+}
+
+.bus-carousel .view-all-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ef6614;
+}
+
+.bus-carousel .view-all-subtitle {
+  font-size: 12px;
+  color: #868686;
+}
 """
 
 
@@ -470,7 +512,7 @@ BUS_CAROUSEL_TEMPLATE = """
             <div class="bustme">{{ bus.arrival_time }}</div>
           </div>
 
-          <!-- Boarding/Dropping Points (from  bdPoints, dpPoints) -->
+          <!-- Boarding/Dropping Points (from docA bdPoints, dpPoints) -->
           <div class="pointsrow">
             <div class="pointbox">
               <div class="pointlbl">Boarding</div>
@@ -482,14 +524,14 @@ BUS_CAROUSEL_TEMPLATE = """
             </div>
           </div>
 
-          <!-- Rating (from  rt) -->
+          <!-- Rating (from docA rt) -->
           {% if bus.rating %}
           <div class="ratingrow">
             <span class="rtnvlu {{ bus.rating_class }}">★ {{ bus.rating }}</span>
           </div>
           {% endif %}
 
-          <!-- Amenities (from  lstamenities) -->
+          <!-- Amenities (from docA lstamenities) -->
           {% if bus.amenities %}
           <ul class="busamnts">
             {% for amenity in bus.amenities[:4] %}
@@ -501,7 +543,7 @@ BUS_CAROUSEL_TEMPLATE = """
           </ul>
           {% endif %}
 
-          <!-- Features (from  liveTrackingAvailable, mTicketEnabled) -->
+          <!-- Features (from docA liveTrackingAvailable, mTicketEnabled) -->
           {% if bus.live_tracking or bus.m_ticket %}
           <div class="featuresrow">
             {% if bus.live_tracking %}
@@ -527,6 +569,23 @@ BUS_CAROUSEL_TEMPLATE = """
           </div>
         </div>
         {% endfor %}
+        
+        {% if show_view_all_card and view_all_link %}
+        <a href="{{ view_all_link }}" target="_blank" rel="noopener noreferrer" class="buscard item view-all-card">
+          <div class="view-all-content">
+            <div class="view-all-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef6614" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 8v8M8 12h8"></path>
+              </svg>
+            </div>
+            <div class="view-all-text">
+              <div class="view-all-title">View All {{ total_bus_count }} Buses</div>
+              <div class="view-all-subtitle">See more options for this route</div>
+            </div>
+          </div>
+        </a>
+        {% endif %}
       </div>
     </div>
 
@@ -602,7 +661,7 @@ def _truncate_text(text: str, max_length: int = 25) -> str:
 
 
 def _get_rating_class(rating: Any) -> str:
-    """Get CSS class for rating badge based on value ( rt field)."""
+    """Get CSS class for rating badge based on value (docA rt field)."""
     if not rating:
         return ""
     try:
@@ -617,7 +676,7 @@ def _get_rating_class(rating: Any) -> str:
 
 
 def _get_first_boarding_point(boarding_points: List[Dict[str, Any]]) -> str:
-    """Extract first boarding point name ( bdPoints → bdLongName)."""
+    """Extract first boarding point name (docA bdPoints → bdLongName)."""
     if not boarding_points:
         return "N/A"
     
@@ -632,7 +691,7 @@ def _get_first_boarding_point(boarding_points: List[Dict[str, Any]]) -> str:
 
 
 def _get_first_dropping_point(dropping_points: List[Dict[str, Any]]) -> str:
-    """Extract first dropping point name ( dpPoints → dpName)."""
+    """Extract first dropping point name (docA dpPoints → dpName)."""
     if not dropping_points:
         return "N/A"
     
@@ -646,7 +705,7 @@ def _get_first_dropping_point(dropping_points: List[Dict[str, Any]]) -> str:
 
 
 def _extract_amenities(amenities: Any) -> List[str]:
-    """Extract amenity names ( lstamenities → [{name, id}])."""
+    """Extract amenity names (docA lstamenities → [{name, id}])."""
     if not amenities:
         return []
     
@@ -661,7 +720,7 @@ def _extract_amenities(amenities: Any) -> List[str]:
 
 
 def _get_seats_label(seats: Any) -> str:
-    """Get seats left label ( AvailableSeats)."""
+    """Get seats left label (docA AvailableSeats)."""
     if not seats:
         return ""
     
@@ -704,7 +763,7 @@ def _normalize_bus_for_ui(bus: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if not bus:
         return None
     
-    # Get price ( price or fares array)
+    # Get price (docA price or fares array)
     price = bus.get("price")
     fares = bus.get("fares", [])
     if not price and fares:
@@ -714,20 +773,20 @@ def _normalize_bus_for_ui(bus: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     boarding_points = bus.get("boarding_points", []) or bus.get("bdPoints", [])
     dropping_points = bus.get("dropping_points", []) or bus.get("dpPoints", [])
     
-    # Get amenities ( lstamenities)
+    # Get amenities (docA lstamenities)
     amenities = bus.get("amenities", []) or bus.get("lstamenities", [])
     
-    # Get rating ( rt)
+    # Get rating (docA rt)
     rating = bus.get("rating") or bus.get("rt")
     
     # Get M-ticket (can be string "True" or bool)
     m_ticket_raw = bus.get("m_ticket_enabled") or bus.get("mTicketEnabled") or ""
     m_ticket = str(m_ticket_raw).lower() == "true"
     
-    # Get live tracking ( liveTrackingAvailable)
+    # Get live tracking (docA liveTrackingAvailable)
     live_tracking = bus.get("live_tracking_available") or bus.get("liveTrackingAvailable", False)
     
-    # Get cancellable ( isCancellable)
+    # Get cancellable (docA isCancellable)
     is_cancellable = bus.get("is_cancellable") or bus.get("isCancellable", False)
     
     # Get booking link
@@ -798,14 +857,14 @@ def render_bus_results(bus_results: Dict[str, Any]) -> str:
     if not buses_ui:
         return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
     
-    # Get route info
-    source_id = bus_results.get("source_id", "")
-    destination_id = bus_results.get("destination_id", "")
+    # Get route info - use city names if available, otherwise IDs
+    source_city = bus_results.get("source_name") or bus_results.get("source_id", "")
+    destination_city = bus_results.get("destination_name") or bus_results.get("destination_id", "")
     
     # Format journey date
     journey_date = _format_date(bus_results.get("journey_date"))
     
-    # Get counts (from  AcCount, NonAcCount)
+    # Get counts (from docA AcCount, NonAcCount)
     ac_count = bus_results.get("ac_count", 0)
     non_ac_count = bus_results.get("non_ac_count", 0)
     bus_count = bus_results.get("total_count") or len(buses_ui)
@@ -814,12 +873,552 @@ def render_bus_results(bus_results: Dict[str, Any]) -> str:
     template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
     return template.render(
         styles=BUS_CAROUSEL_STYLES,
-        source_city=source_id,
-        destination_city=destination_id,
+        source_city=source_city,
+        destination_city=destination_city,
         journey_date=journey_date,
         bus_count=bus_count,
         ac_count=ac_count,
         non_ac_count=non_ac_count,
         buses=buses_ui,
         view_all_link=bus_results.get("view_all_link"),
+        show_view_all_card=False,
+        total_bus_count=bus_count,
+    )
+
+
+# =====================================================================
+# SEAT LAYOUT STYLES
+# =====================================================================
+
+SEAT_LAYOUT_STYLES = """
+.seat-layout {
+  font-family: poppins, sans-serif;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.seat-layout * {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.seat-layout .layout-header {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.seat-layout .layout-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #202020;
+}
+
+.seat-layout .layout-subtitle {
+  font-size: 12px;
+  color: #868686;
+  margin-top: 4px;
+}
+
+.seat-layout .layout-info {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.seat-layout .info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.seat-layout .info-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.seat-layout .info-dot.available {
+  background: #4caf50;
+}
+
+.seat-layout .info-dot.booked {
+  background: #9e9e9e;
+}
+
+.seat-layout .info-dot.ladies {
+  background: #e91e63;
+}
+
+.seat-layout .info-dot.selected {
+  background: #ef6614;
+}
+
+.seat-layout .deck-container {
+  margin-bottom: 20px;
+}
+
+.seat-layout .deck-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+}
+
+.seat-layout .deck-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 15px;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.seat-layout .seat-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.seat-layout .seat {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.seat-layout .seat.sleeper {
+  width: 72px;
+  height: 36px;
+}
+
+.seat-layout .seat.available {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #4caf50;
+}
+
+.seat-layout .seat.available:hover {
+  background: #c8e6c9;
+  transform: scale(1.05);
+}
+
+.seat-layout .seat.booked {
+  background: #eeeeee;
+  color: #9e9e9e;
+  cursor: not-allowed;
+}
+
+.seat-layout .seat.ladies {
+  background: #fce4ec;
+  color: #c2185b;
+  border-color: #e91e63;
+}
+
+.seat-layout .seat.selected {
+  background: #fff3e0;
+  color: #e65100;
+  border-color: #ef6614;
+  box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3);
+}
+
+.seat-layout .seat.blocked {
+  background: #ffebee;
+  color: #c62828;
+  cursor: not-allowed;
+}
+
+.seat-layout .seat.empty {
+  visibility: hidden;
+}
+
+.seat-layout .aisle {
+  width: 20px;
+}
+
+.seat-layout .driver-cabin {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.seat-layout .driver-icon {
+  width: 40px;
+  height: 40px;
+  background: #424242;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seat-layout .driver-icon svg {
+  width: 24px;
+  height: 24px;
+  fill: #fff;
+}
+
+.seat-layout .seat-summary {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.seat-layout .summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.seat-layout .summary-row:last-child {
+  margin-bottom: 0;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+  font-weight: 600;
+}
+
+.seat-layout .layout-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #868686;
+}
+
+.seat-layout .layout-note {
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+  margin-top: 15px;
+  padding: 10px;
+  background: #fff8e1;
+  border-radius: 6px;
+  border: 1px solid #ffe082;
+}
+"""
+
+
+# =====================================================================
+# SEAT LAYOUT TEMPLATE
+# =====================================================================
+
+SEAT_LAYOUT_TEMPLATE = """
+<style>
+{{ styles }}
+</style>
+
+<div class="seat-layout">
+  <div class="layout-header">
+    <div class="layout-title">{{ operator_name }} - Seat Layout</div>
+    <div class="layout-subtitle">{{ bus_type }}</div>
+    
+    <div class="layout-info">
+      <div class="info-item">
+        <span class="info-dot available"></span>
+        <span>Available ({{ available_seats }})</span>
+      </div>
+      <div class="info-item">
+        <span class="info-dot booked"></span>
+        <span>Booked ({{ booked_seats }})</span>
+      </div>
+      <div class="info-item">
+        <span class="info-dot ladies"></span>
+        <span>Ladies</span>
+      </div>
+    </div>
+  </div>
+
+  {% if lower_deck %}
+  <div class="deck-container">
+    <div class="deck-title">🚌 Lower Deck</div>
+    <div class="driver-cabin">
+      <div class="driver-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+      </div>
+    </div>
+    <div class="deck-grid">
+      {% for row in lower_deck.rows_data %}
+      <div class="seat-row">
+        {% for seat in row %}
+          {% if seat.is_aisle %}
+          <div class="aisle"></div>
+          {% elif seat.is_empty %}
+          <div class="seat empty"></div>
+          {% else %}
+          <div class="seat {{ seat.status_class }}{% if seat.is_sleeper %} sleeper{% endif %}" 
+               data-seat="{{ seat.seat_number }}"
+               data-fare="{{ seat.fare }}"
+               title="{{ seat.seat_name }} - ₹{{ seat.fare }}">
+            {{ seat.seat_number }}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if upper_deck %}
+  <div class="deck-container">
+    <div class="deck-title">🛏️ Upper Deck</div>
+    <div class="deck-grid">
+      {% for row in upper_deck.rows_data %}
+      <div class="seat-row">
+        {% for seat in row %}
+          {% if seat.is_aisle %}
+          <div class="aisle"></div>
+          {% elif seat.is_empty %}
+          <div class="seat empty"></div>
+          {% else %}
+          <div class="seat {{ seat.status_class }}{% if seat.is_sleeper %} sleeper{% endif %}"
+               data-seat="{{ seat.seat_number }}"
+               data-fare="{{ seat.fare }}"
+               title="{{ seat.seat_name }} - ₹{{ seat.fare }}">
+            {{ seat.seat_number }}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if not lower_deck and not upper_deck %}
+  <div class="layout-empty">
+    <p>Seat layout not available for this bus.</p>
+    <p class="layout-note">⚠️ Some bus operators do not provide seat layout data through the API. Please visit the EaseMyTrip website to select seats for this bus.</p>
+  </div>
+  {% endif %}
+
+  <div class="seat-summary">
+    <div class="summary-row">
+      <span>Total Seats</span>
+      <span>{{ total_seats }}</span>
+    </div>
+    <div class="summary-row">
+      <span>Available</span>
+      <span>{{ available_seats }}</span>
+    </div>
+    <div class="summary-row">
+      <span>Boarding</span>
+      <span>{{ boarding_point }}</span>
+    </div>
+    <div class="summary-row">
+      <span>Dropping</span>
+      <span>{{ dropping_point }}</span>
+    </div>
+  </div>
+</div>
+"""
+
+
+# =====================================================================
+# SEAT LAYOUT HELPER FUNCTIONS
+# =====================================================================
+
+def _get_seat_status_class(seat: Dict[str, Any]) -> str:
+    """Get CSS class for seat based on status."""
+    if seat.get("is_booked"):
+        return "booked"
+    if seat.get("is_blocked"):
+        return "blocked"
+    if seat.get("is_ladies"):
+        return "ladies"
+    if seat.get("is_available"):
+        return "available"
+    return "booked"
+
+
+def _build_deck_rows(deck: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
+    """Build row-wise seat arrangement for rendering."""
+    if not deck or not deck.get("seats"):
+        return []
+    
+    seats = deck["seats"]
+    rows = deck.get("rows", 10)
+    columns = deck.get("columns", 5)
+    
+    # Create empty grid
+    grid = [[{"is_empty": True} for _ in range(columns)] for _ in range(rows)]
+    
+    # Place seats in grid
+    for seat in seats:
+        row = seat.get("row", 0)
+        col = seat.get("column", 0)
+        
+        if 0 <= row < rows and 0 <= col < columns:
+            grid[row][col] = {
+                "is_empty": False,
+                "is_aisle": False,
+                "seat_number": seat.get("seat_number", ""),
+                "seat_name": seat.get("seat_name", ""),
+                "fare": seat.get("fare", "0"),
+                "status_class": _get_seat_status_class(seat),
+                "is_sleeper": seat.get("seat_type", "").upper() in ["SL", "SLEEPER"],
+            }
+    
+    return grid
+
+
+def _normalize_deck_for_ui(deck: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Normalize deck data for UI rendering."""
+    if not deck:
+        return None
+    
+    rows_data = _build_deck_rows(deck)
+    
+    return {
+        "deck_name": deck.get("deck_name", ""),
+        "rows": deck.get("rows", 0),
+        "columns": deck.get("columns", 0),
+        "rows_data": rows_data,
+    }
+
+
+# =====================================================================
+# RENDER FUNCTIONS WITH VIEW ALL SUPPORT
+# =====================================================================
+
+def render_bus_results_with_limit(
+    bus_results: Dict[str, Any],
+    display_limit: int = 5,
+    show_view_all: bool = True,
+) -> str:
+    """
+    Render bus search results carousel with display limit and View All card.
+    
+    Args:
+        bus_results: Dictionary containing bus search results
+        display_limit: Maximum number of bus cards to show (default: 5)
+        show_view_all: Whether to show View All card when more buses available
+    
+    Returns:
+        HTML string for the bus carousel with View All card
+    """
+    # Unwrap structured_content if present
+    if "structured_content" in bus_results:
+        bus_results = bus_results["structured_content"]
+    
+    buses = bus_results.get("buses", [])
+    
+    if not buses:
+        return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
+    
+    total_buses = len(buses)
+    
+    # Limit buses for display
+    display_buses = buses[:display_limit]
+    
+    # Normalize buses for UI
+    buses_ui = [_normalize_bus_for_ui(bus) for bus in display_buses]
+    buses_ui = [b for b in buses_ui if b]
+    
+    if not buses_ui:
+        return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
+    
+    # Get route info - use city names if available
+    source_city = bus_results.get("source_name") or bus_results.get("source_id", "")
+    destination_city = bus_results.get("destination_name") or bus_results.get("destination_id", "")
+    journey_date = _format_date(bus_results.get("journey_date"))
+    
+    # Get counts
+    ac_count = bus_results.get("ac_count", 0)
+    non_ac_count = bus_results.get("non_ac_count", 0)
+    
+    # Get view all link
+    view_all_link = bus_results.get("view_all_link", "")
+    
+    # Determine if View All card should be shown
+    # Show when: show_view_all is True AND total buses > display_limit AND we have a valid link
+    should_show_view_all = show_view_all and total_buses > display_limit and view_all_link
+    
+    # Render template
+    template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
+    return template.render(
+        styles=BUS_CAROUSEL_STYLES,
+        source_city=source_city,
+        destination_city=destination_city,
+        journey_date=journey_date,
+        bus_count=total_buses,  # Show total count in header
+        ac_count=ac_count,
+        non_ac_count=non_ac_count,
+        buses=buses_ui,
+        view_all_link=view_all_link,
+        show_view_all_card=should_show_view_all,
+        total_bus_count=total_buses,  # For View All card - show ALL buses count
+    )
+
+
+def render_seat_layout(seat_layout_response: Dict[str, Any]) -> str:
+    """
+    Render seat layout HTML.
+    
+    Args:
+        seat_layout_response: Response from get_seat_layout()
+    
+    Returns:
+        HTML string for the seat layout
+    """
+    if not seat_layout_response.get("success"):
+        message = seat_layout_response.get('message', 'Failed to load seat layout')
+        return f"""
+<style>
+{SEAT_LAYOUT_STYLES}
+</style>
+<div class='seat-layout'>
+  <div class='layout-empty'>
+    <p>{message}</p>
+    <p class="layout-note">⚠️ Some bus operators do not provide seat layout data through the API. Please visit the EaseMyTrip website to select seats for this bus.</p>
+  </div>
+</div>
+"""
+    
+    layout = seat_layout_response.get("layout")
+    if not layout:
+        return """
+<style>
+""" + SEAT_LAYOUT_STYLES + """
+</style>
+<div class='seat-layout'>
+  <div class='layout-empty'>
+    <p>Seat layout not available</p>
+    <p class="layout-note">⚠️ Some bus operators do not provide seat layout data through the API. Please visit the EaseMyTrip website to select seats for this bus.</p>
+  </div>
+</div>
+"""
+    
+    # Normalize decks for UI
+    lower_deck = _normalize_deck_for_ui(layout.get("lower_deck"))
+    upper_deck = _normalize_deck_for_ui(layout.get("upper_deck"))
+    
+    # Render template
+    template = _jinja_env.from_string(SEAT_LAYOUT_TEMPLATE)
+    return template.render(
+        styles=SEAT_LAYOUT_STYLES,
+        operator_name=layout.get("operator_name", "Bus"),
+        bus_type=layout.get("bus_type", ""),
+        total_seats=layout.get("total_seats", 0),
+        available_seats=layout.get("available_seats", 0),
+        booked_seats=layout.get("booked_seats", 0),
+        lower_deck=lower_deck,
+        upper_deck=upper_deck,
+        boarding_point=layout.get("boarding_point", ""),
+        dropping_point=layout.get("dropping_point", ""),
     )

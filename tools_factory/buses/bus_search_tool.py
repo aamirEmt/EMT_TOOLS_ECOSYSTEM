@@ -101,3 +101,92 @@ class BusSearchTool(BaseTool):
             ),
             is_error=has_error,
         )
+    
+# =====================================================================
+# SEAT LAYOUT TOOL (docA: POST /v1/api/detail/SeatBind/)
+# =====================================================================
+
+from .bus_schema import SeatBindInput
+from .bus_search_service import get_seat_layout
+from .bus_renderer import render_seat_layout
+
+
+class BusSeatLayoutTool(BaseTool):
+    """Bus seat layout tool for EaseMyTrip Bus Service.
+    
+    Based on docA endpoint: POST http://busapi.easemytrip.com/v1/api/detail/SeatBind/
+    """
+
+    def get_metadata(self) -> ToolMetadata:
+        return ToolMetadata(
+            name="get_bus_seat_layout",
+            description="Get seat layout for a specific bus with boarding/dropping points",
+            input_schema=SeatBindInput.model_json_schema(),
+            output_template="ui://widget/bus-seat-layout.html",
+            category="travel",
+            tags=["bus", "seat", "layout", "booking"],
+        )
+
+    async def execute(self, **kwargs) -> ToolResponseFormat:
+        """Execute seat layout request.
+        
+        Args (from docA):
+            sourceId: Source city ID
+            destinationId: Destination city ID
+            journeyDate: Journey date
+            busId: Bus ID from search results
+            routeId: Route ID from search results
+            engineId: Engine ID from search results
+            boardingPointId: Selected boarding point ID
+            droppingPointId: Selected dropping point ID
+            
+        Returns:
+            ToolResponseFormat with seat layout
+        """
+        # Extract runtime flags
+        user_type = kwargs.pop("_user_type", "website")
+        is_whatsapp = user_type.lower() == "whatsapp"
+
+        try:
+            payload = SeatBindInput.model_validate(kwargs)
+        except ValidationError as exc:
+            return ToolResponseFormat(
+                response_text="Invalid seat layout input",
+                structured_content={
+                    "error": "VALIDATION_ERROR",
+                    "details": exc.errors(),
+                },
+                is_error=True,
+            )
+
+        # Get seat layout from API
+        layout_response = await get_seat_layout(
+            source_id=payload.source_id,
+            destination_id=payload.destination_id,
+            journey_date=payload.journey_date,
+            bus_id=payload.bus_id,
+            route_id=payload.route_id,
+            engine_id=payload.engine_id,
+            boarding_point_id=payload.boarding_point_id,
+            dropping_point_id=payload.dropping_point_id,
+        )
+
+        has_error = not layout_response.get("success")
+
+        # Render HTML if needed
+        html_output = None
+        if not is_whatsapp:
+            html_output = render_seat_layout(layout_response)
+
+        if has_error:
+            text = f"Failed to load seat layout: {layout_response.get('message', 'Unknown error')}"
+        else:
+            layout = layout_response.get("layout", {})
+            text = f"Seat layout loaded: {layout.get('available_seats', 0)} seats available out of {layout.get('total_seats', 0)}"
+
+        return ToolResponseFormat(
+            response_text=text,
+            structured_content=layout_response,
+            html=html_output,
+            is_error=has_error,
+        )

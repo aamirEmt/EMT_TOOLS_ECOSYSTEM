@@ -1,16 +1,8 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
-
 class BusSearchInput(BaseModel):
-    """Schema for bus search tool input.
-
-    - sourceId: Source city ID
-    - destinationId: Destination city ID  
-    - date: Search date in dd-MM-yyyy format
-    """
-
     source_id: str = Field(
         ...,
         alias="sourceId",
@@ -48,10 +40,7 @@ class BusSearchInput(BaseModel):
             raise ValueError("Date must be in YYYY-MM-DD format")
         return v
 
-
 class BoardingPoint(BaseModel):
-    """Boarding point information from bdPoints in API response."""
-
     bd_id: str = Field(..., alias="bdid")
     bd_long_name: str = Field(..., alias="bdLongName")
     bd_location: Optional[str] = Field(None, alias="bdlocation")
@@ -63,10 +52,7 @@ class BoardingPoint(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
-
 class DroppingPoint(BaseModel):
-    """Dropping point information from dpPoints in API response."""
-
     dp_id: str = Field(..., alias="dpId")
     dp_name: str = Field(..., alias="dpName")
     location: Optional[str] = Field(None, alias="locatoin")  # Note: API has typo "locatoin"
@@ -78,10 +64,7 @@ class DroppingPoint(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
-
 class CancellationPolicy(BaseModel):
-    """Cancellation policy from cancelPolicyList in API response."""
-
     time_from: int = Field(..., alias="timeFrom")
     time_to: int = Field(..., alias="timeTo")
     percentage_charge: float = Field(..., alias="percentageCharge")
@@ -90,63 +73,149 @@ class CancellationPolicy(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
-
 class Amenity(BaseModel):
-    """Bus amenity from lstamenities in API response."""
-
     id: int
     name: str
 
-
 class BusInfo(BaseModel):
-    """Processed bus information from AvailableTrips in API response.
-    
-    All fields are mapped from the AvailableTrips array in response.
-    """
-
-    bus_id: str  # "id" in API
-    operator_name: str  # "Travels" in API
-    bus_type: str  # "busType" in API
-    departure_time: str  # "departureTime" in API
-    arrival_time: str  # "ArrivalTime" in API
-    duration: str  # "duration" in API
-    available_seats: str  # "AvailableSeats" in API
-    price: str  # "price" in API
-    fares: List[str]  # "fares" array in API
-    is_ac: bool  # "AC" in API
-    is_non_ac: bool  # "nonAC" in API
-    is_volvo: bool  # "isVolvo" in API
-    is_seater: bool  # "seater" in API
-    is_sleeper: bool  # "sleeper" in API
-    is_semi_sleeper: bool  # "isSemiSleeper" in API
-    rating: Optional[str] = None  # "rt" in API
-    live_tracking_available: bool  # "liveTrackingAvailable" in API
-    is_cancellable: bool  # "isCancellable" in API
-    m_ticket_enabled: str  # "mTicketEnabled" in API
-    departure_date: str  # "departureDate" in API
-    arrival_date: str  # "arrivalDate" in API
-    route_id: str  # "routeId" in API
-    operator_id: str  # "operatorid" in API
-    engine_id: int  # "engineId" in API
-    boarding_points: List[BoardingPoint]  # "bdPoints" in API
-    dropping_points: List[DroppingPoint]  # "dpPoints" in API
-    amenities: List[str]  # extracted names from "lstamenities" in API
-    cancellation_policy: List[CancellationPolicy]  # "cancelPolicyList" in API
+    bus_id: str 
+    operator_name: str  
+    bus_type: str 
+    departure_time: str  
+    arrival_time: str  
+    duration: str  
+    available_seats: str 
+    price: str  
+    fares: List[str]  
+    is_ac: bool 
+    is_non_ac: bool 
+    is_volvo: bool  
+    is_seater: bool  
+    is_sleeper: bool 
+    is_semi_sleeper: bool  
+    rating: Optional[str] = None 
+    live_tracking_available: bool 
+    is_cancellable: bool  
+    m_ticket_enabled: str  
+    departure_date: str  
+    arrival_date: str  
+    route_id: str
+    operator_id: str  
+    engine_id: int  
+    boarding_points: List[BoardingPoint]  
+    dropping_points: List[DroppingPoint]  
+    amenities: List[str]  
+    cancellation_policy: List[CancellationPolicy] 
     book_now: Optional[str] = None
 
-
 class WhatsappBusFormat(BaseModel):
-    """WhatsApp formatted response for bus search."""
-
     type: str = "bus_collection"
     options: list
     journey_type: str = "bus"
     currency: str = "INR"
     view_all_buses_url: str = ""
 
-
 class WhatsappBusFinalResponse(BaseModel):
-    """Final WhatsApp response wrapper."""
-
     response_text: str
     whatsapp_json: WhatsappBusFormat
+
+class SeatBindInput(BaseModel):
+    source_id: str = Field(
+        ...,
+        alias="sourceId",
+        description="Source city ID (e.g., '733' for Delhi)",
+    )
+    destination_id: str = Field(
+        ...,
+        alias="destinationId",
+        description="Destination city ID (e.g., '757' for Manali)",
+    )
+    journey_date: str = Field(
+        ...,
+        alias="journeyDate",
+        description="Journey date in YYYY-MM-DD format",
+    )
+    bus_id: str = Field(
+        ...,
+        alias="busId",
+        description="Bus ID from search results",
+    )
+    route_id: str = Field(
+        ...,
+        alias="routeId",
+        description="Route ID from search results",
+    )
+    engine_id: int = Field(
+        ...,
+        alias="engineId",
+        description="Engine ID from search results (e.g., 4 for RedBus, 7 for VRL)",
+    )
+    boarding_point_id: str = Field(
+        ...,
+        alias="boardingPointId",
+        description="Selected boarding point ID from bdPoints",
+    )
+    dropping_point_id: str = Field(
+        ...,
+        alias="droppingPointId",
+        description="Selected dropping point ID from dpPoints",
+    )
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="forbid",
+    )
+
+    @field_validator("journey_date")
+    @classmethod
+    def validate_date(cls, v: str) -> str:
+        if v is None:
+            return v
+        try:
+            datetime.strptime(v, "%Y-%m-%d")
+        except ValueError:
+            raise ValueError("Date must be in YYYY-MM-DD format")
+        return v
+
+class SeatInfo(BaseModel):
+    seat_number: str  
+    seat_name: str  
+    seat_type: str 
+    seat_status: str  
+    is_available: bool  
+    is_ladies: bool  
+    fare: str  
+    row: int  
+    column: int  
+    deck: str  
+    width: int = 1  
+    length: int = 1  
+    is_booked: bool = False
+    is_blocked: bool = False
+
+class DeckLayout(BaseModel):    
+    deck_name: str  
+    rows: int 
+    columns: int  
+    seats: List[SeatInfo] 
+
+class SeatLayoutInfo(BaseModel):    
+    bus_id: str
+    bus_type: str
+    operator_name: str
+    total_seats: int
+    available_seats: int
+    booked_seats: int
+    lower_deck: Optional[DeckLayout] = None
+    upper_deck: Optional[DeckLayout] = None
+    boarding_point: str
+    dropping_point: str
+    boarding_time: str
+    dropping_time: str
+    fare_details: List[Dict[str, Any]] = []
+
+class SeatLayoutResponse(BaseModel):    
+    success: bool
+    message: str
+    layout: Optional[SeatLayoutInfo] = None
+    raw_response: Optional[Dict[str, Any]] = None  
