@@ -46,7 +46,7 @@ class TrainSearchTool(BaseTool):
             to_station=payload.to_station,
             journey_date=payload.journey_date,
             travel_class=payload.travel_class,
-            quota=payload.quota or "GN",
+            quota= "GN",
         )
 
         has_error = bool(train_results.get("error"))
