@@ -49,6 +49,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 }
 
 .train-carousel .trnttl {
+  width: 90%;
   font-size: 18px;
   font-weight: 600;
   color: #202020;
