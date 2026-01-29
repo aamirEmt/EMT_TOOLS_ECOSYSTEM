@@ -1152,7 +1152,7 @@ def extract_segment_summary(segment: dict) -> dict:
             "duration": segment.get("journey_time"),
             "stops": segment.get("total_stops", 0),
         }
-
+    stop_airports = [leg["destination"] for leg in legs[:-1]] if len(legs) > 1 else []
     first_leg = legs[0]
     last_leg = legs[-1]
 
@@ -1165,10 +1165,13 @@ def extract_segment_summary(segment: dict) -> dict:
         ),
         "departure_date": first_leg.get("departure_date"),
         "arrival_date": last_leg.get("arrival_date"),
+        "arrival_city": last_leg.get("destination"),
+        "departure_city": first_leg.get("origin"),
         "departure_time": first_leg.get("departure_time"),
         "arrival_time": last_leg.get("arrival_time"),
         "duration": segment.get("journey_time"),
         "stops": segment.get("total_stops", 0),
+        "stop_airports": stop_airports,
     }
 
 
@@ -1200,6 +1203,7 @@ def build_whatsapp_flight_response(
                     "arrival_time": summary["arrival_time"],
                     "duration": summary["duration"],
                     "stops": summary["stops"],
+                    "stop_airports": summary.get("stop_airports", []),
                     "date": payload.outbound_date,
                 },
                 "price": fare.get("total_fare"),
