@@ -106,7 +106,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 .train-carousel .trn-info {
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
 }
 
@@ -128,11 +128,15 @@ TRAIN_CAROUSEL_TEMPLATE = """
 }
 
 .train-carousel .trn-number {
-  font-size: 20px;
-  color: #868686;
-  font-weight: 500;
-  white-space: nowrap;
-  padding-top: 2px;
+    font-weight: 500;
+    font-size: 14px;
+    width: auto;
+    padding: 3px 5px;
+    color: #313131;
+    background: #F2F9FF;
+    border: 1px solid #B6D5F0;
+    border-radius: 3px;
+    float: left;
 }
 
 .train-carousel .trn-timing {
@@ -614,7 +618,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
                   <div class="trn-name">{{ train.train_name | truncate_text(22) }}</div>
                   <div class="trn-route">{{ train.from_station_code }} → {{ train.to_station_code }}</div>
                 </div>
-                <div class="trn-number">#{{ train.train_number }}</div>
+                <div class="trn-number">{{ train.train_number }}</div>
               </div>
             </div>
 
