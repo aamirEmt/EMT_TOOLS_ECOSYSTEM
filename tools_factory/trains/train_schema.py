@@ -24,7 +24,7 @@ class TrainSearchInput(BaseModel):
     travel_class: Optional[str] = Field(
         None,
         alias="travelClass",
-        description="Preferred travel class (e.g., '1A', '2A', '3A', 'SL', '2S', 'CC')",
+        description="Preferred travel class. MUST use exact codes only: '1A' (First AC), '2A' (AC 2 Tier), '3A' (Third AC), 'SL' (Sleeper Class), '2S' (Second Seating), 'CC' (AC Chair Car), 'EC' (Executive Class), '3E' (AC 3 Tier Economy). Do not use full names like 'Chair Car' or variations like '3AC' - use only the exact codes.",
     )
     # quota: Optional[str] = Field(
     #     "GN",
@@ -50,10 +50,77 @@ class TrainSearchInput(BaseModel):
     @field_validator("travel_class")
     @classmethod
     def validate_travel_class(cls, v: Optional[str]) -> Optional[str]:
-        """Convert 'NONE' string to None"""
-        if v is None or v.upper() == "NONE":
+        """
+        Normalize travel class input to valid codes.
+        Returns None if input is None, 'NONE', or doesn't match any valid class.
+        """
+        if v is None or v.upper().strip() == "NONE":
             return None
-        return v
+
+        # Normalize input: uppercase and strip whitespace
+        normalized = v.upper().strip()
+
+        # Mapping of variations to standard codes
+        class_mapping = {
+            # First AC variations
+            "1A": "1A",
+            "FIRST AC": "1A",
+            "1ST AC": "1A",
+            "FIRST CLASS AC": "1A",
+
+            # Second AC (AC 2 Tier) variations
+            "2A": "2A",
+            "SECOND AC": "2A",
+            "2ND AC": "2A",
+            "AC 2 TIER": "2A",
+            "2 TIER AC": "2A",
+
+            # Third AC variations
+            "3A": "3A",
+            "THIRD AC": "3A",
+            "3RD AC": "3A",
+            "3AC": "3A",
+            "AC 3 TIER": "3A",
+            "3 TIER AC": "3A",
+
+            # Sleeper variations
+            "SL": "SL",
+            "SLEEPER": "SL",
+            "SLEEPER CLASS": "SL",
+
+            # Second Seating variations
+            "2S": "2S",
+            "SECOND SEATING": "2S",
+            "2ND SEATING": "2S",
+            "25": "2S",  # User mentioned "25" - likely a typo for "2S"
+
+            # AC Chair Car variations
+            "CC": "CC",
+            "CHAIR CAR": "CC",
+            "CHAIRCAR": "CC",
+            "AC CHAIR CAR": "CC",
+
+            # Executive Class variations
+            "EC": "EC",
+            "EXECUTIVE": "EC",
+            "EXECUTIVE CLASS": "EC",
+            "EXEC": "EC",
+
+            # AC 3 Tier Economy variations
+            "3E": "3E",
+            "AC 3 TIER ECONOMY": "3E",
+            "3 TIER ECONOMY": "3E",
+            "3E ECONOMY": "3E",
+        }
+
+        # Try to find a match in the mapping
+        matched_code = class_mapping.get(normalized)
+
+        # If no match found, return None (gracefully handle invalid input)
+        if matched_code is None:
+            return None
+
+        return matched_code
 
     # @field_validator("quota")
     # @classmethod
