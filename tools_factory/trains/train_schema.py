@@ -24,7 +24,7 @@ class TrainSearchInput(BaseModel):
     travel_class: Optional[str] = Field(
         None,
         alias="travelClass",
-        description="Preferred travel class. MUST use exact codes only: '1A' (First AC), '2A' (AC 2 Tier), '3A' (Third AC), 'SL' (Sleeper Class), '2S' (Second Seating), 'CC' (AC Chair Car), 'EC' (Executive Class), '3E' (AC 3 Tier Economy). Do not use full names like 'Chair Car' or variations like '3AC' - use only the exact codes.",
+        description="Preferred travel class. MUST use exact codes only: '1A' (First AC), '2A' (AC 2 Tier), '3A' (Third AC), 'SL' (Sleeper Class), '2S' (Second Seating), 'CC' (AC Chair Car), 'EC' (Executive Class), '3E' (AC 3 Tier Economy), 'FC' (First Class), 'EV' (Vistadome AC), 'VS' (Vistadome Non-AC), 'EA' (Anubhuti Class), 'VC' (Vistadome Chair Car). Do not use full names like 'Chair Car' or variations like '3AC' - use only the exact codes.",
     )
     # quota: Optional[str] = Field(
     #     "GN",
@@ -111,6 +111,32 @@ class TrainSearchInput(BaseModel):
             "AC 3 TIER ECONOMY": "3E",
             "3 TIER ECONOMY": "3E",
             "3E ECONOMY": "3E",
+
+            # First Class variations
+            "FC": "FC",
+            "FIRST CLASS": "FC",
+            "1ST CLASS": "FC",
+
+            # Vistadome AC variations
+            "EV": "EV",
+            "VISTADOME AC": "EV",
+            "VISTADOME": "EV",
+
+            # Vistadome Non-AC variations
+            "VS": "VS",
+            "VISTADOME NON-AC": "VS",
+            "VISTADOME NON AC": "VS",
+            "VISTADOME NONAC": "VS",
+
+            # Anubhuti Class variations
+            "EA": "EA",
+            "ANUBHUTI": "EA",
+            "ANUBHUTI CLASS": "EA",
+
+            # Vistadome Chair Car variations
+            "VC": "VC",
+            "VISTADOME CHAIR CAR": "VC",
+            "VISTADOME CC": "VC",
         }
 
         # Try to find a match in the mapping
