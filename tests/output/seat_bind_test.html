@@ -3,81 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bus Seat Layout & View All Tests - LIVE API</title>
+    <title>Bus Seat Layout & View All Tests - New API</title>
     <style>
-        body {
-            background: #f5f5f5;
-            padding: 20px;
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        .test-section {
-            margin-bottom: 40px;
-            padding: 20px;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .test-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #ef6614;
-        }
-        .test-meta {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f9f9f9;
-            border-radius: 6px;
-        }
-        .test-meta code {
-            background: #e0e0e0;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-        }
-        .raw-response {
-            margin-top: 20px;
-            padding: 15px;
-            background: #1e1e1e;
-            color: #d4d4d4;
-            border-radius: 8px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 11px;
-            overflow-x: auto;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .error-box {
-            padding: 20px;
-            background: #ffebee;
-            border: 1px solid #f44336;
-            border-radius: 8px;
-            color: #c62828;
-        }
-        .success-box {
-            padding: 10px 15px;
-            background: #e8f5e9;
-            border: 1px solid #4caf50;
-            border-radius: 6px;
-            color: #2e7d32;
-            margin-bottom: 15px;
-        }
+        body { background: #f5f5f5; padding: 20px; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .test-section { margin-bottom: 40px; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .test-title { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #ef6614; }
+        .test-meta { font-size: 12px; color: #666; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 6px; }
+        .test-meta code { background: #e0e0e0; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+        .raw-response { margin-top: 20px; padding: 15px; background: #1e1e1e; color: #d4d4d4; border-radius: 8px; font-family: 'Consolas', 'Monaco', monospace; font-size: 11px; overflow-x: auto; max-height: 300px; overflow-y: auto; }
+        .error-box { padding: 20px; background: #ffebee; border: 1px solid #f44336; border-radius: 8px; color: #c62828; }
+        .success-box { padding: 10px 15px; background: #e8f5e9; border: 1px solid #4caf50; border-radius: 6px; color: #2e7d32; margin-bottom: 15px; }
     </style>
 </head>
 <body>
-    <h1 style="color: #333; margin-bottom: 30px;">🚌 Bus Seat Layout & View All Tests</h1>
+    <h1 style="color: #333; margin-bottom: 30px;">🚌 Bus Seat Layout & View All Tests - New API</h1>
     
         <div class="test-section">
-            <div class="test-title">🚌 Bus Carousel with View All Card (Limit: 5)</div>
+            <div class="test-title">🚌 Bus Carousel (City Names Auto-Resolved)</div>
             <div class="test-meta">
-                Total buses: <code>270</code> | 
-                Displayed: <code>5</code> | 
-                Remaining: <code>265</code>
+                Source: <code>Delhi</code> (ID: 733)<br>
+                Destination: <code>Manali</code> (ID: 757)<br>
+                Total buses: <code>158</code> | View All: <code>True</code>
             </div>
             
 <style>
@@ -130,6 +76,7 @@
 }
 
 .bus-carousel .rsltcvr {
+  width: 90%;
   max-width: 100%;
   overflow-x: auto;
   display: flex;
@@ -508,14 +455,14 @@
         />
         <span>Manali</span>
         
-        <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
+        <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=03-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
         
       </div>
       <div class="bussbt">
-        <span>02 Feb 2026</span> •
-        <span>270 buss found</span>
-         • <span>260 AC</span>
-         • <span>12 Non-AC</span>
+        <span>03 Feb 2026</span> •
+        <span>158 buss found</span>
+        
+        
       </div>
     </div>
 
@@ -523,387 +470,12 @@
       <div class="rsltcvr">
         
         <div class="buscard item">
-          <!-- Header: Operator, Type, Tags, Price -->
           <div class="buschdr">
             <div class="businfo">
-              <div class="oprtname" title="IntrCity SmartBus">IntrCity SmartBus</div>
-              <div class="bustype" title="2+2(45)AC, Semi-Sleeper, Volvo...">2+2(45)AC, Semi-Sleeper, Volvo...</div>
+              <div class="oprtname" title="Shri Ram Transport Com...">Shri Ram Transport Com...</div>
+              <div class="bustype" title="2+2, VE Eicher A/C Semi Sleepe...">2+2, VE Eicher A/C Semi Sleepe...</div>
               <div class="bustags">
-                
                 <span class="bustag ac">AC</span>
-                
-                
-                
-                
-                <span class="bustag seater">Seater</span>
-                
-              </div>
-            </div>
-            <div class="busprcbx">
-              <div class="sbttl">starts from</div>
-              <div class="busprc">₹789</div>
-              
-              <div class="seatsleft">35 seats</div>
-              
-            </div>
-          </div>
-
-          <!-- Body: Timing -->
-          <div class="busbdy">
-            <div class="bustme">21:00</div>
-            <div class="jrny">
-              <div class="jrnttl">10h 25m</div>
-              <div class="j-br"></div>
-            </div>
-            <div class="bustme">07:25</div>
-          </div>
-
-          <!-- Boarding/Dropping Points ( bdPoints, dpPoints) -->
-          <div class="pointsrow">
-            <div class="pointbox">
-              <div class="pointlbl">Boarding</div>
-              <div class="pointval" title="ISBT Kashmiri Gate -...">ISBT Kashmiri Gate -...</div>
-            </div>
-            <div class="pointbox">
-              <div class="pointlbl">Dropping</div>
-              <div class="pointval" title="Raison">Raison</div>
-            </div>
-          </div>
-
-          <!-- Rating ( rt) -->
-          
-          <div class="ratingrow">
-            <span class="rtnvlu ">★ 4.8</span>
-          </div>
-          
-
-          <!-- Amenities ( lstamenities) -->
-          
-          <ul class="busamnts">
-            
-            <li>Water Bottle</li>
-            
-            <li>First Aid Box</li>
-            
-            <li>CCTV</li>
-            
-            <li>Fire Extinguisher</li>
-            
-            
-            <li>+2 more</li>
-            
-          </ul>
-          
-
-          <!-- Features ( liveTrackingAvailable, mTicketEnabled) -->
-          
-          <div class="featuresrow">
-            
-            <span class="featuretag">Live Tracking</span>
-            
-            
-            <span class="featuretag">M-Ticket</span>
-            
-          </div>
-          
-
-
-          <!-- Footer: Book Button, Cancellation -->
-          <div class="busftr">
-            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
-
-
-            
-            <div class="cancelpolicy cancellable">Cancellation Available</div>
-            
-          </div>
-        </div>
-        
-        <div class="buscard item">
-          <!-- Header: Operator, Type, Tags, Price -->
-          <div class="buschdr">
-            <div class="businfo">
-              <div class="oprtname" title="IntrCity SmartBus">IntrCity SmartBus</div>
-              <div class="bustype" title="2+2(45)AC, Semi-Sleeper, Volvo...">2+2(45)AC, Semi-Sleeper, Volvo...</div>
-              <div class="bustags">
-                
-                <span class="bustag ac">AC</span>
-                
-                
-                
-                
-                <span class="bustag seater">Seater</span>
-                
-              </div>
-            </div>
-            <div class="busprcbx">
-              <div class="sbttl">starts from</div>
-              <div class="busprc">₹759</div>
-              
-              <div class="seatsleft">35 seats</div>
-              
-            </div>
-          </div>
-
-          <!-- Body: Timing -->
-          <div class="busbdy">
-            <div class="bustme">21:30</div>
-            <div class="jrny">
-              <div class="jrnttl">11h 10m</div>
-              <div class="j-br"></div>
-            </div>
-            <div class="bustme">08:40</div>
-          </div>
-
-          <!-- Boarding/Dropping Points ( bdPoints, dpPoints) -->
-          <div class="pointsrow">
-            <div class="pointbox">
-              <div class="pointlbl">Boarding</div>
-              <div class="pointval" title="ISBT Kashmiri Gate -...">ISBT Kashmiri Gate -...</div>
-            </div>
-            <div class="pointbox">
-              <div class="pointlbl">Dropping</div>
-              <div class="pointval" title="Raison">Raison</div>
-            </div>
-          </div>
-
-          <!-- Rating ( rt) -->
-          
-          <div class="ratingrow">
-            <span class="rtnvlu ">★ 4.8</span>
-          </div>
-          
-
-          <!-- Amenities ( lstamenities) -->
-          
-          <ul class="busamnts">
-            
-            <li>First Aid Box</li>
-            
-            <li>CCTV</li>
-            
-            <li>Fire Extinguisher</li>
-            
-            <li>Emergency Exit</li>
-            
-            
-            <li>+2 more</li>
-            
-          </ul>
-          
-
-          <!-- Features ( liveTrackingAvailable, mTicketEnabled) -->
-          
-          <div class="featuresrow">
-            
-            <span class="featuretag">Live Tracking</span>
-            
-            
-            <span class="featuretag">M-Ticket</span>
-            
-          </div>
-          
-
-
-          <!-- Footer: Book Button, Cancellation -->
-          <div class="busftr">
-            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
-
-
-            
-            <div class="cancelpolicy cancellable">Cancellation Available</div>
-            
-          </div>
-        </div>
-        
-        <div class="buscard item">
-          <!-- Header: Operator, Type, Tags, Price -->
-          <div class="buschdr">
-            <div class="businfo">
-              <div class="oprtname" title="IntrCity SmartBus">IntrCity SmartBus</div>
-              <div class="bustype" title="2+2(45)AC, Semi-Sleeper, Volvo">2+2(45)AC, Semi-Sleeper, Volvo</div>
-              <div class="bustags">
-                
-                <span class="bustag ac">AC</span>
-                
-                
-                
-                
-                <span class="bustag seater">Seater</span>
-                
-              </div>
-            </div>
-            <div class="busprcbx">
-              <div class="sbttl">starts from</div>
-              <div class="busprc">₹799</div>
-              
-              <div class="seatsleft">35 seats</div>
-              
-            </div>
-          </div>
-
-          <!-- Body: Timing -->
-          <div class="busbdy">
-            <div class="bustme">22:30</div>
-            <div class="jrny">
-              <div class="jrnttl">10h 45m</div>
-              <div class="j-br"></div>
-            </div>
-            <div class="bustme">09:15</div>
-          </div>
-
-          <!-- Boarding/Dropping Points ( bdPoints, dpPoints) -->
-          <div class="pointsrow">
-            <div class="pointbox">
-              <div class="pointlbl">Boarding</div>
-              <div class="pointval" title="ISBT Kashmiri Gate -...">ISBT Kashmiri Gate -...</div>
-            </div>
-            <div class="pointbox">
-              <div class="pointlbl">Dropping</div>
-              <div class="pointval" title="Raison">Raison</div>
-            </div>
-          </div>
-
-          <!-- Rating ( rt) -->
-          
-          <div class="ratingrow">
-            <span class="rtnvlu ">★ 4.8</span>
-          </div>
-          
-
-          <!-- Amenities ( lstamenities) -->
-          
-          <ul class="busamnts">
-            
-            <li>Water Bottle</li>
-            
-            <li>Charging Point</li>
-            
-            <li>First Aid Box</li>
-            
-            <li>CCTV</li>
-            
-            
-            <li>+3 more</li>
-            
-          </ul>
-          
-
-          <!-- Features ( liveTrackingAvailable, mTicketEnabled) -->
-          
-          <div class="featuresrow">
-            
-            <span class="featuretag">Live Tracking</span>
-            
-            
-            <span class="featuretag">M-Ticket</span>
-            
-          </div>
-          
-
-
-          <!-- Footer: Book Button, Cancellation -->
-          <div class="busftr">
-            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
-
-
-            
-            <div class="cancelpolicy cancellable">Cancellation Available</div>
-            
-          </div>
-        </div>
-        
-        <div class="buscard item">
-          <!-- Header: Operator, Type, Tags, Price -->
-          <div class="buschdr">
-            <div class="businfo">
-              <div class="oprtname" title="Samjhauta Express Bus ...">Samjhauta Express Bus ...</div>
-              <div class="bustype" title="2+2 A/C Volvo Seater ">2+2 A/C Volvo Seater </div>
-              <div class="bustags">
-                
-                <span class="bustag ac">AC</span>
-                
-                
-                
-                
-              </div>
-            </div>
-            <div class="busprcbx">
-              <div class="sbttl">starts from</div>
-              <div class="busprc">₹1,698</div>
-              
-              <div class="seatsleft">22 seats</div>
-              
-            </div>
-          </div>
-
-          <!-- Body: Timing -->
-          <div class="busbdy">
-            <div class="bustme">21:00</div>
-            <div class="jrny">
-              <div class="jrnttl">12h 00m</div>
-              <div class="j-br"></div>
-            </div>
-            <div class="bustme">09:00</div>
-          </div>
-
-          <!-- Boarding/Dropping Points ( bdPoints, dpPoints) -->
-          <div class="pointsrow">
-            <div class="pointbox">
-              <div class="pointlbl">Boarding</div>
-              <div class="pointval" title="KASHMIRE GATE No04 N...">KASHMIRE GATE No04 N...</div>
-            </div>
-            <div class="pointbox">
-              <div class="pointlbl">Dropping</div>
-              <div class="pointval" title="Private Paring Bus S...">Private Paring Bus S...</div>
-            </div>
-          </div>
-
-          <!-- Rating ( rt) -->
-          
-
-          <!-- Amenities ( lstamenities) -->
-          
-          <ul class="busamnts">
-            
-            <li>Emergency Contact Number</li>
-            
-            <li>Water Bottles</li>
-            
-            <li>Mobile Charger</li>
-            
-            <li>Blankets</li>
-            
-            
-          </ul>
-          
-
-          <!-- Features ( liveTrackingAvailable, mTicketEnabled) -->
-          
-
-
-          <!-- Footer: Book Button, Cancellation -->
-          <div class="busftr">
-            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
-
-
-            
-            <div class="cancelpolicy">Non-refundable</div>
-            
-          </div>
-        </div>
-        
-        <div class="buscard item">
-          <!-- Header: Operator, Type, Tags, Price -->
-          <div class="buschdr">
-            <div class="businfo">
-              <div class="oprtname" title="Samjhauta Express Bus ...">Samjhauta Express Bus ...</div>
-              <div class="bustype" title="2+2 A/C TATA Pushback ">2+2 A/C TATA Pushback </div>
-              <div class="bustags">
-                
-                <span class="bustag ac">AC</span>
-                
-                
                 
                 
                 <span class="bustag sleeper">Sleeper</span>
@@ -912,63 +484,290 @@
             </div>
             <div class="busprcbx">
               <div class="sbttl">starts from</div>
-              <div class="busprc">₹1,598</div>
-              
-              <div class="seatsleft">20 seats</div>
-              
+              <div class="busprc">₹418</div>
+              <div class="seatsleft">38 seats</div>
             </div>
           </div>
 
-          <!-- Body: Timing -->
           <div class="busbdy">
-            <div class="bustme">21:00</div>
+            <div class="bustme">21:10</div>
             <div class="jrny">
-              <div class="jrnttl">12h 00m</div>
+              <div class="jrnttl">11h 25m</div>
               <div class="j-br"></div>
             </div>
-            <div class="bustme">09:00</div>
+            <div class="bustme">08:35</div>
           </div>
 
-          <!-- Boarding/Dropping Points ( bdPoints, dpPoints) -->
           <div class="pointsrow">
             <div class="pointbox">
               <div class="pointlbl">Boarding</div>
-              <div class="pointval" title="KASHMIRE GATE No04 N...">KASHMIRE GATE No04 N...</div>
+              <div class="pointval" title="ISBT Kashmiri Gate">ISBT Kashmiri Gate</div>
             </div>
             <div class="pointbox">
               <div class="pointlbl">Dropping</div>
-              <div class="pointval" title="Private Paring Bus S...">Private Paring Bus S...</div>
+              <div class="pointval" title="Private Bus Parking">Private Bus Parking</div>
             </div>
           </div>
 
-          <!-- Rating ( rt) -->
+          
+          <div class="ratingrow">
+            <span class="rtnvlu ">★ 4.5</span>
+          </div>
           
 
-          <!-- Amenities ( lstamenities) -->
           
           <ul class="busamnts">
-            
-            <li>Emergency Contact Number</li>
-            
-            <li>Water Bottles</li>
-            
-            <li>Mobile Charger</li>
-            
-            <li>Blankets</li>
-            
-            
+            <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li>
+            <li>+1 more</li>
           </ul>
           
 
-          <!-- Features ( liveTrackingAvailable, mTicketEnabled) -->
           
 
-
-          <!-- Footer: Book Button, Cancellation -->
           <div class="busftr">
-            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=03-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="oprtname" title="Deltin Travelss">Deltin Travelss</div>
+              <div class="bustype" title="2+2, Scania MultiAxle Semi Sle...">2+2, Scania MultiAxle Semi Sle...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹539</div>
+              <div class="seatsleft">48 seats</div>
+            </div>
+          </div>
 
+          <div class="busbdy">
+            <div class="bustme">22:30</div>
+            <div class="jrny">
+              <div class="jrnttl">10h 50m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:20</div>
+          </div>
 
+          <div class="pointsrow">
+            <div class="pointbox">
+              <div class="pointlbl">Boarding</div>
+              <div class="pointval" title="Kashmiri Gate">Kashmiri Gate</div>
+            </div>
+            <div class="pointbox">
+              <div class="pointlbl">Dropping</div>
+              <div class="pointval" title="Private Bus Parking">Private Bus Parking</div>
+            </div>
+          </div>
+
+          
+          <div class="ratingrow">
+            <span class="rtnvlu ">★ 4.5</span>
+          </div>
+          
+
+          
+          <ul class="busamnts">
+            <li>Blanket</li><li>Charging Point</li><li>Emergency exit</li><li>Fire Extinguisher</li>
+            <li>+7 more</li>
+          </ul>
+          
+
+          
+          <div class="featuresrow">
+            <span class="featuretag">Live Tracking</span>
+            
+          </div>
+          
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=03-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="oprtname" title="CITY LAND TOURS & TRAV...">CITY LAND TOURS & TRAV...</div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, V...">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹540</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">16:30</div>
+            <div class="jrny">
+              <div class="jrnttl">13h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">05:30</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox">
+              <div class="pointlbl">Boarding</div>
+              <div class="pointval" title="ISBT Kashmiri Gate">ISBT Kashmiri Gate</div>
+            </div>
+            <div class="pointbox">
+              <div class="pointlbl">Dropping</div>
+              <div class="pointval" title="Private Volvo Bus St...">Private Volvo Bus St...</div>
+            </div>
+          </div>
+
+          
+          <div class="ratingrow">
+            <span class="rtnvlu ">★ 4.5</span>
+          </div>
+          
+
+          
+
+          
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=03-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="oprtname" title="CITY LAND TOURS & TRAV...">CITY LAND TOURS & TRAV...</div>
+              <div class="bustype" title="2+2, Volvo B11R MultiAxle Semi...">2+2, Volvo B11R MultiAxle Semi...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹540</div>
+              <div class="seatsleft">49 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">19:30</div>
+            <div class="jrny">
+              <div class="jrnttl">13h 35m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:05</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox">
+              <div class="pointlbl">Boarding</div>
+              <div class="pointval" title="ISBT Kashmiri Gate">ISBT Kashmiri Gate</div>
+            </div>
+            <div class="pointbox">
+              <div class="pointlbl">Dropping</div>
+              <div class="pointval" title="Private Volvo Bus St...">Private Volvo Bus St...</div>
+            </div>
+          </div>
+
+          
+          <div class="ratingrow">
+            <span class="rtnvlu ">★ 4.5</span>
+          </div>
+          
+
+          
+
+          
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=03-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="oprtname" title="CITY LAND TOURS & TRAV...">CITY LAND TOURS & TRAV...</div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, V...">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹540</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">21:25</div>
+            <div class="jrny">
+              <div class="jrnttl">14h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">11:25</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox">
+              <div class="pointlbl">Boarding</div>
+              <div class="pointval" title="ISBT">ISBT</div>
+            </div>
+            <div class="pointbox">
+              <div class="pointlbl">Dropping</div>
+              <div class="pointval" title="Private Volvo Bus St...">Private Volvo Bus St...</div>
+            </div>
+          </div>
+
+          
+          <div class="ratingrow">
+            <span class="rtnvlu ">★ 4.5</span>
+          </div>
+          
+
+          
+
+          
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=03-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
             
             <div class="cancelpolicy">Non-refundable</div>
             
@@ -977,7 +776,7 @@
         
         
         
-        <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="buscard item view-all-card">
+        <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=03-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="buscard item view-all-card">
           <div class="view-all-content">
             <div class="view-all-icon">
               <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef6614" stroke-width="2">
@@ -986,773 +785,7 @@
               </svg>
             </div>
             <div class="view-all-text">
-              <div class="view-all-title">View All 270 Buses</div>
-              <div class="view-all-subtitle">See more options for this route</div>
-            </div>
-          </div>
-        </a>
-        
-      </div>
-    </div>
-
-    
-  </main>
-</div>
-        </div>
-        
-
-        <div class="test-section">
-            <div class="test-title">🚌 Bus Carousel with Limit 3</div>
-            <div class="test-meta">
-                Displayed: <code>3</code> | 
-                Remaining: <code>267</code>
-            </div>
-            
-<style>
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-
-.bus-carousel {
-  font-family: poppins, sans-serif;
-}
-
-.bus-carousel * {
-  font-family: poppins, sans-serif;
-  box-sizing: border-box;
-  margin: 0;
-}
-
-.bus-carousel main {
-  max-width: 700px;
-  margin: auto;
-  padding: 20px 0;
-}
-
-.bus-carousel .rslt-heading {
-  margin-bottom: 12px;
-}
-
-.bus-carousel .rslttp {
-  padding: 0 0 8px;
-}
-
-.bus-carousel .busctl {
-  font-size: 15px;
-  font-weight: 600;
-  color: #202020;
-  display: flex;
-  gap: 5px;
-  align-items: center;
-}
-
-.bus-carousel .bussbt {
-  font-size: 11px;
-  color: #868686;
-  font-weight: 500;
-  margin-top: 2px;
-}
-
-.bus-carousel .buscardbx {
-  width: 100%;
-  padding: 8px 6px;
-}
-
-.bus-carousel .rsltcvr {
-  max-width: 100%;
-  overflow-x: auto;
-  display: flex;
-  gap: 20px;
-  cursor: grab;
-}
-
-.bus-carousel .rsltcvr::-webkit-scrollbar {
-  height: 7px;
-}
-
-.bus-carousel .rsltcvr::-webkit-scrollbar-track {
-  background: #fff;
-}
-
-.bus-carousel .rsltcvr::-webkit-scrollbar-thumb {
-  background: #373737;
-  border-radius: 5px;
-}
-
-.bus-carousel .rsltcvr:active {
-  cursor: grabbing;
-}
-
-.bus-carousel .buscard {
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid #e0e0e0;
-  min-width: 300px;
-  width: 300px;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-}
-
-.bus-carousel .buschdr {
-  padding: 0 0 10px;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.bus-carousel .businfo {
-  flex: 1;
-  min-width: 0;
-}
-
-.bus-carousel .oprtname {
-  font-size: 14px;
-  font-weight: 600;
-  color: #202020;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.bus-carousel .bustype {
-  font-size: 11px;
-  color: #868686;
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.bus-carousel .bustags {
-  display: flex;
-  gap: 4px;
-  margin-top: 6px;
-  flex-wrap: wrap;
-}
-
-.bus-carousel .bustag {
-  font-size: 9px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-
-.bus-carousel .bustag.ac {
-  background: #e3f2fd;
-  color: #1565c0;
-}
-
-.bus-carousel .bustag.nonac {
-  background: #fff3e0;
-  color: #e65100;
-}
-
-.bus-carousel .bustag.sleeper {
-  background: #f3e5f5;
-  color: #7b1fa2;
-}
-
-.bus-carousel .bustag.seater {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.bus-carousel .bustag.volvo {
-  background: #fce4ec;
-  color: #c2185b;
-}
-
-.bus-carousel .busprcbx {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-}
-
-.bus-carousel .sbttl {
-  font-size: 9px;
-  color: #868686;
-}
-
-.bus-carousel .busprc {
-  font-size: 18px;
-  font-weight: 700;
-  color: #202020;
-}
-
-.bus-carousel .seatsleft {
-  font-size: 10px;
-  color: #d32f2f;
-  font-weight: 500;
-  margin-top: 2px;
-}
-
-.bus-carousel .busbdy {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.bus-carousel .bustme {
-  font-size: 17px;
-  font-weight: 600;
-  color: #202020;
-}
-
-.bus-carousel .jrny {
-  text-align: center;
-}
-
-.bus-carousel .jrnttl {
-  font-size: 11px;
-  color: #868686;
-}
-
-.bus-carousel .j-br {
-  width: 55px;
-  border-bottom: 1px solid #9e9da1;
-  position: relative;
-  margin: 4px 0;
-}
-
-.bus-carousel .pointsrow {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.bus-carousel .pointbox {
-  flex: 1;
-  min-width: 0;
-}
-
-.bus-carousel .pointlbl {
-  font-size: 9px;
-  color: #868686;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-.bus-carousel .pointval {
-  font-size: 11px;
-  color: #4b4b4b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.bus-carousel .ratingrow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-}
-
-.bus-carousel .rtnvlu {
-  background: #00a664;
-  color: #fff;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 11px;
-}
-
-.bus-carousel .rtnvlu.low {
-  background: #ff9800;
-}
-
-.bus-carousel .rtnvlu.poor {
-  background: #f44336;
-}
-
-.bus-carousel .busamnts {
-  list-style: none;
-  margin: 0;
-  padding: 8px 0;
-  font-size: 10px;
-  color: #4b4b4b;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.bus-carousel .busamnts li {
-  background: #f5f5f5;
-  padding: 3px 8px;
-  border-radius: 10px;
-}
-
-.bus-carousel .featuresrow {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 6px 0;
-}
-
-.bus-carousel .featuretag {
-  font-size: 10px;
-  color: #04a77a;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.bus-carousel .featuretag::before {
-  content: '✓';
-  font-weight: bold;
-}
-
-.bus-carousel .busftr {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-top: 10px;
-  margin-top: auto;
-}
-
-.bus-carousel .bkbtn {
-  border-radius: 40px;
-  background: #ef6614;
-  color: #fff;
-  text-align: center;
-  font-size: 12px;
-  padding: 10px 15px;
-  width: 100%;
-  border: 0;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  transition: all 0.2s ease;
-  font-weight: 600;
-}
-
-.bus-carousel .bkbtn:hover {
-  background: #e75806;
-}
-
-.bus-carousel .cancelpolicy {
-  font-size: 10px;
-  color: #646d74;
-  text-align: center;
-}
-
-.bus-carousel .cancelpolicy.cancellable {
-  color: #04a77a;
-}
-
-.bus-carousel .emt-empty {
-  padding: 60px 20px;
-  text-align: center;
-  color: #646d74;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.bus-carousel .emt-inline-arrow {
-  width: 14px;
-  height: auto;
-  object-fit: contain;
-  vertical-align: baseline;
-}
-
-.bus-carousel .view-all-link {
-  margin-left: 12px;
-  padding: 6px 14px;
-  background: #f5f5f5;
-  border: 1px solid #e0e0e0;
-  border-radius: 20px;
-  color: #2093ef;
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.bus-carousel .view-all-link:hover {
-  background: #2093ef;
-  color: #fff;
-  border-color: #2093ef;
-}
-
-.bus-carousel .view-all-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #fff5f0 0%, #ffffff 100%);
-  border: 2px dashed #ef6614;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-}
-
-.bus-carousel .view-all-card:hover {
-  background: linear-gradient(135deg, #ffebe0 0%, #fff5f0 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239, 102, 20, 0.15);
-}
-
-.bus-carousel .view-all-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 20px;
-  text-align: center;
-}
-
-.bus-carousel .view-all-icon svg {
-  width: 48px;
-  height: 48px;
-}
-
-.bus-carousel .view-all-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #ef6614;
-}
-
-.bus-carousel .view-all-subtitle {
-  font-size: 12px;
-  color: #868686;
-}
-
-</style>
-
-<div class="bus-carousel">
-  <main>
-    <div class="rslttp rslt-heading">
-      <div class="busctl">
-        <span>Delhi</span>
-        <img
-          class="emt-inline-arrow"
-          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
-          alt="→"
-        />
-        <span>Manali</span>
-        
-        <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
-        
-      </div>
-      <div class="bussbt">
-        <span>02 Feb 2026</span> •
-        <span>270 buss found</span>
-         • <span>260 AC</span>
-         • <span>12 Non-AC</span>
-      </div>
-    </div>
-
-    <div class="buscardbx">
-      <div class="rsltcvr">
-        
-        <div class="buscard item">
-          <!-- Header: Operator, Type, Tags, Price -->
-          <div class="buschdr">
-            <div class="businfo">
-              <div class="oprtname" title="IntrCity SmartBus">IntrCity SmartBus</div>
-              <div class="bustype" title="2+2(45)AC, Semi-Sleeper, Volvo...">2+2(45)AC, Semi-Sleeper, Volvo...</div>
-              <div class="bustags">
-                
-                <span class="bustag ac">AC</span>
-                
-                
-                
-                
-                <span class="bustag seater">Seater</span>
-                
-              </div>
-            </div>
-            <div class="busprcbx">
-              <div class="sbttl">starts from</div>
-              <div class="busprc">₹789</div>
-              
-              <div class="seatsleft">35 seats</div>
-              
-            </div>
-          </div>
-
-          <!-- Body: Timing -->
-          <div class="busbdy">
-            <div class="bustme">21:00</div>
-            <div class="jrny">
-              <div class="jrnttl">10h 25m</div>
-              <div class="j-br"></div>
-            </div>
-            <div class="bustme">07:25</div>
-          </div>
-
-          <!-- Boarding/Dropping Points ( bdPoints, dpPoints) -->
-          <div class="pointsrow">
-            <div class="pointbox">
-              <div class="pointlbl">Boarding</div>
-              <div class="pointval" title="ISBT Kashmiri Gate -...">ISBT Kashmiri Gate -...</div>
-            </div>
-            <div class="pointbox">
-              <div class="pointlbl">Dropping</div>
-              <div class="pointval" title="Raison">Raison</div>
-            </div>
-          </div>
-
-          <!-- Rating ( rt) -->
-          
-          <div class="ratingrow">
-            <span class="rtnvlu ">★ 4.8</span>
-          </div>
-          
-
-          <!-- Amenities ( lstamenities) -->
-          
-          <ul class="busamnts">
-            
-            <li>Water Bottle</li>
-            
-            <li>First Aid Box</li>
-            
-            <li>CCTV</li>
-            
-            <li>Fire Extinguisher</li>
-            
-            
-            <li>+2 more</li>
-            
-          </ul>
-          
-
-          <!-- Features ( liveTrackingAvailable, mTicketEnabled) -->
-          
-          <div class="featuresrow">
-            
-            <span class="featuretag">Live Tracking</span>
-            
-            
-            <span class="featuretag">M-Ticket</span>
-            
-          </div>
-          
-
-
-          <!-- Footer: Book Button, Cancellation -->
-          <div class="busftr">
-            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
-
-
-            
-            <div class="cancelpolicy cancellable">Cancellation Available</div>
-            
-          </div>
-        </div>
-        
-        <div class="buscard item">
-          <!-- Header: Operator, Type, Tags, Price -->
-          <div class="buschdr">
-            <div class="businfo">
-              <div class="oprtname" title="IntrCity SmartBus">IntrCity SmartBus</div>
-              <div class="bustype" title="2+2(45)AC, Semi-Sleeper, Volvo...">2+2(45)AC, Semi-Sleeper, Volvo...</div>
-              <div class="bustags">
-                
-                <span class="bustag ac">AC</span>
-                
-                
-                
-                
-                <span class="bustag seater">Seater</span>
-                
-              </div>
-            </div>
-            <div class="busprcbx">
-              <div class="sbttl">starts from</div>
-              <div class="busprc">₹759</div>
-              
-              <div class="seatsleft">35 seats</div>
-              
-            </div>
-          </div>
-
-          <!-- Body: Timing -->
-          <div class="busbdy">
-            <div class="bustme">21:30</div>
-            <div class="jrny">
-              <div class="jrnttl">11h 10m</div>
-              <div class="j-br"></div>
-            </div>
-            <div class="bustme">08:40</div>
-          </div>
-
-          <!-- Boarding/Dropping Points ( bdPoints, dpPoints) -->
-          <div class="pointsrow">
-            <div class="pointbox">
-              <div class="pointlbl">Boarding</div>
-              <div class="pointval" title="ISBT Kashmiri Gate -...">ISBT Kashmiri Gate -...</div>
-            </div>
-            <div class="pointbox">
-              <div class="pointlbl">Dropping</div>
-              <div class="pointval" title="Raison">Raison</div>
-            </div>
-          </div>
-
-          <!-- Rating ( rt) -->
-          
-          <div class="ratingrow">
-            <span class="rtnvlu ">★ 4.8</span>
-          </div>
-          
-
-          <!-- Amenities ( lstamenities) -->
-          
-          <ul class="busamnts">
-            
-            <li>First Aid Box</li>
-            
-            <li>CCTV</li>
-            
-            <li>Fire Extinguisher</li>
-            
-            <li>Emergency Exit</li>
-            
-            
-            <li>+2 more</li>
-            
-          </ul>
-          
-
-          <!-- Features ( liveTrackingAvailable, mTicketEnabled) -->
-          
-          <div class="featuresrow">
-            
-            <span class="featuretag">Live Tracking</span>
-            
-            
-            <span class="featuretag">M-Ticket</span>
-            
-          </div>
-          
-
-
-          <!-- Footer: Book Button, Cancellation -->
-          <div class="busftr">
-            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
-
-
-            
-            <div class="cancelpolicy cancellable">Cancellation Available</div>
-            
-          </div>
-        </div>
-        
-        <div class="buscard item">
-          <!-- Header: Operator, Type, Tags, Price -->
-          <div class="buschdr">
-            <div class="businfo">
-              <div class="oprtname" title="IntrCity SmartBus">IntrCity SmartBus</div>
-              <div class="bustype" title="2+2(45)AC, Semi-Sleeper, Volvo">2+2(45)AC, Semi-Sleeper, Volvo</div>
-              <div class="bustags">
-                
-                <span class="bustag ac">AC</span>
-                
-                
-                
-                
-                <span class="bustag seater">Seater</span>
-                
-              </div>
-            </div>
-            <div class="busprcbx">
-              <div class="sbttl">starts from</div>
-              <div class="busprc">₹799</div>
-              
-              <div class="seatsleft">35 seats</div>
-              
-            </div>
-          </div>
-
-          <!-- Body: Timing -->
-          <div class="busbdy">
-            <div class="bustme">22:30</div>
-            <div class="jrny">
-              <div class="jrnttl">10h 45m</div>
-              <div class="j-br"></div>
-            </div>
-            <div class="bustme">09:15</div>
-          </div>
-
-          <!-- Boarding/Dropping Points ( bdPoints, dpPoints) -->
-          <div class="pointsrow">
-            <div class="pointbox">
-              <div class="pointlbl">Boarding</div>
-              <div class="pointval" title="ISBT Kashmiri Gate -...">ISBT Kashmiri Gate -...</div>
-            </div>
-            <div class="pointbox">
-              <div class="pointlbl">Dropping</div>
-              <div class="pointval" title="Raison">Raison</div>
-            </div>
-          </div>
-
-          <!-- Rating ( rt) -->
-          
-          <div class="ratingrow">
-            <span class="rtnvlu ">★ 4.8</span>
-          </div>
-          
-
-          <!-- Amenities ( lstamenities) -->
-          
-          <ul class="busamnts">
-            
-            <li>Water Bottle</li>
-            
-            <li>Charging Point</li>
-            
-            <li>First Aid Box</li>
-            
-            <li>CCTV</li>
-            
-            
-            <li>+3 more</li>
-            
-          </ul>
-          
-
-          <!-- Features ( liveTrackingAvailable, mTicketEnabled) -->
-          
-          <div class="featuresrow">
-            
-            <span class="featuretag">Live Tracking</span>
-            
-            
-            <span class="featuretag">M-Ticket</span>
-            
-          </div>
-          
-
-
-          <!-- Footer: Book Button, Cancellation -->
-          <div class="busftr">
-            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
-
-
-            
-            <div class="cancelpolicy cancellable">Cancellation Available</div>
-            
-          </div>
-        </div>
-        
-        
-        
-        <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=02-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="buscard item view-all-card">
-          <div class="view-all-content">
-            <div class="view-all-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef6614" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 8v8M8 12h8"></path>
-              </svg>
-            </div>
-            <div class="view-all-text">
-              <div class="view-all-title">View All 270 Buses</div>
+              <div class="view-all-title">View All 158 Buses</div>
               <div class="view-all-subtitle">See more options for this route</div>
             </div>
           </div>
@@ -1768,17 +801,16 @@
         
 
             <div class="test-section">
-                <div class="test-title">🪑 Seat Layout: IntrCity SmartBus</div>
+                <div class="test-title">🪑 Seat Layout: Shri Ram Transport Company</div>
                 <div class="test-meta">
-                    Status: <code>❌ Failed</code> |
-                    Bus ID: <code>NXS-391-8910-1005922-1006254-20260202</code> |
-                    Engine ID: <code>13</code><br>
-                    Total Seats: <code>0</code> |
-                    Available: <code>0</code>
+                    Status: <code>✅ Success</code> |
+                    Bus ID: <code>20260203246589</code> |
+                    Engine ID: <code>2</code><br>
+                    Total Seats: <code>5</code> |
+                    Available: <code>1</code>
                 </div>
                 
 <style>
-
 .seat-layout {
   font-family: poppins, sans-serif;
   max-width: 500px;
@@ -1828,21 +860,10 @@
   border-radius: 3px;
 }
 
-.seat-layout .info-dot.available {
-  background: #4caf50;
-}
-
-.seat-layout .info-dot.booked {
-  background: #9e9e9e;
-}
-
-.seat-layout .info-dot.ladies {
-  background: #e91e63;
-}
-
-.seat-layout .info-dot.selected {
-  background: #ef6614;
-}
+.seat-layout .info-dot.available { background: #4caf50; }
+.seat-layout .info-dot.booked { background: #9e9e9e; }
+.seat-layout .info-dot.ladies { background: #e91e63; }
+.seat-layout .info-dot.selected { background: #ef6614; }
 
 .seat-layout .deck-container {
   margin-bottom: 20px;
@@ -1888,54 +909,16 @@
   border: 2px solid transparent;
 }
 
-.seat-layout .seat.sleeper {
-  width: 72px;
-  height: 36px;
-}
+.seat-layout .seat.sleeper { width: 72px; height: 36px; }
+.seat-layout .seat.available { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
+.seat-layout .seat.available:hover { background: #c8e6c9; transform: scale(1.05); }
+.seat-layout .seat.booked { background: #eeeeee; color: #9e9e9e; cursor: not-allowed; }
+.seat-layout .seat.ladies { background: #fce4ec; color: #c2185b; border-color: #e91e63; }
+.seat-layout .seat.selected { background: #fff3e0; color: #e65100; border-color: #ef6614; box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3); }
+.seat-layout .seat.blocked { background: #ffebee; color: #c62828; cursor: not-allowed; }
+.seat-layout .seat.empty { visibility: hidden; }
 
-.seat-layout .seat.available {
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-color: #4caf50;
-}
-
-.seat-layout .seat.available:hover {
-  background: #c8e6c9;
-  transform: scale(1.05);
-}
-
-.seat-layout .seat.booked {
-  background: #eeeeee;
-  color: #9e9e9e;
-  cursor: not-allowed;
-}
-
-.seat-layout .seat.ladies {
-  background: #fce4ec;
-  color: #c2185b;
-  border-color: #e91e63;
-}
-
-.seat-layout .seat.selected {
-  background: #fff3e0;
-  color: #e65100;
-  border-color: #ef6614;
-  box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3);
-}
-
-.seat-layout .seat.blocked {
-  background: #ffebee;
-  color: #c62828;
-  cursor: not-allowed;
-}
-
-.seat-layout .seat.empty {
-  visibility: hidden;
-}
-
-.seat-layout .aisle {
-  width: 20px;
-}
+.seat-layout .aisle { width: 20px; }
 
 .seat-layout .driver-cabin {
   display: flex;
@@ -1955,11 +938,7 @@
   justify-content: center;
 }
 
-.seat-layout .driver-icon svg {
-  width: 24px;
-  height: 24px;
-  fill: #fff;
-}
+.seat-layout .driver-icon svg { width: 24px; height: 24px; fill: #fff; }
 
 .seat-layout .seat-summary {
   margin-top: 20px;
@@ -1998,62 +977,254 @@
   border-radius: 6px;
   border: 1px solid #ffe082;
 }
-
 </style>
-<div class='seat-layout'>
-  <div class='layout-empty'>
-    <p>Seat layout not available for this bus. This may be due to the bus operator not providing seat data through this API.</p>
-    <p class="layout-note">⚠️ Some bus operators do not provide seat layout data through the API. Please visit the EaseMyTrip website to select seats for this bus.</p>
+
+<div class="seat-layout">
+  <div class="layout-header">
+    <div class="layout-title">Shri Ram Transport Company - Seat Layout</div>
+    <div class="layout-subtitle">2+2, VE Eicher A/C Semi Sleeper, AC</div>
+    
+    <div class="layout-info">
+      <div class="info-item"><span class="info-dot available"></span><span>Available (1)</span></div>
+      <div class="info-item"><span class="info-dot booked"></span><span>Booked (4)</span></div>
+      <div class="info-item"><span class="info-dot ladies"></span><span>Ladies</span></div>
+    </div>
+  </div>
+
+  
+  <div class="deck-container">
+    <div class="deck-title">🚌 Lower Deck</div>
+    <div class="driver-cabin">
+      <div class="driver-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+      </div>
+    </div>
+    <div class="deck-grid">
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat booked" data-seat="45" data-fare="0" title="45 - ₹0">45</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat booked" data-seat="46" data-fare="0" title="46 - ₹0">46</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat booked" data-seat="47" data-fare="0" title="47 - ₹0">47</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat available" data-seat="48" data-fare="472" title="48 - ₹472">48</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat booked" data-seat="49" data-fare="0" title="49 - ₹0">49</div>
+        
+      </div>
+      
+    </div>
+  </div>
+  
+
+  
+
+  
+
+  <div class="seat-summary">
+    <div class="summary-row"><span>Total Seats</span><span>5</span></div>
+    <div class="summary-row"><span>Available</span><span>1</span></div>
+    <div class="summary-row"><span>Boarding</span><span>18374</span></div>
+    <div class="summary-row"><span>Dropping</span><span>5737</span></div>
   </div>
 </div>
-
-                <details>
-                    <summary style="cursor:pointer; color:#666; margin-top:15px;">View Raw API Response</summary>
-                    <div class="raw-response">
-                        <pre>{
-  "UpperShow": false,
-  "LowerShow": false,
-  "Lower": null,
-  "Upper": null,
-  "listBoardingPoint": [],
-  "listDropPoint": [],
-  "maxcolumn": 0,
-  "maxrow": 0,
-  "seatAcFare": 0,
-  "seatNacFare": 0,
-  "sleepAcFare": 0,
-  "sleepNacFare": 0,
-  "minFare": 0,
-  "maxFare": 0,
-  "cancelPolicyList": [],
-  "uniquefares": null,
-  "TraceId": "40a49bf6-8c80-4973-9dff-12af45e7673e",
-  "IsCovidSafe": false,
-  "cRate": 0.0,
-  "childCon": 0.0,
-  "fCon": false,
-  "vnCon": false,
-  "srcorder": null,
-  "dstorder": null,
-  "OperatorId": null
-}...</pre>
-                    </div>
-                </details>
             </div>
             
 
             <div class="test-section">
-                <div class="test-title">🪑 Seat Layout: IntrCity SmartBus</div>
+                <div class="test-title">🪑 Seat Layout: Deltin Travelss</div>
                 <div class="test-meta">
-                    Status: <code>❌ Failed</code> |
-                    Bus ID: <code>NXS-264-5503-1005922-1006254-20260202</code> |
-                    Engine ID: <code>13</code><br>
-                    Total Seats: <code>0</code> |
-                    Available: <code>0</code>
+                    Status: <code>✅ Success</code> |
+                    Bus ID: <code>20260203138022</code> |
+                    Engine ID: <code>2</code><br>
+                    Total Seats: <code>5</code> |
+                    Available: <code>1</code>
                 </div>
                 
 <style>
-
 .seat-layout {
   font-family: poppins, sans-serif;
   max-width: 500px;
@@ -2103,21 +1274,10 @@
   border-radius: 3px;
 }
 
-.seat-layout .info-dot.available {
-  background: #4caf50;
-}
-
-.seat-layout .info-dot.booked {
-  background: #9e9e9e;
-}
-
-.seat-layout .info-dot.ladies {
-  background: #e91e63;
-}
-
-.seat-layout .info-dot.selected {
-  background: #ef6614;
-}
+.seat-layout .info-dot.available { background: #4caf50; }
+.seat-layout .info-dot.booked { background: #9e9e9e; }
+.seat-layout .info-dot.ladies { background: #e91e63; }
+.seat-layout .info-dot.selected { background: #ef6614; }
 
 .seat-layout .deck-container {
   margin-bottom: 20px;
@@ -2163,54 +1323,16 @@
   border: 2px solid transparent;
 }
 
-.seat-layout .seat.sleeper {
-  width: 72px;
-  height: 36px;
-}
+.seat-layout .seat.sleeper { width: 72px; height: 36px; }
+.seat-layout .seat.available { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
+.seat-layout .seat.available:hover { background: #c8e6c9; transform: scale(1.05); }
+.seat-layout .seat.booked { background: #eeeeee; color: #9e9e9e; cursor: not-allowed; }
+.seat-layout .seat.ladies { background: #fce4ec; color: #c2185b; border-color: #e91e63; }
+.seat-layout .seat.selected { background: #fff3e0; color: #e65100; border-color: #ef6614; box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3); }
+.seat-layout .seat.blocked { background: #ffebee; color: #c62828; cursor: not-allowed; }
+.seat-layout .seat.empty { visibility: hidden; }
 
-.seat-layout .seat.available {
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-color: #4caf50;
-}
-
-.seat-layout .seat.available:hover {
-  background: #c8e6c9;
-  transform: scale(1.05);
-}
-
-.seat-layout .seat.booked {
-  background: #eeeeee;
-  color: #9e9e9e;
-  cursor: not-allowed;
-}
-
-.seat-layout .seat.ladies {
-  background: #fce4ec;
-  color: #c2185b;
-  border-color: #e91e63;
-}
-
-.seat-layout .seat.selected {
-  background: #fff3e0;
-  color: #e65100;
-  border-color: #ef6614;
-  box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3);
-}
-
-.seat-layout .seat.blocked {
-  background: #ffebee;
-  color: #c62828;
-  cursor: not-allowed;
-}
-
-.seat-layout .seat.empty {
-  visibility: hidden;
-}
-
-.seat-layout .aisle {
-  width: 20px;
-}
+.seat-layout .aisle { width: 20px; }
 
 .seat-layout .driver-cabin {
   display: flex;
@@ -2230,11 +1352,7 @@
   justify-content: center;
 }
 
-.seat-layout .driver-icon svg {
-  width: 24px;
-  height: 24px;
-  fill: #fff;
-}
+.seat-layout .driver-icon svg { width: 24px; height: 24px; fill: #fff; }
 
 .seat-layout .seat-summary {
   margin-top: 20px;
@@ -2273,62 +1391,269 @@
   border-radius: 6px;
   border: 1px solid #ffe082;
 }
-
 </style>
-<div class='seat-layout'>
-  <div class='layout-empty'>
-    <p>Seat layout not available for this bus. This may be due to the bus operator not providing seat data through this API.</p>
-    <p class="layout-note">⚠️ Some bus operators do not provide seat layout data through the API. Please visit the EaseMyTrip website to select seats for this bus.</p>
+
+<div class="seat-layout">
+  <div class="layout-header">
+    <div class="layout-title">Deltin Travelss - Seat Layout</div>
+    <div class="layout-subtitle">2+2, Scania MultiAxle Semi Sleeper, AC, Non</div>
+    
+    <div class="layout-info">
+      <div class="info-item"><span class="info-dot available"></span><span>Available (1)</span></div>
+      <div class="info-item"><span class="info-dot booked"></span><span>Booked (4)</span></div>
+      <div class="info-item"><span class="info-dot ladies"></span><span>Ladies</span></div>
+    </div>
+  </div>
+
+  
+  <div class="deck-container">
+    <div class="deck-title">🚌 Lower Deck</div>
+    <div class="driver-cabin">
+      <div class="driver-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+      </div>
+    </div>
+    <div class="deck-grid">
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat booked" data-seat="13A" data-fare="0" title="13A - ₹0">13A</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat booked" data-seat="13B" data-fare="0" title="13B - ₹0">13B</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat booked" data-seat="13C" data-fare="0" title="13C - ₹0">13C</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat booked" data-seat="13D" data-fare="0" title="13D - ₹0">13D</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat ladies" data-seat="13E" data-fare="684" title="13E - ₹684">13E</div>
+        
+      </div>
+      
+    </div>
+  </div>
+  
+
+  
+
+  
+
+  <div class="seat-summary">
+    <div class="summary-row"><span>Total Seats</span><span>5</span></div>
+    <div class="summary-row"><span>Available</span><span>1</span></div>
+    <div class="summary-row"><span>Boarding</span><span>1508</span></div>
+    <div class="summary-row"><span>Dropping</span><span>6341</span></div>
   </div>
 </div>
-
-                <details>
-                    <summary style="cursor:pointer; color:#666; margin-top:15px;">View Raw API Response</summary>
-                    <div class="raw-response">
-                        <pre>{
-  "UpperShow": false,
-  "LowerShow": false,
-  "Lower": null,
-  "Upper": null,
-  "listBoardingPoint": [],
-  "listDropPoint": [],
-  "maxcolumn": 0,
-  "maxrow": 0,
-  "seatAcFare": 0,
-  "seatNacFare": 0,
-  "sleepAcFare": 0,
-  "sleepNacFare": 0,
-  "minFare": 0,
-  "maxFare": 0,
-  "cancelPolicyList": [],
-  "uniquefares": null,
-  "TraceId": "fb9d9851-8e41-4c6f-9d08-0b8ca0b2583e",
-  "IsCovidSafe": false,
-  "cRate": 0.0,
-  "childCon": 0.0,
-  "fCon": false,
-  "vnCon": false,
-  "srcorder": null,
-  "dstorder": null,
-  "OperatorId": null
-}...</pre>
-                    </div>
-                </details>
             </div>
             
 
             <div class="test-section">
-                <div class="test-title">🪑 Seat Layout: IntrCity SmartBus</div>
+                <div class="test-title">🪑 Seat Layout: CITY LAND TOURS & TRAVELS PRIV</div>
                 <div class="test-meta">
-                    Status: <code>❌ Failed</code> |
-                    Bus ID: <code>NXS-39-105-1005922-1006254-20260202</code> |
-                    Engine ID: <code>13</code><br>
-                    Total Seats: <code>0</code> |
-                    Available: <code>0</code>
+                    Status: <code>✅ Success</code> |
+                    Bus ID: <code>2026020313777</code> |
+                    Engine ID: <code>2</code><br>
+                    Total Seats: <code>5</code> |
+                    Available: <code>5</code>
                 </div>
                 
 <style>
-
 .seat-layout {
   font-family: poppins, sans-serif;
   max-width: 500px;
@@ -2378,21 +1703,10 @@
   border-radius: 3px;
 }
 
-.seat-layout .info-dot.available {
-  background: #4caf50;
-}
-
-.seat-layout .info-dot.booked {
-  background: #9e9e9e;
-}
-
-.seat-layout .info-dot.ladies {
-  background: #e91e63;
-}
-
-.seat-layout .info-dot.selected {
-  background: #ef6614;
-}
+.seat-layout .info-dot.available { background: #4caf50; }
+.seat-layout .info-dot.booked { background: #9e9e9e; }
+.seat-layout .info-dot.ladies { background: #e91e63; }
+.seat-layout .info-dot.selected { background: #ef6614; }
 
 .seat-layout .deck-container {
   margin-bottom: 20px;
@@ -2438,54 +1752,16 @@
   border: 2px solid transparent;
 }
 
-.seat-layout .seat.sleeper {
-  width: 72px;
-  height: 36px;
-}
+.seat-layout .seat.sleeper { width: 72px; height: 36px; }
+.seat-layout .seat.available { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
+.seat-layout .seat.available:hover { background: #c8e6c9; transform: scale(1.05); }
+.seat-layout .seat.booked { background: #eeeeee; color: #9e9e9e; cursor: not-allowed; }
+.seat-layout .seat.ladies { background: #fce4ec; color: #c2185b; border-color: #e91e63; }
+.seat-layout .seat.selected { background: #fff3e0; color: #e65100; border-color: #ef6614; box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3); }
+.seat-layout .seat.blocked { background: #ffebee; color: #c62828; cursor: not-allowed; }
+.seat-layout .seat.empty { visibility: hidden; }
 
-.seat-layout .seat.available {
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-color: #4caf50;
-}
-
-.seat-layout .seat.available:hover {
-  background: #c8e6c9;
-  transform: scale(1.05);
-}
-
-.seat-layout .seat.booked {
-  background: #eeeeee;
-  color: #9e9e9e;
-  cursor: not-allowed;
-}
-
-.seat-layout .seat.ladies {
-  background: #fce4ec;
-  color: #c2185b;
-  border-color: #e91e63;
-}
-
-.seat-layout .seat.selected {
-  background: #fff3e0;
-  color: #e65100;
-  border-color: #ef6614;
-  box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3);
-}
-
-.seat-layout .seat.blocked {
-  background: #ffebee;
-  color: #c62828;
-  cursor: not-allowed;
-}
-
-.seat-layout .seat.empty {
-  visibility: hidden;
-}
-
-.seat-layout .aisle {
-  width: 20px;
-}
+.seat-layout .aisle { width: 20px; }
 
 .seat-layout .driver-cabin {
   display: flex;
@@ -2505,11 +1781,7 @@
   justify-content: center;
 }
 
-.seat-layout .driver-icon svg {
-  width: 24px;
-  height: 24px;
-  fill: #fff;
-}
+.seat-layout .driver-icon svg { width: 24px; height: 24px; fill: #fff; }
 
 .seat-layout .seat-summary {
   margin-top: 20px;
@@ -2548,58 +1820,218 @@
   border-radius: 6px;
   border: 1px solid #ffe082;
 }
-
 </style>
-<div class='seat-layout'>
-  <div class='layout-empty'>
-    <p>Seat layout not available for this bus. This may be due to the bus operator not providing seat data through this API.</p>
-    <p class="layout-note">⚠️ Some bus operators do not provide seat layout data through the API. Please visit the EaseMyTrip website to select seats for this bus.</p>
+
+<div class="seat-layout">
+  <div class="layout-header">
+    <div class="layout-title">CITY LAND TOURS & TRAVELS PRIVATE LIMITED - Seat Layout</div>
+    <div class="layout-subtitle">2+2, Volvo Semi Sleeper, AC, Video</div>
+    
+    <div class="layout-info">
+      <div class="info-item"><span class="info-dot available"></span><span>Available (5)</span></div>
+      <div class="info-item"><span class="info-dot booked"></span><span>Booked (0)</span></div>
+      <div class="info-item"><span class="info-dot ladies"></span><span>Ladies</span></div>
+    </div>
+  </div>
+
+  
+  <div class="deck-container">
+    <div class="deck-title">🚌 Lower Deck</div>
+    <div class="driver-cabin">
+      <div class="driver-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+      </div>
+    </div>
+    <div class="deck-grid">
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat available" data-seat="41" data-fare="744" title="41 - ₹744">41</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat available" data-seat="40" data-fare="744" title="40 - ₹744">40</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat available" data-seat="39" data-fare="630" title="39 - ₹630">39</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat available" data-seat="38" data-fare="744" title="38 - ₹744">38</div>
+        
+      </div>
+      
+      <div class="seat-row">
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat empty"></div>
+          
+        
+          <div class="seat available" data-seat="37" data-fare="744" title="37 - ₹744">37</div>
+        
+      </div>
+      
+    </div>
+  </div>
+  
+
+  
+
+  
+
+  <div class="seat-summary">
+    <div class="summary-row"><span>Total Seats</span><span>5</span></div>
+    <div class="summary-row"><span>Available</span><span>5</span></div>
+    <div class="summary-row"><span>Boarding</span><span>18374</span></div>
+    <div class="summary-row"><span>Dropping</span><span>376466</span></div>
   </div>
 </div>
-
-                <details>
-                    <summary style="cursor:pointer; color:#666; margin-top:15px;">View Raw API Response</summary>
-                    <div class="raw-response">
-                        <pre>{
-  "UpperShow": false,
-  "LowerShow": false,
-  "Lower": null,
-  "Upper": null,
-  "listBoardingPoint": [],
-  "listDropPoint": [],
-  "maxcolumn": 0,
-  "maxrow": 0,
-  "seatAcFare": 0,
-  "seatNacFare": 0,
-  "sleepAcFare": 0,
-  "sleepNacFare": 0,
-  "minFare": 0,
-  "maxFare": 0,
-  "cancelPolicyList": [],
-  "uniquefares": null,
-  "TraceId": "026db4cd-982d-4af2-b965-dda79e15d3aa",
-  "IsCovidSafe": false,
-  "cRate": 0.0,
-  "childCon": 0.0,
-  "fCon": false,
-  "vnCon": false,
-  "srcorder": null,
-  "dstorder": null,
-  "OperatorId": null
-}...</pre>
-                    </div>
-                </details>
             </div>
             
 
     <div class="test-section">
         <div class="test-title">⚠️ Seat Layout Error State</div>
-        <div class="test-meta">
-            Testing error message rendering when seat layout is unavailable
-        </div>
+        <div class="test-meta">Testing error message rendering</div>
         
 <style>
-
 .seat-layout {
   font-family: poppins, sans-serif;
   max-width: 500px;
@@ -2649,21 +2081,10 @@
   border-radius: 3px;
 }
 
-.seat-layout .info-dot.available {
-  background: #4caf50;
-}
-
-.seat-layout .info-dot.booked {
-  background: #9e9e9e;
-}
-
-.seat-layout .info-dot.ladies {
-  background: #e91e63;
-}
-
-.seat-layout .info-dot.selected {
-  background: #ef6614;
-}
+.seat-layout .info-dot.available { background: #4caf50; }
+.seat-layout .info-dot.booked { background: #9e9e9e; }
+.seat-layout .info-dot.ladies { background: #e91e63; }
+.seat-layout .info-dot.selected { background: #ef6614; }
 
 .seat-layout .deck-container {
   margin-bottom: 20px;
@@ -2709,54 +2130,16 @@
   border: 2px solid transparent;
 }
 
-.seat-layout .seat.sleeper {
-  width: 72px;
-  height: 36px;
-}
+.seat-layout .seat.sleeper { width: 72px; height: 36px; }
+.seat-layout .seat.available { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
+.seat-layout .seat.available:hover { background: #c8e6c9; transform: scale(1.05); }
+.seat-layout .seat.booked { background: #eeeeee; color: #9e9e9e; cursor: not-allowed; }
+.seat-layout .seat.ladies { background: #fce4ec; color: #c2185b; border-color: #e91e63; }
+.seat-layout .seat.selected { background: #fff3e0; color: #e65100; border-color: #ef6614; box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3); }
+.seat-layout .seat.blocked { background: #ffebee; color: #c62828; cursor: not-allowed; }
+.seat-layout .seat.empty { visibility: hidden; }
 
-.seat-layout .seat.available {
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-color: #4caf50;
-}
-
-.seat-layout .seat.available:hover {
-  background: #c8e6c9;
-  transform: scale(1.05);
-}
-
-.seat-layout .seat.booked {
-  background: #eeeeee;
-  color: #9e9e9e;
-  cursor: not-allowed;
-}
-
-.seat-layout .seat.ladies {
-  background: #fce4ec;
-  color: #c2185b;
-  border-color: #e91e63;
-}
-
-.seat-layout .seat.selected {
-  background: #fff3e0;
-  color: #e65100;
-  border-color: #ef6614;
-  box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3);
-}
-
-.seat-layout .seat.blocked {
-  background: #ffebee;
-  color: #c62828;
-  cursor: not-allowed;
-}
-
-.seat-layout .seat.empty {
-  visibility: hidden;
-}
-
-.seat-layout .aisle {
-  width: 20px;
-}
+.seat-layout .aisle { width: 20px; }
 
 .seat-layout .driver-cabin {
   display: flex;
@@ -2776,11 +2159,7 @@
   justify-content: center;
 }
 
-.seat-layout .driver-icon svg {
-  width: 24px;
-  height: 24px;
-  fill: #fff;
-}
+.seat-layout .driver-icon svg { width: 24px; height: 24px; fill: #fff; }
 
 .seat-layout .seat-summary {
   margin-top: 20px;
@@ -2819,7 +2198,6 @@
   border-radius: 6px;
   border: 1px solid #ffe082;
 }
-
 </style>
 <div class='seat-layout'>
   <div class='layout-empty'>

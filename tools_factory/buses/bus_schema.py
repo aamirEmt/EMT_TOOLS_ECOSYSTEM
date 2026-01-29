@@ -1,18 +1,48 @@
+"""
+Bus Search Schema Definitions.
+
+Pydantic models for bus search input/output validation.
+Supports both city IDs and city names (auto-resolved via autosuggest API).
+"""
+
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
+
 class BusSearchInput(BaseModel):
-    source_id: str = Field(
-        ...,
+    """
+    Input schema for bus search.
+    
+    Supports both city IDs and city names:
+    - source_id: "733" or source_name: "Delhi"
+    - destination_id: "757" or destination_name: "Manali"
+    """
+    
+    # City ID fields (legacy support)
+    source_id: Optional[str] = Field(
+        None,
         alias="sourceId",
-        description="Source city ID (e.g., '733' for Delhi)",
+        description="Source city ID (e.g., '733' for Delhi). Use source_name for city name lookup.",
     )
-    destination_id: str = Field(
-        ...,
+    destination_id: Optional[str] = Field(
+        None,
         alias="destinationId",
-        description="Destination city ID (e.g., '757' for Manali)",
+        description="Destination city ID (e.g., '757' for Manali). Use destination_name for city name lookup.",
     )
+    
+    # City Name fields (new - auto-resolved to IDs)
+    source_name: Optional[str] = Field(
+        None,
+        alias="sourceName",
+        description="Source city name (e.g., 'Delhi'). Will be auto-resolved to city ID.",
+    )
+    destination_name: Optional[str] = Field(
+        None,
+        alias="destinationName",
+        description="Destination city name (e.g., 'Manali'). Will be auto-resolved to city ID.",
+    )
+    
     journey_date: str = Field(
         ...,
         alias="journeyDate",
@@ -40,21 +70,29 @@ class BusSearchInput(BaseModel):
             raise ValueError("Date must be in YYYY-MM-DD format")
         return v
 
+
 class BoardingPoint(BaseModel):
+    """Boarding point information from API response."""
+    
     bd_id: str = Field(..., alias="bdid")
-    bd_long_name: str = Field(..., alias="bdLongName")
+    bd_long_name: str = Field("", alias="bdLongName")
     bd_location: Optional[str] = Field(None, alias="bdlocation")
+    bd_point: Optional[str] = Field(None, alias="bdPoint")
     landmark: Optional[str] = None
     time: Optional[str] = None
     contact_number: Optional[str] = Field(None, alias="contactNumber")
     latitude: Optional[str] = None
     longitude: Optional[str] = None
+    bording_date: Optional[str] = Field(None, alias="bordingDate")
 
     model_config = ConfigDict(populate_by_name=True)
 
+
 class DroppingPoint(BaseModel):
+    """Dropping point information from API response."""
+    
     dp_id: str = Field(..., alias="dpId")
-    dp_name: str = Field(..., alias="dpName")
+    dp_name: str = Field("", alias="dpName")
     location: Optional[str] = Field(None, alias="locatoin")  # Note: API has typo "locatoin"
     dp_time: Optional[str] = Field(None, alias="dpTime")
     contact_number: Optional[str] = Field(None, alias="contactNumber")
@@ -64,7 +102,10 @@ class DroppingPoint(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
+
 class CancellationPolicy(BaseModel):
+    """Cancellation policy information."""
+    
     time_from: int = Field(..., alias="timeFrom")
     time_to: int = Field(..., alias="timeTo")
     percentage_charge: float = Field(..., alias="percentageCharge")
@@ -73,53 +114,73 @@ class CancellationPolicy(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
+
 class Amenity(BaseModel):
+    """Bus amenity information."""
+    
     id: int
     name: str
 
+
 class BusInfo(BaseModel):
-    bus_id: str 
-    operator_name: str  
-    bus_type: str 
-    departure_time: str  
-    arrival_time: str  
-    duration: str  
-    available_seats: str 
-    price: str  
-    fares: List[str]  
-    is_ac: bool 
-    is_non_ac: bool 
-    is_volvo: bool  
-    is_seater: bool  
-    is_sleeper: bool 
-    is_semi_sleeper: bool  
-    rating: Optional[str] = None 
-    live_tracking_available: bool 
-    is_cancellable: bool  
-    m_ticket_enabled: str  
-    departure_date: str  
-    arrival_date: str  
+    """Complete bus information from search results."""
+    
+    bus_id: str
+    operator_name: str
+    operator_id: str
+    bus_type: str
+    departure_time: str
+    arrival_time: str
+    duration: str
+    available_seats: str
+    price: str
+    fares: List[str]
+    is_ac: bool
+    is_non_ac: bool
+    is_volvo: bool
+    is_seater: bool
+    is_sleeper: bool
+    is_semi_sleeper: bool
+    rating: Optional[str] = None
+    live_tracking_available: bool
+    is_cancellable: bool
+    m_ticket_enabled: str
+    departure_date: str
+    arrival_date: str
     route_id: str
-    operator_id: str  
-    engine_id: int  
-    boarding_points: List[BoardingPoint]  
-    dropping_points: List[DroppingPoint]  
-    amenities: List[str]  
-    cancellation_policy: List[CancellationPolicy] 
+    engine_id: int
+    trace_id: Optional[str] = None
+    boarding_points: List[BoardingPoint]
+    dropping_points: List[DroppingPoint]
+    amenities: List[str]
+    cancellation_policy: List[CancellationPolicy]
     book_now: Optional[str] = None
 
+
 class WhatsappBusFormat(BaseModel):
+    """WhatsApp response format for bus collection."""
+    
     type: str = "bus_collection"
     options: list
     journey_type: str = "bus"
     currency: str = "INR"
     view_all_buses_url: str = ""
 
+
 class WhatsappBusFinalResponse(BaseModel):
+    """Final WhatsApp response structure."""
+    
     response_text: str
     whatsapp_json: WhatsappBusFormat
 
+
 class SeatBindInput(BaseModel):
+    """
+    Input schema for seat layout/bind API.
+    
+    Requires bus details from search results plus selected boarding/dropping points.
+    """
+    
     source_id: str = Field(
         ...,
         alias="sourceId",
@@ -129,6 +190,16 @@ class SeatBindInput(BaseModel):
         ...,
         alias="destinationId",
         description="Destination city ID (e.g., '757' for Manali)",
+    )
+    source_name: Optional[str] = Field(
+        None,
+        alias="sourceName",
+        description="Source city name",
+    )
+    destination_name: Optional[str] = Field(
+        None,
+        alias="destinationName",
+        description="Destination city name",
     )
     journey_date: str = Field(
         ...,
@@ -148,7 +219,12 @@ class SeatBindInput(BaseModel):
     engine_id: int = Field(
         ...,
         alias="engineId",
-        description="Engine ID from search results (e.g., 4 for RedBus, 7 for VRL)",
+        description="Engine ID from search results (e.g., 2, 4, 7)",
+    )
+    operator_id: Optional[str] = Field(
+        None,
+        alias="operatorId",
+        description="Operator ID from search results",
     )
     boarding_point_id: str = Field(
         ...,
@@ -159,6 +235,47 @@ class SeatBindInput(BaseModel):
         ...,
         alias="droppingPointId",
         description="Selected dropping point ID from dpPoints",
+    )
+    # Additional fields for new SeatBind API
+    bus_type: Optional[str] = Field(
+        None,
+        alias="busType",
+        description="Bus type string",
+    )
+    operator_name: Optional[str] = Field(
+        None,
+        alias="operatorName",
+        description="Operator/Travel name",
+    )
+    departure_time: Optional[str] = Field(
+        None,
+        alias="departureTime",
+        description="Departure time",
+    )
+    arrival_time: Optional[str] = Field(
+        None,
+        alias="arrivalTime",
+        description="Arrival time",
+    )
+    duration: Optional[str] = Field(
+        None,
+        alias="duration",
+        description="Journey duration",
+    )
+    trace_id: Optional[str] = Field(
+        None,
+        alias="traceId",
+        description="Trace ID from search results",
+    )
+    is_seater: Optional[bool] = Field(
+        True,
+        alias="isSeater",
+        description="Has seater seats",
+    )
+    is_sleeper: Optional[bool] = Field(
+        True,
+        alias="isSleeper",
+        description="Has sleeper seats",
     )
 
     model_config = ConfigDict(
@@ -177,29 +294,40 @@ class SeatBindInput(BaseModel):
             raise ValueError("Date must be in YYYY-MM-DD format")
         return v
 
+
 class SeatInfo(BaseModel):
-    seat_number: str  
-    seat_name: str  
-    seat_type: str 
-    seat_status: str  
-    is_available: bool  
-    is_ladies: bool  
-    fare: str  
-    row: int  
-    column: int  
-    deck: str  
-    width: int = 1  
-    length: int = 1  
+    """Individual seat information from seat layout."""
+    
+    seat_number: str
+    seat_name: str
+    seat_type: str
+    seat_status: str
+    is_available: bool
+    is_ladies: bool
+    fare: str
+    row: int
+    column: int
+    deck: str
+    width: int = 1
+    length: int = 1
     is_booked: bool = False
     is_blocked: bool = False
+    gender: Optional[str] = None
+    encrypted_seat: Optional[str] = None
 
-class DeckLayout(BaseModel):   
-    deck_name: str  
-    rows: int 
-    columns: int  
-    seats: List[SeatInfo] 
 
-class SeatLayoutInfo(BaseModel):    
+class DeckLayout(BaseModel):
+    """Deck layout with seat grid."""
+    
+    deck_name: str
+    rows: int
+    columns: int
+    seats: List[SeatInfo]
+
+
+class SeatLayoutInfo(BaseModel):
+    """Complete seat layout information."""
+    
     bus_id: str
     bus_type: str
     operator_name: str
@@ -214,8 +342,11 @@ class SeatLayoutInfo(BaseModel):
     dropping_time: str
     fare_details: List[Dict[str, Any]] = []
 
-class SeatLayoutResponse(BaseModel):    
+
+class SeatLayoutResponse(BaseModel):
+    """Seat layout API response."""
+    
     success: bool
     message: str
     layout: Optional[SeatLayoutInfo] = None
-    raw_response: Optional[Dict[str, Any]] = None  
+    raw_response: Optional[Dict[str, Any]] = None

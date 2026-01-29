@@ -1,6 +1,18 @@
+"""
+Bus Search Service.
+
+Handles bus search and seat layout API calls with:
+- New API endpoints (busservice.easemytrip.com)
+- City name to ID resolution via autosuggest
+- Rating normalization
+- View All link generation
+"""
+
+import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from emt_client.clients.bus_client import BusApiClient
+import aiohttp
+
 from .bus_schema import (
     BusSearchInput,
     BusInfo,
@@ -10,32 +22,46 @@ from .bus_schema import (
     WhatsappBusFormat,
     WhatsappBusFinalResponse,
 )
+from .bus_crypto import get_city_info, resolve_city_names_to_ids
 
-BUS_API_URL = "http://busapi.easemytrip.com/v1/api/detail/List/"
+# ============================================================================
+# API ENDPOINTS (NEW)
+# ============================================================================
 
-BUS_API_KEY = "dsasa4gfdg4543gfdg6ghgf45325gfd"
+# New Search API endpoint
+BUS_SEARCH_URL = "https://busservice.easemytrip.com/v1/api/Home/GetSearchResult/"
 
-CITY_ID_TO_NAME = {
-    "733": "Delhi",
-    "757": "Manali",
-    "1": "Mumbai",
-    "2": "Bangalore",
-    "3": "Chennai",
-    "4": "Kolkata",
-    "5": "Hyderabad",
-    "6": "Pune",
-    "7": "Ahmedabad",
-    "8": "Jaipur",
-    "9": "Lucknow",
-    "10": "Chandigarh",
-}
+# New SeatBind API endpoint
+SEAT_BIND_URL = "https://bus.easemytrip.com/Home/SeatBind/"
+
+# Deeplink base URL
+BUS_DEEPLINK_BASE = "https://bus.easemytrip.com/home/list"
 
 
-def _get_city_name(city_id: str) -> str:
-    return CITY_ID_TO_NAME.get(city_id, city_id)
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+def _generate_session_id() -> str:
+    """Generate a unique session ID (Sid) for API calls."""
+    return uuid.uuid4().hex
+
+
+def _generate_visitor_id() -> str:
+    """Generate a unique visitor ID (Vid) for API calls."""
+    return uuid.uuid4().hex
 
 
 def _convert_date_to_api_format(date_str: str) -> str:
+    """
+    Convert date from YYYY-MM-DD to dd-MM-yyyy format for API.
+    
+    Args:
+        date_str: Date in YYYY-MM-DD format
+        
+    Returns:
+        Date in dd-MM-yyyy format
+    """
     try:
         dt = datetime.strptime(date_str, "%Y-%m-%d")
         return dt.strftime("%d-%m-%Y")
@@ -43,49 +69,90 @@ def _convert_date_to_api_format(date_str: str) -> str:
         return date_str
 
 
+def _normalize_rating(rating_value: Any) -> Optional[str]:
+    """
+    Normalize rating from API (0-50 scale) to display format (0-5 scale).
+    
+    Handles:
+    - "45" -> "4.5"
+    - 45 -> "4.5"
+    - "4.5" -> "4.5"
+    - 0 or None -> None (don't display)
+    
+    Args:
+        rating_value: Raw rating from API
+        
+    Returns:
+        Normalized rating string or None
+    """
+    if rating_value is None or rating_value == "" or rating_value == 0:
+        return None
+    
+    try:
+        rating_float = float(rating_value)
+        
+        # If rating > 5, assume it's on 0-50 scale and normalize
+        if rating_float > 5:
+            rating_float = rating_float / 10
+        
+        # Validate range
+        if rating_float < 0 or rating_float > 5:
+            return None
+        
+        # Don't show 0 ratings
+        if rating_float == 0:
+            return None
+        
+        # Format: whole number or one decimal
+        if rating_float == int(rating_float):
+            return str(int(rating_float))
+        return f"{rating_float:.1f}"
+        
+    except (ValueError, TypeError):
+        return None
+
+
 def _build_bus_listing_url(
     source_id: str,
     destination_id: str,
     journey_date: str,
-    source_name: str = None,
-    destination_name: str = None,
+    source_name: str = "",
+    destination_name: str = "",
 ) -> str:
+    """
+    Build the EaseMyTrip bus listing URL for View All link.
+    
+    Args:
+        source_id: Source city ID
+        destination_id: Destination city ID
+        journey_date: Journey date in YYYY-MM-DD format
+        source_name: Source city name
+        destination_name: Destination city name
+        
+    Returns:
+        Full URL to bus listing page
+    """
     date_formatted = _convert_date_to_api_format(journey_date)
     
-    org_name = source_name or _get_city_name(source_id)
-    des_name = destination_name or _get_city_name(destination_id)
+    org_name = source_name or source_id
+    des_name = destination_name or destination_id
     
     return (
-        f"https://bus.easemytrip.com/home/list"
+        f"{BUS_DEEPLINK_BASE}"
         f"?org={org_name}&des={des_name}&date={date_formatted}"
         f"&searchid={source_id}_{destination_id}&CCode=IN&AppCode=Emt"
     )
 
 
-def _build_bus_deeplink(
-    source_id: str,
-    destination_id: str,
-    journey_date: str,
-    bus_id: str,
-    source_name: str = None,
-    destination_name: str = None,
-) -> str:
-    return _build_bus_listing_url(
-        source_id=source_id,
-        destination_id=destination_id,
-        journey_date=journey_date,
-        source_name=source_name,
-        destination_name=destination_name,
-    )
-
-
 def _extract_amenities(lst_amenities: List[Dict[str, Any]]) -> List[str]:
+    """Extract amenity names from API response."""
     if not lst_amenities:
         return []
     return [amenity.get("name", "") for amenity in lst_amenities if amenity.get("name")]
 
 
 def _process_boarding_points(bd_points: List[Dict[str, Any]]) -> List[BoardingPoint]:
+    """Process boarding points from API response."""
     if not bd_points:
         return []
     
@@ -94,13 +161,15 @@ def _process_boarding_points(bd_points: List[Dict[str, Any]]) -> List[BoardingPo
         try:
             processed.append(BoardingPoint(
                 bdid=bp.get("bdid", ""),
-                bdLongName=bp.get("bdLongName", ""),
+                bdLongName=bp.get("bdLongName", "") or bp.get("bdPoint", ""),
                 bdlocation=bp.get("bdlocation"),
+                bdPoint=bp.get("bdPoint"),
                 landmark=bp.get("landmark"),
                 time=bp.get("time"),
                 contactNumber=bp.get("contactNumber"),
                 latitude=bp.get("latitude"),
                 longitude=bp.get("longitude"),
+                bordingDate=bp.get("bordingDate"),
             ))
         except Exception:
             continue
@@ -108,6 +177,7 @@ def _process_boarding_points(bd_points: List[Dict[str, Any]]) -> List[BoardingPo
 
 
 def _process_dropping_points(dp_points: List[Dict[str, Any]]) -> List[DroppingPoint]:
+    """Process dropping points from API response."""
     if not dp_points:
         return []
     
@@ -115,10 +185,10 @@ def _process_dropping_points(dp_points: List[Dict[str, Any]]) -> List[DroppingPo
     for dp in dp_points:
         try:
             processed.append(DroppingPoint(
-                dpId=dp.get("dpId", ""),
-                dpName=dp.get("dpName", ""),
-                locatoin=dp.get("locatoin"),  # Note: API has typo "locatoin"
-                dpTime=dp.get("dpTime"),
+                dpId=dp.get("dpId", "") or dp.get("dpid", ""),
+                dpName=dp.get("dpName", "") or dp.get("dpPoint", ""),
+                locatoin=dp.get("locatoin") or dp.get("location"),
+                dpTime=dp.get("dpTime") or dp.get("time"),
                 contactNumber=dp.get("contactNumber"),
                 landmark=dp.get("landmark"),
                 latitude=dp.get("latitude"),
@@ -130,6 +200,7 @@ def _process_dropping_points(dp_points: List[Dict[str, Any]]) -> List[DroppingPo
 
 
 def _process_cancellation_policy(cancel_policy_list: List[Dict[str, Any]]) -> List[CancellationPolicy]:
+    """Process cancellation policy from API response."""
     if not cancel_policy_list:
         return []
     
@@ -153,60 +224,76 @@ def _process_single_bus(
     source_id: str,
     destination_id: str,
     journey_date: str,
-    source_name: str = None,
-    destination_name: str = None,
+    source_name: str = "",
+    destination_name: str = "",
     filter_volvo: Optional[bool] = None,
 ) -> Optional[BusInfo]:
+    """
+    Process a single bus from API response.
+    
+    Handles the new API response format from GetSearchResult.
+    """
     is_volvo = bus.get("isVolvo", False)
     if filter_volvo is True and not is_volvo:
         return None
 
     bus_id = str(bus.get("id", ""))
     
-    book_now = _build_bus_deeplink(
+    # Build deeplink to listing page
+    book_now = _build_bus_listing_url(
         source_id=source_id,
         destination_id=destination_id,
         journey_date=journey_date,
-        bus_id=bus_id,
         source_name=source_name,
         destination_name=destination_name,
     )
 
+    # Process boarding/dropping points
     boarding_points = _process_boarding_points(bus.get("bdPoints", []))
     dropping_points = _process_dropping_points(bus.get("dpPoints", []))
+    
+    # Process amenities
     amenities = _extract_amenities(bus.get("lstamenities", []))
+    
+    # Process cancellation policy
     cancellation_policy = _process_cancellation_policy(bus.get("cancelPolicyList", []))
 
+    # Get fares
     fares = bus.get("fares", [])
     if not fares:
         price = bus.get("price", "0")
         fares = [str(price)] if price else ["0"]
+    
+    # Normalize rating (fix for "45" appearing in UI)
+    raw_rating = bus.get("rt") or bus.get("rating")
+    normalized_rating = _normalize_rating(raw_rating)
 
     return BusInfo(
         bus_id=bus_id,
-        operator_name=bus.get("Travels", ""),
-        bus_type=bus.get("busType", ""),
-        departure_time=bus.get("departureTime", ""),
-        arrival_time=bus.get("ArrivalTime", ""),
-        duration=bus.get("duration", ""),
-        available_seats=str(bus.get("AvailableSeats", "0")),
+        operator_name=bus.get("Travels", "") or bus.get("travels", ""),
+        operator_id=str(bus.get("operatorid", "") or bus.get("OperatorId", "")),
+        bus_type=bus.get("busType", "") or bus.get("bustype", ""),
+        departure_time=bus.get("departureTime", "") or bus.get("DepartureTime", ""),
+        arrival_time=bus.get("ArrivalTime", "") or bus.get("arrivalTime", ""),
+        duration=bus.get("duration", "") or bus.get("Duration", ""),
+        available_seats=str(bus.get("AvailableSeats", "0") or bus.get("availableSeats", "0")),
         price=str(bus.get("price", "0")),
         fares=fares,
-        is_ac=bus.get("AC", False),
-        is_non_ac=bus.get("nonAC", False),
+        is_ac=bus.get("AC", False) or bus.get("ac", False),
+        is_non_ac=bus.get("nonAC", False) or bus.get("NonAC", False),
         is_volvo=is_volvo,
-        is_seater=bus.get("seater", False),
-        is_sleeper=bus.get("sleeper", False),
+        is_seater=bus.get("seater", False) or bus.get("Seater", False),
+        is_sleeper=bus.get("sleeper", False) or bus.get("Sleeper", False),
         is_semi_sleeper=bus.get("isSemiSleeper", False),
-        rating=bus.get("rt"),
+        rating=normalized_rating,
         live_tracking_available=bus.get("liveTrackingAvailable", False),
         is_cancellable=bus.get("isCancellable", False),
         m_ticket_enabled=str(bus.get("mTicketEnabled", "")),
-        departure_date=bus.get("departureDate", ""),
-        arrival_date=bus.get("arrivalDate", ""),
-        route_id=str(bus.get("routeId", "")),
-        operator_id=str(bus.get("operatorid", "")),
-        engine_id=bus.get("engineId", 0),
+        departure_date=bus.get("departureDate", "") or bus.get("DepartureDate", ""),
+        arrival_date=bus.get("arrivalDate", "") or bus.get("ArrivalDate", ""),
+        route_id=str(bus.get("routeId", "") or bus.get("routeid", "")),
+        engine_id=bus.get("engineId", 0) or bus.get("EngineId", 0),
+        trace_id=bus.get("TraceID") or bus.get("traceId"),
         boarding_points=boarding_points,
         dropping_points=dropping_points,
         amenities=amenities,
@@ -220,22 +307,33 @@ def process_bus_results(
     source_id: str,
     destination_id: str,
     journey_date: str,
-    source_name: str = None,
-    destination_name: str = None,
+    source_name: str = "",
+    destination_name: str = "",
     filter_volvo: Optional[bool] = None,
 ) -> Dict[str, Any]:
+    """
+    Process bus search results from the new API.
+    
+    The new API returns data in Response.AvailableTrips structure.
+    """
     buses = []
     
-    available_trips = search_response.get("AvailableTrips", [])
+    # Handle new API response structure
+    response_data = search_response.get("Response", search_response)
+    available_trips = response_data.get("AvailableTrips", [])
+    
+    # If no trips in Response, try root level
+    if not available_trips:
+        available_trips = search_response.get("AvailableTrips", [])
     
     if not available_trips:
         return {
             "buses": [],
             "total_count": 0,
-            "total_trips": search_response.get("TotalTrips", 0),
-            "ac_count": search_response.get("AcCount", 0),
-            "non_ac_count": search_response.get("NonAcCount", 0),
-            "is_bus_available": search_response.get("isBusAvailable", False),
+            "total_trips": response_data.get("TotalTrips", 0),
+            "ac_count": response_data.get("AcCount", 0),
+            "non_ac_count": response_data.get("NonAcCount", 0),
+            "is_bus_available": False,
         }
 
     for bus in available_trips:
@@ -254,43 +352,133 @@ def process_bus_results(
     return {
         "buses": buses,
         "total_count": len(buses),
-        "total_trips": search_response.get("TotalTrips", 0),
-        "ac_count": search_response.get("AcCount", 0),
-        "non_ac_count": search_response.get("NonAcCount", 0),
-        "max_price": search_response.get("MaxPrice"),
-        "min_price": search_response.get("MinPrice"),
-        "is_bus_available": search_response.get("isBusAvailable", False),
+        "total_trips": response_data.get("TotalTrips", 0),
+        "ac_count": response_data.get("AcCount", 0),
+        "non_ac_count": response_data.get("NonAcCount", 0),
+        "max_price": response_data.get("MaxPrice"),
+        "min_price": response_data.get("MinPrice"),
+        "is_bus_available": len(buses) > 0,
     }
 
+
+# ============================================================================
+# MAIN SEARCH FUNCTION
+# ============================================================================
 
 async def search_buses(
-    source_id: str,
-    destination_id: str,
-    journey_date: str,
+    source_id: Optional[str] = None,
+    destination_id: Optional[str] = None,
+    journey_date: str = "",
     is_volvo: Optional[bool] = None,
-    source_name: str = None,
-    destination_name: str = None,
+    source_name: Optional[str] = None,
+    destination_name: Optional[str] = None,
 ) -> Dict[str, Any]:
-
-    client = BusApiClient()
-
+    """
+    Search for buses using the new EaseMyTrip API.
+    
+    Supports both city IDs and city names (auto-resolved via autosuggest).
+    
+    Args:
+        source_id: Source city ID (e.g., "733")
+        destination_id: Destination city ID (e.g., "757")
+        journey_date: Journey date in YYYY-MM-DD format
+        is_volvo: Filter for Volvo buses only
+        source_name: Source city name (e.g., "Delhi") - will be resolved to ID
+        destination_name: Destination city name (e.g., "Manali") - will be resolved to ID
+        
+    Returns:
+        Dict with buses, counts, and metadata
+    """
+    
+    # Resolve city names to IDs if needed
+    resolved_source_id = source_id
+    resolved_dest_id = destination_id
+    resolved_source_name = source_name or ""
+    resolved_dest_name = destination_name or ""
+    
+    # If source_name provided but no source_id, resolve it
+    if source_name and not source_id:
+        source_info = await get_city_info(source_name)
+        if source_info:
+            resolved_source_id = source_info.get("id")
+            resolved_source_name = source_info.get("name", source_name)
+        else:
+            return {
+                "error": "CITY_NOT_FOUND",
+                "message": f"Could not find source city: {source_name}",
+                "buses": [],
+                "total_count": 0,
+                "is_bus_available": False,
+            }
+    
+    # If destination_name provided but no destination_id, resolve it
+    if destination_name and not destination_id:
+        dest_info = await get_city_info(destination_name)
+        if dest_info:
+            resolved_dest_id = dest_info.get("id")
+            resolved_dest_name = dest_info.get("name", destination_name)
+        else:
+            return {
+                "error": "CITY_NOT_FOUND",
+                "message": f"Could not find destination city: {destination_name}",
+                "buses": [],
+                "total_count": 0,
+                "is_bus_available": False,
+            }
+    
+    # Validate we have both IDs
+    if not resolved_source_id or not resolved_dest_id:
+        return {
+            "error": "MISSING_PARAMS",
+            "message": "Source and destination city IDs or names are required",
+            "buses": [],
+            "total_count": 0,
+            "is_bus_available": False,
+        }
+    
+    # Convert date to API format (dd-MM-yyyy)
     api_date = _convert_date_to_api_format(journey_date)
-
+    
+    # Generate session IDs
+    sid = _generate_session_id()
+    vid = _generate_visitor_id()
+    
+    # Build payload for new API
     payload = {
-        "sourceId": source_id,
-        "destinationId": destination_id,
-        "date": api_date,
-        "key": BUS_API_KEY,
-        "version": "1",
-        "isVrl": "False",
-        "isVolvo": "True" if is_volvo else "False",
-        "IsAndroidIos_Hit": False,
-        "agentCode": "",
-        "CountryCode": "IN",
+        "SourceCityId": resolved_source_id,
+        "DestinationCityId": resolved_dest_id,
+        "SourceCityName": resolved_source_name,
+        "DestinatinCityName": resolved_dest_name,  # Note: API has typo
+        "JournyDate": api_date,  # Note: API has typo "JournyDate"
+        "Vid": vid,
+        "Sid": sid,
+        "agentCode": "NAN",
+        "agentType": "NAN",
+        "CurrencyDomain": "IN",
+        "snapApp": "Emt",
+        "TravelPolicy": [],
+        "isInventory": 0,
     }
-
+    
     try:
-        data = await client.search(BUS_API_URL, payload)
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                BUS_SEARCH_URL,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as response:
+                if response.status != 200:
+                    return {
+                        "error": "API_ERROR",
+                        "message": f"API returned status {response.status}",
+                        "buses": [],
+                        "total_count": 0,
+                        "is_bus_available": False,
+                    }
+                
+                data = await response.json()
+                
     except Exception as e:
         return {
             "error": "API_ERROR",
@@ -299,58 +487,47 @@ async def search_buses(
             "total_count": 0,
             "is_bus_available": False,
         }
-
-    if isinstance(data, str):
-        return {
-            "error": "INVALID_SEARCH",
-            "message": data,
-            "buses": [],
-            "total_count": 0,
-            "is_bus_available": False,
-        }
-
-    if not data.get("isBusAvailable", False):
-        return {
-            "error": "NO_BUSES",
-            "message": "No buses available for this route and date",
-            "buses": [],
-            "total_count": 0,
-            "is_bus_available": False,
-        }
-
-    src_name = source_name or _get_city_name(source_id)
-    dest_name = destination_name or _get_city_name(destination_id)
-
+    
+    # Process results
     processed_data = process_bus_results(
         data,
-        source_id,
-        destination_id,
+        resolved_source_id,
+        resolved_dest_id,
         journey_date,
-        src_name,
-        dest_name,
+        resolved_source_name,
+        resolved_dest_name,
         is_volvo,
     )
     
-    processed_data["source_id"] = source_id
-    processed_data["destination_id"] = destination_id
-    processed_data["source_name"] = src_name
-    processed_data["destination_name"] = dest_name
+    # Add metadata
+    processed_data["source_id"] = resolved_source_id
+    processed_data["destination_id"] = resolved_dest_id
+    processed_data["source_name"] = resolved_source_name
+    processed_data["destination_name"] = resolved_dest_name
     processed_data["journey_date"] = journey_date
     processed_data["filter_volvo"] = is_volvo
+    processed_data["session_id"] = sid
+    processed_data["visitor_id"] = vid
     
+    # Build View All link
     processed_data["view_all_link"] = _build_bus_listing_url(
-        source_id=source_id,
-        destination_id=destination_id,
+        source_id=resolved_source_id,
+        destination_id=resolved_dest_id,
         journey_date=journey_date,
-        source_name=src_name,
-        destination_name=dest_name,
+        source_name=resolved_source_name,
+        destination_name=resolved_dest_name,
     )
-
+    
     return processed_data
 
 
-def extract_bus_summary(bus: Dict[str, Any]) -> Dict[str, Any]:
+# ============================================================================
+# WHATSAPP RESPONSE BUILDER
+# ============================================================================
 
+def extract_bus_summary(bus: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract summary information from a bus for WhatsApp response."""
+    
     fares = bus.get("fares", [])
     
     cheapest_fare = None
@@ -373,7 +550,7 @@ def extract_bus_summary(bus: Dict[str, Any]) -> Dict[str, Any]:
     
     first_boarding = ""
     if boarding_points:
-        first_boarding = boarding_points[0].get("bd_long_name", "")
+        first_boarding = boarding_points[0].get("bd_long_name", "") or boarding_points[0].get("bd_point", "")
     
     first_dropping = ""
     if dropping_points:
@@ -404,6 +581,7 @@ def build_whatsapp_bus_response(
     payload: BusSearchInput,
     bus_results: Dict[str, Any],
 ) -> WhatsappBusFinalResponse:
+    """Build WhatsApp response format for bus search results."""
     
     options = []
 
@@ -430,6 +608,9 @@ def build_whatsapp_bus_response(
             "book_now": summary["book_now"],
         })
 
+    source_display = bus_results.get("source_name") or payload.source_id or payload.source_name
+    dest_display = bus_results.get("destination_name") or payload.destination_id or payload.destination_name
+
     whatsapp_json = WhatsappBusFormat(
         options=options,
         currency="INR",
@@ -437,111 +618,69 @@ def build_whatsapp_bus_response(
     )
 
     return WhatsappBusFinalResponse(
-        response_text=f"Found {len(options)} buses from {payload.source_id} to {payload.destination_id}",
+        response_text=f"Found {len(options)} buses from {source_display} to {dest_display}",
         whatsapp_json=whatsapp_json,
     )
 
 
-SEAT_BIND_API_URL = "http://busapi.easemytrip.com/v1/api/detail/SeatBind/"
-
+# ============================================================================
+# SEAT LAYOUT FUNCTIONS
+# ============================================================================
 
 def _process_seat(seat: Dict[str, Any], deck_name: str) -> Optional[Dict[str, Any]]:
-
+    """Process a single seat from the new SeatBind API response."""
+    
     if not seat:
         return None
     
-    seat_status = (
-        seat.get("seatStatus") or 
-        seat.get("SeatStatus") or 
-        seat.get("status") or 
-        seat.get("Status") or 
-        "Unknown"
-    )
-    seat_status_lower = str(seat_status).lower()
+    # Determine availability from seatType or available field
+    seat_type = seat.get("seatType", "") or seat.get("SeatType", "")
+    is_available = seat.get("available", False)
     
-    is_available = (
-        seat_status_lower in ["available", "empty", "free", "1", "true"] or
-        seat.get("isAvailable", False) or
-        seat.get("IsAvailable", False) or
-        seat.get("available", False)
-    )
+    # Check seat status from seatType
+    seat_type_lower = str(seat_type).lower()
+    is_booked = "unavailable" in seat_type_lower or "booked" in seat_type_lower
+    is_ladies = "ladies" in seat_type_lower or "female" in seat_type_lower
+    is_blocked = "blocked" in seat_type_lower
     
-    is_booked = (
-        seat_status_lower in ["booked", "reserved", "sold", "0", "false"] or
-        seat.get("isBooked", False) or
-        seat.get("IsBooked", False) or
-        seat.get("booked", False)
-    )
+    if not is_booked:
+        is_available = seat.get("available", True)
     
-    is_ladies = (
-        seat.get("isLadies", False) or
-        seat.get("IsLadies", False) or
-        seat.get("ladies", False) or
-        "ladies" in seat_status_lower or
-        "female" in seat_status_lower
-    )
+    seat_number = str(seat.get("name", "") or seat.get("id", "") or seat.get("seatNumber", ""))
+    seat_name = seat_number
     
-    is_blocked = (
-        seat_status_lower in ["blocked", "unavailable", "disabled"] or
-        seat.get("isBlocked", False) or
-        seat.get("IsBlocked", False)
-    )
+    fare = str(seat.get("fare", "0") or seat.get("baseFare", "0"))
     
-    seat_number = str(
-        seat.get("seatNumber") or 
-        seat.get("SeatNumber") or 
-        seat.get("SeatNo") or 
-        seat.get("seatNo") or 
-        seat.get("number") or
-        seat.get("name") or
-        ""
-    )
+    row = int(seat.get("rowNo", 0) or seat.get("row", 0))
+    column = int(seat.get("columnNo", 0) or seat.get("column", 0))
     
-    seat_name = str(
-        seat.get("seatName") or 
-        seat.get("SeatName") or 
-        seat.get("name") or
-        seat_number
-    )
-    
-    seat_type = (
-        seat.get("seatType") or 
-        seat.get("SeatType") or 
-        seat.get("type") or
-        "ST"
-    )
-    
-    fare = str(
-        seat.get("fare") or 
-        seat.get("Fare") or 
-        seat.get("SeatFare") or 
-        seat.get("seatFare") or 
-        seat.get("price") or
-        "0"
-    )
-    
-    row = int(seat.get("row") or seat.get("Row") or seat.get("rowNo") or 0)
-    column = int(seat.get("column") or seat.get("Column") or seat.get("colNo") or 0)
+    # Determine if sleeper
+    seat_style = seat.get("seatStyle", "") or seat.get("SeatStyle", "")
+    is_sleeper = seat.get("isSleeper", False) or seat_style.upper() in ["SL", "SLEEPER"]
     
     return {
         "seat_number": seat_number,
         "seat_name": seat_name,
-        "seat_type": seat_type,
-        "seat_status": seat_status,
-        "is_available": is_available,
+        "seat_type": seat_style or "ST",
+        "seat_status": seat_type,
+        "is_available": is_available and not is_booked,
         "is_ladies": is_ladies,
         "fare": fare,
         "row": row,
         "column": column,
         "deck": deck_name,
-        "width": int(seat.get("width") or seat.get("Width") or 1),
-        "length": int(seat.get("length") or seat.get("Length") or 1),
+        "width": int(seat.get("width", 1)),
+        "length": int(seat.get("length", 1)),
         "is_booked": is_booked,
         "is_blocked": is_blocked,
+        "gender": seat.get("gender"),
+        "encrypted_seat": seat.get("EncriSeat"),
     }
 
 
 def _process_deck(deck_data: Any, deck_name: str) -> Optional[Dict[str, Any]]:
+    """Process deck data from API response."""
+    
     if not deck_data:
         return None
     
@@ -580,8 +719,15 @@ def process_seat_layout_response(
     bus_id: str,
     boarding_point: str,
     dropping_point: str,
+    operator_name: str = "",
+    bus_type: str = "",
 ) -> Dict[str, Any]:
-
+    """
+    Process seat layout from the new SeatBind API response.
+    
+    The new API returns seats in a flat "Seats" array with lowerShow/upperShow flags.
+    """
+    
     if not api_response:
         return {
             "success": False,
@@ -590,46 +736,29 @@ def process_seat_layout_response(
             "raw_response": api_response,
         }
     
-    seat_layout = None
-    possible_keys = [
-        "seatLayout", "SeatLayout", "Result", "result", 
-        "data", "Data", "response", "Response",
-        "seatDetails", "SeatDetails", "layout", "Layout"
-    ]
+    # Get seats from response
+    seats = api_response.get("Seats", []) or api_response.get("seats", [])
     
-    for key in possible_keys:
-        if key in api_response and api_response[key]:
-            seat_layout = api_response[key]
-            break
+    if not seats:
+        return {
+            "success": False,
+            "message": "No seat layout available for this bus",
+            "layout": None,
+            "raw_response": api_response,
+        }
     
-    if not seat_layout:
-        seat_layout = api_response
+    # Separate lower and upper deck seats
+    lower_seats = [s for s in seats if s.get("lowerShow", True)]
+    upper_seats = [s for s in seats if s.get("upperShow", False)]
     
-    lower_deck_data = None
-    lower_keys = ["lowerDeck", "LowerDeck", "lower", "Lower", "lowerSeats", "LowerSeats"]
-    for key in lower_keys:
-        if key in seat_layout and seat_layout[key]:
-            lower_deck_data = seat_layout[key]
-            break
+    lower_deck = _process_deck(lower_seats, "Lower") if lower_seats else None
+    upper_deck = _process_deck(upper_seats, "Upper") if upper_seats else None
     
-    lower_deck = _process_deck(lower_deck_data, "Lower")
+    # If no deck separation, treat all as lower
+    if not lower_deck and not upper_deck and seats:
+        lower_deck = _process_deck(seats, "Lower")
     
-    upper_deck_data = None
-    upper_keys = ["upperDeck", "UpperDeck", "upper", "Upper", "upperSeats", "UpperSeats"]
-    for key in upper_keys:
-        if key in seat_layout and seat_layout[key]:
-            upper_deck_data = seat_layout[key]
-            break
-    
-    upper_deck = _process_deck(upper_deck_data, "Upper")
-    
-    if not lower_deck and not upper_deck:
-        seats_keys = ["seats", "Seats", "seatList", "SeatList", "allSeats"]
-        for key in seats_keys:
-            if key in seat_layout and seat_layout[key]:
-                lower_deck = _process_deck(seat_layout[key], "Lower")
-                break
-    
+    # Calculate stats
     all_seats = []
     if lower_deck and lower_deck.get("seats"):
         all_seats.extend(lower_deck["seats"])
@@ -640,47 +769,22 @@ def process_seat_layout_response(
     available_seats = sum(1 for s in all_seats if s.get("is_available"))
     booked_seats = sum(1 for s in all_seats if s.get("is_booked"))
     
-    bus_type = (
-        seat_layout.get("busType") or
-        seat_layout.get("BusType") or
-        api_response.get("busType") or
-        api_response.get("BusType") or
-        ""
+    # Get operator/bus info from response
+    travel_name = (
+        api_response.get("TravelName") or
+        api_response.get("travel") or
+        operator_name
     )
-    operator_name = (
-        seat_layout.get("travels") or
-        seat_layout.get("Travels") or
-        seat_layout.get("operatorName") or
-        api_response.get("Travels") or
-        api_response.get("operatorName") or
-        ""
-    )
-    
-    boarding_time = (
-        seat_layout.get("boardingTime") or
-        seat_layout.get("BoardingTime") or
-        seat_layout.get("departureTime") or
-        ""
-    )
-    dropping_time = (
-        seat_layout.get("droppingTime") or
-        seat_layout.get("DroppingTime") or
-        seat_layout.get("arrivalTime") or
-        ""
-    )
-    
-    fare_details = (
-        seat_layout.get("fareDetails") or
-        seat_layout.get("FareDetails") or
-        seat_layout.get("fares") or
-        seat_layout.get("Fares") or
-        []
+    bus_type_resp = (
+        api_response.get("_bustype") or
+        api_response.get("bustype") or
+        bus_type
     )
     
     layout_info = {
         "bus_id": bus_id,
-        "bus_type": bus_type,
-        "operator_name": operator_name,
+        "bus_type": bus_type_resp,
+        "operator_name": travel_name,
         "total_seats": total_seats,
         "available_seats": available_seats,
         "booked_seats": booked_seats,
@@ -688,9 +792,9 @@ def process_seat_layout_response(
         "upper_deck": upper_deck,
         "boarding_point": boarding_point,
         "dropping_point": dropping_point,
-        "boarding_time": boarding_time,
-        "dropping_time": dropping_time,
-        "fare_details": fare_details if isinstance(fare_details, list) else [],
+        "boarding_time": api_response.get("deptTime", ""),
+        "dropping_time": api_response.get("arrTime", ""),
+        "fare_details": [],
     }
     
     success = total_seats > 0
@@ -698,7 +802,7 @@ def process_seat_layout_response(
     if success:
         message = f"Found {available_seats} available seats out of {total_seats}"
     else:
-        message = "Seat layout not available for this bus. This may be due to the bus operator not providing seat data through this API."
+        message = "Seat layout not available for this bus"
     
     return {
         "success": success,
@@ -717,27 +821,83 @@ async def get_seat_layout(
     engine_id: int,
     boarding_point_id: str,
     dropping_point_id: str,
+    source_name: str = "",
+    destination_name: str = "",
+    operator_id: str = "",
+    operator_name: str = "",
+    bus_type: str = "",
+    departure_time: str = "",
+    arrival_time: str = "",
+    duration: str = "",
+    trace_id: str = "",
+    is_seater: bool = True,
+    is_sleeper: bool = True,
+    session_id: str = "",
+    visitor_id: str = "",
 ) -> Dict[str, Any]:
-
-    client = BusApiClient()
+    """
+    Get seat layout from the new SeatBind API.
     
+    Uses the new endpoint: https://bus.easemytrip.com/Home/SeatBind/
+    """
+    
+    # Convert date to API format
     api_date = _convert_date_to_api_format(journey_date)
     
+    # Generate session IDs if not provided
+    sid = session_id or _generate_session_id()
+    vid = visitor_id or _generate_visitor_id()
+    
+    # Build search request string
+    search_req = f"{source_id}|{destination_id}|{source_name}|{destination_name}|{api_date}"
+    
+    # Build payload for new SeatBind API
     payload = {
-        "sourceId": source_id,
-        "destinationId": destination_id,
-        "date": api_date,
-        "busId": bus_id,
-        "routeId": route_id,
+        "id": bus_id,
         "engineId": engine_id,
-        "boardingPointId": boarding_point_id,
-        "droppingPointId": dropping_point_id,
-        "key": BUS_API_KEY,
-        "version": "1",
+        "routeid": route_id,
+        "JourneyDate": api_date,
+        "OperatorId": operator_id,
+        "Sid": sid,
+        "Vid": vid,
+        "TraceID": trace_id or str(uuid.uuid4()),
+        "agentType": "NAN",
+        "bpId": boarding_point_id,
+        "dpId": dropping_point_id,
+        "bustype": bus_type,
+        "travel": operator_name,
+        "DepartureTime": departure_time,
+        "ArrivalTime": arrival_time,
+        "duration": duration,
+        "seater": is_seater,
+        "sleeper": is_sleeper,
+        "sessionId": None,
+        "Idproof": 0,
+        "SeatPrice": 0,
+        "isBpdp": False,
+        "stStatus": False,
+        "countryCode": None,
+        "searchReq": search_req,
     }
     
     try:
-        data = await client.search(SEAT_BIND_API_URL, payload)
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                SEAT_BIND_URL,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as response:
+                if response.status != 200:
+                    return {
+                        "success": False,
+                        "message": f"API returned status {response.status}",
+                        "layout": None,
+                        "raw_response": None,
+                    }
+                
+                data = await response.json()
+                
     except Exception as e:
         return {
             "success": False,
@@ -746,26 +906,11 @@ async def get_seat_layout(
             "raw_response": None,
         }
     
-    if isinstance(data, str):
-        return {
-            "success": False,
-            "message": data,
-            "layout": None,
-            "raw_response": data,
-        }
-    
-    error_msg = data.get("error") or data.get("Error") or data.get("errorMessage") or data.get("ErrorMessage")
-    if error_msg:
-        return {
-            "success": False,
-            "message": str(error_msg),
-            "layout": None,
-            "raw_response": data,
-        }
-    
     return process_seat_layout_response(
         data,
         bus_id,
         boarding_point_id,
         dropping_point_id,
+        operator_name,
+        bus_type,
     )

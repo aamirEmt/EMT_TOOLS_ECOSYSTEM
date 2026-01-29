@@ -1,3 +1,10 @@
+"""
+Bus Search HTML Renderer.
+
+Renders bus search results and seat layouts as HTML carousels.
+Includes rating normalization and View All card support.
+"""
+
 from typing import Dict, Any, List, Optional
 from jinja2 import Environment, BaseLoader
 
@@ -5,6 +12,10 @@ _jinja_env = Environment(
     loader=BaseLoader(),
     autoescape=False,
 )
+
+# ============================================================================
+# STYLES
+# ============================================================================
 
 BUS_CAROUSEL_STYLES = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
@@ -55,7 +66,7 @@ BUS_CAROUSEL_STYLES = """
 }
 
 .bus-carousel .rsltcvr {
-  width:90%;
+  width: 90%;
   max-width: 100%;
   overflow-x: auto;
   display: flex;
@@ -453,38 +464,25 @@ BUS_CAROUSEL_TEMPLATE = """
       <div class="rsltcvr">
         {% for bus in buses %}
         <div class="buscard item">
-          <!-- Header: Operator, Type, Tags, Price -->
           <div class="buschdr">
             <div class="businfo">
               <div class="oprtname" title="{{ bus.operator_name }}">{{ bus.operator_name }}</div>
               <div class="bustype" title="{{ bus.bus_type }}">{{ bus.bus_type }}</div>
               <div class="bustags">
-                {% if bus.is_ac %}
-                <span class="bustag ac">AC</span>
-                {% endif %}
-                {% if bus.is_non_ac %}
-                <span class="bustag nonac">Non-AC</span>
-                {% endif %}
-                {% if bus.is_volvo %}
-                <span class="bustag volvo">Volvo</span>
-                {% endif %}
-                {% if bus.is_sleeper %}
-                <span class="bustag sleeper">Sleeper</span>
-                {% elif bus.is_seater %}
-                <span class="bustag seater">Seater</span>
-                {% endif %}
+                {% if bus.is_ac %}<span class="bustag ac">AC</span>{% endif %}
+                {% if bus.is_non_ac %}<span class="bustag nonac">Non-AC</span>{% endif %}
+                {% if bus.is_volvo %}<span class="bustag volvo">Volvo</span>{% endif %}
+                {% if bus.is_sleeper %}<span class="bustag sleeper">Sleeper</span>
+                {% elif bus.is_seater %}<span class="bustag seater">Seater</span>{% endif %}
               </div>
             </div>
             <div class="busprcbx">
               <div class="sbttl">starts from</div>
               <div class="busprc">{{ bus.fare }}</div>
-              {% if bus.seats_label %}
-              <div class="seatsleft">{{ bus.seats_label }}</div>
-              {% endif %}
+              {% if bus.seats_label %}<div class="seatsleft">{{ bus.seats_label }}</div>{% endif %}
             </div>
           </div>
 
-          <!-- Body: Timing -->
           <div class="busbdy">
             <div class="bustme">{{ bus.departure_time }}</div>
             <div class="jrny">
@@ -494,7 +492,6 @@ BUS_CAROUSEL_TEMPLATE = """
             <div class="bustme">{{ bus.arrival_time }}</div>
           </div>
 
-          <!-- Boarding/Dropping Points ( bdPoints, dpPoints) -->
           <div class="pointsrow">
             <div class="pointbox">
               <div class="pointlbl">Boarding</div>
@@ -506,43 +503,28 @@ BUS_CAROUSEL_TEMPLATE = """
             </div>
           </div>
 
-          <!-- Rating ( rt) -->
           {% if bus.rating %}
           <div class="ratingrow">
             <span class="rtnvlu {{ bus.rating_class }}">★ {{ bus.rating }}</span>
           </div>
           {% endif %}
 
-          <!-- Amenities ( lstamenities) -->
           {% if bus.amenities %}
           <ul class="busamnts">
-            {% for amenity in bus.amenities[:4] %}
-            <li>{{ amenity }}</li>
-            {% endfor %}
-            {% if bus.amenities|length > 4 %}
-            <li>+{{ bus.amenities|length - 4 }} more</li>
-            {% endif %}
+            {% for amenity in bus.amenities[:4] %}<li>{{ amenity }}</li>{% endfor %}
+            {% if bus.amenities|length > 4 %}<li>+{{ bus.amenities|length - 4 }} more</li>{% endif %}
           </ul>
           {% endif %}
 
-          <!-- Features ( liveTrackingAvailable, mTicketEnabled) -->
           {% if bus.live_tracking or bus.m_ticket %}
           <div class="featuresrow">
-            {% if bus.live_tracking %}
-            <span class="featuretag">Live Tracking</span>
-            {% endif %}
-            {% if bus.m_ticket %}
-            <span class="featuretag">M-Ticket</span>
-            {% endif %}
+            {% if bus.live_tracking %}<span class="featuretag">Live Tracking</span>{% endif %}
+            {% if bus.m_ticket %}<span class="featuretag">M-Ticket</span>{% endif %}
           </div>
           {% endif %}
 
-
-          <!-- Footer: Book Button, Cancellation -->
           <div class="busftr">
             <a href="{{ bus.booking_link }}" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
-
-
             {% if bus.is_cancellable %}
             <div class="cancelpolicy cancellable">Cancellation Available</div>
             {% else %}
@@ -577,208 +559,6 @@ BUS_CAROUSEL_TEMPLATE = """
   </main>
 </div>
 """
-
-def _format_currency(value: Any) -> str:
-    if not value:
-        return "₹0"
-    try:
-        amount = float(value)
-        return f"₹{int(amount):,}"
-    except (ValueError, TypeError):
-        return f"₹{value}"
-
-def _format_time(time_value: Any) -> str:
-    if not time_value:
-        return "--:--"
-    
-    time_str = str(time_value)
-    
-    if ":" in time_str and len(time_str) >= 4:
-        return time_str[:5]
-    
-    digits = ''.join(filter(str.isdigit, time_str))
-    if len(digits) >= 4:
-        return f"{digits[:2]}:{digits[2:4]}"
-    
-    return time_str
-
-def _format_date(date_value: Any) -> str:
-    if not date_value:
-        return "--"
-    
-    try:
-        from datetime import datetime
-        
-        if isinstance(date_value, str):
-            dt = datetime.strptime(date_value, "%Y-%m-%d")
-        else:
-            dt = date_value
-        return dt.strftime("%d %b %Y")
-    except (ValueError, TypeError):
-        return str(date_value)
-
-def _truncate_text(text: str, max_length: int = 25) -> str:
-    if not text:
-        return ""
-    text_str = str(text)
-    if len(text_str) <= max_length:
-        return text_str
-    return text_str[:max_length] + "..."
-
-def _get_rating_class(rating: Any) -> str:
-    if not rating:
-        return ""
-    try:
-        rating_val = float(rating)
-        if rating_val < 3:
-            return "poor"
-        elif rating_val < 4:
-            return "low"
-        return ""
-    except (ValueError, TypeError):
-        return ""
-
-def _get_first_boarding_point(boarding_points: List[Dict[str, Any]]) -> str:
-    if not boarding_points:
-        return "N/A"
-    
-    first = boarding_points[0] if isinstance(boarding_points, list) else {}
-    name = (
-        first.get("bd_long_name") or 
-        first.get("bdLongName") or 
-        first.get("bdPoint") or 
-        "N/A"
-    )
-    return _truncate_text(name, 20)
-
-def _get_first_dropping_point(dropping_points: List[Dict[str, Any]]) -> str:
-    if not dropping_points:
-        return "N/A"
-    
-    first = dropping_points[0] if isinstance(dropping_points, list) else {}
-    name = (
-        first.get("dp_name") or 
-        first.get("dpName") or 
-        "N/A"
-    )
-    return _truncate_text(name, 20)
-
-def _extract_amenities(amenities: Any) -> List[str]:
-    if not amenities:
-        return []
-    
-    if isinstance(amenities, list):
-        if amenities and isinstance(amenities[0], str):
-            return amenities
-        return [a.get("name") for a in amenities if isinstance(a, dict) and a.get("name")]
-    
-    return []
-
-
-def _get_seats_label(seats: Any) -> str:
-    if not seats:
-        return ""
-    
-    try:
-        seats_num = int(seats)
-        if seats_num <= 0:
-            return ""
-        if seats_num <= 5:
-            return f"{seats_num} seats left"
-        return f"{seats_num} seats"
-    except (ValueError, TypeError):
-        return ""
-
-
-def _normalize_bus_for_ui(bus: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    if not bus:
-        return None
-    
-    price = bus.get("price")
-    fares = bus.get("fares", [])
-    if not price and fares:
-        price = fares[0] if isinstance(fares, list) and fares else "0"
-    
-    boarding_points = bus.get("boarding_points", []) or bus.get("bdPoints", [])
-    dropping_points = bus.get("dropping_points", []) or bus.get("dpPoints", [])
-    
-    amenities = bus.get("amenities", []) or bus.get("lstamenities", [])
-    
-    rating = bus.get("rating") or bus.get("rt")
-    
-    m_ticket_raw = bus.get("m_ticket_enabled") or bus.get("mTicketEnabled") or ""
-    m_ticket = str(m_ticket_raw).lower() == "true"
-    
-    live_tracking = bus.get("live_tracking_available") or bus.get("liveTrackingAvailable", False)
-    
-    is_cancellable = bus.get("is_cancellable") or bus.get("isCancellable", False)
-    
-    booking_link = bus.get("book_now") or bus.get("deepLink") or bus.get("booking_link") or "#"
-    if isinstance(booking_link, str):
-        booking_link = booking_link.strip()
-
-    return {
-        "operator_name": _truncate_text(bus.get("operator_name") or bus.get("Travels") or "Unknown", 22),
-        "bus_type": _truncate_text(bus.get("bus_type") or bus.get("busType") or "Bus", 30),
-        "departure_time": _format_time(bus.get("departure_time") or bus.get("departureTime")),
-        "arrival_time": _format_time(bus.get("arrival_time") or bus.get("ArrivalTime")),
-        "duration": bus.get("duration") or "--",
-        "fare": _format_currency(price),
-        "seats_label": _get_seats_label(bus.get("available_seats") or bus.get("AvailableSeats")),
-        "is_ac": bus.get("is_ac") or bus.get("AC", False),
-        "is_non_ac": bus.get("is_non_ac") or bus.get("nonAC", False),
-        "is_volvo": bus.get("is_volvo") or bus.get("isVolvo", False),
-        "is_seater": bus.get("is_seater") or bus.get("seater", False),
-        "is_sleeper": bus.get("is_sleeper") or bus.get("sleeper", False),
-        "rating": rating,
-        "rating_class": _get_rating_class(rating),
-        "boarding_point": _get_first_boarding_point(boarding_points),
-        "dropping_point": _get_first_dropping_point(dropping_points),
-        "amenities": _extract_amenities(amenities),
-        "live_tracking": live_tracking,
-        "m_ticket": m_ticket,
-        "is_cancellable": is_cancellable,
-        "booking_link": booking_link,
-    }
-
-def render_bus_results(bus_results: Dict[str, Any]) -> str:
-    if "structured_content" in bus_results:
-        bus_results = bus_results["structured_content"]
-    
-    buses = bus_results.get("buses", [])
-    
-    if not buses:
-        return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
-    
-    buses_ui = [_normalize_bus_for_ui(bus) for bus in buses]
-    buses_ui = [b for b in buses_ui if b]
-    
-    if not buses_ui:
-        return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
-    
-    source_city = bus_results.get("source_name") or bus_results.get("source_id", "")
-    destination_city = bus_results.get("destination_name") or bus_results.get("destination_id", "")
-    
-    journey_date = _format_date(bus_results.get("journey_date"))
-    
-    ac_count = bus_results.get("ac_count", 0)
-    non_ac_count = bus_results.get("non_ac_count", 0)
-    bus_count = bus_results.get("total_count") or len(buses_ui)
-    
-    template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
-    return template.render(
-        styles=BUS_CAROUSEL_STYLES,
-        source_city=source_city,
-        destination_city=destination_city,
-        journey_date=journey_date,
-        bus_count=bus_count,
-        ac_count=ac_count,
-        non_ac_count=non_ac_count,
-        buses=buses_ui,
-        view_all_link=bus_results.get("view_all_link"),
-        show_view_all_card=False,
-        total_bus_count=bus_count,
-    )
 
 SEAT_LAYOUT_STYLES = """
 .seat-layout {
@@ -830,21 +610,10 @@ SEAT_LAYOUT_STYLES = """
   border-radius: 3px;
 }
 
-.seat-layout .info-dot.available {
-  background: #4caf50;
-}
-
-.seat-layout .info-dot.booked {
-  background: #9e9e9e;
-}
-
-.seat-layout .info-dot.ladies {
-  background: #e91e63;
-}
-
-.seat-layout .info-dot.selected {
-  background: #ef6614;
-}
+.seat-layout .info-dot.available { background: #4caf50; }
+.seat-layout .info-dot.booked { background: #9e9e9e; }
+.seat-layout .info-dot.ladies { background: #e91e63; }
+.seat-layout .info-dot.selected { background: #ef6614; }
 
 .seat-layout .deck-container {
   margin-bottom: 20px;
@@ -890,54 +659,16 @@ SEAT_LAYOUT_STYLES = """
   border: 2px solid transparent;
 }
 
-.seat-layout .seat.sleeper {
-  width: 72px;
-  height: 36px;
-}
+.seat-layout .seat.sleeper { width: 72px; height: 36px; }
+.seat-layout .seat.available { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
+.seat-layout .seat.available:hover { background: #c8e6c9; transform: scale(1.05); }
+.seat-layout .seat.booked { background: #eeeeee; color: #9e9e9e; cursor: not-allowed; }
+.seat-layout .seat.ladies { background: #fce4ec; color: #c2185b; border-color: #e91e63; }
+.seat-layout .seat.selected { background: #fff3e0; color: #e65100; border-color: #ef6614; box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3); }
+.seat-layout .seat.blocked { background: #ffebee; color: #c62828; cursor: not-allowed; }
+.seat-layout .seat.empty { visibility: hidden; }
 
-.seat-layout .seat.available {
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-color: #4caf50;
-}
-
-.seat-layout .seat.available:hover {
-  background: #c8e6c9;
-  transform: scale(1.05);
-}
-
-.seat-layout .seat.booked {
-  background: #eeeeee;
-  color: #9e9e9e;
-  cursor: not-allowed;
-}
-
-.seat-layout .seat.ladies {
-  background: #fce4ec;
-  color: #c2185b;
-  border-color: #e91e63;
-}
-
-.seat-layout .seat.selected {
-  background: #fff3e0;
-  color: #e65100;
-  border-color: #ef6614;
-  box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3);
-}
-
-.seat-layout .seat.blocked {
-  background: #ffebee;
-  color: #c62828;
-  cursor: not-allowed;
-}
-
-.seat-layout .seat.empty {
-  visibility: hidden;
-}
-
-.seat-layout .aisle {
-  width: 20px;
-}
+.seat-layout .aisle { width: 20px; }
 
 .seat-layout .driver-cabin {
   display: flex;
@@ -957,11 +688,7 @@ SEAT_LAYOUT_STYLES = """
   justify-content: center;
 }
 
-.seat-layout .driver-icon svg {
-  width: 24px;
-  height: 24px;
-  fill: #fff;
-}
+.seat-layout .driver-icon svg { width: 24px; height: 24px; fill: #fff; }
 
 .seat-layout .seat-summary {
   margin-top: 20px;
@@ -1003,9 +730,7 @@ SEAT_LAYOUT_STYLES = """
 """
 
 SEAT_LAYOUT_TEMPLATE = """
-<style>
-{{ styles }}
-</style>
+<style>{{ styles }}</style>
 
 <div class="seat-layout">
   <div class="layout-header">
@@ -1013,18 +738,9 @@ SEAT_LAYOUT_TEMPLATE = """
     <div class="layout-subtitle">{{ bus_type }}</div>
     
     <div class="layout-info">
-      <div class="info-item">
-        <span class="info-dot available"></span>
-        <span>Available ({{ available_seats }})</span>
-      </div>
-      <div class="info-item">
-        <span class="info-dot booked"></span>
-        <span>Booked ({{ booked_seats }})</span>
-      </div>
-      <div class="info-item">
-        <span class="info-dot ladies"></span>
-        <span>Ladies</span>
-      </div>
+      <div class="info-item"><span class="info-dot available"></span><span>Available ({{ available_seats }})</span></div>
+      <div class="info-item"><span class="info-dot booked"></span><span>Booked ({{ booked_seats }})</span></div>
+      <div class="info-item"><span class="info-dot ladies"></span><span>Ladies</span></div>
     </div>
   </div>
 
@@ -1040,18 +756,9 @@ SEAT_LAYOUT_TEMPLATE = """
       {% for row in lower_deck.rows_data %}
       <div class="seat-row">
         {% for seat in row %}
-          {% if seat.is_aisle %}
-          <div class="aisle"></div>
-          {% elif seat.is_empty %}
-          <div class="seat empty"></div>
-          {% else %}
-          <div class="seat {{ seat.status_class }}{% if seat.is_sleeper %} sleeper{% endif %}" 
-               data-seat="{{ seat.seat_number }}"
-               data-fare="{{ seat.fare }}"
-               title="{{ seat.seat_name }} - ₹{{ seat.fare }}">
-            {{ seat.seat_number }}
-          </div>
-          {% endif %}
+          {% if seat.is_aisle %}<div class="aisle"></div>
+          {% elif seat.is_empty %}<div class="seat empty"></div>
+          {% else %}<div class="seat {{ seat.status_class }}{% if seat.is_sleeper %} sleeper{% endif %}" data-seat="{{ seat.seat_number }}" data-fare="{{ seat.fare }}" title="{{ seat.seat_name }} - ₹{{ seat.fare }}">{{ seat.seat_number }}</div>{% endif %}
         {% endfor %}
       </div>
       {% endfor %}
@@ -1066,18 +773,9 @@ SEAT_LAYOUT_TEMPLATE = """
       {% for row in upper_deck.rows_data %}
       <div class="seat-row">
         {% for seat in row %}
-          {% if seat.is_aisle %}
-          <div class="aisle"></div>
-          {% elif seat.is_empty %}
-          <div class="seat empty"></div>
-          {% else %}
-          <div class="seat {{ seat.status_class }}{% if seat.is_sleeper %} sleeper{% endif %}"
-               data-seat="{{ seat.seat_number }}"
-               data-fare="{{ seat.fare }}"
-               title="{{ seat.seat_name }} - ₹{{ seat.fare }}">
-            {{ seat.seat_number }}
-          </div>
-          {% endif %}
+          {% if seat.is_aisle %}<div class="aisle"></div>
+          {% elif seat.is_empty %}<div class="seat empty"></div>
+          {% else %}<div class="seat {{ seat.status_class }}{% if seat.is_sleeper %} sleeper{% endif %}" data-seat="{{ seat.seat_number }}" data-fare="{{ seat.fare }}" title="{{ seat.seat_name }} - ₹{{ seat.fare }}">{{ seat.seat_number }}</div>{% endif %}
         {% endfor %}
       </div>
       {% endfor %}
@@ -1093,25 +791,286 @@ SEAT_LAYOUT_TEMPLATE = """
   {% endif %}
 
   <div class="seat-summary">
-    <div class="summary-row">
-      <span>Total Seats</span>
-      <span>{{ total_seats }}</span>
-    </div>
-    <div class="summary-row">
-      <span>Available</span>
-      <span>{{ available_seats }}</span>
-    </div>
-    <div class="summary-row">
-      <span>Boarding</span>
-      <span>{{ boarding_point }}</span>
-    </div>
-    <div class="summary-row">
-      <span>Dropping</span>
-      <span>{{ dropping_point }}</span>
-    </div>
+    <div class="summary-row"><span>Total Seats</span><span>{{ total_seats }}</span></div>
+    <div class="summary-row"><span>Available</span><span>{{ available_seats }}</span></div>
+    <div class="summary-row"><span>Boarding</span><span>{{ boarding_point }}</span></div>
+    <div class="summary-row"><span>Dropping</span><span>{{ dropping_point }}</span></div>
   </div>
 </div>
 """
+
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+def _format_currency(value: Any) -> str:
+    if not value:
+        return "₹0"
+    try:
+        amount = float(value)
+        return f"₹{int(amount):,}"
+    except (ValueError, TypeError):
+        return f"₹{value}"
+
+
+def _format_time(time_value: Any) -> str:
+    if not time_value:
+        return "--:--"
+    time_str = str(time_value)
+    if ":" in time_str and len(time_str) >= 4:
+        return time_str[:5]
+    digits = ''.join(filter(str.isdigit, time_str))
+    if len(digits) >= 4:
+        return f"{digits[:2]}:{digits[2:4]}"
+    return time_str
+
+
+def _format_date(date_value: Any) -> str:
+    if not date_value:
+        return "--"
+    try:
+        from datetime import datetime
+        if isinstance(date_value, str):
+            dt = datetime.strptime(date_value, "%Y-%m-%d")
+        else:
+            dt = date_value
+        return dt.strftime("%d %b %Y")
+    except (ValueError, TypeError):
+        return str(date_value)
+
+
+def _truncate_text(text: str, max_length: int = 25) -> str:
+    if not text:
+        return ""
+    text_str = str(text)
+    if len(text_str) <= max_length:
+        return text_str
+    return text_str[:max_length] + "..."
+
+
+def _normalize_rating_for_display(rating_value: Any) -> Optional[str]:
+    """
+    Normalize rating for display (fix for "45" appearing in UI).
+    
+    Handles: "45" -> "4.5", 45 -> "4.5", "4.5" -> "4.5", 0 or None -> None
+    """
+    if rating_value is None or rating_value == "" or rating_value == 0:
+        return None
+    try:
+        rating_float = float(rating_value)
+        if rating_float > 5:
+            rating_float = rating_float / 10
+        if rating_float < 0 or rating_float > 5:
+            return None
+        if rating_float == 0:
+            return None
+        if rating_float == int(rating_float):
+            return str(int(rating_float))
+        return f"{rating_float:.1f}"
+    except (ValueError, TypeError):
+        return None
+
+
+def _get_rating_class(rating: Any) -> str:
+    if not rating:
+        return ""
+    try:
+        rating_str = _normalize_rating_for_display(rating)
+        if not rating_str:
+            return ""
+        rating_val = float(rating_str)
+        if rating_val < 3:
+            return "poor"
+        elif rating_val < 4:
+            return "low"
+        return ""
+    except (ValueError, TypeError):
+        return ""
+
+
+def _get_first_boarding_point(boarding_points: List[Dict[str, Any]]) -> str:
+    if not boarding_points:
+        return "N/A"
+    first = boarding_points[0] if isinstance(boarding_points, list) else {}
+    name = (first.get("bd_long_name") or first.get("bdLongName") or 
+            first.get("bd_point") or first.get("bdPoint") or "N/A")
+    return _truncate_text(name, 20)
+
+
+def _get_first_dropping_point(dropping_points: List[Dict[str, Any]]) -> str:
+    if not dropping_points:
+        return "N/A"
+    first = dropping_points[0] if isinstance(dropping_points, list) else {}
+    name = first.get("dp_name") or first.get("dpName") or "N/A"
+    return _truncate_text(name, 20)
+
+
+def _extract_amenities(amenities: Any) -> List[str]:
+    if not amenities:
+        return []
+    if isinstance(amenities, list):
+        if amenities and isinstance(amenities[0], str):
+            return amenities
+        return [a.get("name") for a in amenities if isinstance(a, dict) and a.get("name")]
+    return []
+
+
+def _get_seats_label(seats: Any) -> str:
+    if not seats:
+        return ""
+    try:
+        seats_num = int(seats)
+        if seats_num <= 0:
+            return ""
+        if seats_num <= 5:
+            return f"{seats_num} seats left"
+        return f"{seats_num} seats"
+    except (ValueError, TypeError):
+        return ""
+
+
+def _normalize_bus_for_ui(bus: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    if not bus:
+        return None
+    
+    price = bus.get("price")
+    fares = bus.get("fares", [])
+    if not price and fares:
+        price = fares[0] if isinstance(fares, list) and fares else "0"
+    
+    boarding_points = bus.get("boarding_points", []) or bus.get("bdPoints", [])
+    dropping_points = bus.get("dropping_points", []) or bus.get("dpPoints", [])
+    amenities = bus.get("amenities", []) or bus.get("lstamenities", [])
+    
+    # Get raw rating and normalize it
+    raw_rating = bus.get("rating") or bus.get("rt")
+    normalized_rating = _normalize_rating_for_display(raw_rating)
+    
+    m_ticket_raw = bus.get("m_ticket_enabled") or bus.get("mTicketEnabled") or ""
+    m_ticket = str(m_ticket_raw).lower() == "true"
+    
+    live_tracking = bus.get("live_tracking_available") or bus.get("liveTrackingAvailable", False)
+    is_cancellable = bus.get("is_cancellable") or bus.get("isCancellable", False)
+    
+    booking_link = bus.get("book_now") or bus.get("deepLink") or bus.get("booking_link") or "#"
+    if isinstance(booking_link, str):
+        booking_link = booking_link.strip()
+
+    return {
+        "operator_name": _truncate_text(bus.get("operator_name") or bus.get("Travels") or "Unknown", 22),
+        "bus_type": _truncate_text(bus.get("bus_type") or bus.get("busType") or "Bus", 30),
+        "departure_time": _format_time(bus.get("departure_time") or bus.get("departureTime")),
+        "arrival_time": _format_time(bus.get("arrival_time") or bus.get("ArrivalTime")),
+        "duration": bus.get("duration") or "--",
+        "fare": _format_currency(price),
+        "seats_label": _get_seats_label(bus.get("available_seats") or bus.get("AvailableSeats")),
+        "is_ac": bus.get("is_ac") or bus.get("AC", False),
+        "is_non_ac": bus.get("is_non_ac") or bus.get("nonAC", False),
+        "is_volvo": bus.get("is_volvo") or bus.get("isVolvo", False),
+        "is_seater": bus.get("is_seater") or bus.get("seater", False),
+        "is_sleeper": bus.get("is_sleeper") or bus.get("sleeper", False),
+        "rating": normalized_rating,
+        "rating_class": _get_rating_class(raw_rating),
+        "boarding_point": _get_first_boarding_point(boarding_points),
+        "dropping_point": _get_first_dropping_point(dropping_points),
+        "amenities": _extract_amenities(amenities),
+        "live_tracking": live_tracking,
+        "m_ticket": m_ticket,
+        "is_cancellable": is_cancellable,
+        "booking_link": booking_link,
+    }
+
+
+# ============================================================================
+# RENDER FUNCTIONS
+# ============================================================================
+
+def render_bus_results(bus_results: Dict[str, Any]) -> str:
+    """Render bus search results as HTML carousel."""
+    if "structured_content" in bus_results:
+        bus_results = bus_results["structured_content"]
+    
+    buses = bus_results.get("buses", [])
+    
+    if not buses:
+        return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
+    
+    buses_ui = [_normalize_bus_for_ui(bus) for bus in buses]
+    buses_ui = [b for b in buses_ui if b]
+    
+    if not buses_ui:
+        return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
+    
+    source_city = bus_results.get("source_name") or bus_results.get("source_id", "")
+    destination_city = bus_results.get("destination_name") or bus_results.get("destination_id", "")
+    journey_date = _format_date(bus_results.get("journey_date"))
+    ac_count = bus_results.get("ac_count", 0)
+    non_ac_count = bus_results.get("non_ac_count", 0)
+    bus_count = bus_results.get("total_count") or len(buses_ui)
+    
+    template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
+    return template.render(
+        styles=BUS_CAROUSEL_STYLES,
+        source_city=source_city,
+        destination_city=destination_city,
+        journey_date=journey_date,
+        bus_count=bus_count,
+        ac_count=ac_count,
+        non_ac_count=non_ac_count,
+        buses=buses_ui,
+        view_all_link=bus_results.get("view_all_link"),
+        show_view_all_card=False,
+        total_bus_count=bus_count,
+    )
+
+
+def render_bus_results_with_limit(
+    bus_results: Dict[str, Any],
+    display_limit: int = 5,
+    show_view_all: bool = True,
+) -> str:
+    """Render bus results with limit and View All card."""
+    if "structured_content" in bus_results:
+        bus_results = bus_results["structured_content"]
+    
+    buses = bus_results.get("buses", [])
+    
+    if not buses:
+        return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
+    
+    total_buses = len(buses)
+    display_buses = buses[:display_limit]
+    
+    buses_ui = [_normalize_bus_for_ui(bus) for bus in display_buses]
+    buses_ui = [b for b in buses_ui if b]
+    
+    if not buses_ui:
+        return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
+    
+    source_city = bus_results.get("source_name") or bus_results.get("source_id", "")
+    destination_city = bus_results.get("destination_name") or bus_results.get("destination_id", "")
+    journey_date = _format_date(bus_results.get("journey_date"))
+    ac_count = bus_results.get("ac_count", 0)
+    non_ac_count = bus_results.get("non_ac_count", 0)
+    view_all_link = bus_results.get("view_all_link", "")
+    
+    should_show_view_all = show_view_all and total_buses > display_limit and view_all_link
+    
+    template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
+    return template.render(
+        styles=BUS_CAROUSEL_STYLES,
+        source_city=source_city,
+        destination_city=destination_city,
+        journey_date=journey_date,
+        bus_count=total_buses,
+        ac_count=ac_count,
+        non_ac_count=non_ac_count,
+        buses=buses_ui,
+        view_all_link=view_all_link,
+        show_view_all_card=should_show_view_all,
+        total_bus_count=total_buses,
+    )
+
 
 def _get_seat_status_class(seat: Dict[str, Any]) -> str:
     if seat.get("is_booked"):
@@ -1123,6 +1082,7 @@ def _get_seat_status_class(seat: Dict[str, Any]) -> str:
     if seat.get("is_available"):
         return "available"
     return "booked"
+
 
 def _build_deck_rows(deck: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
     if not deck or not deck.get("seats"):
@@ -1165,63 +1125,13 @@ def _normalize_deck_for_ui(deck: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "rows_data": rows_data,
     }
 
-def render_bus_results_with_limit(
-    bus_results: Dict[str, Any],
-    display_limit: int = 5,
-    show_view_all: bool = True,
-) -> str:
-    if "structured_content" in bus_results:
-        bus_results = bus_results["structured_content"]
-    
-    buses = bus_results.get("buses", [])
-    
-    if not buses:
-        return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
-    
-    total_buses = len(buses)
-    
-    display_buses = buses[:display_limit]
-    
-    buses_ui = [_normalize_bus_for_ui(bus) for bus in display_buses]
-    buses_ui = [b for b in buses_ui if b]
-    
-    if not buses_ui:
-        return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
-    
-    source_city = bus_results.get("source_name") or bus_results.get("source_id", "")
-    destination_city = bus_results.get("destination_name") or bus_results.get("destination_id", "")
-    journey_date = _format_date(bus_results.get("journey_date"))
-    
-    ac_count = bus_results.get("ac_count", 0)
-    non_ac_count = bus_results.get("non_ac_count", 0)
-    
-    view_all_link = bus_results.get("view_all_link", "")
-    
-    should_show_view_all = show_view_all and total_buses > display_limit and view_all_link
-    
-    template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
-    return template.render(
-        styles=BUS_CAROUSEL_STYLES,
-        source_city=source_city,
-        destination_city=destination_city,
-        journey_date=journey_date,
-        bus_count=total_buses,  
-        ac_count=ac_count,
-        non_ac_count=non_ac_count,
-        buses=buses_ui,
-        view_all_link=view_all_link,
-        show_view_all_card=should_show_view_all,
-        total_bus_count=total_buses,  
-    )
-
 
 def render_seat_layout(seat_layout_response: Dict[str, Any]) -> str:
+    """Render seat layout as HTML."""
     if not seat_layout_response.get("success"):
         message = seat_layout_response.get('message', 'Failed to load seat layout')
         return f"""
-<style>
-{SEAT_LAYOUT_STYLES}
-</style>
+<style>{SEAT_LAYOUT_STYLES}</style>
 <div class='seat-layout'>
   <div class='layout-empty'>
     <p>{message}</p>
@@ -1232,10 +1142,8 @@ def render_seat_layout(seat_layout_response: Dict[str, Any]) -> str:
     
     layout = seat_layout_response.get("layout")
     if not layout:
-        return """
-<style>
-""" + SEAT_LAYOUT_STYLES + """
-</style>
+        return f"""
+<style>{SEAT_LAYOUT_STYLES}</style>
 <div class='seat-layout'>
   <div class='layout-empty'>
     <p>Seat layout not available</p>
