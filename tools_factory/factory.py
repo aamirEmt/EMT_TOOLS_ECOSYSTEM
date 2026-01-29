@@ -20,8 +20,8 @@ class ToolFactory:
         self.register_tool(FlightSearchTool())
         self.register_tool(HotelSearchTool())
         
-        login_tool = LoginTool()
-        self.register_tool(login_tool)
+        # login_tool = LoginTool()
+        # self.register_tool(login_tool)
         
         # Register booking tools with shared login token provider
         # self.register_tool(GetFlightBookingsTool(login_tool))
