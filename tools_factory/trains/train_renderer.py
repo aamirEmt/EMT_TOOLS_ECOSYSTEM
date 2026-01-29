@@ -128,7 +128,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 }
 
 .train-carousel .trn-number {
-  font-size: 11px;
+  font-size: 20px;
   color: #868686;
   font-weight: 500;
   white-space: nowrap;
@@ -270,6 +270,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
   flex-direction: column;
   background: #fff;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .train-carousel .class-card:hover {
@@ -385,6 +386,42 @@ TRAIN_CAROUSEL_TEMPLATE = """
 }
 
 .train-carousel .class-refresh-btn.loading .refresh-icon {
+  animation: spin 1s linear infinite;
+}
+
+.train-carousel .class-refresh-icon-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.train-carousel .class-refresh-icon-btn:hover {
+  background: #f5f5f5;
+  border-color: #2093ef;
+}
+
+.train-carousel .class-refresh-icon-btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.train-carousel .class-refresh-icon-btn img {
+  width: 14px;
+  height: 14px;
+}
+
+.train-carousel .class-refresh-icon-btn.loading img {
   animation: spin 1s linear infinite;
 }
 
@@ -614,6 +651,9 @@ TRAIN_CAROUSEL_TEMPLATE = """
                 {% set is_regret = 'REGRET' in cls.availability_status or 'NOT AVAILABLE' in cls.availability_status or 'TRAIN CANCELLED' in cls.availability_status %}
                 {% set needs_refresh = cls.availability_status in ['N/A', 'Tap To Refresh', 'Check Online', ''] or not cls.availability_status %}
                 <div class="class-card" data-train-no="{{ train.train_number }}" data-class-code="{{ cls.class_code }}" data-from-code="{{ train.from_station_code }}" data-to-code="{{ train.to_station_code }}" data-quota="{{ quota }}" data-journey-date="{{ journey_date_api }}" data-from-display="{{ from_display }}" data-to-display="{{ to_display }}">
+                  <button type="button" class="class-refresh-icon-btn" title="Refresh availability">
+                    <img src="https://railways.easemytrip.com/img/refresh-icon.svg" alt="Refresh" />
+                  </button>
                   <div class="class-code">{{ cls.class_code }}</div>
                   {% if cls.fare != "0" %}
                   <div class="class-fare">₹{{ cls.fare }}</div>
@@ -691,8 +731,16 @@ async function refreshAvailability(btn) {
   const fromDisplay = card.dataset.fromDisplay;
   const toDisplay = card.dataset.toDisplay;
 
-  btn.classList.add('loading');
-  btn.innerHTML = '<svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Loading...';
+  const iconBtn = card.querySelector('.class-refresh-icon-btn');
+  if (iconBtn) {
+    iconBtn.classList.add('loading');
+  }
+
+  const isIconBtn = btn.classList.contains('class-refresh-icon-btn');
+  if (!isIconBtn) {
+    btn.classList.add('loading');
+    btn.innerHTML = '<svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Loading...';
+  }
 
   try {
     const payload = {
@@ -818,7 +866,14 @@ async function refreshAvailability(btn) {
       fareUpdatedEl.textContent = fareUpdated;
     }
 
-    btn.remove();
+    if (iconBtn) {
+      iconBtn.classList.remove('loading');
+    }
+
+    const isIconBtn = btn.classList.contains('class-refresh-icon-btn');
+    if (!isIconBtn) {
+      btn.remove();
+    }
 
     const bookBtn = card.querySelector('.class-book-btn');
     if (!bookBtn) {
@@ -845,12 +900,20 @@ async function refreshAvailability(btn) {
 
   } catch (error) {
     console.error('Error refreshing availability:', error);
-    btn.classList.remove('loading');
-    btn.innerHTML = '<svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Retry';
+
+    if (iconBtn) {
+      iconBtn.classList.remove('loading');
+    }
+
+    const isIconBtn = btn.classList.contains('class-refresh-icon-btn');
+    if (!isIconBtn) {
+      btn.classList.remove('loading');
+      btn.innerHTML = '<svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Retry';
+    }
   }
 }
 
-document.querySelectorAll('.class-refresh-btn').forEach(btn => {
+document.querySelectorAll('.class-refresh-icon-btn, .class-refresh-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     refreshAvailability(this);
   });
