@@ -10,50 +10,94 @@ from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 
+# class BusSearchInput(BaseModel):
+#     """
+#     Input schema for bus search.
+    
+#     Supports both city IDs and city names:
+#     - source_id: "733" or source_name: "Delhi"
+#     - destination_id: "757" or destination_name: "Manali"
+#     """
+    
+#     # City ID fields (legacy support)
+#     source_id: Optional[str] = Field(
+#         None,
+#         alias="sourceId",
+#         description="Source city ID (e.g., '733' for Delhi). Use source_name for city name lookup.",
+#     )
+#     destination_id: Optional[str] = Field(
+#         None,
+#         alias="destinationId",
+#         description="Destination city ID (e.g., '757' for Manali). Use destination_name for city name lookup.",
+#     )
+    
+#     # City Name fields (new - auto-resolved to IDs)
+#     source_name: Optional[str] = Field(
+#         None,
+#         alias="sourceName",
+#         description="Source city name (e.g., 'Delhi'). Will be auto-resolved to city ID.",
+#     )
+#     destination_name: Optional[str] = Field(
+#         None,
+#         alias="destinationName",
+#         description="Destination city name (e.g., 'Manali'). Will be auto-resolved to city ID.",
+#     )
+#     journey_date: str = Field(
+#         ...,
+#         alias="journeyDate",
+#         description="Journey date in YYYY-MM-DD format (will be converted to dd-MM-yyyy for API)",
+#     )
+#     is_volvo: Optional[bool] = Field(
+#         False,
+#         alias="isVolvo",
+#         description="Filter for Volvo buses only",
+#     )
 class BusSearchInput(BaseModel):
     """
     Input schema for bus search.
     
-    Supports both city IDs and city names:
-    - source_id: "733" or source_name: "Delhi"
-    - destination_id: "757" or destination_name: "Manali"
+    IMPORTANT: Use source_name and destination_name (city names like 'Delhi', 'Mumbai', 'Ranchi')
+    instead of IDs. The system will automatically resolve city names to IDs.
+    
+    Examples:
+    - source_name: "Delhi", destination_name: "Manali" (PREFERRED)
+    - source_name: "Mumbai", destination_name: "Pune" (PREFERRED)
     """
     
-    # City ID fields (legacy support)
-    source_id: Optional[str] = Field(
-        None,
-        alias="sourceId",
-        description="Source city ID (e.g., '733' for Delhi). Use source_name for city name lookup.",
-    )
-    destination_id: Optional[str] = Field(
-        None,
-        alias="destinationId",
-        description="Destination city ID (e.g., '757' for Manali). Use destination_name for city name lookup.",
-    )
-    
-    # City Name fields (new - auto-resolved to IDs)
+    # City Name fields (PREFERRED - use these!)
     source_name: Optional[str] = Field(
         None,
         alias="sourceName",
-        description="Source city name (e.g., 'Delhi'). Will be auto-resolved to city ID.",
+        description="PREFERRED: Source city name (e.g., 'Delhi', 'Mumbai', 'Bangalore'). Will be auto-resolved to city ID. Use this instead of source_id.",
     )
     destination_name: Optional[str] = Field(
         None,
         alias="destinationName",
-        description="Destination city name (e.g., 'Manali'). Will be auto-resolved to city ID.",
+        description="PREFERRED: Destination city name (e.g., 'Manali', 'Pune', 'Ranchi'). Will be auto-resolved to city ID. Use this instead of destination_id.",
+    )
+    
+    # City ID fields (legacy - only use if you already have the ID)
+    source_id: Optional[str] = Field(
+        None,
+        alias="sourceId",
+        description="Source city ID (only if known). Prefer using source_name instead.",
+    )
+    destination_id: Optional[str] = Field(
+        None,
+        alias="destinationId",
+        description="Destination city ID (only if known). Prefer using destination_name instead.",
     )
     
     journey_date: str = Field(
         ...,
         alias="journeyDate",
-        description="Journey date in YYYY-MM-DD format (will be converted to dd-MM-yyyy for API)",
+        description="Journey date in YYYY-MM-DD format (e.g., '2026-01-30')",
     )
     is_volvo: Optional[bool] = Field(
         False,
         alias="isVolvo",
         description="Filter for Volvo buses only",
     )
-
     model_config = ConfigDict(
         populate_by_name=True,
         extra="forbid",

@@ -27,10 +27,25 @@ class BusSearchTool(BaseTool):
         - source_name="Delhi", destination_name="Manali" (by city name)
     """
 
+    # def get_metadata(self) -> ToolMetadata:
+    #     return ToolMetadata(
+    #         name="search_buses",
+    #         description="Search for buses on EaseMyTrip. Supports city IDs or city names (auto-resolved). Returns bus options with prices, timings, and amenities.",
+    #         input_schema=BusSearchInput.model_json_schema(),
+    #         output_template="ui://widget/bus-carousel.html",
+    #         category="travel",
+    #         tags=["bus", "transport", "booking", "travel", "search"],
+    #     )
+    
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
             name="search_buses",
-            description="Search for buses on EaseMyTrip. Supports city IDs or city names (auto-resolved). Returns bus options with prices, timings, and amenities.",
+            description=(
+                "Search for buses on EaseMyTrip. "
+                "Use city NAMES like 'Delhi', 'Mumbai', 'Ranchi', 'Manali' - NOT city IDs. "
+                "The system automatically resolves city names to IDs. "
+                "Required: source_name (source city), destination_name (destination city), journey_date (YYYY-MM-DD format)."
+            ),
             input_schema=BusSearchInput.model_json_schema(),
             output_template="ui://widget/bus-carousel.html",
             category="travel",

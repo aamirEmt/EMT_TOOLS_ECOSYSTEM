@@ -8,7 +8,12 @@ Used to convert city names to city IDs automatically.
 import base64
 import json
 from typing import Dict, Any, List, Optional
-import aiohttp
+# import aiohttp
+
+try:
+    import aiohttp
+except ImportError:
+    aiohttp = None
 
 # AES Key for encryption/decryption (from EaseMyTrip)
 DEC_KEY = "TMTOO1vDhT9aWsV1"
@@ -74,6 +79,62 @@ def decrypt_v1(cipher_text: str) -> str:
     return unpad(decrypted_bytes, AES.block_size).decode("utf-8")
 
 
+# async def get_city_suggestions(
+#     city_prefix: str,
+#     country_code: str = "IN",
+# ) -> List[Dict[str, Any]]:
+#     """
+#     Get city suggestions from the autosuggest API.
+    
+#     Args:
+#         city_prefix: City name prefix to search (e.g., "Delhi", "Mana")
+#         country_code: Country code (default: "IN" for India)
+        
+#     Returns:
+#         List of city suggestions with id, name, state, etc.
+#     """
+#     # Build the request payload
+#     json_string = {
+#         "userName": "",
+#         "password": "",
+#         "Prefix": city_prefix,
+#         "country_code": country_code,
+#     }
+    
+#     # Encrypt the request
+#     encrypted_request = encrypt_v1(json.dumps(json_string))
+    
+#     # Build the final API payload
+#     api_payload = {
+#         "request": encrypted_request,
+#         "isIOS": False,
+#         "ip": "49.249.40.58",
+#         "encryptedHeader": ENCRYPTED_HEADER,
+#     }
+    
+#     try:
+#         async with aiohttp.ClientSession() as session:
+#             async with session.post(
+#                 f"{AUTOSUGGEST_URL}?useby=popularu&key={AUTOSUGGEST_KEY}",
+#                 json=api_payload,
+#                 headers={"Content-Type": "application/json"},
+#                 timeout=aiohttp.ClientTimeout(total=30),
+#             ) as response:
+#                 if response.status != 200:
+#                     return []
+                
+#                 encrypted_response = await response.text()
+                
+#                 # Decrypt the response
+#                 decrypted_response = decrypt_v1(encrypted_response)
+#                 data = json.loads(decrypted_response)
+                
+#                 return data.get("list", [])
+                
+#     except Exception as e:
+#         print(f"Error fetching city suggestions: {e}")
+#         return []
+
 async def get_city_suggestions(
     city_prefix: str,
     country_code: str = "IN",
@@ -88,6 +149,10 @@ async def get_city_suggestions(
     Returns:
         List of city suggestions with id, name, state, etc.
     """
+    if aiohttp is None:
+        print("Warning: aiohttp not installed. Cannot resolve city names.")
+        return []
+    
     # Build the request payload
     json_string = {
         "userName": "",
@@ -116,6 +181,7 @@ async def get_city_suggestions(
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as response:
                 if response.status != 200:
+                    print(f"Autosuggest API returned status {response.status}")
                     return []
                 
                 encrypted_response = await response.text()

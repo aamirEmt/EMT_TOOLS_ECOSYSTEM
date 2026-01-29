@@ -13,16 +13,39 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 import aiohttp
 
-from .bus_schema import (
-    BusSearchInput,
-    BusInfo,
-    BoardingPoint,
-    DroppingPoint,
-    CancellationPolicy,
-    WhatsappBusFormat,
-    WhatsappBusFinalResponse,
-)
-from .bus_crypto import get_city_info, resolve_city_names_to_ids
+# from .bus_schema import (
+#     BusSearchInput,
+#     BusInfo,
+#     BoardingPoint,
+#     DroppingPoint,
+#     CancellationPolicy,
+#     WhatsappBusFormat,
+#     WhatsappBusFinalResponse,
+# )
+# from .bus_crypto import get_city_info, resolve_city_names_to_ids
+
+try:
+    from .bus_schema import (
+        BusSearchInput,
+        BusInfo,
+        BoardingPoint,
+        DroppingPoint,
+        CancellationPolicy,
+        WhatsappBusFormat,
+        WhatsappBusFinalResponse,
+    )
+    from .bus_crypto import get_city_info, resolve_city_names_to_ids
+except ImportError:
+    from bus_schema import (
+        BusSearchInput,
+        BusInfo,
+        BoardingPoint,
+        DroppingPoint,
+        CancellationPolicy,
+        WhatsappBusFormat,
+        WhatsappBusFinalResponse,
+    )
+    from bus_crypto import get_city_info, resolve_city_names_to_ids
 
 # ============================================================================
 # API ENDPOINTS (NEW)
