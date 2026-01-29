@@ -870,9 +870,9 @@ async function refreshAvailability(btn) {
       iconBtn.classList.remove('loading');
     }
 
-    const isIconBtn = btn.classList.contains('class-refresh-icon-btn');
-    if (!isIconBtn) {
-      btn.remove();
+    const textRefreshBtn = card.querySelector('.class-refresh-btn');
+    if (textRefreshBtn) {
+      textRefreshBtn.remove();
     }
 
     const bookBtn = card.querySelector('.class-book-btn');
