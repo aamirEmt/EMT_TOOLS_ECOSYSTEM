@@ -443,7 +443,7 @@ BUS_CAROUSEL_TEMPLATE = """
       </div>
       <div class="bussbt">
         <span>{{ journey_date }}</span> •
-        <span>{{ bus_count }} bus{{ 's' if bus_count != 1 else '' }} found</span>
+        <span>{{ bus_count }} bus{{ 'es' if bus_count != 1 else '' }} found</span>
         {% if ac_count %} • <span>{{ ac_count }} AC</span>{% endif %}
         {% if non_ac_count %} • <span>{{ non_ac_count }} Non-AC</span>{% endif %}
       </div>
