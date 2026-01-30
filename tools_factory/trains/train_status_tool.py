@@ -35,6 +35,7 @@ class TrainStatusTool(BaseTool):
         """Execute train status check with provided parameters."""
 
         # Extract runtime flags
+        limit = kwargs.pop("_limit", None)
         user_type = kwargs.pop("_user_type", "website")
         is_whatsapp = user_type.lower() == "whatsapp"
 
