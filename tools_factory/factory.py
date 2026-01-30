@@ -2,6 +2,7 @@ from tools_factory.base import BaseTool
 from tools_factory.flights.flight_search_tool import FlightSearchTool
 from tools_factory.hotels.hotel_search_tool import HotelSearchTool
 from tools_factory.trains.train_search_tool import TrainSearchTool
+from tools_factory.trains.train_status_tool import TrainStatusTool
 from tools_factory.login.login_tool import LoginTool
 from tools_factory.bookings.flight_bookings_tool import GetFlightBookingsTool
 from tools_factory.bookings.hotel_bookings_tool import GetHotelBookingsTool
@@ -21,6 +22,7 @@ class ToolFactory:
         self.register_tool(FlightSearchTool())
         self.register_tool(HotelSearchTool())
         self.register_tool(TrainSearchTool())
+        self.register_tool(TrainStatusTool())
 
         login_tool = LoginTool()
         self.register_tool(login_tool)
