@@ -4,12 +4,6 @@ Tests for Bus Search Tool.
 Run with:
     pytest tests/test_buses.py -v -s
 
-Tests cover:
-- New API endpoints (busservice.easemytrip.com)
-- City name to ID resolution via autosuggest
-- Rating normalization (no "45" appearing)
-- View All link generation
-- WhatsApp format
 """
 
 import pytest
@@ -191,12 +185,11 @@ async def test_bus_search_invalid_city_name():
 # ============================================================================
 # CITY AUTOSUGGEST TESTS (NEW)
 # ============================================================================
-
 @pytest.mark.asyncio
 async def test_city_autosuggest_encryption():
     """Test city autosuggest API with encryption/decryption."""
-    from tools_factory.buses.bus_crypto import get_city_suggestions, get_city_id
-    
+    from tools_factory.buses.bus_search_service import get_city_suggestions, get_city_id
+
     print("\n🔐 Testing city autosuggest with encryption...")
     
     # Test getting suggestions for "Delhi"
@@ -213,8 +206,8 @@ async def test_city_autosuggest_encryption():
 @pytest.mark.asyncio
 async def test_city_id_lookup():
     """Test getting city ID from name."""
-    from tools_factory.buses.bus_crypto import get_city_id
-    
+    from tools_factory.buses.bus_search_service import get_city_id
+
     print("\n🔍 Testing city ID lookup...")
     
     # Test Delhi
@@ -231,8 +224,8 @@ async def test_city_id_lookup():
 @pytest.mark.asyncio
 async def test_city_resolve_names_to_ids():
     """Test resolving both source and destination city names."""
-    from tools_factory.buses.bus_crypto import resolve_city_names_to_ids
-    
+    from tools_factory.buses.bus_search_service import resolve_city_names_to_ids
+
     print("\n🔄 Testing city name resolution...")
     
     result = await resolve_city_names_to_ids("Delhi", "Manali")

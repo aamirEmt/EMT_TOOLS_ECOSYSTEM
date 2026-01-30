@@ -1,13 +1,3 @@
-"""
-Bus Search Tool for EaseMyTrip.
-
-Provides bus search and seat layout tools with:
-- City name to ID resolution via autosuggest
-- New API endpoints
-- Rating normalization
-- View All card support
-"""
-
 from tools_factory.base import BaseTool, ToolMetadata
 from pydantic import ValidationError
 from .bus_schema import BusSearchInput, SeatBindInput
@@ -17,25 +7,6 @@ from .bus_renderer import render_bus_results, render_bus_results_with_limit, ren
 
 
 class BusSearchTool(BaseTool):
-    """
-    Search for buses on EaseMyTrip.
-    
-    Supports both city IDs and city names (auto-resolved via autosuggest API).
-    
-    Examples:
-        - source_id="733", destination_id="757" (Delhi to Manali by ID)
-        - source_name="Delhi", destination_name="Manali" (by city name)
-    """
-
-    # def get_metadata(self) -> ToolMetadata:
-    #     return ToolMetadata(
-    #         name="search_buses",
-    #         description="Search for buses on EaseMyTrip. Supports city IDs or city names (auto-resolved). Returns bus options with prices, timings, and amenities.",
-    #         input_schema=BusSearchInput.model_json_schema(),
-    #         output_template="ui://widget/bus-carousel.html",
-    #         category="travel",
-    #         tags=["bus", "transport", "booking", "travel", "search"],
-    #     )
     
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
@@ -53,13 +24,11 @@ class BusSearchTool(BaseTool):
         )
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
-        # Extract control parameters
         limit = kwargs.pop("_limit", None)
         user_type = kwargs.pop("_user_type", "website")
         display_limit = kwargs.pop("_display_limit", 5)
         is_whatsapp = user_type.lower() == "whatsapp"
 
-        # Validate input
         try:
             payload = BusSearchInput.model_validate(kwargs)
         except ValidationError as exc:
@@ -72,7 +41,6 @@ class BusSearchTool(BaseTool):
                 is_error=True,
             )
 
-        # Check that we have either ID or name for source/destination
         if not payload.source_id and not payload.source_name:
             return ToolResponseFormat(
                 response_text="Please provide either source_id or source_name",
@@ -93,7 +61,6 @@ class BusSearchTool(BaseTool):
                 is_error=True,
             )
 
-        # Search buses (with city name resolution if needed)
         bus_results = await search_buses(
             source_id=payload.source_id,
             destination_id=payload.destination_id,
@@ -150,11 +117,6 @@ class BusSearchTool(BaseTool):
 
 
 class BusSeatLayoutTool(BaseTool):
-    """
-    Get seat layout for a specific bus.
-    
-    Requires bus details from search results plus selected boarding/dropping points.
-    """
 
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(

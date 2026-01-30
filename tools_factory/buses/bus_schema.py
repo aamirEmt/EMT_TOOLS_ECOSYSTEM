@@ -1,70 +1,9 @@
-"""
-Bus Search Schema Definitions.
-
-Pydantic models for bus search input/output validation.
-Supports both city IDs and city names (auto-resolved via autosuggest API).
-"""
-
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
-
-# class BusSearchInput(BaseModel):
-#     """
-#     Input schema for bus search.
-    
-#     Supports both city IDs and city names:
-#     - source_id: "733" or source_name: "Delhi"
-#     - destination_id: "757" or destination_name: "Manali"
-#     """
-    
-#     # City ID fields (legacy support)
-#     source_id: Optional[str] = Field(
-#         None,
-#         alias="sourceId",
-#         description="Source city ID (e.g., '733' for Delhi). Use source_name for city name lookup.",
-#     )
-#     destination_id: Optional[str] = Field(
-#         None,
-#         alias="destinationId",
-#         description="Destination city ID (e.g., '757' for Manali). Use destination_name for city name lookup.",
-#     )
-    
-#     # City Name fields (new - auto-resolved to IDs)
-#     source_name: Optional[str] = Field(
-#         None,
-#         alias="sourceName",
-#         description="Source city name (e.g., 'Delhi'). Will be auto-resolved to city ID.",
-#     )
-#     destination_name: Optional[str] = Field(
-#         None,
-#         alias="destinationName",
-#         description="Destination city name (e.g., 'Manali'). Will be auto-resolved to city ID.",
-#     )
-#     journey_date: str = Field(
-#         ...,
-#         alias="journeyDate",
-#         description="Journey date in YYYY-MM-DD format (will be converted to dd-MM-yyyy for API)",
-#     )
-#     is_volvo: Optional[bool] = Field(
-#         False,
-#         alias="isVolvo",
-#         description="Filter for Volvo buses only",
-#     )
 class BusSearchInput(BaseModel):
-    """
-    Input schema for bus search.
-    
-    IMPORTANT: Use source_name and destination_name (city names like 'Delhi', 'Mumbai', 'Ranchi')
-    instead of IDs. The system will automatically resolve city names to IDs.
-    
-    Examples:
-    - source_name: "Delhi", destination_name: "Manali" (PREFERRED)
-    - source_name: "Mumbai", destination_name: "Pune" (PREFERRED)
-    """
-    
-    # City Name fields (PREFERRED - use these!)
+
     source_name: Optional[str] = Field(
         None,
         alias="sourceName",
@@ -76,7 +15,6 @@ class BusSearchInput(BaseModel):
         description="PREFERRED: Destination city name (e.g., 'Manali', 'Pune', 'Ranchi'). Will be auto-resolved to city ID. Use this instead of destination_id.",
     )
     
-    # City ID fields (legacy - only use if you already have the ID)
     source_id: Optional[str] = Field(
         None,
         alias="sourceId",
@@ -116,7 +54,6 @@ class BusSearchInput(BaseModel):
 
 
 class BoardingPoint(BaseModel):
-    """Boarding point information from API response."""
     
     bd_id: str = Field(..., alias="bdid")
     bd_long_name: str = Field("", alias="bdLongName")
@@ -133,7 +70,6 @@ class BoardingPoint(BaseModel):
 
 
 class DroppingPoint(BaseModel):
-    """Dropping point information from API response."""
     
     dp_id: str = Field(..., alias="dpId")
     dp_name: str = Field("", alias="dpName")
@@ -148,7 +84,6 @@ class DroppingPoint(BaseModel):
 
 
 class CancellationPolicy(BaseModel):
-    """Cancellation policy information."""
     
     time_from: int = Field(..., alias="timeFrom")
     time_to: int = Field(..., alias="timeTo")
@@ -160,14 +95,12 @@ class CancellationPolicy(BaseModel):
 
 
 class Amenity(BaseModel):
-    """Bus amenity information."""
     
     id: int
     name: str
 
 
 class BusInfo(BaseModel):
-    """Complete bus information from search results."""
     
     bus_id: str
     operator_name: str
@@ -202,7 +135,6 @@ class BusInfo(BaseModel):
 
 
 class WhatsappBusFormat(BaseModel):
-    """WhatsApp response format for bus collection."""
     
     type: str = "bus_collection"
     options: list
@@ -212,18 +144,12 @@ class WhatsappBusFormat(BaseModel):
 
 
 class WhatsappBusFinalResponse(BaseModel):
-    """Final WhatsApp response structure."""
     
     response_text: str
     whatsapp_json: WhatsappBusFormat
 
 
 class SeatBindInput(BaseModel):
-    """
-    Input schema for seat layout/bind API.
-    
-    Requires bus details from search results plus selected boarding/dropping points.
-    """
     
     source_id: str = Field(
         ...,
@@ -280,7 +206,7 @@ class SeatBindInput(BaseModel):
         alias="droppingPointId",
         description="Selected dropping point ID from dpPoints",
     )
-    # Additional fields for new SeatBind API
+
     bus_type: Optional[str] = Field(
         None,
         alias="busType",
@@ -340,7 +266,6 @@ class SeatBindInput(BaseModel):
 
 
 class SeatInfo(BaseModel):
-    """Individual seat information from seat layout."""
     
     seat_number: str
     seat_name: str
@@ -361,7 +286,6 @@ class SeatInfo(BaseModel):
 
 
 class DeckLayout(BaseModel):
-    """Deck layout with seat grid."""
     
     deck_name: str
     rows: int
@@ -370,7 +294,6 @@ class DeckLayout(BaseModel):
 
 
 class SeatLayoutInfo(BaseModel):
-    """Complete seat layout information."""
     
     bus_id: str
     bus_type: str
@@ -388,7 +311,6 @@ class SeatLayoutInfo(BaseModel):
 
 
 class SeatLayoutResponse(BaseModel):
-    """Seat layout API response."""
     
     success: bool
     message: str

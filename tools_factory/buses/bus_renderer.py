@@ -1,10 +1,3 @@
-"""
-Bus Search HTML Renderer.
-
-Renders bus search results and seat layouts as HTML carousels.
-Includes rating normalization and View All card support.
-"""
-
 from typing import Dict, Any, List, Optional
 from jinja2 import Environment, BaseLoader
 
@@ -12,10 +5,6 @@ _jinja_env = Environment(
     loader=BaseLoader(),
     autoescape=False,
 )
-
-# ============================================================================
-# STYLES
-# ============================================================================
 
 BUS_CAROUSEL_STYLES = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
@@ -799,10 +788,6 @@ SEAT_LAYOUT_TEMPLATE = """
 </div>
 """
 
-# ============================================================================
-# HELPER FUNCTIONS
-# ============================================================================
-
 def _format_currency(value: Any) -> str:
     if not value:
         return "₹0"
@@ -849,11 +834,7 @@ def _truncate_text(text: str, max_length: int = 25) -> str:
 
 
 def _normalize_rating_for_display(rating_value: Any) -> Optional[str]:
-    """
-    Normalize rating for display (fix for "45" appearing in UI).
-    
-    Handles: "45" -> "4.5", 45 -> "4.5", "4.5" -> "4.5", 0 or None -> None
-    """
+
     if rating_value is None or rating_value == "" or rating_value == 0:
         return None
     try:
@@ -981,10 +962,6 @@ def _normalize_bus_for_ui(bus: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     }
 
 
-# ============================================================================
-# RENDER FUNCTIONS
-# ============================================================================
-
 def render_bus_results(bus_results: Dict[str, Any]) -> str:
     """Render bus search results as HTML carousel."""
     if "structured_content" in bus_results:
@@ -1029,7 +1006,6 @@ def render_bus_results_with_limit(
     display_limit: int = 5,
     show_view_all: bool = True,
 ) -> str:
-    """Render bus results with limit and View All card."""
     if "structured_content" in bus_results:
         bus_results = bus_results["structured_content"]
     

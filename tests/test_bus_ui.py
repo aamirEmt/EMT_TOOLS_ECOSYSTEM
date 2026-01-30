@@ -7,11 +7,6 @@ Run with:
 Generate HTML only:
     python tests/test_bus_ui.py
 
-Tests cover:
-- HTML rendering with new API data
-- View All card display
-- Rating normalization in UI
-- City name display
 """
 
 import sys

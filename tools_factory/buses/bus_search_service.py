@@ -1,28 +1,13 @@
-"""
-Bus Search Service.
-
-Handles bus search and seat layout API calls with:
-- New API endpoints (busservice.easemytrip.com)
-- City name to ID resolution via autosuggest
-- Rating normalization
-- View All link generation
-"""
-
+import base64
+import json
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-import aiohttp
 
-# from .bus_schema import (
-#     BusSearchInput,
-#     BusInfo,
-#     BoardingPoint,
-#     DroppingPoint,
-#     CancellationPolicy,
-#     WhatsappBusFormat,
-#     WhatsappBusFinalResponse,
-# )
-# from .bus_crypto import get_city_info, resolve_city_names_to_ids
+try:
+    import aiohttp
+except ImportError:
+    aiohttp = None
 
 try:
     from .bus_schema import (
@@ -34,7 +19,6 @@ try:
         WhatsappBusFormat,
         WhatsappBusFinalResponse,
     )
-    from .bus_crypto import get_city_info, resolve_city_names_to_ids
 except ImportError:
     from bus_schema import (
         BusSearchInput,
@@ -45,21 +29,269 @@ except ImportError:
         WhatsappBusFormat,
         WhatsappBusFinalResponse,
     )
-    from bus_crypto import get_city_info, resolve_city_names_to_ids
+
+try:
+    from emt_client.config import (
+        BUS_SEARCH_URL,
+        BUS_SEAT_BIND_URL as SEAT_BIND_URL,
+        BUS_DEEPLINK_BASE,
+        BUS_AUTOSUGGEST_URL,
+        BUS_AUTOSUGGEST_KEY,
+        BUS_ENCRYPTED_HEADER,
+        BUS_DECRYPTION_KEY,
+    )
+except ImportError:
+    # Fallback defaults if config not available 
+    BUS_SEARCH_URL = "https://busservice.easemytrip.com/v1/api/Home/GetSearchResult/"
+    SEAT_BIND_URL = "https://bus.easemytrip.com/Home/SeatBind/"
+    BUS_DEEPLINK_BASE = "https://bus.easemytrip.com/home/list"
+    BUS_AUTOSUGGEST_URL = "https://autosuggest.easemytrip.com/api/auto/bus"
+    BUS_AUTOSUGGEST_KEY = "jNUYK0Yj5ibO6ZVIkfTiFA=="
+    BUS_ENCRYPTED_HEADER = "7ZTtohPgMEKTZQZk4/Cn1mpXnyNZDJIRcrdCFo5ahIk="
+    BUS_DECRYPTION_KEY = "TMTOO1vDhT9aWsV1"
+
 
 # ============================================================================
-# API ENDPOINTS (NEW)
+# ENCRYPTION/DECRYPTION FUNCTIONS 
 # ============================================================================
 
-# New Search API endpoint
-BUS_SEARCH_URL = "https://busservice.easemytrip.com/v1/api/Home/GetSearchResult/"
+def _get_cipher():
+    """Get AES cipher for encryption/decryption."""
+    try:
+        from Crypto.Cipher import AES
+        from Crypto.Util.Padding import pad, unpad
+        return AES, pad, unpad
+    except ImportError:
+        try:
+            from Cryptodome.Cipher import AES
+            from Cryptodome.Util.Padding import pad, unpad
+            return AES, pad, unpad
+        except ImportError:
+            raise ImportError(
+                "pycryptodome is required. Install with: pip install pycryptodome"
+            )
 
-# New SeatBind API endpoint
-SEAT_BIND_URL = "https://bus.easemytrip.com/Home/SeatBind/"
 
-# Deeplink base URL
-BUS_DEEPLINK_BASE = "https://bus.easemytrip.com/home/list"
+def encrypt_v1(plain_text: str) -> str:
+    """
+    Encrypt plaintext using AES CBC mode.
+    
+    Args:
+        plain_text: The plaintext string to encrypt
+        
+    Returns:
+        Base64 encoded encrypted string
+    """
+    AES, pad, unpad = _get_cipher()
+    
+    key = BUS_DECRYPTION_KEY.encode("utf-8")
+    cipher = AES.new(key, AES.MODE_CBC, iv=key)
+    padded_data = pad(plain_text.encode("utf-8"), AES.block_size)
+    encrypted_bytes = cipher.encrypt(padded_data)
+    return base64.b64encode(encrypted_bytes).decode("utf-8")
 
+
+def decrypt_v1(cipher_text: str) -> str:
+    """
+    Decrypt ciphertext using AES CBC mode.
+    
+    Args:
+        cipher_text: Base64 encoded encrypted string
+        
+    Returns:
+        Decrypted plaintext string
+    """
+    AES, pad, unpad = _get_cipher()
+    
+    key = BUS_DECRYPTION_KEY.encode("utf-8")
+    encrypted_bytes = base64.b64decode(cipher_text)
+    cipher = AES.new(key, AES.MODE_CBC, iv=key)
+    decrypted_bytes = cipher.decrypt(encrypted_bytes)
+    return unpad(decrypted_bytes, AES.block_size).decode("utf-8")
+
+
+# ============================================================================
+# CITY AUTOSUGGEST FUNCTIONS 
+# ============================================================================
+
+async def get_city_suggestions(
+    city_prefix: str,
+    country_code: str = "IN",
+) -> List[Dict[str, Any]]:
+    """
+    Get city suggestions from the autosuggest API.
+    
+    Args:
+        city_prefix: City name prefix to search (e.g., "Delhi", "Mana")
+        country_code: Country code (default: "IN" for India)
+        
+    Returns:
+        List of city suggestions with id, name, state, etc.
+    """
+    if aiohttp is None:
+        print("Warning: aiohttp not installed. Cannot resolve city names.")
+        return []
+    
+    # Build the request payload
+    json_string = {
+        "userName": "",
+        "password": "",
+        "Prefix": city_prefix,
+        "country_code": country_code,
+    }
+    
+    # Encrypt the request
+    encrypted_request = encrypt_v1(json.dumps(json_string))
+    
+    # Build the final API payload
+    api_payload = {
+        "request": encrypted_request,
+        "isIOS": False,
+        "ip": "49.249.40.58",
+        "encryptedHeader": BUS_ENCRYPTED_HEADER,
+    }
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{BUS_AUTOSUGGEST_URL}?useby=popularu&key={BUS_AUTOSUGGEST_KEY}",
+                json=api_payload,
+                headers={"Content-Type": "application/json"},
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as response:
+                if response.status != 200:
+                    print(f"Autosuggest API returned status {response.status}")
+                    return []
+                
+                encrypted_response = await response.text()
+                
+                # Decrypt the response
+                decrypted_response = decrypt_v1(encrypted_response)
+                data = json.loads(decrypted_response)
+                
+                return data.get("list", [])
+                
+    except Exception as e:
+        print(f"Error fetching city suggestions: {e}")
+        return []
+
+
+async def get_city_id(city_name: str, country_code: str = "IN") -> Optional[str]:
+    """
+    Get city ID for a given city name.
+    
+    Args:
+        city_name: Full or partial city name
+        country_code: Country code (default: "IN")
+        
+    Returns:
+        City ID string or None if not found
+    """
+    suggestions = await get_city_suggestions(city_name, country_code)
+    
+    if not suggestions:
+        return None
+    
+    # Try to find exact match first (case-insensitive)
+    city_name_lower = city_name.lower().strip()
+    for suggestion in suggestions:
+        if suggestion.get("name", "").lower().strip() == city_name_lower:
+            return suggestion.get("id")
+    
+    # Return first match if no exact match
+    return suggestions[0].get("id") if suggestions else None
+
+
+async def get_city_info(city_name: str, country_code: str = "IN") -> Optional[Dict[str, Any]]:
+    """
+    Get full city info for a given city name.
+    
+    Args:
+        city_name: Full or partial city name
+        country_code: Country code (default: "IN")
+        
+    Returns:
+        City info dict with id, name, state, etc. or None if not found
+    """
+    suggestions = await get_city_suggestions(city_name, country_code)
+    
+    if not suggestions:
+        return None
+    
+    # Try to find exact match first (case-insensitive)
+    city_name_lower = city_name.lower().strip()
+    for suggestion in suggestions:
+        if suggestion.get("name", "").lower().strip() == city_name_lower:
+            return suggestion
+    
+    # Return first match if no exact match
+    return suggestions[0] if suggestions else None
+
+
+async def resolve_city_names_to_ids(
+    source_city: str,
+    destination_city: str,
+    country_code: str = "IN",
+) -> Dict[str, Any]:
+    """
+    Resolve source and destination city names to their IDs.
+    
+    Args:
+        source_city: Source city name or ID
+        destination_city: Destination city name or ID
+        country_code: Country code (default: "IN")
+        
+    Returns:
+        Dict with source_id, source_name, destination_id, destination_name
+    """
+    result = {
+        "source_id": None,
+        "source_name": None,
+        "destination_id": None,
+        "destination_name": None,
+        "error": None,
+    }
+    
+    # Check if source is already an ID (numeric string)
+    if source_city.isdigit():
+        result["source_id"] = source_city
+        result["source_name"] = source_city  # Will be updated from API response
+    else:
+        source_info = await get_city_info(source_city, country_code)
+        if source_info:
+            result["source_id"] = source_info.get("id")
+            result["source_name"] = source_info.get("name")
+        else:
+            result["error"] = f"Could not find city: {source_city}"
+            return result
+    
+    # Check if destination is already an ID (numeric string)
+    if destination_city.isdigit():
+        result["destination_id"] = destination_city
+        result["destination_name"] = destination_city  # Will be updated from API response
+    else:
+        dest_info = await get_city_info(destination_city, country_code)
+        if dest_info:
+            result["destination_id"] = dest_info.get("id")
+            result["destination_name"] = dest_info.get("name")
+        else:
+            result["error"] = f"Could not find city: {destination_city}"
+            return result
+    
+    return result
+
+
+# Synchronous wrappers for testing
+def get_city_id_sync(city_name: str, country_code: str = "IN") -> Optional[str]:
+    """Synchronous wrapper for get_city_id."""
+    import asyncio
+    return asyncio.run(get_city_id(city_name, country_code))
+
+
+def get_city_suggestions_sync(city_prefix: str, country_code: str = "IN") -> List[Dict[str, Any]]:
+    """Synchronous wrapper for get_city_suggestions."""
+    import asyncio
+    return asyncio.run(get_city_suggestions(city_prefix, country_code))
 
 # ============================================================================
 # HELPER FUNCTIONS

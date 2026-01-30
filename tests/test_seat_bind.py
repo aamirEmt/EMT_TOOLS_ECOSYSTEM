@@ -7,11 +7,6 @@ Run with:
 Generate HTML only:
     python tests/test_seat_bind.py
 
-Tests cover:
-- New SeatBind API (bus.easemytrip.com/Home/SeatBind/)
-- Rating normalization in results
-- View All link presence
-- City names from API
 """
 
 import sys
@@ -409,29 +404,6 @@ async def test_view_all_card_with_limit():
     assert str(total) in html, f"Expected total count {total} in HTML"
     
     print(f"   ✅ View All card shows {total} total buses")
-
-
-# @pytest.mark.asyncio
-# async def test_view_all_card_not_shown_when_few_buses():
-#     """Test View All card does NOT appear when buses are within limit."""
-#     from tools_factory.buses.bus_renderer import render_bus_results_with_limit
-    
-#     print("\n" + "=" * 60)
-#     print("TEST: View All Card Not Shown (Few Buses)")
-#     print("=" * 60)
-    
-#     bus_results = await fetch_buses_for_seat_test(source_id="733", destination_id="757", days_ahead=7)
-#     buses = bus_results.get("buses", [])
-    
-#     bus_results["buses"] = buses[:3]
-#     bus_results["view_all_link"] = ""
-    
-#     html = render_bus_results_with_limit(bus_results, display_limit=5, show_view_all=True)
-    
-#     assert html is not None
-#     assert "view-all-card" not in html
-    
-#     print(f"   ✅ View All card correctly hidden (only {len(bus_results['buses'])} buses)")
 
 
 @pytest.mark.asyncio
