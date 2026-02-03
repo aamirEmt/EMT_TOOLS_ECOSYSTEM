@@ -1,6 +1,5 @@
 import aiohttp
-from typing import Dict, Any, Optional
-from emt_client.config import (
+from ..config import (
     BUS_SEARCH_URL,
     BUS_SEAT_BIND_URL,
     BUS_AUTOSUGGEST_URL,
@@ -10,6 +9,7 @@ from emt_client.config import (
 
 
 class BusApiClient:
+    """Bus API client for EaseMyTrip bus service."""
     
     def __init__(self):
         self.search_url = BUS_SEARCH_URL
@@ -19,6 +19,7 @@ class BusApiClient:
         self.encrypted_header = BUS_ENCRYPTED_HEADER
 
     async def search(self, payload: dict) -> dict:
+        """Search buses between cities."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 self.search_url,
@@ -31,6 +32,7 @@ class BusApiClient:
                 return await response.json()
 
     async def get_seat_layout(self, payload: dict) -> dict:
+        """Get seat layout for a specific bus."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 self.seat_bind_url,
@@ -43,6 +45,7 @@ class BusApiClient:
                 return await response.json()
 
     async def get_city_suggestions(self, encrypted_payload: dict) -> str:
+        """Get city suggestions from autosuggest API."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 f"{self.autosuggest_url}?useby=popularu&key={self.autosuggest_key}",

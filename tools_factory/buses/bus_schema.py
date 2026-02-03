@@ -40,17 +40,17 @@ class BusSearchInput(BaseModel):
         populate_by_name=True,
         extra="forbid",
     )
-
+    
     @field_validator("journey_date")
     @classmethod
     def validate_date(cls, v: str) -> str:
         if v is None:
             return v
         try:
-            datetime.strptime(v, "%Y-%m-%d")
+            dt = datetime.strptime(v, "%Y-%m-%d")
+            return dt.strftime("%d-%m-%Y")
         except ValueError:
             raise ValueError("Date must be in YYYY-MM-DD format")
-        return v
 
 
 class BoardingPoint(BaseModel):

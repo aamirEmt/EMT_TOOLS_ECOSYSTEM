@@ -4,10 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-try:
-    import aiohttp
-except ImportError:
-    aiohttp = None
+import aiohttp
 
 try:
     from .bus_schema import (
@@ -30,25 +27,16 @@ except ImportError:
         WhatsappBusFinalResponse,
     )
 
-try:
-    from emt_client.config import (
-        BUS_SEARCH_URL,
-        BUS_SEAT_BIND_URL as SEAT_BIND_URL,
-        BUS_DEEPLINK_BASE,
-        BUS_AUTOSUGGEST_URL,
-        BUS_AUTOSUGGEST_KEY,
-        BUS_ENCRYPTED_HEADER,
-        BUS_DECRYPTION_KEY,
-    )
-except ImportError:
-    # Fallback defaults if config not available 
-    BUS_SEARCH_URL = "https://busservice.easemytrip.com/v1/api/Home/GetSearchResult/"
-    SEAT_BIND_URL = "https://bus.easemytrip.com/Home/SeatBind/"
-    BUS_DEEPLINK_BASE = "https://bus.easemytrip.com/home/list"
-    BUS_AUTOSUGGEST_URL = "https://autosuggest.easemytrip.com/api/auto/bus"
-    BUS_AUTOSUGGEST_KEY = "jNUYK0Yj5ibO6ZVIkfTiFA=="
-    BUS_ENCRYPTED_HEADER = "7ZTtohPgMEKTZQZk4/Cn1mpXnyNZDJIRcrdCFo5ahIk="
-    BUS_DECRYPTION_KEY = "TMTOO1vDhT9aWsV1"
+from emt_client.config import (
+    BUS_SEARCH_URL,
+    BUS_SEAT_BIND_URL as SEAT_BIND_URL,
+    BUS_DEEPLINK_BASE,
+    BUS_AUTOSUGGEST_URL,
+    BUS_AUTOSUGGEST_KEY,
+    BUS_ENCRYPTED_HEADER,
+    BUS_DECRYPTION_KEY,
+)
+from emt_client.clients.bus_client import BusApiClient
 
 
 # ============================================================================
@@ -128,10 +116,6 @@ async def get_city_suggestions(
     Returns:
         List of city suggestions with id, name, state, etc.
     """
-    if aiohttp is None:
-        print("Warning: aiohttp not installed. Cannot resolve city names.")
-        return []
-    
     # Build the request payload
     json_string = {
         "userName": "",
@@ -152,24 +136,14 @@ async def get_city_suggestions(
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{BUS_AUTOSUGGEST_URL}?useby=popularu&key={BUS_AUTOSUGGEST_KEY}",
-                json=api_payload,
-                headers={"Content-Type": "application/json"},
-                timeout=aiohttp.ClientTimeout(total=30),
-            ) as response:
-                if response.status != 200:
-                    print(f"Autosuggest API returned status {response.status}")
-                    return []
-                
-                encrypted_response = await response.text()
-                
-                # Decrypt the response
-                decrypted_response = decrypt_v1(encrypted_response)
-                data = json.loads(decrypted_response)
-                
-                return data.get("list", [])
+        client = BusApiClient()
+        encrypted_response = await client.get_city_suggestions(api_payload)
+        
+        # Decrypt the response
+        decrypted_response = decrypt_v1(encrypted_response)
+        data = json.loads(decrypted_response)
+        
+        return data.get("list", [])
                 
     except Exception as e:
         print(f"Error fetching city suggestions: {e}")
@@ -307,22 +281,6 @@ def _generate_visitor_id() -> str:
     return uuid.uuid4().hex
 
 
-def _convert_date_to_api_format(date_str: str) -> str:
-    """
-    Convert date from YYYY-MM-DD to dd-MM-yyyy format for API.
-    
-    Args:
-        date_str: Date in YYYY-MM-DD format
-        
-    Returns:
-        Date in dd-MM-yyyy format
-    """
-    try:
-        dt = datetime.strptime(date_str, "%Y-%m-%d")
-        return dt.strftime("%d-%m-%Y")
-    except ValueError:
-        return date_str
-
 
 def _normalize_rating(rating_value: Any) -> Optional[str]:
     """
@@ -365,6 +323,22 @@ def _normalize_rating(rating_value: Any) -> Optional[str]:
         
     except (ValueError, TypeError):
         return None
+
+def _convert_date_to_api_format(date_str: str) -> str:
+    """
+    Convert date from YYYY-MM-DD to dd-MM-yyyy format for API.
+    
+    Args:
+        date_str: Date in YYYY-MM-DD format
+        
+    Returns:
+        Date in dd-MM-yyyy format
+    """
+    try:
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+        return dt.strftime("%d-%m-%Y")
+    except ValueError:
+        return date_str
 
 
 def _build_bus_listing_url(
@@ -692,8 +666,9 @@ async def search_buses(
         }
     
     # Convert date to API format (dd-MM-yyyy)
+    # api_date = journey_date
     api_date = _convert_date_to_api_format(journey_date)
-    
+
     # Generate session IDs
     sid = _generate_session_id()
     vid = _generate_visitor_id()
@@ -716,23 +691,17 @@ async def search_buses(
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                BUS_SEARCH_URL,
-                json=payload,
-                headers={"Content-Type": "application/json"},
-                timeout=aiohttp.ClientTimeout(total=30),
-            ) as response:
-                if response.status != 200:
-                    return {
-                        "error": "API_ERROR",
-                        "message": f"API returned status {response.status}",
-                        "buses": [],
-                        "total_count": 0,
-                        "is_bus_available": False,
-                    }
-                
-                data = await response.json()
+        client = BusApiClient()
+        data = await client.search(payload)
+        
+        if "error" in data:
+            return {
+                "error": "API_ERROR",
+                "message": data.get("error", "Unknown error"),
+                "buses": [],
+                "total_count": 0,
+                "is_bus_available": False,
+            }
                 
     except Exception as e:
         return {
@@ -1097,6 +1066,7 @@ async def get_seat_layout(
     """
     
     # Convert date to API format
+    # api_date = journey_date
     api_date = _convert_date_to_api_format(journey_date)
     
     # Generate session IDs if not provided
@@ -1136,22 +1106,16 @@ async def get_seat_layout(
     }
     
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                SEAT_BIND_URL,
-                json=payload,
-                headers={"Content-Type": "application/json"},
-                timeout=aiohttp.ClientTimeout(total=30),
-            ) as response:
-                if response.status != 200:
-                    return {
-                        "success": False,
-                        "message": f"API returned status {response.status}",
-                        "layout": None,
-                        "raw_response": None,
-                    }
-                
-                data = await response.json()
+        client = BusApiClient()
+        data = await client.get_seat_layout(payload)
+        
+        if "error" in data:
+            return {
+                "success": False,
+                "message": data.get("error", "Unknown error"),
+                "layout": None,
+                "raw_response": None,
+            }
                 
     except Exception as e:
         return {

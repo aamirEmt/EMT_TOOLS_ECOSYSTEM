@@ -1,9 +1,13 @@
 from tools_factory.base import BaseTool, ToolMetadata
 from pydantic import ValidationError
-from .bus_schema import BusSearchInput, SeatBindInput
-from .bus_search_service import search_buses, build_whatsapp_bus_response, get_seat_layout
+# from .bus_schema import BusSearchInput, SeatBindInput
+# from .bus_search_service import search_buses, build_whatsapp_bus_response, get_seat_layout
+# from tools_factory.base_schema import ToolResponseFormat
+# from .bus_renderer import render_bus_results, render_bus_results_with_limit, render_seat_layout
+from .bus_schema import BusSearchInput
+from .bus_search_service import search_buses, build_whatsapp_bus_response
 from tools_factory.base_schema import ToolResponseFormat
-from .bus_renderer import render_bus_results, render_bus_results_with_limit, render_seat_layout
+from .bus_renderer import render_bus_results_with_limit
 
 
 class BusSearchTool(BaseTool):
@@ -86,7 +90,7 @@ class BusSearchTool(BaseTool):
 
         # Render HTML for website
         html_output = None
-        if not has_error and not is_whatsapp:
+        if not has_error and not is_whatsapp and bus_count > 0:
             # Use render_bus_results_with_limit for View All card support
             html_output = render_bus_results_with_limit(
                 bus_results,
@@ -116,75 +120,75 @@ class BusSearchTool(BaseTool):
         )
 
 
-class BusSeatLayoutTool(BaseTool):
+# class BusSeatLayoutTool(BaseTool):
 
-    def get_metadata(self) -> ToolMetadata:
-        return ToolMetadata(
-            name="get_bus_seat_layout",
-            description="Get seat layout for a specific bus with boarding/dropping points. Shows available and booked seats.",
-            input_schema=SeatBindInput.model_json_schema(),
-            output_template="ui://widget/bus-seat-layout.html",
-            category="travel",
-            tags=["bus", "seat", "layout", "booking"],
-        )
+#     def get_metadata(self) -> ToolMetadata:
+#         return ToolMetadata(
+#             name="get_bus_seat_layout",
+#             description="Get seat layout for a specific bus with boarding/dropping points. Shows available and booked seats.",
+#             input_schema=SeatBindInput.model_json_schema(),
+#             output_template="ui://widget/bus-seat-layout.html",
+#             category="travel",
+#             tags=["bus", "seat", "layout", "booking"],
+#         )
 
-    async def execute(self, **kwargs) -> ToolResponseFormat:
-        user_type = kwargs.pop("_user_type", "website")
-        is_whatsapp = user_type.lower() == "whatsapp"
+#     async def execute(self, **kwargs) -> ToolResponseFormat:
+#         user_type = kwargs.pop("_user_type", "website")
+#         is_whatsapp = user_type.lower() == "whatsapp"
 
-        # Validate input
-        try:
-            payload = SeatBindInput.model_validate(kwargs)
-        except ValidationError as exc:
-            return ToolResponseFormat(
-                response_text="Invalid seat layout input",
-                structured_content={
-                    "error": "VALIDATION_ERROR",
-                    "details": exc.errors(),
-                },
-                is_error=True,
-            )
+#         # Validate input
+#         try:
+#             payload = SeatBindInput.model_validate(kwargs)
+#         except ValidationError as exc:
+#             return ToolResponseFormat(
+#                 response_text="Invalid seat layout input",
+#                 structured_content={
+#                     "error": "VALIDATION_ERROR",
+#                     "details": exc.errors(),
+#                 },
+#                 is_error=True,
+#             )
 
-        # Get seat layout from API
-        layout_response = await get_seat_layout(
-            source_id=payload.source_id,
-            destination_id=payload.destination_id,
-            journey_date=payload.journey_date,
-            bus_id=payload.bus_id,
-            route_id=payload.route_id,
-            engine_id=payload.engine_id,
-            boarding_point_id=payload.boarding_point_id,
-            dropping_point_id=payload.dropping_point_id,
-            source_name=payload.source_name or "",
-            destination_name=payload.destination_name or "",
-            operator_id=payload.operator_id or "",
-            operator_name=payload.operator_name or "",
-            bus_type=payload.bus_type or "",
-            departure_time=payload.departure_time or "",
-            arrival_time=payload.arrival_time or "",
-            duration=payload.duration or "",
-            trace_id=payload.trace_id or "",
-            is_seater=payload.is_seater if payload.is_seater is not None else True,
-            is_sleeper=payload.is_sleeper if payload.is_sleeper is not None else True,
-        )
+#         # Get seat layout from API
+#         layout_response = await get_seat_layout(
+#             source_id=payload.source_id,
+#             destination_id=payload.destination_id,
+#             journey_date=payload.journey_date,
+#             bus_id=payload.bus_id,
+#             route_id=payload.route_id,
+#             engine_id=payload.engine_id,
+#             boarding_point_id=payload.boarding_point_id,
+#             dropping_point_id=payload.dropping_point_id,
+#             source_name=payload.source_name or "",
+#             destination_name=payload.destination_name or "",
+#             operator_id=payload.operator_id or "",
+#             operator_name=payload.operator_name or "",
+#             bus_type=payload.bus_type or "",
+#             departure_time=payload.departure_time or "",
+#             arrival_time=payload.arrival_time or "",
+#             duration=payload.duration or "",
+#             trace_id=payload.trace_id or "",
+#             is_seater=payload.is_seater if payload.is_seater is not None else True,
+#             is_sleeper=payload.is_sleeper if payload.is_sleeper is not None else True,
+#         )
 
-        has_error = not layout_response.get("success")
+#         has_error = not layout_response.get("success")
 
-        # Render HTML for website
-        html_output = None
-        if not is_whatsapp:
-            html_output = render_seat_layout(layout_response)
+#         # Render HTML for website
+#         html_output = None
+#         if not is_whatsapp:
+#             html_output = render_seat_layout(layout_response)
 
-        # Build response text
-        if has_error:
-            text = f"Failed to load seat layout: {layout_response.get('message', 'Unknown error')}"
-        else:
-            layout = layout_response.get("layout", {})
-            text = f"Seat layout loaded: {layout.get('available_seats', 0)} seats available out of {layout.get('total_seats', 0)}"
+#         # Build response text
+#         if has_error:
+#             text = f"Failed to load seat layout: {layout_response.get('message', 'Unknown error')}"
+#         else:
+#             layout = layout_response.get("layout", {})
+#             text = f"Seat layout loaded: {layout.get('available_seats', 0)} seats available out of {layout.get('total_seats', 0)}"
 
-        return ToolResponseFormat(
-            response_text=text,
-            structured_content=layout_response,
-            html=html_output,
-            is_error=has_error,
-        )
+#         return ToolResponseFormat(
+#             response_text=text,
+#             structured_content=layout_response,
+#             html=html_output,
+#             is_error=has_error,
+#         )
