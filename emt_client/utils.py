@@ -199,29 +199,6 @@ def generate_short_link(
 # BUS UTILITIES
 # ============================================================================
 
-def convert_date_for_bus_api(date_str: str) -> str:
-    """
-    Convert date from YYYY-MM-DD to dd-MM-yyyy format for Bus API.
-    
-    SearchDate should be entered as string in date format 'dd-MM-yyyy'
-    
-    Args:
-        date_str: Date in YYYY-MM-DD format
-        
-    Returns:
-        Date in dd-MM-yyyy format
-        
-    Examples:
-        "2025-11-08" → "08-11-2025"
-        "2026-01-15" → "15-01-2026"
-    """
-    try:
-        dt = datetime.strptime(date_str, "%Y-%m-%d")
-        return dt.strftime("%d-%m-%Y")
-    except ValueError:
-        # Return as-is if already in correct format or invalid
-        return date_str
-
 
 def build_bus_search_payload(
     source_id: str,
@@ -281,16 +258,13 @@ def build_bus_deeplink(
     Args:
         source_id: Source city ID
         destination_id: Destination city ID
-        journey_date: Journey date in YYYY-MM-DD format
+        journey_date: Journey date in dd-MM-yyyy format
         bus_id: Bus ID from search results
         
     Returns:
         Booking deeplink URL
     """
-    # Convert date from YYYY-MM-DD to dd-MM-yyyy for URL
-    date_formatted = convert_date_for_bus_api(journey_date)
-    
     return (
         f"https://www.easemytrip.com/bus/booking/"
-        f"?src={source_id}&dest={destination_id}&date={date_formatted}&busId={bus_id}"
+        f"?src={source_id}&dest={destination_id}&date={journey_date}&busId={bus_id}"
     )
