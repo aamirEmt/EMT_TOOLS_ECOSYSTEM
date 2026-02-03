@@ -22,7 +22,7 @@ pytestmark = pytest.mark.integration
 def dummy_bus_search_delhi_manali():
     """Search using city IDs."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
     return {
         "source_id": "733",
         "destination_id": "757",
@@ -34,7 +34,7 @@ def dummy_bus_search_delhi_manali():
 def dummy_bus_search_by_city_name():
     """Search using city names (auto-resolved to IDs)."""
     today = datetime.now()
-    journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
     return {
         "source_name": "Delhi",
         "destination_name": "Manali",
@@ -45,7 +45,7 @@ def dummy_bus_search_by_city_name():
 @pytest.fixture
 def dummy_bus_search_with_volvo_filter():
     today = datetime.now()
-    journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
     return {
         "source_id": "733",
         "destination_id": "757",
@@ -57,7 +57,7 @@ def dummy_bus_search_with_volvo_filter():
 @pytest.fixture
 def dummy_bus_search_popular_route():
     today = datetime.now()
-    journey_date = (today + timedelta(days=14)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=14)).strftime("%d-%m-%Y")
     return {
         "source_id": "733",
         "destination_id": "757",
@@ -139,7 +139,7 @@ async def test_bus_search_mixed_id_and_name():
     tool = factory.get_tool("search_buses")
 
     today = datetime.now()
-    journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
 
     # Source by ID, destination by name
     payload = {
@@ -163,7 +163,7 @@ async def test_bus_search_invalid_city_name():
     tool = factory.get_tool("search_buses")
 
     today = datetime.now()
-    journey_date = (today + timedelta(days=7)).strftime("%Y-%m-%d")
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
 
     payload = {
         "source_name": "InvalidCityXYZ123",
@@ -546,7 +546,7 @@ async def test_bus_search_invalid_date_format():
     payload = {
         "source_id": "733",
         "destination_id": "757",
-        "journey_date": "25-01-2026",  # Invalid format
+        "journey_date": "2026-01-25",  
     }
 
     print(f"\n🚌 Testing invalid date format: {payload['journey_date']}")
@@ -564,7 +564,7 @@ async def test_bus_search_missing_required_field():
     tool = factory.get_tool("search_buses")
 
     payload = {
-        "journey_date": "2026-02-01",
+        "journey_date": "01-02-2026",
         # Missing source and destination
     }
 

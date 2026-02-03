@@ -69,7 +69,7 @@ async def fetch_live_bus_results(
     """Fetch live bus results using new API."""
     from tools_factory.buses.bus_search_service import search_buses
     
-    journey_date = (datetime.now() + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
+    journey_date = (datetime.now() + timedelta(days=days_ahead)).strftime("%d-%m-%Y")
     
     print(f"\n🔍 Fetching live bus data...")
     if source_name:

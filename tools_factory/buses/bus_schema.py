@@ -29,7 +29,7 @@ class BusSearchInput(BaseModel):
     journey_date: str = Field(
         ...,
         alias="journeyDate",
-        description="Journey date in YYYY-MM-DD format (e.g., '2026-01-30')",
+        description="Journey date in dd-mm-yyyy format (e.g., '30-01-2026')",
     )
     is_volvo: Optional[bool] = Field(
         False,
@@ -47,11 +47,10 @@ class BusSearchInput(BaseModel):
         if v is None:
             return v
         try:
-            dt = datetime.strptime(v, "%Y-%m-%d")
-            return dt.strftime("%d-%m-%Y")
+            datetime.strptime(v, "%d-%m-%Y")
         except ValueError:
-            raise ValueError("Date must be in YYYY-MM-DD format")
-
+            raise ValueError("Date must be in dd-MM-yyyy format (e.g., '30-01-2026')")
+        return v
 
 class BoardingPoint(BaseModel):
     
@@ -174,7 +173,7 @@ class SeatBindInput(BaseModel):
     journey_date: str = Field(
         ...,
         alias="journeyDate",
-        description="Journey date in YYYY-MM-DD format",
+        description="Journey date in dd-MM-yyyy format (e.g., '30-01-2026')",
     )
     bus_id: str = Field(
         ...,
@@ -259,9 +258,9 @@ class SeatBindInput(BaseModel):
         if v is None:
             return v
         try:
-            datetime.strptime(v, "%Y-%m-%d")
+            datetime.strptime(v, "%d-%m-%Y")
         except ValueError:
-            raise ValueError("Date must be in YYYY-MM-DD format")
+            raise ValueError("Date must be in dd-MM-yyyy format (e.g., '30-01-2026')")
         return v
 
 

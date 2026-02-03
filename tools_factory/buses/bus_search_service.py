@@ -324,21 +324,21 @@ def _normalize_rating(rating_value: Any) -> Optional[str]:
     except (ValueError, TypeError):
         return None
 
-def _convert_date_to_api_format(date_str: str) -> str:
-    """
-    Convert date from YYYY-MM-DD to dd-MM-yyyy format for API.
+# def _convert_date_to_api_format(date_str: str) -> str:
+#     """
+#     Convert date from YYYY-MM-DD to dd-MM-yyyy format for API.
     
-    Args:
-        date_str: Date in YYYY-MM-DD format
+#     Args:
+#         date_str: Date in YYYY-MM-DD format
         
-    Returns:
-        Date in dd-MM-yyyy format
-    """
-    try:
-        dt = datetime.strptime(date_str, "%Y-%m-%d")
-        return dt.strftime("%d-%m-%Y")
-    except ValueError:
-        return date_str
+#     Returns:
+#         Date in dd-MM-yyyy format
+#     """
+#     try:
+#         dt = datetime.strptime(date_str, "%Y-%m-%d")
+#         return dt.strftime("%d-%m-%Y")
+#     except ValueError:
+#         return date_str
 
 
 def _build_bus_listing_url(
@@ -354,21 +354,19 @@ def _build_bus_listing_url(
     Args:
         source_id: Source city ID
         destination_id: Destination city ID
-        journey_date: Journey date in YYYY-MM-DD format
+        journey_date: Journey date in dd-MM-yyyy format
         source_name: Source city name
         destination_name: Destination city name
         
     Returns:
         Full URL to bus listing page
     """
-    date_formatted = _convert_date_to_api_format(journey_date)
-    
     org_name = source_name or source_id
     des_name = destination_name or destination_id
     
     return (
         f"{BUS_DEEPLINK_BASE}"
-        f"?org={org_name}&des={des_name}&date={date_formatted}"
+        f"?org={org_name}&des={des_name}&date={journey_date}"
         f"&searchid={source_id}_{destination_id}&CCode=IN&AppCode=Emt"
     )
 
@@ -667,7 +665,7 @@ async def search_buses(
     
     # Convert date to API format (dd-MM-yyyy)
     # api_date = journey_date
-    api_date = _convert_date_to_api_format(journey_date)
+    api_date = journey_date
 
     # Generate session IDs
     sid = _generate_session_id()
@@ -1066,8 +1064,7 @@ async def get_seat_layout(
     """
     
     # Convert date to API format
-    # api_date = journey_date
-    api_date = _convert_date_to_api_format(journey_date)
+    api_date = journey_date
     
     # Generate session IDs if not provided
     sid = session_id or _generate_session_id()

@@ -76,7 +76,7 @@ async def fetch_buses_for_seat_test(
     """Fetch buses from live API to get bus details for seat layout test."""
     from tools_factory.buses.bus_search_service import search_buses
     
-    journey_date = (datetime.now() + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
+    journey_date = (datetime.now() + timedelta(days=days_ahead)).strftime("%d-%m-%Y")
     
     print(f"\n🔍 Fetching buses for seat layout test...")
     if source_name:
