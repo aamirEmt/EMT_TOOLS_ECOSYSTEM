@@ -8,7 +8,7 @@ from typing import Dict, Any, List
 
 
 async def _fetch_class_availability(
-    session: aiohttp.ClientSession,
+    session_id: str,
     train_number: str,
     class_code: str,
     from_station_code: str,
@@ -20,7 +20,7 @@ async def _fetch_class_availability(
     Fetch availability for a single class.
 
     Args:
-        session: aiohttp client session
+        session_id: Session ID for the request
         train_number: Train number
         class_code: Class code (e.g., 'SL', '3A', '2A')
         from_station_code: Source station code
@@ -84,30 +84,31 @@ async def _fetch_class_availability(
     }
 
     try:
-        async with session.post(url, json=payload) as response:
-            data = await response.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload) as response:
+                data = await response.json()
 
-            availability_status = "N/A"
-            fare = None
-            fare_updated = None
+                availability_status = "N/A"
+                fare = None
+                fare_updated = None
 
-            if data.get("avlDayList") and len(data["avlDayList"]) > 0:
-                availability_status = data["avlDayList"][0].get(
-                    "availablityStatusNew", "N/A"
-                )
+                if data.get("avlDayList") and len(data["avlDayList"]) > 0:
+                    availability_status = data["avlDayList"][0].get(
+                        "availablityStatusNew", "N/A"
+                    )
 
-            if data.get("totalFare"):
-                fare = data["totalFare"]
+                if data.get("totalFare"):
+                    fare = data["totalFare"]
 
-            if data.get("creationTime"):
-                fare_updated = data["creationTime"]
+                if data.get("creationTime"):
+                    fare_updated = data["creationTime"]
 
-            return {
-                "class_code": class_code,
-                "availability_status": availability_status,
-                "fare": fare,
-                "fare_updated": fare_updated,
-            }
+                return {
+                    "class_code": class_code,
+                    "availability_status": availability_status,
+                    "fare": fare,
+                    "fare_updated": fare_updated,
+                }
 
     except Exception as e:
         return {
@@ -125,6 +126,7 @@ async def fetch_train_availability(
     to_station_code: str,
     classes: List[str],
     journey_date: str,
+    session_id: str = "",
     quota: str = "GN",
 ) -> Dict[str, Any]:
     """
@@ -136,6 +138,7 @@ async def fetch_train_availability(
         to_station_code: Destination station code
         classes: List of class codes (e.g., ["3A", "2A", "SL"])
         journey_date: Journey date in DD/MM/YYYY format
+        session_id: Session ID (optional, not used yet)
         quota: Quota type (default 'GN')
 
     Returns:
@@ -147,22 +150,21 @@ async def fetch_train_availability(
             "classes": [],
         }
 
-    async with aiohttp.ClientSession() as session:
-        tasks = [
-            _fetch_class_availability(
-                session=session,
-                train_number=train_number,
-                class_code=class_code,
-                from_station_code=from_station_code,
-                to_station_code=to_station_code,
-                journey_date=journey_date,
-                quota=quota,
-            )
-            for class_code in classes
-            if class_code
-        ]
+    tasks = [
+        _fetch_class_availability(
+            session_id=session_id,
+            train_number=train_number,
+            class_code=class_code,
+            from_station_code=from_station_code,
+            to_station_code=to_station_code,
+            journey_date=journey_date,
+            quota=quota,
+        )
+        for class_code in classes
+        if class_code
+    ]
 
-        results = await asyncio.gather(*tasks)
+    results = await asyncio.gather(*tasks)
 
     return {
         "train_number": train_number,
