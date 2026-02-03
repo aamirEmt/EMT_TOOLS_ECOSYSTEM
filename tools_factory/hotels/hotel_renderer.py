@@ -641,18 +641,8 @@ def _normalize_hotel_for_ui(hotel: Dict[str, Any], check_in=None, check_out=None
     amenities = _build_amenities(hotel, highlights)
     
     # Handle pricing with discount
-    base_price = hotel.get('price')
-    discount_value = _get_discount_value(hotel.get('discount'))
-    
-    adjusted_price = base_price
-    if base_price and isinstance(base_price, dict) and base_price.get('amount'):
-        try:
-            base_amount = float(base_price['amount'])
-            final_amount = max(0, base_amount - discount_value)
-            if final_amount != base_amount:
-                adjusted_price = {**base_price, 'amount': final_amount}
-        except (ValueError, TypeError):
-            pass
+    adjusted_price = hotel.get('price').get("amount")
+   
     
     price_label = _format_price(adjusted_price)
     

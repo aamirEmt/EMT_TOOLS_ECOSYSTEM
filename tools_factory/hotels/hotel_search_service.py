@@ -106,7 +106,7 @@ class HotelSearchService:
                 "selectedRating": search_input.rating or [],
                 "selectedTARating": search_input.user_rating or [],
             }
-            
+            #print(payload)
             # Step 4: Call API (tokens injected automatically)
             response = await self.client.search(HOTEL_SEARCH_URL, payload)
             
@@ -189,13 +189,28 @@ class HotelSearchService:
             if index == 0:
                 view_all_link = self._generate_view_all(deep_link_data["deepLink"])
 
+            # Calculate adjusted price (base_price - discount)
+            base_price = hotel.get("prc")
+            discount = hotel.get("disc") or 0
+
+
+            try:
+                numeric_price = float(base_price) if base_price is not None else None
+                numeric_discount = float(discount)
+                if numeric_price is not None:
+                    adjusted_price = max(0, numeric_price - numeric_discount)
+                else:
+                    adjusted_price = base_price
+            except (TypeError, ValueError):
+                adjusted_price = base_price
+
             results.append({
                 "hotelId": hotel.get("hid"),
                 "emtId": hotel.get("ecid"),
                 "name": hotel.get("nm"),
                 "rating": hotel.get("rat"),
                 "price": {
-                    "amount": hotel.get("prc"),
+                    "amount": adjusted_price,
                     "currency": hotel.get("curr", "INR")
                 },
                 "discount": hotel.get("disc"),
