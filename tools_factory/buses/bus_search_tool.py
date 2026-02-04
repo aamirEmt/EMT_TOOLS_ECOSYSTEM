@@ -65,6 +65,24 @@ class BusSearchTool(BaseTool):
                 is_error=True,
             )
 
+        # bus_results = await search_buses(
+        #     source_id=payload.source_id,
+        #     destination_id=payload.destination_id,
+        #     journey_date=payload.journey_date,
+        #     is_volvo=payload.is_volvo,
+        #     source_name=payload.source_name,
+        #     destination_name=payload.destination_name,
+        # )
+
+        # has_error = bool(bus_results.get("error"))
+
+        # # Apply limit if specified
+        # if limit is not None and "buses" in bus_results:
+        #     bus_results["buses"] = bus_results["buses"][:limit]
+
+        # buses = bus_results.get("buses", [])
+        # bus_count = len(buses)
+
         bus_results = await search_buses(
             source_id=payload.source_id,
             destination_id=payload.destination_id,
@@ -76,24 +94,43 @@ class BusSearchTool(BaseTool):
 
         has_error = bool(bus_results.get("error"))
 
-        # Apply limit if specified
-        if limit is not None and "buses" in bus_results:
-            bus_results["buses"] = bus_results["buses"][:limit]
-
+        # Get total count BEFORE any limiting
         buses = bus_results.get("buses", [])
-        bus_count = len(buses)
+        total_bus_count = len(buses)
+
+        # Apply limit to structured_content only (for API response), NOT for rendering
+        limited_bus_results = bus_results.copy()
+        if limit is not None and "buses" in limited_bus_results:
+            limited_bus_results["buses"] = limited_bus_results["buses"][:limit]
+
+        bus_count = len(limited_bus_results.get("buses", []))
+
+        # # Build WhatsApp response if needed
+        # whatsapp_response = None
+        # if is_whatsapp and not has_error:
+        #     whatsapp_response = build_whatsapp_bus_response(payload, bus_results)
 
         # Build WhatsApp response if needed
         whatsapp_response = None
         if is_whatsapp and not has_error:
-            whatsapp_response = build_whatsapp_bus_response(payload, bus_results)
+            whatsapp_response = build_whatsapp_bus_response(payload, limited_bus_results)
+
+        # # Render HTML for website
+        # html_output = None
+        # if not has_error and not is_whatsapp and bus_count > 0:
+        #     # Use render_bus_results_with_limit for View All card support
+        #     html_output = render_bus_results_with_limit(
+        #         bus_results,
+        #         display_limit=display_limit,
+        #         show_view_all=True,
+        #     )
 
         # Render HTML for website
+        # Pass FULL bus_results (not limited) so View All card shows correct total
         html_output = None
-        if not has_error and not is_whatsapp and bus_count > 0:
-            # Use render_bus_results_with_limit for View All card support
+        if not has_error and not is_whatsapp and total_bus_count > 0:
             html_output = render_bus_results_with_limit(
-                bus_results,
+                bus_results,  # Full results, not limited
                 display_limit=display_limit,
                 show_view_all=True,
             )
@@ -102,14 +139,23 @@ class BusSearchTool(BaseTool):
         source_display = bus_results.get("source_name") or payload.source_id or payload.source_name
         dest_display = bus_results.get("destination_name") or payload.destination_id or payload.destination_name
 
+        # if has_error:
+        #     text = f"No buses found. {bus_results.get('message', '')}"
+        # else:
+        #     text = f"Found {bus_count} buses from {source_display} to {dest_display}!"
+
+        # return ToolResponseFormat(
+        #     response_text=text,
+        #     structured_content=None if is_whatsapp else bus_results,
+        
         if has_error:
             text = f"No buses found. {bus_results.get('message', '')}"
         else:
-            text = f"Found {bus_count} buses from {source_display} to {dest_display}!"
+            text = f"Found {total_bus_count} buses from {source_display} to {dest_display}!"
 
         return ToolResponseFormat(
             response_text=text,
-            structured_content=None if is_whatsapp else bus_results,
+            structured_content=None if is_whatsapp else limited_bus_results,
             html=html_output,
             whatsapp_response=(
                 whatsapp_response.model_dump()
