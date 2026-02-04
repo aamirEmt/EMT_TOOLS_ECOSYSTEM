@@ -135,6 +135,20 @@ LOGIN_URL = f"{BASE_URL}/HotelService/UserLogin"
 HOTEL_SEARCH_URL = f"{BASE_URL}/HotelService/HotelListIdWiseNew"
 HOTEL_SEARCH_WITH_FILTER_URL = f"{BASE_URL}/HotelService/HotelSearch"
 
+# 🚂 TRAIN SERVICE BASE URL
+TRAIN_BASE_URL = "https://railways.easemytrip.com"
+TRAIN_API_URL = f"{TRAIN_BASE_URL}/Train/_TrainBtwnStationList"
+TRAIN_LIST_INFO_URL = f"{TRAIN_BASE_URL}/TrainListInfo"
+TRAIN_BOOKING_URL = f"{TRAIN_BASE_URL}/TrainInfo"
+
+# 🔍 AUTOSUGGEST SERVICE URLS
+SOLR_BASE_URL = "https://solr.easemytrip.com"
+SOLR_AUTOSUGGEST_URL = f"{SOLR_BASE_URL}/v1/api/auto/GetHotelAutoSuggest_SolrUItest"
+TRAIN_AUTOSUGGEST_URL = f"{SOLR_BASE_URL}/api/auto/GetTrainAutoSuggest"
+
+# 🔗 DEEPLINK SERVICE URL
+DEEPLINK_API_URL = "https://deeplinkapi.easemytrip.com/api/fire/GetShortLinkRawV1"
+
 # Payment/Checkout URL
 PAYMENT_CHECKOUT_BASE_URL = "https://safepay.easemytrip.com/new/checkout"
 
@@ -461,12 +475,13 @@ __all__ = [
     "inject_config",
     "has_injected_config",
     "reset_config",
-    
+
     # Base URLs
     "BASE_URL",
     "FLIGHT_BASE_URL",
     "FLIGHT_TOKEN_URL",
     "FLIGHT_DEEPLINK",
+    "TRAIN_BASE_URL",
 
     # Hotel Endpoints
     "LOGIN_URL",
@@ -487,6 +502,18 @@ __all__ = [
     "BUS_AUTOSUGGEST_KEY",
     "BUS_ENCRYPTED_HEADER",
     "BUS_DECRYPTION_KEY",
+    # Train Endpoints
+    "TRAIN_API_URL",
+    "TRAIN_LIST_INFO_URL",
+    "TRAIN_BOOKING_URL",
+    "TRAIN_AUTOSUGGEST_URL",
+
+    # Autosuggest Services
+    "SOLR_BASE_URL",
+    "SOLR_AUTOSUGGEST_URL",
+
+    # Deeplink Service
+    "DEEPLINK_API_URL",
 
     # Authentication
     "AGENT_AUTH",
@@ -550,8 +577,8 @@ HOTEL_SEARCH_URL = f"{HOTEL_BASE_URL}/HotelService/HotelListIdWiseNew"
 # Authentication Credentials
 DEFAULT_AUTH: Dict[str, str] = {
     "AgentCode": os.getenv("AGENT_CODE", ""),
-    "User": os.getenv("AGENT_USER", ""),
-    "Pwd": os.getenv("AGENT_PWD", ""),
+    "UserName": os.getenv("AGENT_USER", ""),
+    "Password": os.getenv("AGENT_PWD", ""),
 }
 
 # Vendor ID
