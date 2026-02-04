@@ -516,8 +516,8 @@ HOTEL_SEARCH_URL = f"{HOTEL_BASE_URL}/HotelService/HotelListIdWiseNew"
 # Authentication Credentials
 DEFAULT_AUTH: Dict[str, str] = {
     "AgentCode": os.getenv("AGENT_CODE", ""),
-    "User": os.getenv("AGENT_USER", ""),
-    "Pwd": os.getenv("AGENT_PWD", ""),
+    "UserName": os.getenv("AGENT_USER", ""),
+    "Password": os.getenv("AGENT_PWD", ""),
 }
 
 # Vendor ID
