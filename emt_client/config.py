@@ -414,6 +414,59 @@ LOGIN_URL = getenv("LOGIN_URL", LOGIN_URL)
 HOTEL_SEARCH_URL = getenv("HOTEL_SEARCH_URL", HOTEL_SEARCH_URL)
 
 # ============================================================================
+# 🚌 BUS API CONFIGURATION
+# ============================================================================
+
+# Bus Search API endpoint
+BUS_SEARCH_URL = _get_config_value(
+    'BUS_SEARCH_URL',
+    'BUS_SEARCH_URL',
+    default='https://busservice.easemytrip.com/v1/api/Home/GetSearchResult/'
+)
+
+# Bus SeatBind API endpoint
+BUS_SEAT_BIND_URL = _get_config_value(
+    'BUS_SEAT_BIND_URL',
+    'BUS_SEAT_BIND_URL',
+    default='https://bus.easemytrip.com/Home/SeatBind/'
+)
+
+# Bus Deeplink base URL
+BUS_DEEPLINK_BASE = _get_config_value(
+    'BUS_DEEPLINK_BASE',
+    'BUS_DEEPLINK_BASE',
+    default='https://bus.easemytrip.com/home/list'
+)
+
+# Bus Autosuggest API endpoint
+BUS_AUTOSUGGEST_URL = _get_config_value(
+    'BUS_AUTOSUGGEST_URL',
+    'BUS_AUTOSUGGEST_URL',
+    default='https://autosuggest.easemytrip.com/api/auto/bus'
+)
+
+# Bus Autosuggest API Key
+BUS_AUTOSUGGEST_KEY = _get_config_value(
+    'BUS_AUTOSUGGEST_KEY',
+    'BUS_AUTOSUGGEST_KEY',
+    default='jNUYK0Yj5ibO6ZVIkfTiFA=='
+)
+
+# Bus Autosuggest Encrypted Header
+BUS_ENCRYPTED_HEADER = _get_config_value(
+    'BUS_ENCRYPTED_HEADER',
+    'BUS_ENCRYPTED_HEADER',
+    default='7ZTtohPgMEKTZQZk4/Cn1mpXnyNZDJIRcrdCFo5ahIk='
+)
+
+# Bus Decryption Key (from .env)
+BUS_DECRYPTION_KEY = _get_config_value(
+    'BUS_DECRYPTION_KEY',
+    'BUS_DECRYPTION_KEY',
+    default='TMTOO1vDhT9aWsV1'
+)
+
+# ============================================================================
 # 📦 EXPORT ALL CONFIGURATIONS
 # ============================================================================
 
@@ -441,6 +494,14 @@ __all__ = [
     "FLIGHT_AMENITIES_URL",
     "FLIGHT_ATK_TOKEN",
 
+    # Bus Configuration
+    "BUS_SEARCH_URL",
+    "BUS_SEAT_BIND_URL",
+    "BUS_DEEPLINK_BASE",
+    "BUS_AUTOSUGGEST_URL",
+    "BUS_AUTOSUGGEST_KEY",
+    "BUS_ENCRYPTED_HEADER",
+    "BUS_DECRYPTION_KEY",
     # Train Endpoints
     "TRAIN_API_URL",
     "TRAIN_LIST_INFO_URL",
