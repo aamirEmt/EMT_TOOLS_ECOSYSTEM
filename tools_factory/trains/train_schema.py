@@ -24,7 +24,7 @@ class TrainSearchInput(BaseModel):
     page: int = Field(
         default=1,
         ge=1,
-        description="Page number for pagination. Each page shows 15 trains. Default: 1",
+        description="Page number for pagination. Default: 1",
     )
     travel_class: Optional[str] = Field(
         None,
