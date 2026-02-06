@@ -133,6 +133,7 @@ class HotelSearchService:
                     "hotels": [],
                 }
             
+            
             # Step 6: Process response
             return self._process_response(response, resolved_city, search_input, search_key)
             
@@ -313,6 +314,6 @@ class HotelSearchService:
         )
 
         return WhatsappHotelFinalResponse(
-            response_text=f"Here are the best hotel options in {search_input.city_name}",
+            response_text=f"Here are the best hotels options in {search_input.city_name}",
             whatsapp_json=whatsapp_json,
         )
