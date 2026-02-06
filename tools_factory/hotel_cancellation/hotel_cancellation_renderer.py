@@ -217,6 +217,7 @@ BOOKING_DETAILS_TEMPLATE = """
   border-left: 3px solid #ffc107;
   margin-top: 8px;
   line-height: 1.4;
+  white-space: pre-line;
 }
 
 .booking-details-carousel .refundable {
@@ -420,20 +421,32 @@ def render_booking_details(booking_details: Dict[str, Any]) -> str:
     Render booking details as display-only HTML carousel.
 
     Args:
-        booking_details: Booking details from API including hotel info and rooms
+        booking_details: Booking details from API including hotel info, guest info, and rooms
 
     Returns:
         HTML string with rendered booking details
     """
-    # Extract hotel information
+    # Extract hotel information (from nested hotel_info dict)
+    hotel_info_raw = booking_details.get("hotel_info", {})
+    guest_info_raw = booking_details.get("guest_info", [])
+
     hotel_info = None
-    if booking_details.get("hotel_name"):
+    if hotel_info_raw.get("hotel_name"):
         hotel_info = {
-            "name": booking_details.get("hotel_name", "Hotel"),
-            "address": booking_details.get("hotel_address", ""),
-            "check_in": _format_date(booking_details.get("check_in")),
-            "check_out": _format_date(booking_details.get("check_out")),
+            "name": hotel_info_raw.get("hotel_name", "Hotel"),
+            "address": hotel_info_raw.get("address", ""),
+            "check_in": _format_date(hotel_info_raw.get("check_in")),
+            "check_out": _format_date(hotel_info_raw.get("check_out")),
+            "duration": hotel_info_raw.get("duration"),
+            "total_fare": hotel_info_raw.get("total_fare"),
         }
+
+    # Get guest names
+    guest_names = []
+    for guest in guest_info_raw:
+        name = f"{guest.get('title', '')} {guest.get('first_name', '')} {guest.get('last_name', '')}".strip()
+        if name and name not in guest_names:
+            guest_names.append(name)
 
     # Extract rooms
     rooms = booking_details.get("rooms", [])
@@ -452,14 +465,20 @@ def render_booking_details(booking_details: Dict[str, Any]) -> str:
     # Normalize rooms for display
     rooms_ui = []
     for room in rooms:
+        # Clean and format cancellation policy
+        policy = room.get("cancellation_policy", "")
+        # Policy is already cleaned by _strip_html_tags in service
+
         rooms_ui.append({
             "room_type": room.get("room_type", "Standard Room"),
             "room_no": room.get("room_no"),
             "room_id": room.get("room_id"),
             "amount": room.get("amount"),
             "is_pay_at_hotel": room.get("is_pay_at_hotel"),
-            "cancellation_policy": room.get("cancellation_policy"),
+            "cancellation_policy": policy,
             "is_refundable": room.get("is_refundable"),
+            "total_adults": room.get("total_adults"),
+            "meal_type": room.get("meal_type"),
         })
 
     # Build title and subtitle
@@ -469,7 +488,11 @@ def render_booking_details(booking_details: Dict[str, Any]) -> str:
     subtitle_parts = []
     if hotel_info and hotel_info["check_in"] and hotel_info["check_out"]:
         subtitle_parts.append(f"{hotel_info['check_in']} to {hotel_info['check_out']}")
+    if hotel_info and hotel_info.get("duration"):
+        subtitle_parts.append(f"{hotel_info['duration']} nights")
     subtitle_parts.append(f"{len(rooms)} room{'s' if len(rooms) > 1 else ''}")
+    if guest_names:
+        subtitle_parts.append(", ".join(guest_names))
     subtitle = " • ".join(subtitle_parts)
 
     # Render template

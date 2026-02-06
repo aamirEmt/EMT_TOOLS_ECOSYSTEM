@@ -217,9 +217,9 @@ class HotelCancellationSendOtpTool(BaseTool):
         return ToolResponseFormat(
             response_text=(
                 f"📧 An OTP (One-Time Password) has been sent to your registered email address.\n\n"
-                f"🔐 Please check your email and provide the 6-digit OTP to confirm the cancellation.\n\n"
+                f"🔐 Please check your email and provide the OTP to confirm the cancellation.\n\n"
                 f"⏱️ Note: The OTP is valid for 10 minutes only.\n\n"
-                f"Type the OTP like: \"123456\" or \"My OTP is 123456\""
+                f"Type the OTP like: \"123456\" or \"My OTP is ABC123\""
             ),
             structured_content=result,
         )
@@ -438,7 +438,49 @@ class HotelCancellationFlowTool(BaseTool):
             )
 
         rooms = details_result.get("rooms", [])
-        hotel_name = details_result.get("hotel_name", "your hotel")
+        hotel_info = details_result.get("hotel_info", {})
+        guest_info = details_result.get("guest_info", [])
+
+        # Extract hotel details
+        hotel_name = hotel_info.get("hotel_name", "your hotel")
+        check_in = hotel_info.get("check_in", "")
+        check_out = hotel_info.get("check_out", "")
+        duration = hotel_info.get("duration", "")
+        total_fare = hotel_info.get("total_fare", "")
+
+        # Format dates nicely
+        def format_date(date_str):
+            if not date_str:
+                return ""
+            try:
+                from datetime import datetime
+                # Handle ISO format: "2026-02-27T00:00:00"
+                dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+                return dt.strftime("%d %b %Y")
+            except:
+                return date_str
+
+        check_in_formatted = format_date(check_in)
+        check_out_formatted = format_date(check_out)
+
+        # Get guest names
+        guest_names = []
+        for guest in guest_info:
+            name = f"{guest.get('title', '')} {guest.get('first_name', '')} {guest.get('last_name', '')}".strip()
+            if name and name not in guest_names:
+                guest_names.append(name)
+
+        # Build booking summary
+        booking_summary = []
+        if check_in_formatted and check_out_formatted:
+            booking_summary.append(f"📅 Check-in: {check_in_formatted} | Check-out: {check_out_formatted}")
+        if duration:
+            booking_summary.append(f"🌙 Duration: {duration} nights")
+        if guest_names:
+            guest_list = ", ".join(guest_names)
+            booking_summary.append(f"👤 Guests: {guest_list}")
+        if total_fare:
+            booking_summary.append(f"💰 Total Booking Amount: ₹{total_fare}")
 
         # Build user-friendly room descriptions
         room_descriptions = []
@@ -447,37 +489,46 @@ class HotelCancellationFlowTool(BaseTool):
             room_no = r.get('room_no')
             amount = r.get('amount')
             policy = r.get('cancellation_policy', '')
+            adults = r.get('total_adults')
 
             # Create clean, conversational description
-            desc = f"{idx}. {room_type}"
+            desc = f"\n{idx}. {room_type}"
             if room_no:
                 desc += f" (Room {room_no})"
+            if adults:
+                desc += f" - {adults} Adult(s)"
             if amount:
                 desc += f" - ₹{amount}"
 
             room_descriptions.append(desc)
 
-            # Add policy as separate line if available
+            # Add policy as indented lines if available
             if policy:
-                room_descriptions.append(f"   Policy: {policy}")
+                # Split policy into lines and indent each
+                policy_lines = policy.split('\n')
+                for line in policy_lines:
+                    if line.strip():
+                        room_descriptions.append(f"   {line}")
 
         # Create friendly, conversational text
         if len(rooms) == 1:
             text = (
                 f"✅ I've found your booking at {hotel_name}!\n\n"
                 f"📋 Booking Details:\n"
+                + "\n".join(booking_summary) + "\n"
                 + "\n".join(room_descriptions) + "\n\n"
                 f"⚠️ Before we proceed with the cancellation:\n"
                 f"Please note that cancellation charges may apply based on the hotel's policy.\n\n"
                 f"🔹 If you'd like to proceed, please tell me:\n"
-                f"   • Which room you want to cancel (if you have this room, just confirm)\n"
+                f"   • Confirm you want to cancel this room\n"
                 f"   • Your reason for cancellation (e.g., 'Change of plans', 'Found better deal', etc.)\n\n"
                 f"Type something like: \"Yes, cancel this room due to change of plans\""
             )
         else:
             text = (
                 f"✅ I've found your booking at {hotel_name}!\n\n"
-                f"📋 You have {len(rooms)} rooms in this booking:\n\n"
+                f"📋 Booking Details:\n"
+                + "\n".join(booking_summary) + "\n"
                 + "\n".join(room_descriptions) + "\n\n"
                 f"⚠️ Before we proceed with the cancellation:\n"
                 f"Please note that cancellation charges may apply based on the hotel's policy.\n\n"

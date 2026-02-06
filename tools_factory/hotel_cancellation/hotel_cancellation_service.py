@@ -1,10 +1,39 @@
 """Hotel Cancellation Service - Business logic for 4-step cancellation flow"""
 from typing import Dict, Any
 import logging
+import re
 
 from emt_client.clients.mybookings_client import MyBookingsApiClient
 
 logger = logging.getLogger(__name__)
+
+
+def _strip_html_tags(text: str) -> str:
+    """
+    Remove HTML tags from text and clean up formatting.
+
+    Example:
+        Input: "<ul><li>Free cancellation (Rs.0) before 25-Feb-2026 </li><li> 100% Deduction From: 25-Feb-2026 till check-in </li>"
+        Output: "• Free cancellation (Rs.0) before 25-Feb-2026\n• 100% Deduction From: 25-Feb-2026 till check-in"
+    """
+    if not text:
+        return text
+
+    # Replace </li> with newline for list items
+    text = re.sub(r'</li>', '\n', text, flags=re.IGNORECASE)
+
+    # Replace <li> with bullet point
+    text = re.sub(r'<li[^>]*>', '• ', text, flags=re.IGNORECASE)
+
+    # Remove all other HTML tags
+    text = re.sub(r'<[^>]+>', '', text)
+
+    # Clean up whitespace
+    text = re.sub(r'\n\s*\n', '\n', text)  # Remove empty lines
+    text = re.sub(r'[ \t]+', ' ', text)  # Normalize spaces
+    text = text.strip()
+
+    return text
 
 
 class HotelCancellationService:
@@ -94,7 +123,7 @@ class HotelCancellationService:
         """
         Step 2: Fetch room and booking details using the bid token.
 
-        Returns dict with keys: success, rooms, payment_url, error, raw_response
+        Returns dict with keys: success, rooms, payment_url, hotel_info, guest_info, error, raw_response
         """
         try:
             response = await self.client.fetch_booking_details(bid)
@@ -102,6 +131,38 @@ class HotelCancellationService:
             rooms_raw = response.get("Room") or response.get("Rooms") or []
             if not isinstance(rooms_raw, list):
                 rooms_raw = [rooms_raw] if rooms_raw else []
+
+            # Extract hotel-level info from first room (same for all rooms)
+            hotel_info = {}
+            if rooms_raw:
+                first_room = rooms_raw[0]
+                hotel_info = {
+                    "hotel_name": first_room.get("name"),
+                    "address": first_room.get("Address_Description"),
+                    "check_in": first_room.get("CheckIn"),
+                    "check_out": first_room.get("checkOut"),
+                    "duration": first_room.get("Duration"),
+                    "total_fare": first_room.get("TotalFare"),
+                    "number_of_rooms": first_room.get("NumberOfRoomsBooked"),
+                }
+
+            # Extract guest info from PaxDetails
+            pax_details = response.get("PaxDetails", [])
+            guest_info = []
+            if pax_details:
+                # Get unique guests (API may have duplicates)
+                seen_guests = set()
+                for pax in pax_details:
+                    guest_key = (pax.get("FirstName"), pax.get("LastName"), pax.get("Title"))
+                    if guest_key not in seen_guests:
+                        seen_guests.add(guest_key)
+                        guest_info.append({
+                            "title": pax.get("Title"),
+                            "first_name": pax.get("FirstName"),
+                            "last_name": pax.get("LastName"),
+                            "pax_type": pax.get("PaxType"),
+                            "mobile": pax.get("CustomerMobile"),
+                        })
 
             rooms = []
             for r in rooms_raw:
@@ -121,18 +182,27 @@ class HotelCancellationService:
                 if not room_id:
                     logger.warning(f"Room ID not found! Available fields: {list(r.keys())}")
 
+                # Get and clean cancellation policy (strip HTML tags)
+                cancellation_policy = r.get("CancellationPolicy", "")
+                if cancellation_policy:
+                    cancellation_policy = _strip_html_tags(cancellation_policy)
+
                 rooms.append({
                     "room_id": room_id,
                     "room_type": r.get("RoomType"),
                     "room_no": r.get("RoomNo"),
                     "transaction_id": r.get("TransactionId"),
-                    "cancellation_policy": r.get("CancellationPolicy"),
+                    "cancellation_policy": cancellation_policy,
                     "is_pay_at_hotel": bool(r.get("isPayAtHotel")),
-                    "guest_name": r.get("GuestName"),
-                    "check_in": r.get("CheckInDate"),
-                    "check_out": r.get("CheckOutDate"),
-                    "hotel_name": r.get("HotelName"),
-                    "amount": r.get("Amount") or r.get("Price"),
+                    "total_adults": r.get("TotalAdult"),
+                    "check_in": r.get("CheckIn"),
+                    "check_out": r.get("checkOut"),
+                    "hotel_name": r.get("name"),
+                    "amount": r.get("TotalFare"),
+                    "meal_type": r.get("mealtype"),
+                    "confirmation_no": r.get("ConfirmationNo"),
+                    "payment_due_date": r.get("PaymentDueDate"),
+                    "payment_remaining_days": r.get("PaymentRemainingDays"),
                 })
 
             links = response.get("Links") or {}
@@ -141,6 +211,8 @@ class HotelCancellationService:
             return {
                 "success": True,
                 "rooms": rooms,
+                "hotel_info": hotel_info,
+                "guest_info": guest_info,
                 "payment_url": payment_url,
                 "error": None,
                 "raw_response": response,
@@ -150,6 +222,8 @@ class HotelCancellationService:
             return {
                 "success": False,
                 "rooms": [],
+                "hotel_info": {},
+                "guest_info": [],
                 "payment_url": None,
                 "error": str(e),
                 "raw_response": {},
