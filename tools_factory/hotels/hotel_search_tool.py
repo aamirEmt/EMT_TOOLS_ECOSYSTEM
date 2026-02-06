@@ -64,9 +64,10 @@ class HotelSearchTool(BaseTool):
             hotel_count (int, optional): Max hotels per page. Default: 30
             min_price (int, optional): Minimum price filter in INR
             max_price (int, optional): Maximum price filter in INR. Default: 10000000
-            sort_type (str, optional): Sort criteria. Default: "Popular|DESC"
+            sort_type (str, optional): Sort criteria ('price|ASC', 'price|DESC', 'Popular|DSC'). Default: "Popular|DSC"
             rating (List[str], optional): Star ratings filter (e.g., ["3", "4", "5"])
-            amenities (List[str], optional): Amenities filter (e.g., ["Free WiFi", "Pool"])
+            user_rating (List[str], optional): Guest rating filter - '5' (Excellent 4.2+), '4' (Very Good 3.5+), '3' (Good 3+)
+            amenities (List[str], optional): Amenities filter - Valid values: 'Free Cancellation', '24 Hour Front Desk', 'AC', 'Bar', 'Wi-Fi', 'Breakfast', 'Spa Service', 'Swimming Pool', 'Parking', 'Restaurant'
             _limit (int, optional): Limit number of hotels returned (internal use)
             _html (bool, optional): Render HTML carousel (internal use)
         
@@ -165,7 +166,7 @@ class HotelSearchTool(BaseTool):
             response_text=text,
             structured_content=results if not is_whatsapp else {},
             html=render_hotel_results(results)
-            if render_html and not results.get("error")
+            if render_html and not results.get("error") and hotel_count > 0
             else None,
              whatsapp_response=(
                 whatsapp_response.model_dump()
