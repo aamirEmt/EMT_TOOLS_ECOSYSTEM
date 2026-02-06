@@ -28,6 +28,7 @@ class BusSearchTool(BaseTool):
         )
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
+        session_id = kwargs.pop("_session_id", None)
         limit = kwargs.pop("_limit", None)
         user_type = kwargs.pop("_user_type", "website")
         display_limit = kwargs.pop("_display_limit", 5)

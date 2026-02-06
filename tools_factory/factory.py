@@ -30,16 +30,6 @@ class ToolFactory:
         # self.register_tool(BusSeatLayoutTool())
         
         self.register_tool(TrainSearchTool())
-
-        # login_tool = LoginTool()
-        # self.register_tool(login_tool)
-        
-        # Register booking tools with shared login token provider
-        # self.register_tool(GetFlightBookingsTool(login_tool))
-        # self.register_tool(GetHotelBookingsTool(login_tool))
-        # self.register_tool(GetTrainBookingsTool(login_tool))
-        # self.register_tool(GetBusBookingsTool(login_tool))
-
         # Login tool with session manager for multi-user support
         login_tool = LoginTool(self.session_manager)
         self.register_tool(login_tool)
