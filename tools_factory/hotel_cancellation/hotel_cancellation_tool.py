@@ -13,7 +13,7 @@ from .hotel_cancellation_schema import (
     HotelCancellationFlowInput,
 )
 from .hotel_cancellation_service import HotelCancellationService
-from .hotel_cancellation_renderer import render_booking_details
+from .hotel_cancellation_renderer import render_booking_details, render_cancellation_success
 
 logger = logging.getLogger(__name__)
 
@@ -215,7 +215,12 @@ class HotelCancellationSendOtpTool(BaseTool):
             )
 
         return ToolResponseFormat(
-            response_text=f"OTP sent successfully. {result['message']} Ask the user for the OTP.",
+            response_text=(
+                f"📧 An OTP (One-Time Password) has been sent to your registered email address.\n\n"
+                f"🔐 Please check your email and provide the 6-digit OTP to confirm the cancellation.\n\n"
+                f"⏱️ Note: The OTP is valid for 10 minutes only.\n\n"
+                f"Type the OTP like: \"123456\" or \"My OTP is 123456\""
+            ),
             structured_content=result,
         )
 
@@ -244,8 +249,9 @@ class HotelCancellationRequestTool(BaseTool):
         )
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
-        kwargs.pop("_user_type", "website")
+        user_type = kwargs.pop("_user_type", "chatbot")
         kwargs.pop("_limit", None)
+        render_html = user_type.lower() == "website"
 
         try:
             input_data = RequestCancellationInput.model_validate(kwargs)
@@ -273,22 +279,43 @@ class HotelCancellationRequestTool(BaseTool):
 
         if not result["success"]:
             return ToolResponseFormat(
-                response_text=f"Cancellation failed: {result['message']}",
+                response_text=f"❌ Cancellation failed: {result['message']}\n\nPlease try again or contact customer support.",
                 structured_content=result,
                 is_error=True,
             )
 
-        refund_text = ""
-        if result.get("refund_info"):
-            ri = result["refund_info"]
-            refund_text = (
-                f"\nRefund amount: {ri.get('refund_amount', 'N/A')}"
-                f"\nCancellation charges: {ri.get('cancellation_charges', 'N/A')}"
+        # Build user-friendly success message
+        refund_info = result.get("refund_info")
+        if refund_info:
+            refund_amount = refund_info.get('refund_amount', 'N/A')
+            cancellation_charges = refund_info.get('cancellation_charges', 'N/A')
+            success_text = (
+                f"✅ Your hotel booking has been successfully cancelled!\n\n"
+                f"💰 Refund Details:\n"
+                f"   • Refund Amount: ₹{refund_amount}\n"
+                f"   • Cancellation Charges: ₹{cancellation_charges}\n"
+                f"   • Refund Mode: {refund_info.get('refund_mode', 'Original payment method')}\n\n"
+                f"📧 You will receive a cancellation confirmation email shortly.\n"
+                f"💳 The refund will be processed within 5-7 business days.\n\n"
+                f"Thank you for using EaseMyTrip. We hope to serve you again!"
+            )
+        else:
+            success_text = (
+                f"✅ Your hotel booking has been successfully cancelled!\n\n"
+                f"📧 You will receive a cancellation confirmation email shortly.\n\n"
+                f"Thank you for using EaseMyTrip. We hope to serve you again!"
             )
 
+        # Website mode: render beautiful success HTML
+        html = None
+        if render_html:
+            result["booking_id"] = input_data.booking_id
+            html = render_cancellation_success(result)
+
         return ToolResponseFormat(
-            response_text=f"Cancellation successful! {result['message']}{refund_text}",
+            response_text=success_text,
             structured_content=result,
+            html=html,
         )
 
 
@@ -411,20 +438,54 @@ class HotelCancellationFlowTool(BaseTool):
             )
 
         rooms = details_result.get("rooms", [])
-        room_lines = []
-        for r in rooms:
-            line = f"  - Room {r.get('room_no', 'N/A')}: {r.get('room_type', 'N/A')} (ID: {r.get('room_id')})"
-            if r.get("cancellation_policy"):
-                line += f" | Policy: {r['cancellation_policy']}"
-            if r.get("amount"):
-                line += f" | Amount: {r['amount']}"
-            room_lines.append(line)
+        hotel_name = details_result.get("hotel_name", "your hotel")
 
-        text = (
-            f"Booking authenticated. Found {len(rooms)} room(s):\n"
-            + "\n".join(room_lines)
-            + "\n\nWhich room would you like to cancel? Please also provide a reason."
-        )
+        # Build user-friendly room descriptions
+        room_descriptions = []
+        for idx, r in enumerate(rooms, 1):
+            room_type = r.get('room_type', 'Room')
+            room_no = r.get('room_no')
+            amount = r.get('amount')
+            policy = r.get('cancellation_policy', '')
+
+            # Create clean, conversational description
+            desc = f"{idx}. {room_type}"
+            if room_no:
+                desc += f" (Room {room_no})"
+            if amount:
+                desc += f" - ₹{amount}"
+
+            room_descriptions.append(desc)
+
+            # Add policy as separate line if available
+            if policy:
+                room_descriptions.append(f"   Policy: {policy}")
+
+        # Create friendly, conversational text
+        if len(rooms) == 1:
+            text = (
+                f"✅ I've found your booking at {hotel_name}!\n\n"
+                f"📋 Booking Details:\n"
+                + "\n".join(room_descriptions) + "\n\n"
+                f"⚠️ Before we proceed with the cancellation:\n"
+                f"Please note that cancellation charges may apply based on the hotel's policy.\n\n"
+                f"🔹 If you'd like to proceed, please tell me:\n"
+                f"   • Which room you want to cancel (if you have this room, just confirm)\n"
+                f"   • Your reason for cancellation (e.g., 'Change of plans', 'Found better deal', etc.)\n\n"
+                f"Type something like: \"Yes, cancel this room due to change of plans\""
+            )
+        else:
+            text = (
+                f"✅ I've found your booking at {hotel_name}!\n\n"
+                f"📋 You have {len(rooms)} rooms in this booking:\n\n"
+                + "\n".join(room_descriptions) + "\n\n"
+                f"⚠️ Before we proceed with the cancellation:\n"
+                f"Please note that cancellation charges may apply based on the hotel's policy.\n\n"
+                f"🔹 To proceed, please tell me:\n"
+                f"   • Which room number you want to cancel\n"
+                f"   • Your reason for cancellation\n\n"
+                f"Example: \"Cancel Room 1, change of plans\" or \"Cancel room 101 due to emergency\""
+            )
 
         whatsapp_response = None
         if is_whatsapp:

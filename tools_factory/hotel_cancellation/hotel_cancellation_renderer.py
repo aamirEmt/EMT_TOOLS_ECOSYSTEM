@@ -499,3 +499,357 @@ def _format_date(date_str: str) -> str:
         return date_str
     except Exception:
         return date_str
+
+
+# =====================================================================
+# 🎉 CANCELLATION SUCCESS TEMPLATE (BEAUTIFUL CONFIRMATION UI)
+# =====================================================================
+CANCELLATION_SUCCESS_TEMPLATE = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+.cancellation-success {
+  font-family: poppins, sans-serif;
+  color: #202020;
+  background: rgba(255, 255, 255, 0.92);
+  position: relative;
+}
+
+.cancellation-success * {
+  font-family: inherit;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.cancellation-success main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.cancellation-success .success-container {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+  border: 2px solid #4caf50;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.cancellation-success .success-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+  animation: successPop 0.6s ease-out;
+}
+
+@keyframes successPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.cancellation-success .success-icon svg {
+  width: 48px;
+  height: 48px;
+  color: #fff;
+}
+
+.cancellation-success .success-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2e7d32;
+  margin-bottom: 12px;
+}
+
+.cancellation-success .success-message {
+  font-size: 15px;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.cancellation-success .details-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cancellation-success .details-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.cancellation-success .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.cancellation-success .detail-item:last-child {
+  border-bottom: none;
+}
+
+.cancellation-success .detail-label {
+  color: #646d74;
+  font-weight: 500;
+}
+
+.cancellation-success .detail-value {
+  color: #202020;
+  font-weight: 600;
+  text-align: right;
+}
+
+.cancellation-success .refund-highlight {
+  background: linear-gradient(135deg, #fff8e1 0%, #fffbea 100%);
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.cancellation-success .refund-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f57c00;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cancellation-success .refund-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ef6614;
+  font-family: inter, sans-serif;
+  margin-bottom: 8px;
+}
+
+.cancellation-success .refund-details {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.cancellation-success .next-steps {
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 24px;
+  text-align: left;
+}
+
+.cancellation-success .next-steps-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1565c0;
+  margin-bottom: 10px;
+}
+
+.cancellation-success .next-steps-list {
+  font-size: 13px;
+  color: #444;
+  line-height: 1.8;
+  margin-left: 20px;
+}
+
+.cancellation-success .footer-note {
+  font-size: 12px;
+  color: #868686;
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Dark mode support */
+.cancellation-success.dark {
+  background: #000;
+  color: #fff;
+}
+
+.cancellation-success.dark .success-container {
+  background: linear-gradient(135deg, #1a3a1a 0%, #1f2d1f 100%);
+  border-color: #4caf50;
+}
+
+.cancellation-success.dark .success-title {
+  color: #66bb6a;
+}
+
+.cancellation-success.dark .success-message {
+  color: #bcbcbc;
+}
+
+.cancellation-success.dark .details-section {
+  background: #1a1a1a;
+  border-color: #373737;
+}
+
+.cancellation-success.dark .details-title {
+  color: #fff;
+  border-color: #373737;
+}
+
+.cancellation-success.dark .detail-label {
+  color: #bcbcbc;
+}
+
+.cancellation-success.dark .detail-value {
+  color: #fff;
+}
+
+.cancellation-success.dark .refund-highlight {
+  background: linear-gradient(135deg, #332a00 0%, #3d3200 100%);
+  border-color: #ffc107;
+}
+
+.cancellation-success.dark .next-steps {
+  background: #0d1f2d;
+  border-color: #2196f3;
+}
+
+.cancellation-success.dark .next-steps-title {
+  color: #64b5f6;
+}
+
+.cancellation-success.dark .next-steps-list {
+  color: #bcbcbc;
+}
+</style>
+
+<div class="cancellation-success">
+  <main>
+    <div class="success-container">
+      <div class="success-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+
+      <h1 class="success-title">Cancellation Confirmed!</h1>
+      <p class="success-message">
+        Your hotel booking has been successfully cancelled.
+        {% if refund_info %}The refund will be processed according to the hotel's policy.{% endif %}
+      </p>
+
+      <div class="details-section">
+        <div class="details-title">Cancellation Details</div>
+
+        {% if booking_id %}
+        <div class="detail-item">
+          <span class="detail-label">Booking ID</span>
+          <span class="detail-value">{{ booking_id }}</span>
+        </div>
+        {% endif %}
+
+        {% if hotel_name %}
+        <div class="detail-item">
+          <span class="detail-label">Hotel</span>
+          <span class="detail-value">{{ hotel_name }}</span>
+        </div>
+        {% endif %}
+
+        {% if room_type %}
+        <div class="detail-item">
+          <span class="detail-label">Room Type</span>
+          <span class="detail-value">{{ room_type }}</span>
+        </div>
+        {% endif %}
+
+        {% if cancellation_date %}
+        <div class="detail-item">
+          <span class="detail-label">Cancelled On</span>
+          <span class="detail-value">{{ cancellation_date }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if refund_info %}
+      <div class="refund-highlight">
+        <div class="refund-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+            <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+          </svg>
+          Refund Information
+        </div>
+        <div class="refund-amount">₹{{ refund_info.refund_amount }}</div>
+        <div class="refund-details">
+          Cancellation charges: ₹{{ refund_info.cancellation_charges }}<br>
+          {% if refund_info.refund_mode %}Refund mode: {{ refund_info.refund_mode }}{% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="next-steps">
+        <div class="next-steps-title">What happens next?</div>
+        <ul class="next-steps-list">
+          <li>You will receive a cancellation confirmation email shortly</li>
+          {% if refund_info %}<li>Refund will be processed within 5-7 business days</li>{% endif %}
+          <li>The refund will be credited to your original payment method</li>
+          <li>For any queries, contact customer support with your booking ID</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      Thank you for using EaseMyTrip. We hope to serve you again soon!
+    </div>
+  </main>
+</div>
+"""
+
+
+def render_cancellation_success(cancellation_result: Dict[str, Any]) -> str:
+    """
+    Render beautiful cancellation success confirmation UI.
+
+    Args:
+        cancellation_result: Cancellation result including refund info
+
+    Returns:
+        HTML string with success confirmation
+    """
+    from datetime import datetime
+
+    # Extract refund information
+    refund_info = cancellation_result.get("refund_info")
+    if refund_info:
+        refund_data = {
+            "refund_amount": refund_info.get("refund_amount", "0"),
+            "cancellation_charges": refund_info.get("cancellation_charges", "0"),
+            "refund_mode": refund_info.get("refund_mode", "Original payment method"),
+        }
+    else:
+        refund_data = None
+
+    # Get current date for cancellation date
+    cancellation_date = datetime.now().strftime("%d %b %Y, %I:%M %p")
+
+    # Render template
+    template = _jinja_env.from_string(CANCELLATION_SUCCESS_TEMPLATE)
+    return template.render(
+        booking_id=cancellation_result.get("booking_id"),
+        hotel_name=cancellation_result.get("hotel_name"),
+        room_type=cancellation_result.get("room_type"),
+        cancellation_date=cancellation_date,
+        refund_info=refund_data,
+    )
