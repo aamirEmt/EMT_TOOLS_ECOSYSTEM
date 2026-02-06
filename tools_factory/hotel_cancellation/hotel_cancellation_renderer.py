@@ -218,7 +218,7 @@ CANCELLATION_FLOW_TEMPLATE = """
 }
 </style>
 
-<div class="emt-cancel-flow round-trip-selector" id="emtCancelFlow" data-api-base="{{ api_base_url }}">
+<div class="emt-cancel-flow round-trip-selector" id="emtCancelFlow" data-instance-id="cancel-flow-{{ instance_id }} data-api-base="{{ api_base_url }}">
   <!-- Step Indicator -->
   <div class="emt-cancel-steps">
     <div class="emt-cancel-step-dot active" data-step="1"></div>
@@ -577,9 +577,12 @@ def render_cancellation_flow(
     Returns:
         Complete HTML string with embedded CSS and JavaScript
     """
+    import uuid
+    instance_id = str(uuid.uuid4())[:8]
     template = _jinja_env.from_string(CANCELLATION_FLOW_TEMPLATE)
     return template.render(
         booking_id=booking_id,
         email=email,
         api_base_url=api_base_url,
+        instance_id =instance_id
     )
