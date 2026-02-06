@@ -294,7 +294,7 @@ CANCELLATION_FLOW_TEMPLATE = """
     selectedRooms: [],
   };
 
-  // DOM refs
+
   var panels = {
     login: document.getElementById('panelLogin'),
     details: document.getElementById('panelDetails'),
@@ -361,7 +361,7 @@ CANCELLATION_FLOW_TEMPLATE = """
       state.bookingId = bookingId;
       state.email = email;
 
-      // Fetch booking details
+      
       return apiCall('/hotel-cancellation/booking-details', {
         bid: state.bid
       });
@@ -441,14 +441,14 @@ CANCELLATION_FLOW_TEMPLATE = """
       container.appendChild(card);
     });
 
-    // Auto-select if single room
+    
     if (state.rooms.length === 1) {
       var singleCard = container.querySelector('.emt-cancel-room-card');
       if (singleCard) singleCard.click();
     }
   }
 
-  // Step 3: Send OTP
+  
   document.getElementById('btnSendOtp').addEventListener('click', function() {
     var btn = this;
     var errEl = document.getElementById('detailsError');
@@ -483,7 +483,7 @@ CANCELLATION_FLOW_TEMPLATE = """
     });
   });
 
-  // Step 4: Confirm Cancellation
+  
   document.getElementById('btnConfirmCancel').addEventListener('click', function() {
     var btn = this;
     var otp = document.getElementById('inputOtp').value.trim();
@@ -500,7 +500,7 @@ CANCELLATION_FLOW_TEMPLATE = """
     var reason = document.getElementById('selectReason').value;
     var remark = document.getElementById('inputRemark').value.trim();
 
-    // Find room details for selected rooms
+   
     var selectedRoom = null;
     for (var i = 0; i < state.rooms.length; i++) {
       if (state.selectedRooms.indexOf(state.rooms[i].room_id) !== -1) {
