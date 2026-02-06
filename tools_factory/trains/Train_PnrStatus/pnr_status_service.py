@@ -119,7 +119,7 @@ class PnrStatusService:
             class_name=response.get("className"),
             quota=response.get("quota", "GN"),
             quota_name=response.get("quotaName"),
-            booking_status=response.get("bookingStatus", ""),
+            booking_status=response.get("bookingStatus") or None,
             chart_status=response.get("chartStatus", "Chart Not Prepared"),
             booking_fare=response.get("bookingFare"),
             ticket_fare=response.get("ticketFare"),

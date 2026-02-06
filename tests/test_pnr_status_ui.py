@@ -659,6 +659,131 @@ async def test_pnr_status_ui_error_display():
 
 
 @pytest.mark.asyncio
+async def test_pnr_status_real_api_2729257223():
+    """Real API test with PNR 2729257223 - generates HTML output."""
+    tool = TrainPnrStatusTool()
+
+    pnr_number = "2729257223"
+
+    print(f"\n[REAL API TEST] Testing PNR: {pnr_number}")
+    print(f"   Calling real API...")
+
+    result = await tool.execute(
+        pnrNumber=pnr_number,
+        _user_type="website"
+    )
+
+    print(f"\n   API Response:")
+    print(f"      Is Error: {result.is_error}")
+    print(f"      Response Text: {result.response_text}")
+
+    if not result.is_error:
+        assert result.html is not None, "Should have HTML for website user"
+
+        # Verify HTML structure
+        html = result.html
+        assert "pnr-status-card" in html, "HTML should have pnr-status-card class"
+        print(f"      ✓ HTML structure validated")
+
+        # Create full HTML page
+        full_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNR Status - {pnr_number}</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            margin: 0;
+        }}
+        .container {{
+            max-width: 700px;
+            margin: 0 auto;
+        }}
+        h1 {{
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }}
+        .test-info {{
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 14px;
+        }}
+        .test-info strong {{
+            color: #333;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚂 Indian Railways PNR Status</h1>
+        <div class="test-info">
+            <strong>Real API Test Result</strong><br>
+            PNR Number: {pnr_number}<br>
+            Test Date: February 6, 2026
+        </div>
+        {html}
+    </div>
+</body>
+</html>
+"""
+
+        # Save HTML files
+        filename = f"pnr_status_2729257223.html"
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(full_html)
+        print(f"\n   ✓ Full HTML page saved: {filename}")
+
+        # Also save component only
+        component_filename = f"pnr_status_2729257223_component.html"
+        with open(component_filename, "w", encoding="utf-8") as f:
+            f.write(html)
+        print(f"   ✓ Component HTML saved: {component_filename}")
+
+        # Print structured data if available
+        if result.structured_content and "pnr_info" in result.structured_content:
+            pnr_info = result.structured_content["pnr_info"]
+            print(f"\n   PNR Details:")
+            print(f"      Train: {pnr_info.get('train_name', 'N/A')} ({pnr_info.get('train_number', 'N/A')})")
+            print(f"      Date: {pnr_info.get('date_of_journey', 'N/A')}")
+            print(f"      Route: {pnr_info.get('source_station_name', 'N/A')} → {pnr_info.get('destination_station_name', 'N/A')}")
+            print(f"      Class: {pnr_info.get('class_name') or pnr_info.get('journey_class', 'N/A')}")
+            print(f"      Chart: {pnr_info.get('chart_status', 'N/A')}")
+            
+            passengers = pnr_info.get('passengers', [])
+            print(f"      Passengers: {len(passengers)}")
+            for p in passengers:
+                coach = p.get('coach', '-')
+                berth = p.get('berth_number', '-')
+                berth_loc = f"{coach}/{berth}" if coach and coach != '-' else '-'
+                print(f"         P{p.get('serial_number')}: {p.get('current_status', 'N/A')} | Berth: {berth_loc}")
+
+        print(f"\n   🎉 Test completed successfully!")
+        print(f"   Open {filename} in a browser to view the rendered PNR status")
+
+    else:
+        print(f"\n   ⚠️  API returned error (PNR may be invalid/expired)")
+        print(f"   Error message: {result.response_text}")
+        
+        # Still save error response if HTML exists
+        if result.html:
+            error_filename = f"pnr_status_2729257223_error.html"
+            with open(error_filename, "w", encoding="utf-8") as f:
+                f.write(result.html)
+            print(f"   Error HTML saved: {error_filename}")
+
+
+@pytest.mark.asyncio
 async def test_pnr_status_ui_full_render():
     """Complete UI test with full HTML output for manual verification."""
     tool = TrainPnrStatusTool()

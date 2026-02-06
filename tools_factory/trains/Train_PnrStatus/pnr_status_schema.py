@@ -65,7 +65,7 @@ class PnrStatusInfo(BaseModel):
     class_name: Optional[str] = None  # e.g., "Sleeper Class"
     quota: str  # e.g., "GN", "TQ"
     quota_name: Optional[str] = None  # e.g., "General"
-    booking_status: str  # Overall booking status
+    booking_status: Optional[str] = None  # Overall booking status
     chart_status: str  # "Chart Not Prepared" or "Chart Prepared"
     booking_fare: Optional[str] = None
     ticket_fare: Optional[str] = None
