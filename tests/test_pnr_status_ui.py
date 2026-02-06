@@ -24,7 +24,8 @@ async def test_pnr_status_ui_basic():
 
     result = await tool.execute(
         pnrNumber=pnr_number,
-        _user_type="website"
+        _user_type="website",
+        _limit=1
     )
 
     print(f"   Response: {result.response_text}")
@@ -70,7 +71,8 @@ async def test_pnr_status_ui_passenger_display():
 
     result = await tool.execute(
         pnrNumber=pnr_number,
-        _user_type="website"
+        _user_type="website",
+        _limit=1
     )
 
     if not result.is_error and result.structured_content:
@@ -122,7 +124,8 @@ async def test_pnr_status_ui_status_colors():
 
     result = await tool.execute(
         pnrNumber=pnr_number,
-        _user_type="website"
+        _user_type="website",
+        _limit=1
     )
 
     if not result.is_error and result.html:
@@ -169,7 +172,8 @@ async def test_pnr_status_ui_train_info():
 
     result = await tool.execute(
         pnrNumber=pnr_number,
-        _user_type="website"
+        _user_type="website",
+        _limit=1
     )
 
     if not result.is_error and result.structured_content:
@@ -217,7 +221,8 @@ async def test_pnr_status_ui_route_display():
 
     result = await tool.execute(
         pnrNumber=pnr_number,
-        _user_type="website"
+        _user_type="website",
+        _limit=1
     )
 
     if not result.is_error and result.structured_content:
@@ -266,7 +271,8 @@ async def test_pnr_status_ui_class_quota_chips():
 
     result = await tool.execute(
         pnrNumber=pnr_number,
-        _user_type="website"
+        _user_type="website",
+        _limit=1
     )
 
     if not result.is_error and result.structured_content:
@@ -314,7 +320,8 @@ async def test_pnr_status_ui_fare_display():
 
     result = await tool.execute(
         pnrNumber=pnr_number,
-        _user_type="website"
+        _user_type="website",
+        _limit=1
     )
 
     if not result.is_error and result.structured_content:
@@ -360,13 +367,15 @@ async def test_pnr_status_whatsapp_vs_website():
     # Website format
     result_website = await tool.execute(
         pnrNumber=pnr_number,
-        _user_type="website"
+        _user_type="website",
+        _limit=1
     )
 
     # WhatsApp format
     result_whatsapp = await tool.execute(
         pnrNumber=pnr_number,
-        _user_type="whatsapp"
+        _user_type="whatsapp",
+        _limit=1
     )
 
     print(f"\n   Website Response:")
@@ -641,7 +650,8 @@ async def test_pnr_status_ui_error_display():
 
     result = await tool.execute(
         pnrNumber=invalid_pnr,
-        _user_type="website"
+        _user_type="website",
+        _limit=1
     )
 
     print(f"   Is Error: {result.is_error}")
@@ -670,7 +680,8 @@ async def test_pnr_status_real_api_2729257223():
 
     result = await tool.execute(
         pnrNumber=pnr_number,
-        _user_type="website"
+        _user_type="website",
+        _limit=1
     )
 
     print(f"\n   API Response:")
@@ -794,7 +805,8 @@ async def test_pnr_status_ui_full_render():
 
     result = await tool.execute(
         pnrNumber=pnr_number,
-        _user_type="website"
+        _user_type="website",
+        _limit=1
     )
 
     if not result.is_error and result.html:

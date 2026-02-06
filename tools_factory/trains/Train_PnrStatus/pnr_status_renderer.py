@@ -14,7 +14,8 @@ PNR_STATUS_TEMPLATE = """
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  max-width: 600px;
+  max-width: 394px;
+  width: 100%;
   margin: 0 auto;
   overflow: hidden;
 }
@@ -29,34 +30,34 @@ PNR_STATUS_TEMPLATE = """
 .pnr-header {
   background: #ffffff;
   color: #202020;
-  padding: 16px 20px;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #eee;  
+  border-bottom: 1px solid #eee;
 }
 
 
 .pnr-number {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #202020;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .pnr-logo {
-  width: 50px;
-  height: 32px;
+  width: 40px;
+  height: 26px;
   object-fit: contain;
 }
 
 .chart-badge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 4px 8px;
+  border-radius: 10px;
   text-transform: uppercase;
 }
 
@@ -71,14 +72,14 @@ PNR_STATUS_TEMPLATE = """
 }
 
 .pnr-body {
-  padding: 20px;
+  padding: 16px;
 }
 
 .train-route-container {
   display: flex;
-  gap: 20px;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #eee;
   align-items: center;
 }
@@ -88,13 +89,13 @@ PNR_STATUS_TEMPLATE = """
 }
 
 .train-name {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #202020;
 }
 
 .train-number {
-  font-size: 13px;
+  font-size: 11px;
   color: #666;
   margin-top: 2px;
 }
@@ -106,15 +107,15 @@ PNR_STATUS_TEMPLATE = """
 }
 
 .route-line {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: #202020;
   text-align: right;
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
 .route-line .route-arrow {
-  margin: 0 6px;
+  margin: 0 4px;
   color: #ef6614;
   font-weight: 700;
 }
@@ -156,20 +157,20 @@ PNR_STATUS_TEMPLATE = """
 .journey-details {
   justify-content: center;
   display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
 .info-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: #f1f3f5;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-  border: 1px solid #e5e7eb;;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  border: 1px solid #e5e7eb;
 }
 
 .info-chip .label {
@@ -186,29 +187,30 @@ PNR_STATUS_TEMPLATE = """
 }
 
 .section-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #202020;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .passenger-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .passenger-table th {
   background: #f8f9fa;
-  padding: 10px 12px;
+  padding: 8px 6px;
   text-align: left;
   font-weight: 600;
   color: #666;
   border-bottom: 2px solid #eee;
+  font-size: 10px;
 }
 
 .passenger-table td {
-  padding: 12px;
+  padding: 8px 6px;
   border-bottom: 1px solid #eee;
   vertical-align: middle;
 }
@@ -219,9 +221,9 @@ PNR_STATUS_TEMPLATE = """
 
 .status-badge {
   display: inline-block;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
 }
 
@@ -252,13 +254,13 @@ PNR_STATUS_TEMPLATE = """
 
 .berth-info {
   font-family: monospace;
-  font-size: 12px;
+  font-size: 10px;
   color: #333;
 }
 
 .fare-section {
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid #eee;
   display: flex;
   justify-content: space-between;
@@ -266,12 +268,12 @@ PNR_STATUS_TEMPLATE = """
 }
 
 .fare-label {
-  font-size: 13px;
+  font-size: 12px;
   color: #666;
 }
 
 .fare-amount {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #2e7d32;
 }
@@ -365,7 +367,7 @@ PNR_STATUS_TEMPLATE = """
       </table>
     </div>
 
-    {% if booking_fare or ticket_fare %}
+    {% if (booking_fare or ticket_fare) and not has_cancelled_passenger(passengers) %}
     <div class="fare-section">
       <span class="fare-label">Ticket Fare</span>
       <span class="fare-amount">{{ ticket_fare or booking_fare }}</span>
@@ -397,12 +399,26 @@ def _get_status_class(status: str) -> str:
     return ""
 
 
+def _has_cancelled_passenger(passengers: list) -> bool:
+    """Check if any passenger has cancelled status."""
+    if not passengers:
+        return False
+
+    for passenger in passengers:
+        current_status = passenger.get("current_status", "")
+        if current_status and "CAN" in current_status.upper():
+            return True
+
+    return False
+
+
 # Create Jinja2 environment
 _jinja_env = Environment(
     loader=BaseLoader(),
     autoescape=select_autoescape(["html", "xml"]),
 )
 _jinja_env.globals["get_status_class"] = _get_status_class
+_jinja_env.globals["has_cancelled_passenger"] = _has_cancelled_passenger
 
 
 def render_pnr_status(pnr_info: Dict[str, Any]) -> str:
