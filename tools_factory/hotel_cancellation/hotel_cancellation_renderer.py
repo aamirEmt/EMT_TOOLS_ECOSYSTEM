@@ -218,7 +218,7 @@ CANCELLATION_FLOW_TEMPLATE = """
 }
 </style>
 
-<div class="emt-cancel-flow" id="emtCancelFlow" data-api-base="{{ api_base_url }}">
+<div class="emt-cancel-flow round-trip-selector" id="emtCancelFlow" data-api-base="{{ api_base_url }}">
   <!-- Step Indicator -->
   <div class="emt-cancel-steps">
     <div class="emt-cancel-step-dot active" data-step="1"></div>
