@@ -1,0 +1,132 @@
+"""MyBookings API Client for Hotel Cancellation Flow"""
+import httpx
+from typing import Dict, Any
+import logging
+import json
+
+logger = logging.getLogger(__name__)
+
+MYBOOKINGS_BASE_URL = "https://mybookings.easemytrip.com"
+
+
+class MyBookingsApiClient:
+    """
+    Client for mybookings.easemytrip.com hotel cancellation APIs.
+
+    Uses a persistent HTTP client with cookie jar to maintain session state
+    across the 4-step cancellation flow. Remember to call close() when done,
+    or use as async context manager.
+    """
+
+    def __init__(self):
+        self.base_url = MYBOOKINGS_BASE_URL
+        self.timeout = 20.0
+        self.headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0",
+        }
+        # Persistent client with automatic cookie handling
+        self.client = httpx.AsyncClient(
+            timeout=self.timeout,
+            headers=self.headers,
+            follow_redirects=True,
+        )
+
+    async def guest_login(self, booking_id: str, email: str) -> Dict[str, Any]:
+        """Step 1: POST /Mybooking/LoginGuestUser?app=null"""
+        url = f"{self.base_url}/Mybooking/LoginGuestUser?app=null"
+        payload = {
+            "BetId": booking_id,
+            "Emailid": email,
+        }
+        return await self._post(url, payload)
+
+    async def fetch_booking_details(self, bid: str) -> Dict[str, Any]:
+        """Step 2: POST /Hotels/BookingDetails"""
+        url = f"{self.base_url}/Hotels/BookingDetails"
+        payload = {
+            "bid": bid,
+            "whiteListedCode": "EMT",
+        }
+        return await self._post(url, payload)
+
+    async def send_cancellation_otp(self, screen_id: str) -> Dict[str, Any]:
+        """Step 3: POST /Hotels/CancellationOtp"""
+        url = f"{self.base_url}/Hotels/CancellationOtp"
+        payload = {
+            "EmtScreenID": screen_id,
+        }
+        logger.info(f"OTP request payload: {payload}")
+        return await self._post(url, payload)
+
+    async def request_cancellation(
+        self,
+        bid: str,
+        otp: str,
+        room_id: str,
+        transaction_id: str,
+        is_pay_at_hotel: bool,
+        payment_url: str,
+        reason: str = "Change of plans",
+        remark: str = "",
+    ) -> Dict[str, Any]:
+        """Step 4: POST /Hotels/RequestCancellation"""
+        url = f"{self.base_url}/Hotels/RequestCancellation"
+        payload = {
+            "Remark": remark or "",
+            "Reason": reason or "Change of plans",
+            "OTP": str(otp),
+            # API expects literal string "undefined" for RoomId
+            "RoomId": "undefined",
+            "TransactionId": str(transaction_id) if transaction_id else "",
+            "IsPayHotel": str(is_pay_at_hotel).lower(),
+            "PaymentUrl": payment_url or "",
+            "ApplicationType": "false",
+            "Bid": bid,
+        }
+        logger.info(f"Cancellation payload: {payload}")
+        return await self._post(url, payload)
+
+    async def close(self):
+        """Close the persistent HTTP client. Call this when done using the client."""
+        await self.client.aclose()
+
+    async def __aenter__(self):
+        """Async context manager entry"""
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit - ensures client is closed"""
+        await self.close()
+
+    async def _post(self, url: str, payload: dict) -> Dict[str, Any]:
+        """
+        Generic POST with error handling.
+        Uses persistent client to maintain cookies/session across requests.
+        """
+        try:
+            response = await self.client.post(url, json=payload)
+            response.raise_for_status()
+
+            if response.status_code == 204 or not response.text:
+                return {}
+
+            result = response.json()
+
+            # Handle double-encoded JSON (API returns JSON string instead of object)
+            if isinstance(result, str):
+                try:
+                    result = json.loads(result)
+                    logger.debug(f"Decoded double-encoded JSON response")
+                except json.JSONDecodeError:
+                    # It's just a plain string, not JSON
+                    logger.debug(f"Response is a plain string: {result}")
+
+            return result
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error calling {url}: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Error calling {url}: {e}")
+            raise
