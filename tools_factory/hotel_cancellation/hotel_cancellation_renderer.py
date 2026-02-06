@@ -1,588 +1,501 @@
-"""Hotel Cancellation Renderer - Interactive multi-step HTML/JS flow"""
+"""Hotel Cancellation Booking Details Renderer (Display-Only)"""
 from typing import Dict, Any
 from jinja2 import Environment, BaseLoader, select_autoescape
+
+
+def _truncate_text(text: str, max_length: int = 30) -> str:
+    """Truncate text to max_length characters and add ellipsis if truncated"""
+    if not text:
+        return text
+    text_str = str(text)
+    if len(text_str) <= max_length:
+        return text_str
+    return text_str[:max_length] + "..."
+
 
 _jinja_env = Environment(
     loader=BaseLoader(),
     autoescape=select_autoescape(["html", "xml"]),
 )
+_jinja_env.filters['truncate_text'] = _truncate_text
+
 
 # =====================================================================
-# HOTEL CANCELLATION FLOW TEMPLATE
+# 🏨 BOOKING DETAILS DISPLAY TEMPLATE (DISPLAY-ONLY, NO FORMS)
 # =====================================================================
-CANCELLATION_FLOW_TEMPLATE = """
+BOOKING_DETAILS_TEMPLATE = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
-.emt-cancel-flow {
+.booking-details-carousel {
   font-family: poppins, sans-serif;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
   color: #202020;
+  background: rgba(255, 255, 255, 0.92);
+  position: relative;
 }
-.emt-cancel-flow * {
-  box-sizing: border-box;
+
+.booking-details-carousel * {
   font-family: inherit;
+  box-sizing: border-box;
   margin: 0;
 }
 
-/* Step indicator */
-.emt-cancel-steps {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
+.booking-details-carousel main {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px 0 30px;
 }
-.emt-cancel-step-dot {
-  flex: 1;
-  height: 4px;
-  border-radius: 2px;
-  background: #e0e0e0;
-  transition: background 0.3s;
+
+.booking-details-carousel .bkhd {
+  margin-bottom: 16px;
 }
-.emt-cancel-step-dot.active { background: #ef6614; }
-.emt-cancel-step-dot.done { background: #00a664; }
 
-/* Panels */
-.emt-cancel-panel { display: none; }
-.emt-cancel-panel.active { display: block; }
-
-/* Form elements */
-.emt-cancel-label {
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 4px;
-  display: block;
+.booking-details-carousel .bkttl {
+  font-size: 18px;
+  font-weight: 600;
   color: #202020;
-}
-.emt-cancel-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  margin-bottom: 12px;
-  outline: none;
-  transition: border 0.2s;
-}
-.emt-cancel-input:focus { border-color: #ef6614; }
-
-.emt-cancel-select {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  margin-bottom: 12px;
-  background: #fff;
-  outline: none;
-}
-.emt-cancel-select:focus { border-color: #ef6614; }
-
-.emt-cancel-textarea {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  margin-bottom: 12px;
-  outline: none;
-  resize: vertical;
-  min-height: 60px;
-}
-.emt-cancel-textarea:focus { border-color: #ef6614; }
-
-.emt-cancel-btn {
-  background: #ef6614;
-  color: #fff;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 40px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-  transition: background 0.2s;
-}
-.emt-cancel-btn:hover { background: #e75806; }
-.emt-cancel-btn:disabled { background: #ccc; cursor: not-allowed; }
-
-/* Room cards */
-.emt-cancel-room-card {
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-}
-.emt-cancel-room-card.selected {
-  border-color: #ef6614;
-  background: #fff8f0;
-}
-.emt-cancel-room-card:hover { border-color: #ef6614; }
-
-.emt-cancel-room-title {
-  font-weight: 600;
-  font-size: 15px;
   margin-bottom: 4px;
 }
-.emt-cancel-room-sub {
-  font-size: 13px;
-  color: #646d74;
-}
-.emt-cancel-room-policy {
+
+.booking-details-carousel .bksub {
   font-size: 12px;
-  color: #868686;
+  color: #646d74;
   margin-top: 4px;
 }
-.emt-cancel-room-amount {
+
+.booking-details-carousel .hotel-info {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.booking-details-carousel .hotel-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 6px;
+}
+
+.booking-details-carousel .hotel-address {
+  font-size: 12px;
+  color: #646d74;
+  margin-bottom: 8px;
+}
+
+.booking-details-carousel .hotel-dates {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #202020;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .date-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-details-carousel .date-label {
+  font-size: 10px;
+  color: #868686;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.booking-details-carousel .date-value {
+  font-weight: 600;
+}
+
+.booking-details-carousel .rooms-title {
   font-size: 14px;
   font-weight: 600;
-  margin-top: 4px;
-}
-
-/* Booking info header */
-.emt-cancel-booking-info {
-  background: #f8f9fa;
-  border-radius: 10px;
-  padding: 14px 16px;
-  margin-bottom: 16px;
-  font-size: 13px;
-  color: #646d74;
-  line-height: 1.6;
-}
-.emt-cancel-booking-info strong {
   color: #202020;
-}
-
-/* Messages */
-.emt-cancel-error {
-  color: #d32f2f;
-  font-size: 13px;
-  margin: 8px 0;
-  min-height: 18px;
-}
-.emt-cancel-success {
-  color: #00a664;
-  font-size: 13px;
-  margin: 8px 0;
-}
-
-/* Result panel */
-.emt-cancel-result {
-  text-align: center;
-  padding: 40px 20px;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-}
-.emt-cancel-result.success {
-  border-color: #00a664;
-  background: #f0faf5;
-}
-.emt-cancel-result.failure {
-  border-color: #d32f2f;
-  background: #fef0f0;
-}
-.emt-cancel-result-icon {
-  font-size: 48px;
   margin-bottom: 12px;
 }
-.emt-cancel-result h3 {
-  margin-bottom: 8px;
-  font-size: 18px;
-}
-.emt-cancel-result p {
-  color: #646d74;
-  font-size: 14px;
-}
-.emt-cancel-refund-box {
-  margin-top: 16px;
-  padding: 12px;
-  background: rgba(0,166,100,0.08);
-  border-radius: 8px;
-  font-size: 13px;
-  text-align: left;
+
+.booking-details-carousel .slider-shell {
+  position: relative;
 }
 
-/* Heading */
-.emt-cancel-heading {
-  margin-bottom: 16px;
-  font-size: 18px;
-  font-weight: 600;
+.booking-details-carousel .rsltcvr {
+  width: 90%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: grab;
 }
-.emt-cancel-subtext {
-  font-size: 13px;
+
+.booking-details-carousel .rsltcvr:active {
+  cursor: grabbing;
+}
+
+.booking-details-carousel .embla__container {
+  display: flex;
+  gap: 16px;
+}
+
+.booking-details-carousel .room-card {
+  width: 280px;
+  min-width: 280px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: #fff;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-details-carousel .room-header {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.booking-details-carousel .room-type {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 4px;
+}
+
+.booking-details-carousel .room-number {
+  font-size: 12px;
   color: #646d74;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+}
+
+.booking-details-carousel .room-id {
+  font-size: 10px;
+  color: #868686;
+  font-family: monospace;
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.booking-details-carousel .room-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.booking-details-carousel .detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 12px;
+}
+
+.booking-details-carousel .detail-label {
+  color: #646d74;
+  font-weight: 500;
+}
+
+.booking-details-carousel .detail-value {
+  color: #202020;
+  font-weight: 600;
+  text-align: right;
+  max-width: 60%;
+}
+
+.booking-details-carousel .amount-highlight {
+  font-size: 16px;
+  font-family: inter, sans-serif;
+  color: #ef6614;
+}
+
+.booking-details-carousel .policy-text {
+  font-size: 11px;
+  color: #646d74;
+  background: #fff8e1;
+  padding: 8px;
+  border-radius: 6px;
+  border-left: 3px solid #ffc107;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.booking-details-carousel .refundable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #2e7d32;
+  background: #e8f5e9;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .refundable::before {
+  content: '✓';
+  font-weight: bold;
+}
+
+.booking-details-carousel .non-refundable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .non-refundable::before {
+  content: '✗';
+  font-weight: bold;
+}
+
+.booking-details-carousel .empty-state {
+  text-align: center;
+  color: #646d74;
+  padding: 60px 20px;
+  font-size: 14px;
+}
+
+/* Dark mode support */
+.booking-details-carousel.dark {
+  background: #000;
+  color: #fff;
+}
+
+.booking-details-carousel.dark .room-card,
+.booking-details-carousel.dark .hotel-info {
+  background: #000;
+  border-color: #373737;
+}
+
+.booking-details-carousel.dark .room-header {
+  border-color: #373737;
+}
+
+.booking-details-carousel.dark .bkttl,
+.booking-details-carousel.dark .hotel-name,
+.booking-details-carousel.dark .room-type,
+.booking-details-carousel.dark .date-value,
+.booking-details-carousel.dark .detail-value {
+  color: #fff;
+}
+
+.booking-details-carousel.dark .bksub,
+.booking-details-carousel.dark .hotel-address,
+.booking-details-carousel.dark .room-number,
+.booking-details-carousel.dark .date-label,
+.booking-details-carousel.dark .detail-label {
+  color: #bcbcbc;
+}
+
+.booking-details-carousel.dark .room-id {
+  background: #1a1a1a;
+  color: #bcbcbc;
 }
 </style>
 
-<div class="emt-cancel-flow round-trip-selector" id="emtCancelFlow" data-instance-id="cancel-flow-{{ instance_id }} data-api-base="{{ api_base_url }}">
-  <!-- Step Indicator -->
-  <div class="emt-cancel-steps">
-    <div class="emt-cancel-step-dot active" data-step="1"></div>
-    <div class="emt-cancel-step-dot" data-step="2"></div>
-    <div class="emt-cancel-step-dot" data-step="3"></div>
-    <div class="emt-cancel-step-dot" data-step="4"></div>
-  </div>
+<div class="booking-details-carousel">
+  <main>
+    <div class="bkhd">
+      <div class="bkttl">{{ title }}</div>
+      <div class="bksub">{{ subtitle }}</div>
+    </div>
 
-  <!-- Panel 1: Login -->
-  <div class="emt-cancel-panel active" id="panelLogin">
-    <h3 class="emt-cancel-heading">Cancel Hotel Booking</h3>
-    <p class="emt-cancel-subtext">Enter your booking details to begin cancellation.</p>
-    <label class="emt-cancel-label">Booking ID</label>
-    <input class="emt-cancel-input" id="inputBookingId"
-           placeholder="e.g. EMT1624718" value="{{ booking_id }}">
-    <label class="emt-cancel-label">Email Address</label>
-    <input class="emt-cancel-input" id="inputEmail" type="email"
-           placeholder="Email used during booking" value="{{ email }}">
-    <div class="emt-cancel-error" id="loginError"></div>
-    <button class="emt-cancel-btn" id="btnLogin">Verify Booking</button>
-  </div>
+    {% if hotel_info %}
+    <div class="hotel-info">
+      <div class="hotel-name">{{ hotel_info.name }}</div>
+      {% if hotel_info.address %}
+      <div class="hotel-address">{{ hotel_info.address }}</div>
+      {% endif %}
+      <div class="hotel-dates">
+        {% if hotel_info.check_in %}
+        <div class="date-item">
+          <div class="date-label">Check-in</div>
+          <div class="date-value">{{ hotel_info.check_in }}</div>
+        </div>
+        {% endif %}
+        {% if hotel_info.check_out %}
+        <div class="date-item">
+          <div class="date-label">Check-out</div>
+          <div class="date-value">{{ hotel_info.check_out }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
 
-  <!-- Panel 2: Booking Details + Room Selection -->
-  <div class="emt-cancel-panel" id="panelDetails">
-    <h3 class="emt-cancel-heading">Select Room to Cancel</h3>
-    <div id="bookingInfoBox" class="emt-cancel-booking-info"></div>
-    <div id="roomsList"></div>
-    <label class="emt-cancel-label">Reason for cancellation</label>
-    <select class="emt-cancel-select" id="selectReason">
-      <option value="Change of plans">Change of plans</option>
-      <option value="Found better deal">Found a better deal</option>
-      <option value="Trip cancelled">Trip cancelled</option>
-      <option value="Wrong dates">Wrong dates booked</option>
-      <option value="Personal reason">Personal reason</option>
-      <option value="Other">Other</option>
-    </select>
-    <label class="emt-cancel-label">Remarks (optional)</label>
-    <textarea class="emt-cancel-textarea" id="inputRemark"
-              placeholder="Any additional remarks..."></textarea>
-    <div class="emt-cancel-error" id="detailsError"></div>
-    <button class="emt-cancel-btn" id="btnSendOtp">Send Cancellation OTP</button>
-  </div>
+    {% if rooms %}
+    <div class="rooms-title">Rooms in this booking</div>
+    <div class="slider-shell">
+      <div class="rsltcvr">
+        <div class="embla__container">
+        {% for room in rooms %}
+          <div class="room-card">
+            <div class="room-header">
+              <div class="room-type">{{ room.room_type }}</div>
+              {% if room.room_no %}
+              <div class="room-number">Room {{ room.room_no }}</div>
+              {% endif %}
+              {% if room.room_id %}
+              <div class="room-id">ID: {{ room.room_id }}</div>
+              {% endif %}
+            </div>
 
-  <!-- Panel 3: OTP Verification -->
-  <div class="emt-cancel-panel" id="panelOtp">
-    <h3 class="emt-cancel-heading">Enter OTP</h3>
-    <p class="emt-cancel-subtext">
-      An OTP has been sent to your registered contact. Enter it below to confirm cancellation.
-    </p>
-    <input class="emt-cancel-input" id="inputOtp" placeholder="Enter OTP" maxlength="6">
-    <div class="emt-cancel-error" id="otpError"></div>
-    <button class="emt-cancel-btn" id="btnConfirmCancel">Confirm Cancellation</button>
-  </div>
+            <div class="room-details">
+              {% if room.amount %}
+              <div class="detail-row">
+                <span class="detail-label">Amount</span>
+                <span class="detail-value amount-highlight">₹{{ room.amount }}</span>
+              </div>
+              {% endif %}
 
-  <!-- Panel 4: Result -->
-  <div class="emt-cancel-panel" id="panelResult">
-    <div class="emt-cancel-result" id="resultBox"></div>
-  </div>
+              {% if room.is_pay_at_hotel is not none %}
+              <div class="detail-row">
+                <span class="detail-label">Payment</span>
+                <span class="detail-value">{% if room.is_pay_at_hotel %}Pay at Hotel{% else %}Prepaid{% endif %}</span>
+              </div>
+              {% endif %}
+
+              {% if room.cancellation_policy %}
+              <div class="policy-text">{{ room.cancellation_policy }}</div>
+              {% endif %}
+
+              {% if room.is_refundable %}
+              <div class="refundable">Refundable</div>
+              {% elif room.is_refundable is not none %}
+              <div class="non-refundable">Non-Refundable</div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state">No room information available</div>
+    {% endif %}
+  </main>
 </div>
-
-<script>
-(function() {
-  var flow = document.getElementById('emtCancelFlow');
-  var apiBase = flow.dataset.apiBase || '';
-
-  
-  var state = {
-    bookingId: '',
-    email: '',
-    bid: null,
-    rooms: [],
-    paymentUrl: '',
-    selectedRooms: [],
-  };
-
-
-  var panels = {
-    login: document.getElementById('panelLogin'),
-    details: document.getElementById('panelDetails'),
-    otp: document.getElementById('panelOtp'),
-    result: document.getElementById('panelResult'),
-  };
-  var stepDots = flow.querySelectorAll('.emt-cancel-step-dot');
-
-  function showPanel(name, stepNum) {
-    Object.keys(panels).forEach(function(k) {
-      panels[k].classList.remove('active');
-    });
-    panels[name].classList.add('active');
-    for (var i = 0; i < stepDots.length; i++) {
-      stepDots[i].classList.remove('active', 'done');
-      if (i + 1 < stepNum) stepDots[i].classList.add('done');
-      else if (i + 1 === stepNum) stepDots[i].classList.add('active');
-    }
-  }
-
-  function setLoading(btn, loading) {
-    btn.disabled = loading;
-    btn.textContent = loading ? 'Please wait...' : btn.getAttribute('data-orig');
-  }
-
-  
-  var buttons = flow.querySelectorAll('.emt-cancel-btn');
-  for (var b = 0; b < buttons.length; b++) {
-    buttons[b].setAttribute('data-orig', buttons[b].textContent);
-  }
-
-  function apiCall(endpoint, payload) {
-    return fetch(apiBase + endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }).then(function(res) { return res.json(); });
-  }
-
-  document.getElementById('btnLogin').addEventListener('click', function() {
-    var btn = this;
-    var bookingId = document.getElementById('inputBookingId').value.trim();
-    var email = document.getElementById('inputEmail').value.trim();
-    var errEl = document.getElementById('loginError');
-    errEl.textContent = '';
-
-    if (!bookingId || !email) {
-      errEl.textContent = 'Please enter both booking ID and email.';
-      return;
-    }
-
-    setLoading(btn, true);
-
-    apiCall('/hotel-cancellation/guest-login', {
-      booking_id: bookingId, email: email
-    }).then(function(data) {
-      if (!data.success) {
-        errEl.textContent = data.message || 'Login failed. Check your details.';
-        setLoading(btn, false);
-        return;
-      }
-
-      state.bid = data.ids.bid;
-      state.bookingId = bookingId;
-      state.email = email;
-
-      
-      return apiCall('/hotel-cancellation/booking-details', {
-        bid: state.bid
-      });
-    }).then(function(details) {
-      if (!details) return;
-      setLoading(btn, false);
-
-      if (!details.success) {
-        document.getElementById('loginError').textContent =
-          'Login succeeded but failed to load booking details.';
-        return;
-      }
-
-      state.rooms = details.rooms || [];
-      state.paymentUrl = details.payment_url || '';
-      renderBookingInfo(details);
-      renderRooms();
-      showPanel('details', 2);
-    }).catch(function() {
-      document.getElementById('loginError').textContent = 'Network error. Please try again.';
-      setLoading(btn, false);
-    });
-  });
-
-  function renderBookingInfo(details) {
-    var infoBox = document.getElementById('bookingInfoBox');
-    if (state.rooms.length > 0) {
-      var r = state.rooms[0];
-      var html = '';
-      if (r.hotel_name) html += '<div><strong>Hotel:</strong> ' + r.hotel_name + '</div>';
-      if (r.check_in) html += '<div><strong>Check-in:</strong> ' + r.check_in + '</div>';
-      if (r.check_out) html += '<div><strong>Check-out:</strong> ' + r.check_out + '</div>';
-      html += '<div><strong>Rooms:</strong> ' + state.rooms.length + '</div>';
-      infoBox.innerHTML = html;
-    } else {
-      infoBox.innerHTML = '<div>No booking details available.</div>';
-    }
-  }
-
-  function renderRooms() {
-    var container = document.getElementById('roomsList');
-    container.innerHTML = '';
-    state.selectedRooms = [];
-
-    state.rooms.forEach(function(room) {
-      var card = document.createElement('div');
-      card.className = 'emt-cancel-room-card';
-      card.setAttribute('data-room-id', room.room_id || '');
-      card.setAttribute('data-txn-id', room.transaction_id || '');
-      card.setAttribute('data-pay-at-hotel', room.is_pay_at_hotel ? 'true' : 'false');
-
-      var titleText = (room.room_type || 'Room') +
-        (room.room_no ? ' - Room ' + room.room_no : '');
-      var html = '<div class="emt-cancel-room-title">' + titleText + '</div>';
-
-      if (room.guest_name) {
-        html += '<div class="emt-cancel-room-sub">Guest: ' + room.guest_name + '</div>';
-      }
-      if (room.cancellation_policy) {
-        html += '<div class="emt-cancel-room-policy">' + room.cancellation_policy + '</div>';
-      }
-      if (room.amount) {
-        html += '<div class="emt-cancel-room-amount">Amount: &#8377;' + room.amount + '</div>';
-      }
-
-      card.innerHTML = html;
-      card.addEventListener('click', function() {
-        this.classList.toggle('selected');
-        var roomId = this.getAttribute('data-room-id');
-        var idx = state.selectedRooms.indexOf(roomId);
-        if (idx === -1) {
-          state.selectedRooms.push(roomId);
-        } else {
-          state.selectedRooms.splice(idx, 1);
-        }
-      });
-      container.appendChild(card);
-    });
-
-    
-    if (state.rooms.length === 1) {
-      var singleCard = container.querySelector('.emt-cancel-room-card');
-      if (singleCard) singleCard.click();
-    }
-  }
-
-  
-  document.getElementById('btnSendOtp').addEventListener('click', function() {
-    var btn = this;
-    var errEl = document.getElementById('detailsError');
-    errEl.textContent = '';
-
-    if (state.selectedRooms.length === 0) {
-      errEl.textContent = 'Please select at least one room to cancel.';
-      return;
-    }
-
-    var reason = document.getElementById('selectReason').value;
-    if (!reason) {
-      errEl.textContent = 'Please select a cancellation reason.';
-      return;
-    }
-
-    setLoading(btn, true);
-
-    apiCall('/hotel-cancellation/send-otp', {
-      booking_id: state.bookingId,
-      email: state.email
-    }).then(function(data) {
-      setLoading(btn, false);
-      if (!data.success) {
-        errEl.textContent = data.message || 'Failed to send OTP.';
-        return;
-      }
-      showPanel('otp', 3);
-    }).catch(function() {
-      errEl.textContent = 'Network error. Please try again.';
-      setLoading(btn, false);
-    });
-  });
-
-  
-  document.getElementById('btnConfirmCancel').addEventListener('click', function() {
-    var btn = this;
-    var otp = document.getElementById('inputOtp').value.trim();
-    var errEl = document.getElementById('otpError');
-    errEl.textContent = '';
-
-    if (!otp) {
-      errEl.textContent = 'Please enter the OTP.';
-      return;
-    }
-
-    setLoading(btn, true);
-
-    var reason = document.getElementById('selectReason').value;
-    var remark = document.getElementById('inputRemark').value.trim();
-
-   
-    var selectedRoom = null;
-    for (var i = 0; i < state.rooms.length; i++) {
-      if (state.selectedRooms.indexOf(state.rooms[i].room_id) !== -1) {
-        selectedRoom = state.rooms[i];
-        break;
-      }
-    }
-
-    var roomIdStr = state.selectedRooms.join(',');
-    var txnId = selectedRoom ? (selectedRoom.transaction_id || '') : '';
-    var isPayAtHotel = selectedRoom ? !!selectedRoom.is_pay_at_hotel : false;
-
-    apiCall('/hotel-cancellation/request-cancellation', {
-      booking_id: state.bookingId,
-      email: state.email,
-      otp: otp,
-      room_id: roomIdStr,
-      transaction_id: txnId,
-      is_pay_at_hotel: isPayAtHotel,
-      payment_url: state.paymentUrl,
-      reason: reason,
-      remark: remark,
-    }).then(function(data) {
-      setLoading(btn, false);
-
-      var resultBox = document.getElementById('resultBox');
-      if (data.success) {
-        resultBox.className = 'emt-cancel-result success';
-        var html = '<div class="emt-cancel-result-icon">&#10003;</div>';
-        html += '<h3 style="color:#00a664">Cancellation Successful</h3>';
-        html += '<p>' + (data.message || 'Your booking has been cancelled.') + '</p>';
-        if (data.refund_info) {
-          html += '<div class="emt-cancel-refund-box">';
-          if (data.refund_info.refund_amount)
-            html += '<div>Refund: <strong>&#8377;' + data.refund_info.refund_amount + '</strong></div>';
-          if (data.refund_info.cancellation_charges)
-            html += '<div>Charges: <strong>&#8377;' + data.refund_info.cancellation_charges + '</strong></div>';
-          if (data.refund_info.refund_mode)
-            html += '<div>Refund Mode: <strong>' + data.refund_info.refund_mode + '</strong></div>';
-          html += '</div>';
-        }
-        resultBox.innerHTML = html;
-      } else {
-        resultBox.className = 'emt-cancel-result failure';
-        resultBox.innerHTML =
-          '<div class="emt-cancel-result-icon">&#10007;</div>' +
-          '<h3 style="color:#d32f2f">Cancellation Failed</h3>' +
-          '<p>' + (data.message || 'Please try again or contact support.') + '</p>';
-      }
-      showPanel('result', 4);
-    }).catch(function() {
-      errEl.textContent = 'Network error. Please try again.';
-      setLoading(btn, false);
-    });
-  });
-})();
-</script>
 """
 
 
-def render_cancellation_flow(
-    booking_id: str = "",
-    email: str = "",
-    api_base_url: str = "/api",
-) -> str:
+# =====================================================================
+# 🎨 RENDERER FUNCTION
+# =====================================================================
+def render_cancellation_flow(booking_id: str, email: str) -> str:
     """
-    Render the complete interactive cancellation flow HTML.
+    Render booking details as display-only HTML (no forms, no API calls).
+
+    This is a PLACEHOLDER that returns a message. The actual booking details
+    should be fetched and rendered by the tool itself using render_booking_details().
 
     Args:
-        booking_id: Pre-fill booking ID (optional)
-        email: Pre-fill email (optional)
-        api_base_url: Base URL for API proxy endpoints
+        booking_id: Booking ID
+        email: User email
 
     Returns:
-        Complete HTML string with embedded CSS and JavaScript
+        HTML string with message
     """
-    import uuid
-    instance_id = str(uuid.uuid4())[:8]
-    template = _jinja_env.from_string(CANCELLATION_FLOW_TEMPLATE)
+    template = _jinja_env.from_string("""
+    <div class="booking-details-carousel">
+      <main style="max-width: 700px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; color: #646d74; padding: 40px 20px;">
+          <p style="font-size: 14px; margin-bottom: 10px;">Loading booking details for <strong>{{ booking_id }}</strong>...</p>
+          <p style="font-size: 12px; color: #868686;">Please use chatbot mode for hotel cancellation.</p>
+        </div>
+      </main>
+    </div>
+    """)
+    return template.render(booking_id=booking_id)
+
+
+def render_booking_details(booking_details: Dict[str, Any]) -> str:
+    """
+    Render booking details as display-only HTML carousel.
+
+    Args:
+        booking_details: Booking details from API including hotel info and rooms
+
+    Returns:
+        HTML string with rendered booking details
+    """
+    # Extract hotel information
+    hotel_info = None
+    if booking_details.get("hotel_name"):
+        hotel_info = {
+            "name": booking_details.get("hotel_name", "Hotel"),
+            "address": booking_details.get("hotel_address", ""),
+            "check_in": _format_date(booking_details.get("check_in")),
+            "check_out": _format_date(booking_details.get("check_out")),
+        }
+
+    # Extract rooms
+    rooms = booking_details.get("rooms", [])
+
+    if not rooms:
+        return """
+        <div class="booking-details-carousel">
+          <main style="max-width: 700px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; color: #646d74; padding: 40px 20px;">
+              <p style="font-size: 14px;">No rooms found in this booking.</p>
+            </div>
+          </main>
+        </div>
+        """
+
+    # Normalize rooms for display
+    rooms_ui = []
+    for room in rooms:
+        rooms_ui.append({
+            "room_type": room.get("room_type", "Standard Room"),
+            "room_no": room.get("room_no"),
+            "room_id": room.get("room_id"),
+            "amount": room.get("amount"),
+            "is_pay_at_hotel": room.get("is_pay_at_hotel"),
+            "cancellation_policy": room.get("cancellation_policy"),
+            "is_refundable": room.get("is_refundable"),
+        })
+
+    # Build title and subtitle
+    booking_id = booking_details.get("booking_id", "")
+    title = f"Booking Details - {booking_id}" if booking_id else "Booking Details"
+
+    subtitle_parts = []
+    if hotel_info and hotel_info["check_in"] and hotel_info["check_out"]:
+        subtitle_parts.append(f"{hotel_info['check_in']} to {hotel_info['check_out']}")
+    subtitle_parts.append(f"{len(rooms)} room{'s' if len(rooms) > 1 else ''}")
+    subtitle = " • ".join(subtitle_parts)
+
+    # Render template
+    template = _jinja_env.from_string(BOOKING_DETAILS_TEMPLATE)
     return template.render(
-        booking_id=booking_id,
-        email=email,
-        api_base_url=api_base_url,
-        instance_id =instance_id
+        title=title,
+        subtitle=subtitle,
+        hotel_info=hotel_info,
+        rooms=rooms_ui,
     )
+
+
+def _format_date(date_str: str) -> str:
+    """Format date string for display"""
+    if not date_str:
+        return None
+
+    try:
+        from datetime import datetime
+        # Try parsing various date formats
+        for fmt in ["%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y-%m-%dT%H:%M:%S"]:
+            try:
+                date = datetime.strptime(date_str.split("T")[0], fmt)
+                return date.strftime("%d %b %Y")
+            except ValueError:
+                continue
+        return date_str
+    except Exception:
+        return date_str

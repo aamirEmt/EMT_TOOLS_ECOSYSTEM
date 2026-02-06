@@ -13,7 +13,7 @@ from .hotel_cancellation_schema import (
     HotelCancellationFlowInput,
 )
 from .hotel_cancellation_service import HotelCancellationService
-from .hotel_cancellation_renderer import render_cancellation_flow
+from .hotel_cancellation_renderer import render_booking_details
 
 logger = logging.getLogger(__name__)
 
@@ -341,15 +341,43 @@ class HotelCancellationFlowTool(BaseTool):
                 is_error=True,
             )
 
-        # Website mode: return the self-contained interactive HTML application
+        # Website mode: fetch booking details and render as display-only HTML
         if render_html:
-            html = render_cancellation_flow(
+            # Run login + fetch details (same as chatbot mode)
+            login_result = await self.service.guest_login(
                 booking_id=input_data.booking_id,
                 email=input_data.email,
             )
+
+            if not login_result["success"]:
+                return ToolResponseFormat(
+                    response_text=f"Guest login failed: {login_result['message']}",
+                    structured_content=login_result,
+                    is_error=True,
+                )
+
+            bid = login_result["ids"]["bid"]
+            details_result = await self.service.fetch_booking_details(bid=bid)
+
+            if not details_result["success"]:
+                return ToolResponseFormat(
+                    response_text=f"Failed to fetch booking details: {details_result.get('error')}",
+                    structured_content=details_result,
+                    is_error=True,
+                )
+
+            # Add booking_id to details for display
+            details_result["booking_id"] = input_data.booking_id
+
+            # Render booking details as HTML carousel
+            html = render_booking_details(details_result)
+
             return ToolResponseFormat(
-                response_text="Hotel cancellation flow loaded. Use the interactive form below.",
-                structured_content={"mode": "interactive_html"},
+                response_text=f"Booking details for {input_data.booking_id}",
+                structured_content={
+                    "booking_details": details_result,
+                    "bid": bid,
+                },
                 html=html,
             )
 
