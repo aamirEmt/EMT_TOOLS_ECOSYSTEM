@@ -312,9 +312,10 @@ class HotelCancellationFlowTool(BaseTool):
         return ToolMetadata(
             name="hotel_cancellation_flow",
             description=(
-                "Complete hotel booking cancellation flow. "
-                "In website mode, returns an interactive UI for the full cancellation process. "
-                "In chatbot mode, initiates guest login and fetches booking details. "
+                "Complete hotel booking cancellation flow for chatbots. "
+                "Automatically authenticates guest and fetches booking details. "
+                "Returns room information for user selection. "
+                "Use _user_type='website' only for HTML UI testing. "
                 "Requires booking ID (BetId like EMT1624718) and email address."
             ),
             input_schema=HotelCancellationFlowInput.model_json_schema(),
@@ -323,7 +324,7 @@ class HotelCancellationFlowTool(BaseTool):
         )
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
-        user_type = kwargs.pop("_user_type", "website")
+        user_type = kwargs.pop("_user_type", "chatbot")
         kwargs.pop("_limit", None)
         render_html = user_type.lower() == "website"
         is_whatsapp = user_type.lower() == "whatsapp"
