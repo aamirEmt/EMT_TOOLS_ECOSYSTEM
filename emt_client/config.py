@@ -140,6 +140,7 @@ TRAIN_BASE_URL = "https://railways.easemytrip.com"
 TRAIN_API_URL = f"{TRAIN_BASE_URL}/Train/_TrainBtwnStationList"
 TRAIN_LIST_INFO_URL = f"{TRAIN_BASE_URL}/TrainListInfo"
 TRAIN_BOOKING_URL = f"{TRAIN_BASE_URL}/TrainInfo"
+PNR_STATUS_URL = f"{TRAIN_BASE_URL}/Train/PnrchkStatus"
 
 # 🔍 AUTOSUGGEST SERVICE URLS
 SOLR_BASE_URL = "https://solr.easemytrip.com"
@@ -506,6 +507,7 @@ __all__ = [
     "TRAIN_API_URL",
     "TRAIN_LIST_INFO_URL",
     "TRAIN_BOOKING_URL",
+    "PNR_STATUS_URL",
     "TRAIN_AUTOSUGGEST_URL",
 
     # Autosuggest Services
