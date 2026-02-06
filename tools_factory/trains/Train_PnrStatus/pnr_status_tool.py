@@ -33,6 +33,7 @@ class TrainPnrStatusTool(BaseTool):
         # Extract runtime flags
         user_type = kwargs.pop("_user_type", "website")
         is_whatsapp = user_type.lower() == "whatsapp"
+        limit = kwargs.pop("_limit")  
 
         # Validate input
         try:
