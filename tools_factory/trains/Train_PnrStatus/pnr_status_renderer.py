@@ -4,6 +4,92 @@ from typing import Dict, Any
 from jinja2 import Environment, BaseLoader, select_autoescape
 
 
+PNR_ERROR_TEMPLATE = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+.pnr-error-card {
+  font-family: Poppins, sans-serif;
+  color: #202020;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 394px;
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.pnr-error-header {
+  background: #ffebee;
+  color: #c62828;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ffcdd2;
+}
+
+.pnr-error-title {
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pnr-error-icon {
+  font-size: 20px;
+}
+
+.pnr-error-body {
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.pnr-error-message {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.pnr-error-details {
+  font-size: 12px;
+  color: #999;
+  font-style: italic;
+}
+
+.pnr-number-display {
+  font-size: 18px;
+  font-weight: 600;
+  color: #c62828;
+  margin: 12px 0;
+  font-family: monospace;
+}
+</style>
+
+<div class="pnr-error-card">
+  <div class="pnr-error-header">
+    <div class="pnr-error-title">
+      <span class="pnr-error-icon">⚠️</span>
+      <span>Invalid PNR</span>
+    </div>
+  </div>
+
+  <div class="pnr-error-body">
+    <div class="pnr-number-display">{{ pnr_number }}</div>
+    <div class="pnr-error-message">
+      {{ error_message }}
+    </div>
+    <div class="pnr-error-details">
+      Please verify your PNR number and try again.
+    </div>
+  </div>
+</div>
+"""
+
+
 PNR_STATUS_TEMPLATE = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
@@ -367,10 +453,11 @@ PNR_STATUS_TEMPLATE = """
       </table>
     </div>
 
-    {% if (booking_fare or ticket_fare) and not has_cancelled_passenger(passengers) %}
+    {% set fare_value = ticket_fare or booking_fare %}
+    {% if is_valid_fare(fare_value) and not has_cancelled_passenger(passengers) %}
     <div class="fare-section">
       <span class="fare-label">Ticket Fare</span>
-      <span class="fare-amount">{{ ticket_fare or booking_fare }}</span>
+      <span class="fare-amount">{{ fare_value }}</span>
     </div>
     {% endif %}
   </div>
@@ -412,6 +499,25 @@ def _has_cancelled_passenger(passengers: list) -> bool:
     return False
 
 
+def _is_valid_fare(fare: str) -> bool:
+    """Check if fare value is valid and should be displayed."""
+    if not fare:
+        return False
+
+    fare_str = str(fare).strip().upper()
+
+    # Check for invalid values
+    if fare_str in ["0", "N/A", "NA", "NULL", "NONE", ""]:
+        return False
+
+    # Try to convert to number and check if it's greater than 0
+    try:
+        fare_num = float(fare_str)
+        return fare_num > 0
+    except (ValueError, TypeError):
+        return False
+
+
 # Create Jinja2 environment
 _jinja_env = Environment(
     loader=BaseLoader(),
@@ -419,6 +525,7 @@ _jinja_env = Environment(
 )
 _jinja_env.globals["get_status_class"] = _get_status_class
 _jinja_env.globals["has_cancelled_passenger"] = _has_cancelled_passenger
+_jinja_env.globals["is_valid_fare"] = _is_valid_fare
 
 
 def render_pnr_status(pnr_info: Dict[str, Any]) -> str:
@@ -433,3 +540,18 @@ def render_pnr_status(pnr_info: Dict[str, Any]) -> str:
     """
     template = _jinja_env.from_string(PNR_STATUS_TEMPLATE)
     return template.render(**pnr_info)
+
+
+def render_pnr_error(pnr_number: str, error_message: str) -> str:
+    """
+    Render PNR error as simple HTML.
+
+    Args:
+        pnr_number: The PNR number that failed
+        error_message: Error message to display
+
+    Returns:
+        HTML string for error display
+    """
+    template = _jinja_env.from_string(PNR_ERROR_TEMPLATE)
+    return template.render(pnr_number=pnr_number, error_message=error_message)

@@ -9,7 +9,7 @@ from .pnr_status_schema import (
     WhatsappPnrFormat,
     WhatsappPnrFinalResponse,
 )
-from .pnr_status_renderer import render_pnr_status
+from .pnr_status_renderer import render_pnr_status, render_pnr_error
 
 __all__ = [
     "TrainPnrStatusTool",
@@ -21,4 +21,5 @@ __all__ = [
     "WhatsappPnrFormat",
     "WhatsappPnrFinalResponse",
     "render_pnr_status",
+    "render_pnr_error",
 ]

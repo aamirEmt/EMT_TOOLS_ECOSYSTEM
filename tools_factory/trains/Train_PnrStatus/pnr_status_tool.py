@@ -7,7 +7,7 @@ from tools_factory.base_schema import ToolResponseFormat
 
 from .pnr_status_schema import PnrStatusInput
 from .pnr_status_service import PnrStatusService, build_whatsapp_pnr_response
-from .pnr_status_renderer import render_pnr_status
+from .pnr_status_renderer import render_pnr_status, render_pnr_error
 
 
 class TrainPnrStatusTool(BaseTool):
@@ -54,9 +54,19 @@ class TrainPnrStatusTool(BaseTool):
         has_error = bool(result.get("error"))
 
         if has_error:
+            error_message = result.get('message', 'Unknown error')
+            error_type = result.get('error')
+
+            # Render error HTML for invalid PNR cases (for website users)
+            error_html = None
+            if not is_whatsapp and error_type == "INVALID_PNR":
+                pnr_num = result.get('pnr_number', payload.pnr_number)
+                error_html = render_pnr_error(pnr_num, error_message)
+
             return ToolResponseFormat(
-                response_text=f"Could not fetch PNR status: {result.get('message', 'Unknown error')}",
+                response_text=f"Could not fetch PNR status: {error_message}",
                 structured_content=result,
+                html=error_html,
                 is_error=True,
             )
 

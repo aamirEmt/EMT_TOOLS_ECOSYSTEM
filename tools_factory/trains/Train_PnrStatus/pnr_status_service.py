@@ -1,6 +1,7 @@
 """PNR Status Service - Business logic for checking PNR status."""
 
 import base64
+import re
 from typing import Any, Dict, List
 
 from Crypto.Cipher import AES
@@ -25,6 +26,7 @@ def encrypt_pnr(pnr_number: str) -> str:
     Returns:
         Base64 encoded encrypted string
     """
+    pnr_number = re.sub(r"[\s\-]", "", pnr_number)
     cipher = AES.new(PNR_ENCRYPTION_KEY, AES.MODE_CBC, PNR_ENCRYPTION_IV)
     padded_data = pad(pnr_number.encode("utf-8"), AES.block_size)
     encrypted = cipher.encrypt(padded_data)
@@ -53,9 +55,17 @@ class PnrStatusService:
 
             # Check for error in response
             if response.get("errorMessage"):
+                error_msg = response.get("errorMessage")
+                error_type = "API_ERROR"
+
+                # Categorize specific error types
+                if "Invalid PNR" in error_msg or "Flushed PNR" in error_msg or "PNR not yet generated" in error_msg:
+                    error_type = "INVALID_PNR"
+
                 return {
-                    "error": "API_ERROR",
-                    "message": response.get("errorMessage"),
+                    "error": error_type,
+                    "message": error_msg,
+                    "pnr_number": pnr_number,
                 }
 
             # Check if response has required data

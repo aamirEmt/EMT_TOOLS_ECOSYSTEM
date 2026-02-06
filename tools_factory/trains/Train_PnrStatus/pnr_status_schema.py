@@ -19,21 +19,6 @@ class PnrStatusInput(BaseModel):
         extra="forbid",
     )
 
-    @field_validator("pnr_number")
-    @classmethod
-    def validate_pnr(cls, v: str) -> str:
-        """Validate PNR is exactly 10 digits."""
-        # Remove any spaces or hyphens
-        cleaned = re.sub(r"[\s\-]", "", v)
-
-        if not cleaned.isdigit():
-            raise ValueError("PNR must contain only digits")
-
-        if len(cleaned) != 10:
-            raise ValueError("PNR must be exactly 10 digits")
-
-        return cleaned
-
 
 class PassengerInfo(BaseModel):
     """Individual passenger details from PNR status."""
