@@ -428,20 +428,20 @@ async def test_generate_live_html_file():
     print("\n--- Section 3: With View All Card (Limit 3) ---")
     try:
         bus_results_3 = await fetch_live_bus_results(source_id="733", destination_id="757", days_ahead=7)
-        html_3 = render_bus_results_with_limit(bus_results_3, display_limit=3, show_view_all=True)
+        html_3 = render_bus_results_with_limit(bus_results_3, display_limit=15, show_view_all=True)
         bus_count_3 = len(bus_results_3.get("buses", []))
         
         sections.append(f"""
         <div class="test-section">
-            <div class="test-title">🚌 LIVE: View All Card Demo (Showing 3 of {bus_count_3})</div>
+            <div class="test-title">🚌 LIVE: View All Card Demo (Showing 15 of {bus_count_3})</div>
             <div class="test-meta">
-                Display Limit: 3 | Total: {bus_count_3}<br>
+                Display Limit: 15 | Total: {bus_count_3}<br>
                 View All Link: {bus_results_3.get('view_all_link', 'N/A')[:80]}...
             </div>
             {html_3}
         </div>
         """)
-        print(f"   ✅ Rendered with limit 3")
+        print(f"   ✅ Rendered with limit 15")
     except Exception as e:
         print(f"   ❌ Error: {e}")
     
@@ -539,13 +539,13 @@ async def generate_live_html_files():
     print("\n📦 Testing View All Card...")
     try:
         bus_results_3 = await fetch_live_bus_results(source_id="733", destination_id="757", days_ahead=7)
-        html_3 = render_bus_results_with_limit(bus_results_3, display_limit=3, show_view_all=True)
+        html_3 = render_bus_results_with_limit(bus_results_3, display_limit=15, show_view_all=True)
         bus_count_3 = len(bus_results_3.get("buses", []))
         
         sections.append(f"""
         <div class="test-section">
-            <div class="test-title">🚌 View All Card Demo (3 of {bus_count_3})</div>
-            <div class="test-meta">Display limit: 3 | View All shows total: {bus_count_3}</div>
+            <div class="test-title">🚌 View All Card Demo (15 of {bus_count_3})</div>
+            <div class="test-meta">Display limit: 15 | View All shows total: {bus_count_3}</div>
             {html_3}
         </div>
         """)

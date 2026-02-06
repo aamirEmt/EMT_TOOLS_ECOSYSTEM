@@ -22,7 +22,7 @@ class ToolFactory:
         """Register all available tools"""
         self.register_tool(FlightSearchTool())
         self.register_tool(HotelSearchTool())
-        #self.register_tool(BusSearchTool())
+        self.register_tool(BusSearchTool())
         # self.register_tool(BusSeatLayoutTool())
         
         self.register_tool(TrainSearchTool())

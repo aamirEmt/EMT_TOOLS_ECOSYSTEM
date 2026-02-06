@@ -30,7 +30,7 @@ class BusSearchTool(BaseTool):
     async def execute(self, **kwargs) -> ToolResponseFormat:
         limit = kwargs.pop("_limit", None)
         user_type = kwargs.pop("_user_type", "website")
-        display_limit = kwargs.pop("_display_limit", 5)
+        display_limit = kwargs.pop("_display_limit", 15)
         is_whatsapp = user_type.lower() == "whatsapp"
 
         try:
