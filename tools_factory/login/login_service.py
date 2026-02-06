@@ -10,9 +10,16 @@ logger = logging.getLogger(__name__)
 
 
 class LoginService:
-    
-    def __init__(self):
-        self.token_provider = LoginTokenProvider()
+
+    def __init__(self, token_provider: LoginTokenProvider = None):
+        """
+        Initialize LoginService.
+
+        Args:
+            token_provider: Optional LoginTokenProvider. If not provided, creates a new one.
+                           For multi-user support, pass a session-specific provider.
+        """
+        self.token_provider = token_provider or LoginTokenProvider()
         self.client = LoginApiClient(token_provider=self.token_provider)
     
     async def authenticate_user(self, phone_or_email: str) -> Dict[str, Any]:  # , ip_address: str

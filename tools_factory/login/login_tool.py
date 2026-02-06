@@ -6,15 +6,25 @@ from ..base import BaseTool, ToolMetadata
 from .login_service import LoginService
 from .login_schema import LoginInput
 from tools_factory.base_schema import ToolResponseFormat
+from emt_client.auth.session_manager import SessionManager
 
 logger = logging.getLogger(__name__)
 
 
 class LoginTool(BaseTool):
-    
-    def __init__(self):
+
+    def __init__(self, session_manager: SessionManager = None):
+        """
+        Initialize LoginTool.
+
+        Args:
+            session_manager: SessionManager for multi-user session isolation.
+                           If not provided, creates a standalone service (legacy mode).
+        """
         super().__init__()
-        self.service = LoginService()
+        self.session_manager = session_manager
+        # Legacy mode: create a single service if no session_manager provided
+        self._legacy_service = LoginService() if not session_manager else None
     
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
@@ -28,21 +38,32 @@ class LoginTool(BaseTool):
     
     async def execute(self, **kwargs) -> ToolResponseFormat:
         try:
+            # Extract runtime flags (internal)
+            session_id = kwargs.pop("_session_id", None)
+
             phone_number = kwargs.get("phone_number")
-            # ip_address = kwargs.get("ip_address", "49.249.40.58")  # Use default if not provided
-            
+
             # Validate required parameters - only phone_number is mandatory
             if not phone_number:
                 return ToolResponseFormat(
                     response_text="phone_number (or email) is required to login.",
                     is_error=True
                 )
-            
+
             logger.info(f"Executing login for: {phone_number}")
-            
-            result = await self.service.authenticate_user(
+
+            # Get or create session-specific service
+            if self.session_manager:
+                # Multi-user mode: use session-specific provider
+                session_id, token_provider = self.session_manager.get_or_create_session(session_id)
+                service = LoginService(token_provider)
+            else:
+                # Legacy mode: use single shared service
+                service = self._legacy_service
+                session_id = None  # No session tracking in legacy mode
+
+            result = await service.authenticate_user(
                 phone_or_email=phone_number,
-                # ip_address=ip_address  # Commented out - not needed
             )
             
             # Handle failure
@@ -70,6 +91,7 @@ class LoginTool(BaseTool):
             return ToolResponseFormat(
                 response_text=response_text,
                 structured_content={
+                    "session_id": session_id,  # Return session_id for caller to track
                     "user": user,
                     "session": session,
                     "result": result

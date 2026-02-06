@@ -82,8 +82,8 @@ def dummy_flight_international_roundtrip():
     return {
         "origin": "DEL",
         "destination": "LHR",
-        "outbound_date": outbound,
-        "return_date": return_date,
+        "outbound_date": "2026-02-01",
+        "return_date": "2026-02-07",
         "adults": 1,
         "children": 0,
         "infants": 0
