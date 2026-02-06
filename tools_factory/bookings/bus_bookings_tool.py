@@ -38,6 +38,10 @@ class GetBusBookingsTool(BaseTool):
         try:
             # Extract runtime flags (internal)
             session_id = kwargs.pop("_session_id", None)
+            limit = kwargs.pop("_limit", None)
+            user_type = kwargs.pop("_user_type", "website")
+            render_html = user_type.lower() == "website"
+            is_whatsapp = user_type.lower() == "whatsapp"
 
             # Validate session_id is provided
             if not session_id:
