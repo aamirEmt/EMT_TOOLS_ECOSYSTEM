@@ -1,4 +1,5 @@
 from .client import EMTClient
+from emt_client.config import PNR_STATUS_URL
 
 AVAILABILITY_CHECK_URL = "https://railways.easemytrip.com/Train/AvailToCheck"
 
@@ -53,3 +54,16 @@ class TrainApiClient:
             "e": f"{journey_date}|{from_display}|{to_display}",
         }
         return await self.client.post(AVAILABILITY_CHECK_URL, payload)
+
+    async def check_pnr_status(self, encrypted_pnr: str) -> dict:
+        """
+        Check PNR status via EaseMyTrip Railways API.
+
+        Args:
+            encrypted_pnr: AES-128 CBC encrypted PNR (base64 encoded)
+
+        Returns:
+            API response with PNR status details
+        """
+        payload = {"pnrNumber": encrypted_pnr}
+        return await self.client.post(PNR_STATUS_URL, payload)

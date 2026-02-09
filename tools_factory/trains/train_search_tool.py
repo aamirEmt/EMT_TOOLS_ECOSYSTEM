@@ -24,7 +24,7 @@ class TrainSearchTool(BaseTool):
         """Execute train search with provided parameters."""
 
         # Extract runtime flags
-        limit = kwargs.pop("_limit", None)
+        limit = kwargs.pop("_limit", 15)  # Default limit: 15 trains per page
         user_type = kwargs.pop("_user_type", "website")
         is_whatsapp = user_type.lower() == "whatsapp"
 
@@ -51,9 +51,27 @@ class TrainSearchTool(BaseTool):
 
         has_error = bool(train_results.get("error"))
 
-        # Apply limit if specified
-        if limit is not None and "trains" in train_results:
-            train_results["trains"] = train_results["trains"][:limit]
+        # Store original total count BEFORE pagination
+        total_trains = len(train_results.get("trains", []))
+
+        # Apply pagination
+        if not has_error and "trains" in train_results:
+            page = payload.page  # Get page from validated payload
+            offset = (page - 1) * limit
+            end = offset + limit
+            train_results["trains"] = train_results["trains"][offset:end]
+
+            # Add pagination metadata
+            train_results["pagination"] = {
+                "current_page": page,
+                "per_page": limit,
+                "total_results": total_trains,
+                "total_pages": (total_trains + limit - 1) // limit if limit > 0 else 0,
+                "has_next_page": end < total_trains,
+                "has_previous_page": page > 1,
+                "showing_from": offset + 1 if train_results["trains"] else 0,
+                "showing_to": min(end, total_trains)
+            }
 
         trains = train_results.get("trains", [])
         train_count = len(trains)
@@ -68,7 +86,15 @@ class TrainSearchTool(BaseTool):
         if has_error:
             text = f"No trains found. {train_results.get('message', '')}"
         else:
-            text = f"Found {train_count} trains from {payload.from_station} to {payload.to_station}!"
+            pagination = train_results.get("pagination", {})
+            if pagination:
+                total = pagination.get("total_results", train_count)
+                current_page = pagination.get("current_page", 1)
+                showing_from = pagination.get("showing_from", 1)
+                showing_to = pagination.get("showing_to", train_count)
+                text = f"Showing trains {showing_from}-{showing_to} of {total} from {payload.from_station} to {payload.to_station} (Page {current_page})"
+            else:
+                text = f"Found {train_count} trains from {payload.from_station} to {payload.to_station}!"
 
         # Render HTML for website users only when trains are found
         html_content = None

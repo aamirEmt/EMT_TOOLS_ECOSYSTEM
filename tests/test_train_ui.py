@@ -53,8 +53,8 @@ async def test_train_search_mumbai_to_pune():
     journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
 
     result = await tool.execute(
-        fromStation="Panipat",
-        toStation="Mumbai",
+        fromStation="Delhi",
+        toStation="Jalandhar",
         journeyDate=journey_date,
         _limit=100,
         _user_type="website"
