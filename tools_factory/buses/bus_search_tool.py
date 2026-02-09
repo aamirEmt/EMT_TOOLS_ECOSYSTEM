@@ -110,13 +110,29 @@ class BusSearchTool(BaseTool):
         if is_whatsapp and not has_error:
             whatsapp_response = build_whatsapp_bus_response(payload, limited_bus_results)
 
+        # # Render HTML for website
+        # # Pass FULL bus_results (not limited) so View All card shows correct total
+        # html_output = None
+        # if not has_error and not is_whatsapp and total_bus_count > 0:
+        #     html_output = render_bus_results_with_limit(
+        #         bus_results,
+        #         display_limit=display_limit,
+        #         show_view_all=True,
+        #     )
+
         # Render HTML for website
-        # Pass FULL bus_results (not limited) so View All card shows correct total
+        # Create render data with paginated buses but preserve total count for header/View All
         html_output = None
         if not has_error and not is_whatsapp and total_bus_count > 0:
+            # Build render data: paginated buses + original metadata for header
+            render_data = bus_results.copy()
+            render_data["buses"] = paginated_buses  # Only buses for this page
+            # Keep total_count as original total for header display
+            render_data["total_count"] = total_bus_count
+            
             html_output = render_bus_results_with_limit(
-                bus_results,
-                display_limit=display_limit,
+                render_data,
+                display_limit=len(paginated_buses),  # Show all paginated buses (no further slicing)
                 show_view_all=True,
             )
 
