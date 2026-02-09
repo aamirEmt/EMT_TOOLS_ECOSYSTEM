@@ -65,23 +65,6 @@ class BusSearchTool(BaseTool):
                 is_error=True,
             )
 
-        # bus_results = await search_buses(
-        #     source_id=payload.source_id,
-        #     destination_id=payload.destination_id,
-        #     journey_date=payload.journey_date,
-        #     is_volvo=payload.is_volvo,
-        #     source_name=payload.source_name,
-        #     destination_name=payload.destination_name,
-        # )
-
-        # has_error = bool(bus_results.get("error"))
-
-        # # Apply limit if specified
-        # if limit is not None and "buses" in bus_results:
-        #     bus_results["buses"] = bus_results["buses"][:limit]
-
-        # buses = bus_results.get("buses", [])
-        # bus_count = len(buses)
 
         bus_results = await search_buses(
             source_id=payload.source_id,
@@ -97,52 +80,42 @@ class BusSearchTool(BaseTool):
         # Store original total count BEFORE pagination
         total_bus_count = len(bus_results.get("buses", []))
 
-        # Apply pagination
-        if not has_error and "buses" in bus_results:
-            page = payload.page  # Get page from validated payload
-            offset = (page - 1) * limit
-            end = offset + limit
-            bus_results["buses"] = bus_results["buses"][offset:end]
-
-            # Add pagination metadata
-            bus_results["pagination"] = {
-                "current_page": page,
-                "per_page": limit,
-                "total_results": total_bus_count,
-                "total_pages": (total_bus_count + limit - 1) // limit if limit > 0 else 0,
-                "has_next_page": end < total_bus_count,
-                "has_previous_page": page > 1,
-                "showing_from": offset + 1 if bus_results["buses"] else 0,
-                "showing_to": min(end, total_bus_count)
-            }
-
-        buses = bus_results.get("buses", [])
-        bus_count = len(buses)
-
-        # Create limited version for structured_content (same as paginated now)
-        limited_bus_results = bus_results
+        # Get all buses for rendering (DO NOT MODIFY bus_results["buses"])
+        all_buses = bus_results.get("buses", [])
+        
+        # Create paginated version for structured_content ONLY
+        page = payload.page
+        offset = (page - 1) * limit
+        end = offset + limit
+        paginated_buses = all_buses[offset:end] if not has_error else []
+        
+        # Create limited_bus_results as a COPY with paginated buses
+        limited_bus_results = bus_results.copy()
+        limited_bus_results["buses"] = paginated_buses
+        limited_bus_results["pagination"] = {
+            "current_page": page,
+            "per_page": limit,
+            "total_results": total_bus_count,
+            "total_pages": (total_bus_count + limit - 1) // limit if limit > 0 else 1,
+            "has_next_page": end < total_bus_count,
+            "has_previous_page": page > 1,
+            "showing_from": offset + 1 if paginated_buses else 0,
+            "showing_to": min(end, total_bus_count),
+        }
+        
+        bus_count = len(paginated_buses)
 
         # Build WhatsApp response if needed
         whatsapp_response = None
         if is_whatsapp and not has_error:
             whatsapp_response = build_whatsapp_bus_response(payload, limited_bus_results)
 
-        # # Render HTML for website
-        # html_output = None
-        # if not has_error and not is_whatsapp and bus_count > 0:
-        #     # Use render_bus_results_with_limit for View All card support
-        #     html_output = render_bus_results_with_limit(
-        #         bus_results,
-        #         display_limit=display_limit,
-        #         show_view_all=True,
-        #     )
-
         # Render HTML for website
         # Pass FULL bus_results (not limited) so View All card shows correct total
         html_output = None
         if not has_error and not is_whatsapp and total_bus_count > 0:
             html_output = render_bus_results_with_limit(
-                bus_results,  # Full results, not limited
+                bus_results,
                 display_limit=display_limit,
                 show_view_all=True,
             )
@@ -151,19 +124,11 @@ class BusSearchTool(BaseTool):
         source_display = bus_results.get("source_name") or payload.source_id or payload.source_name
         dest_display = bus_results.get("destination_name") or payload.destination_id or payload.destination_name
 
-        # if has_error:
-        #     text = f"No buses found. {bus_results.get('message', '')}"
-        # else:
-        #     text = f"Found {bus_count} buses from {source_display} to {dest_display}!"
 
-        # return ToolResponseFormat(
-        #     response_text=text,
-        #     structured_content=None if is_whatsapp else bus_results,
-        
         if has_error:
             text = f"No buses found. {bus_results.get('message', '')}"
         else:
-            pagination = bus_results.get("pagination", {})
+            pagination = limited_bus_results.get("pagination", {})
             if pagination:
                 total = pagination.get("total_results", bus_count)
                 current_page = pagination.get("current_page", 1)
