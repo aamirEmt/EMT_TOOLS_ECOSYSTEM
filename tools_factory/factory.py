@@ -9,13 +9,7 @@ from tools_factory.bookings.flight_bookings_tool import GetFlightBookingsTool
 from tools_factory.bookings.hotel_bookings_tool import GetHotelBookingsTool
 from tools_factory.bookings.train_bookings_tool import GetTrainBookingsTool
 from tools_factory.bookings.bus_bookings_tool import GetBusBookingsTool
-from tools_factory.hotel_cancellation.hotel_cancellation_tool import (
-    HotelCancellationGuestLoginTool,
-    HotelCancellationFetchDetailsTool,
-    HotelCancellationSendOtpTool,
-    HotelCancellationRequestTool,
-    HotelCancellationFlowTool,
-)
+from tools_factory.hotel_cancellation.hotel_cancellation_tool import HotelCancellationTool
 from typing import Dict, Optional, List
 
 class ToolFactory:
@@ -43,12 +37,8 @@ class ToolFactory:
         # self.register_tool(GetTrainBookingsTool(login_tool))
         # self.register_tool(GetBusBookingsTool(login_tool))
 
-        # Hotel Cancellation tools (individual steps for chatbot + combined flow)
-        self.register_tool(HotelCancellationGuestLoginTool())
-        self.register_tool(HotelCancellationFetchDetailsTool())
-        self.register_tool(HotelCancellationSendOtpTool())
-        self.register_tool(HotelCancellationRequestTool())
-        self.register_tool(HotelCancellationFlowTool())
+        # Hotel Cancellation (unified tool with action-based dispatch)
+        self.register_tool(HotelCancellationTool())
     
     def register_tool(self, tool: BaseTool):
         """Register a tool"""

@@ -1,17 +1,13 @@
-"""Hotel Cancellation Tools - Individual step tools + standalone orchestrator"""
-from typing import Dict, Any
+"""Hotel Cancellation Tool - Unified tool with action-based dispatch"""
+from typing import Dict, Tuple
+import asyncio
+import time
 import logging
 from pydantic import ValidationError
 
 from ..base import BaseTool, ToolMetadata
 from ..base_schema import ToolResponseFormat
-from .hotel_cancellation_schema import (
-    GuestLoginInput,
-    FetchBookingDetailsInput,
-    SendCancellationOtpInput,
-    RequestCancellationInput,
-    HotelCancellationFlowInput,
-)
+from .hotel_cancellation_schema import HotelCancellationInput
 from .hotel_cancellation_service import HotelCancellationService
 from .hotel_cancellation_renderer import render_booking_details, render_cancellation_success
 
@@ -19,245 +15,78 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================
-# Shared Service Instance (maintains session across tool calls)
+# Per-User Session Registry (isolates concurrent users)
 # ============================================================
-_shared_service = None
+_sessions: Dict[str, Tuple[HotelCancellationService, float]] = {}
+_sessions_lock = asyncio.Lock()
+_SESSION_TTL_SECONDS = 1800  # 30 minutes
 
 
-def get_shared_service() -> HotelCancellationService:
-    """Get or create the shared service instance for session persistence"""
-    global _shared_service
-    if _shared_service is None:
-        _shared_service = HotelCancellationService()
-    return _shared_service
+def _session_key(booking_id: str, email: str) -> str:
+    """Create a unique session key from booking_id + email"""
+    return f"{booking_id.strip().upper()}:{email.strip().lower()}"
+
+
+async def get_user_service(booking_id: str, email: str) -> HotelCancellationService:
+    """Get or create a per-user service instance with TTL cleanup"""
+    key = _session_key(booking_id, email)
+    now = time.monotonic()
+
+    async with _sessions_lock:
+        # Cleanup expired sessions
+        expired = [k for k, (svc, ts) in _sessions.items() if now - ts > _SESSION_TTL_SECONDS]
+        for k in expired:
+            svc, _ = _sessions.pop(k)
+            await svc.close()
+            logger.info(f"Cleaned up expired session: {k}")
+
+        if key in _sessions:
+            svc, _ = _sessions[key]
+            _sessions[key] = (svc, now)  # refresh TTL
+            return svc
+
+        svc = HotelCancellationService()
+        _sessions[key] = (svc, now)
+        logger.info(f"Created new session for: {key}")
+        return svc
 
 
 # ============================================================
-# Step 1: Guest Login
+# Unified Hotel Cancellation Tool
 # ============================================================
-class HotelCancellationGuestLoginTool(BaseTool):
-    """Step 1: Guest login with booking ID + email"""
+class HotelCancellationTool(BaseTool):
+    """
+    Single tool for the entire hotel cancellation flow.
 
-    def __init__(self):
-        super().__init__()
-        self.service = get_shared_service()
+    Actions:
+      - "start"    : Login + fetch booking details → returns room list
+      - "send_otp" : Send cancellation OTP to user's email
+      - "confirm"  : Submit cancellation with OTP, room_id, transaction_id
+    """
 
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
-            name="hotel_cancellation_guest_login",
+            name="hotel_cancellation",
             description=(
-                "Step 1 of hotel cancellation: Authenticate as a guest using "
-                "booking ID (BetId like EMT1624718) and email. Returns a bid "
-                "token needed for all subsequent cancellation steps."
+                "Hotel booking cancellation tool. "
+                "Use action='start' with booking_id and email to fetch booking details. "
+                "Use action='send_otp' to send cancellation OTP. "
+                "Use action='confirm' with otp, room_id, and transaction_id to complete cancellation."
             ),
-            input_schema=GuestLoginInput.model_json_schema(),
+            input_schema=HotelCancellationInput.model_json_schema(),
             category="cancellation",
-            tags=["hotel", "cancellation", "login", "guest"],
-        )
-
-    async def execute(self, **kwargs) -> ToolResponseFormat:
-        kwargs.pop("_user_type", "website")
-        kwargs.pop("_limit", None)
-
-        try:
-            input_data = GuestLoginInput.model_validate(kwargs)
-        except ValidationError as exc:
-            return ToolResponseFormat(
-                response_text="Invalid input for guest login",
-                structured_content={
-                    "error": "VALIDATION_ERROR",
-                    "details": exc.errors(),
-                },
-                is_error=True,
-            )
-
-        result = await self.service.guest_login(
-            booking_id=input_data.booking_id,
-            email=input_data.email,
-        )
-
-        if not result["success"]:
-            return ToolResponseFormat(
-                response_text=f"Guest login failed: {result['message']}",
-                structured_content=result,
-                is_error=True,
-            )
-
-        return ToolResponseFormat(
-            response_text=(
-                f"Guest login successful. Bid token obtained. "
-                f"Proceed to fetch booking details using the bid token."
-            ),
-            structured_content=result,
-        )
-
-
-# ============================================================
-# Step 2: Fetch Booking Details
-# ============================================================
-class HotelCancellationFetchDetailsTool(BaseTool):
-    """Step 2: Fetch booking details (rooms, policies)"""
-
-    def __init__(self):
-        super().__init__()
-        self.service = get_shared_service()
-
-    def get_metadata(self) -> ToolMetadata:
-        return ToolMetadata(
-            name="hotel_cancellation_fetch_details",
-            description=(
-                "Step 2 of hotel cancellation: Fetch booking details including "
-                "hotel name, address, check-in/out dates, cancellation policy, "
-                "and list of rooms. Requires bid token from Step 1 (guest login)."
-            ),
-            input_schema=FetchBookingDetailsInput.model_json_schema(),
-            category="cancellation",
-            tags=["hotel", "cancellation", "booking", "details"],
-        )
-
-    async def execute(self, **kwargs) -> ToolResponseFormat:
-        kwargs.pop("_user_type", "website")
-        kwargs.pop("_limit", None)
-
-        try:
-            input_data = FetchBookingDetailsInput.model_validate(kwargs)
-        except ValidationError as exc:
-            return ToolResponseFormat(
-                response_text="Invalid input for booking details fetch",
-                structured_content={
-                    "error": "VALIDATION_ERROR",
-                    "details": exc.errors(),
-                },
-                is_error=True,
-            )
-
-        result = await self.service.fetch_booking_details(bid=input_data.bid)
-
-        if not result["success"]:
-            return ToolResponseFormat(
-                response_text=f"Failed to fetch booking details: {result.get('error')}",
-                structured_content=result,
-                is_error=True,
-            )
-
-        rooms = result.get("rooms", [])
-        room_lines = []
-        for r in rooms:
-            line = f"  - Room {r.get('room_no', 'N/A')}: {r.get('room_type', 'N/A')} (ID: {r.get('room_id')})"
-            if r.get("cancellation_policy"):
-                line += f" | Policy: {r['cancellation_policy']}"
-            if r.get("amount"):
-                line += f" | Amount: {r['amount']}"
-            room_lines.append(line)
-
-        text = (
-            f"Booking has {len(rooms)} room(s):\n"
-            + "\n".join(room_lines)
-            + "\n\nAsk user which room(s) to cancel and the reason, then proceed to send OTP."
-        )
-
-        return ToolResponseFormat(
-            response_text=text,
-            structured_content=result,
-        )
-
-
-# ============================================================
-# Step 3: Send Cancellation OTP
-# ============================================================
-class HotelCancellationSendOtpTool(BaseTool):
-    """Step 3: Send cancellation OTP"""
-
-    def __init__(self):
-        super().__init__()
-        self.service = get_shared_service()
-
-    def get_metadata(self) -> ToolMetadata:
-        return ToolMetadata(
-            name="hotel_cancellation_send_otp",
-            description=(
-                "Step 3 of hotel cancellation: Send OTP for cancellation "
-                "verification. Requires booking_id and email (auto-refreshes "
-                "session). Call this after user selects room(s) and provides "
-                "a cancellation reason."
-            ),
-            input_schema=SendCancellationOtpInput.model_json_schema(),
-            category="cancellation",
-            tags=["hotel", "cancellation", "otp"],
-        )
-
-    async def execute(self, **kwargs) -> ToolResponseFormat:
-        kwargs.pop("_user_type", "website")
-        kwargs.pop("_limit", None)
-
-        try:
-            input_data = SendCancellationOtpInput.model_validate(kwargs)
-        except ValidationError as exc:
-            return ToolResponseFormat(
-                response_text="Invalid input for OTP request",
-                structured_content={
-                    "error": "VALIDATION_ERROR",
-                    "details": exc.errors(),
-                },
-                is_error=True,
-            )
-
-        result = await self.service.send_cancellation_otp(
-            booking_id=input_data.booking_id,
-            email=input_data.email,
-        )
-
-        if not result["success"]:
-            return ToolResponseFormat(
-                response_text=f"Failed to send OTP: {result['message']}",
-                structured_content=result,
-                is_error=True,
-            )
-
-        return ToolResponseFormat(
-            response_text=(
-                f"📧 An OTP (One-Time Password) has been sent to your registered email address.\n\n"
-                f"🔐 Please check your email and provide the OTP to confirm the cancellation.\n\n"
-                f"⏱️ Note: The OTP is valid for 10 minutes only.\n\n"
-                f"Type the OTP like: \"123456\" or \"My OTP is ABC123\""
-            ),
-            structured_content=result,
-        )
-
-
-# ============================================================
-# Step 4: Request Cancellation
-# ============================================================
-class HotelCancellationRequestTool(BaseTool):
-    """Step 4: Submit cancellation request"""
-
-    def __init__(self):
-        super().__init__()
-        self.service = get_shared_service()
-
-    def get_metadata(self) -> ToolMetadata:
-        return ToolMetadata(
-            name="hotel_cancellation_request",
-            description=(
-                "Step 4 of hotel cancellation: Submit the final cancellation "
-                "request with OTP, room ID, transaction ID, reason, and remark. "
-                "Requires booking_id and email (auto-refreshes session)."
-            ),
-            input_schema=RequestCancellationInput.model_json_schema(),
-            category="cancellation",
-            tags=["hotel", "cancellation", "request", "confirm"],
+            tags=["hotel", "cancellation", "flow"],
         )
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
         user_type = kwargs.pop("_user_type", "chatbot")
         kwargs.pop("_limit", None)
-        render_html = user_type.lower() == "website"
 
         try:
-            input_data = RequestCancellationInput.model_validate(kwargs)
+            input_data = HotelCancellationInput.model_validate(kwargs)
         except ValidationError as exc:
             return ToolResponseFormat(
-                response_text="Invalid cancellation request input",
+                response_text="Invalid input for hotel cancellation",
                 structured_content={
                     "error": "VALIDATION_ERROR",
                     "details": exc.errors(),
@@ -265,151 +94,31 @@ class HotelCancellationRequestTool(BaseTool):
                 is_error=True,
             )
 
-        result = await self.service.request_cancellation(
-            booking_id=input_data.booking_id,
-            email=input_data.email,
-            otp=input_data.otp,
-            room_id=input_data.room_id,
-            transaction_id=input_data.transaction_id,
-            is_pay_at_hotel=input_data.is_pay_at_hotel,
-            payment_url=input_data.payment_url or "",
-            reason=input_data.reason,
-            remark=input_data.remark,
-        )
+        action = input_data.action.lower().strip()
 
-        if not result["success"]:
-            return ToolResponseFormat(
-                response_text=f"❌ Cancellation failed: {result['message']}\n\nPlease try again or contact customer support.",
-                structured_content=result,
-                is_error=True,
-            )
-
-        # Build user-friendly success message
-        refund_info = result.get("refund_info")
-        if refund_info:
-            refund_amount = refund_info.get('refund_amount', 'N/A')
-            cancellation_charges = refund_info.get('cancellation_charges', 'N/A')
-            success_text = (
-                f"✅ Your hotel booking has been successfully cancelled!\n\n"
-                f"💰 Refund Details:\n"
-                f"   • Refund Amount: ₹{refund_amount}\n"
-                f"   • Cancellation Charges: ₹{cancellation_charges}\n"
-                f"   • Refund Mode: {refund_info.get('refund_mode', 'Original payment method')}\n\n"
-                f"📧 You will receive a cancellation confirmation email shortly.\n"
-                f"💳 The refund will be processed within 5-7 business days.\n\n"
-                f"Thank you for using EaseMyTrip. We hope to serve you again!"
-            )
+        if action == "start":
+            return await self._handle_start(input_data, user_type)
+        elif action == "send_otp":
+            return await self._handle_send_otp(input_data)
+        elif action == "confirm":
+            return await self._handle_confirm(input_data, user_type)
         else:
-            success_text = (
-                f"✅ Your hotel booking has been successfully cancelled!\n\n"
-                f"📧 You will receive a cancellation confirmation email shortly.\n\n"
-                f"Thank you for using EaseMyTrip. We hope to serve you again!"
+            return ToolResponseFormat(
+                response_text=f"Unknown action '{input_data.action}'. Use 'start', 'send_otp', or 'confirm'.",
+                is_error=True,
             )
 
-        # Website mode: render beautiful success HTML
-        html = None
-        if render_html:
-            result["booking_id"] = input_data.booking_id
-            html = render_cancellation_success(result)
-
-        return ToolResponseFormat(
-            response_text=success_text,
-            structured_content=result,
-            html=html,
-        )
-
-
-# ============================================================
-# Combined Flow Tool (standalone + chatbot shortcut)
-# ============================================================
-class HotelCancellationFlowTool(BaseTool):
-    """
-    Complete hotel booking cancellation flow.
-
-    Website mode: Returns interactive HTML/JS application for the full flow.
-    Chatbot/WhatsApp mode: Runs Steps 1+2 (login + fetch details) and returns
-    room list for user selection.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.service = get_shared_service()
-
-    def get_metadata(self) -> ToolMetadata:
-        return ToolMetadata(
-            name="hotel_cancellation_flow",
-            description=(
-                "Complete hotel booking cancellation flow for chatbots. "
-                "Automatically authenticates guest and fetches booking details. "
-                "Returns room information for user selection. "
-                "Use _user_type='website' only for HTML UI testing. "
-                "Requires booking ID (BetId like EMT1624718) and email address."
-            ),
-            input_schema=HotelCancellationFlowInput.model_json_schema(),
-            category="cancellation",
-            tags=["hotel", "cancellation", "flow", "interactive"],
-        )
-
-    async def execute(self, **kwargs) -> ToolResponseFormat:
-        user_type = kwargs.pop("_user_type", "chatbot")
-        kwargs.pop("_limit", None)
+    # ----------------------------------------------------------
+    # action = "start" — login + fetch booking details
+    # ----------------------------------------------------------
+    async def _handle_start(self, input_data: HotelCancellationInput, user_type: str) -> ToolResponseFormat:
         render_html = user_type.lower() == "website"
         is_whatsapp = user_type.lower() == "whatsapp"
 
-        try:
-            input_data = HotelCancellationFlowInput.model_validate(kwargs)
-        except ValidationError as exc:
-            return ToolResponseFormat(
-                response_text="Invalid input for cancellation flow",
-                structured_content={
-                    "error": "VALIDATION_ERROR",
-                    "details": exc.errors(),
-                },
-                is_error=True,
-            )
+        service = await get_user_service(input_data.booking_id, input_data.email)
 
-        # Website mode: fetch booking details and render as display-only HTML
-        if render_html:
-            # Run login + fetch details (same as chatbot mode)
-            login_result = await self.service.guest_login(
-                booking_id=input_data.booking_id,
-                email=input_data.email,
-            )
-
-            if not login_result["success"]:
-                return ToolResponseFormat(
-                    response_text=f"Guest login failed: {login_result['message']}",
-                    structured_content=login_result,
-                    is_error=True,
-                )
-
-            bid = login_result["ids"]["bid"]
-            details_result = await self.service.fetch_booking_details(bid=bid)
-
-            if not details_result["success"]:
-                return ToolResponseFormat(
-                    response_text=f"Failed to fetch booking details: {details_result.get('error')}",
-                    structured_content=details_result,
-                    is_error=True,
-                )
-
-            # Add booking_id to details for display
-            details_result["booking_id"] = input_data.booking_id
-
-            # Render booking details as HTML carousel
-            html = render_booking_details(details_result)
-
-            return ToolResponseFormat(
-                response_text=f"Booking details for {input_data.booking_id}",
-                structured_content={
-                    "booking_details": details_result,
-                    "bid": bid,
-                },
-                html=html,
-            )
-
-        # Chatbot/WhatsApp mode: auto-run Step 1 + Step 2
-        login_result = await self.service.guest_login(
+        # Step 1: Guest login
+        login_result = await service.guest_login(
             booking_id=input_data.booking_id,
             email=input_data.email,
         )
@@ -422,7 +131,9 @@ class HotelCancellationFlowTool(BaseTool):
             )
 
         bid = login_result["ids"]["bid"]
-        details_result = await self.service.fetch_booking_details(bid=bid)
+
+        # Step 2: Fetch booking details
+        details_result = await service.fetch_booking_details(bid=bid)
 
         combined = {
             "login": login_result,
@@ -437,24 +148,35 @@ class HotelCancellationFlowTool(BaseTool):
                 is_error=True,
             )
 
+        # Website mode: render HTML carousel
+        if render_html:
+            details_result["booking_id"] = input_data.booking_id
+            html = render_booking_details(details_result)
+            return ToolResponseFormat(
+                response_text=f"Booking details for {input_data.booking_id}",
+                structured_content={
+                    "booking_details": details_result,
+                    "bid": bid,
+                },
+                html=html,
+            )
+
+        # Chatbot / WhatsApp mode: build friendly text
         rooms = details_result.get("rooms", [])
         hotel_info = details_result.get("hotel_info", {})
         guest_info = details_result.get("guest_info", [])
 
-        # Extract hotel details
         hotel_name = hotel_info.get("hotel_name", "your hotel")
         check_in = hotel_info.get("check_in", "")
         check_out = hotel_info.get("check_out", "")
         duration = hotel_info.get("duration", "")
         total_fare = hotel_info.get("total_fare", "")
 
-        # Format dates nicely
         def format_date(date_str):
             if not date_str:
                 return ""
             try:
                 from datetime import datetime
-                # Handle ISO format: "2026-02-27T00:00:00"
                 dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
                 return dt.strftime("%d %b %Y")
             except:
@@ -463,26 +185,22 @@ class HotelCancellationFlowTool(BaseTool):
         check_in_formatted = format_date(check_in)
         check_out_formatted = format_date(check_out)
 
-        # Get guest names
         guest_names = []
         for guest in guest_info:
             name = f"{guest.get('title', '')} {guest.get('first_name', '')} {guest.get('last_name', '')}".strip()
             if name and name not in guest_names:
                 guest_names.append(name)
 
-        # Build booking summary
         booking_summary = []
         if check_in_formatted and check_out_formatted:
             booking_summary.append(f"📅 Check-in: {check_in_formatted} | Check-out: {check_out_formatted}")
         if duration:
             booking_summary.append(f"🌙 Duration: {duration} nights")
         if guest_names:
-            guest_list = ", ".join(guest_names)
-            booking_summary.append(f"👤 Guests: {guest_list}")
+            booking_summary.append(f"👤 Guests: {', '.join(guest_names)}")
         if total_fare:
             booking_summary.append(f"💰 Total Booking Amount: ₹{total_fare}")
 
-        # Build user-friendly room descriptions
         room_descriptions = []
         for idx, r in enumerate(rooms, 1):
             room_type = r.get('room_type', 'Room')
@@ -491,7 +209,6 @@ class HotelCancellationFlowTool(BaseTool):
             policy = r.get('cancellation_policy', '')
             adults = r.get('total_adults')
 
-            # Create clean, conversational description
             desc = f"\n{idx}. {room_type}"
             if room_no:
                 desc += f" (Room {room_no})"
@@ -499,43 +216,26 @@ class HotelCancellationFlowTool(BaseTool):
                 desc += f" - {adults} Adult(s)"
             if amount:
                 desc += f" - ₹{amount}"
-
             room_descriptions.append(desc)
 
-            # Add policy as indented lines if available
             if policy:
-                # Split policy into lines and indent each
-                policy_lines = policy.split('\n')
-                for line in policy_lines:
+                for line in policy.split('\n'):
                     if line.strip():
                         room_descriptions.append(f"   {line}")
 
-        # Create friendly, conversational text
         if len(rooms) == 1:
             text = (
-                f"✅ I've found your booking at {hotel_name}!\n\n"
-                f"📋 Booking Details:\n"
+                f"I've pulled up your booking details for {hotel_name}.\n\n"
                 + "\n".join(booking_summary) + "\n"
                 + "\n".join(room_descriptions) + "\n\n"
-                f"⚠️ Before we proceed with the cancellation:\n"
-                f"Please note that cancellation charges may apply based on the hotel's policy.\n\n"
-                f"🔹 If you'd like to proceed, please tell me:\n"
-                f"   • Confirm you want to cancel this room\n"
-                f"   • Your reason for cancellation (e.g., 'Change of plans', 'Found better deal', etc.)\n\n"
-                f"Type something like: \"Yes, cancel this room due to change of plans\""
+                f"Would you like to cancel this booking?"
             )
         else:
             text = (
-                f"✅ I've found your booking at {hotel_name}!\n\n"
-                f"📋 Booking Details:\n"
+                f"I've pulled up your booking details for {hotel_name}.\n\n"
                 + "\n".join(booking_summary) + "\n"
                 + "\n".join(room_descriptions) + "\n\n"
-                f"⚠️ Before we proceed with the cancellation:\n"
-                f"Please note that cancellation charges may apply based on the hotel's policy.\n\n"
-                f"🔹 To proceed, please tell me:\n"
-                f"   • Which room number you want to cancel\n"
-                f"   • Your reason for cancellation\n\n"
-                f"Example: \"Cancel Room 1, change of plans\" or \"Cancel room 101 due to emergency\""
+                f"Which room would you like to cancel?"
             )
 
         whatsapp_response = None
@@ -568,4 +268,97 @@ class HotelCancellationFlowTool(BaseTool):
             whatsapp_response=(
                 whatsapp_response.model_dump() if whatsapp_response else None
             ),
+        )
+
+    # ----------------------------------------------------------
+    # action = "send_otp"
+    # ----------------------------------------------------------
+    async def _handle_send_otp(self, input_data: HotelCancellationInput) -> ToolResponseFormat:
+        service = await get_user_service(input_data.booking_id, input_data.email)
+        result = await service.send_cancellation_otp(
+            booking_id=input_data.booking_id,
+            email=input_data.email,
+        )
+
+        if not result["success"]:
+            return ToolResponseFormat(
+                response_text=f"Failed to send OTP: {result['message']}",
+                structured_content=result,
+                is_error=True,
+            )
+
+        return ToolResponseFormat(
+            response_text=(
+                f"📧 An OTP (One-Time Password) has been sent to your registered email address.\n\n"
+                f"🔐 Please check your email and provide the OTP to confirm the cancellation.\n\n"
+                f"⏱️ Note: The OTP is valid for 10 minutes only.\n\n"
+                f"Type the OTP like: \"123456\" or \"My OTP is ABC123\""
+            ),
+            structured_content=result,
+        )
+
+    # ----------------------------------------------------------
+    # action = "confirm" — submit cancellation with OTP
+    # ----------------------------------------------------------
+    async def _handle_confirm(self, input_data: HotelCancellationInput, user_type: str) -> ToolResponseFormat:
+        render_html = user_type.lower() == "website"
+
+        # Validate required fields
+        if not input_data.otp or not input_data.room_id or not input_data.transaction_id:
+            return ToolResponseFormat(
+                response_text="Missing required fields for confirm: otp, room_id, transaction_id",
+                is_error=True,
+            )
+
+        service = await get_user_service(input_data.booking_id, input_data.email)
+        result = await service.request_cancellation(
+            booking_id=input_data.booking_id,
+            email=input_data.email,
+            otp=input_data.otp,
+            room_id=input_data.room_id,
+            transaction_id=input_data.transaction_id,
+            is_pay_at_hotel=input_data.is_pay_at_hotel,
+            payment_url=input_data.payment_url or "",
+            reason=input_data.reason,
+            remark=input_data.remark,
+        )
+
+        if not result["success"]:
+            return ToolResponseFormat(
+                response_text=f"❌ Cancellation failed: {result['message']}\n\nPlease try again or contact customer support.",
+                structured_content=result,
+                is_error=True,
+            )
+
+        # Build success message
+        refund_info = result.get("refund_info")
+        if refund_info:
+            refund_amount = refund_info.get('refund_amount', 'N/A')
+            cancellation_charges = refund_info.get('cancellation_charges', 'N/A')
+            success_text = (
+                f"✅ Your hotel booking has been successfully cancelled!\n\n"
+                f"💰 Refund Details:\n"
+                f"   • Refund Amount: ₹{refund_amount}\n"
+                f"   • Cancellation Charges: ₹{cancellation_charges}\n"
+                f"   • Refund Mode: {refund_info.get('refund_mode', 'Original payment method')}\n\n"
+                f"📧 You will receive a cancellation confirmation email shortly.\n"
+                f"💳 The refund will be processed within 5-7 business days.\n\n"
+                f"Thank you for using EaseMyTrip. We hope to serve you again!"
+            )
+        else:
+            success_text = (
+                f"✅ Your hotel booking has been successfully cancelled!\n\n"
+                f"📧 You will receive a cancellation confirmation email shortly.\n\n"
+                f"Thank you for using EaseMyTrip. We hope to serve you again!"
+            )
+
+        html = None
+        if render_html:
+            result["booking_id"] = input_data.booking_id
+            html = render_cancellation_success(result)
+
+        return ToolResponseFormat(
+            response_text=success_text,
+            structured_content=result,
+            html=html,
         )
