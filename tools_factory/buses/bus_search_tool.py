@@ -127,13 +127,12 @@ class BusSearchTool(BaseTool):
             # Build render data: paginated buses + original metadata for header
             render_data = bus_results.copy()
             render_data["buses"] = paginated_buses  # Only buses for this page
-            # Keep total_count as original total for header display
-            render_data["total_count"] = total_bus_count
             
             html_output = render_bus_results_with_limit(
                 render_data,
                 display_limit=len(paginated_buses),  # Show all paginated buses (no further slicing)
                 show_view_all=True,
+                total_bus_count=total_bus_count,  # Pass original total for header & View All card
             )
 
         # Build response text
