@@ -8,12 +8,8 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 
 from emt_client.clients.train_client import TrainApiClient
+from emt_client.config import PNR_ENCRYPTION_KEY, PNR_ENCRYPTION_IV
 from .pnr_status_schema import PassengerInfo, PnrStatusInfo
-
-
-# AES-128 CBC encryption constants
-PNR_ENCRYPTION_KEY = b"8080808080808080"  # 16 bytes
-PNR_ENCRYPTION_IV = b"8080808080808080"  # 16 bytes
 
 
 def encrypt_pnr(pnr_number: str) -> str:

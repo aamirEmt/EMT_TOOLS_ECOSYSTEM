@@ -142,6 +142,11 @@ TRAIN_LIST_INFO_URL = f"{TRAIN_BASE_URL}/TrainListInfo"
 TRAIN_BOOKING_URL = f"{TRAIN_BASE_URL}/TrainInfo"
 PNR_STATUS_URL = f"{TRAIN_BASE_URL}/Train/PnrchkStatus"
 
+# 🔐 PNR ENCRYPTION CONFIGURATION
+# AES-128 CBC encryption constants for PNR number encryption
+PNR_ENCRYPTION_KEY = b"8080808080808080"  # 16 bytes
+PNR_ENCRYPTION_IV = b"8080808080808080"  # 16 bytes
+
 # 🔍 AUTOSUGGEST SERVICE URLS
 SOLR_BASE_URL = "https://solr.easemytrip.com"
 SOLR_AUTOSUGGEST_URL = f"{SOLR_BASE_URL}/v1/api/auto/GetHotelAutoSuggest_SolrUItest"
@@ -509,6 +514,8 @@ __all__ = [
     "TRAIN_BOOKING_URL",
     "PNR_STATUS_URL",
     "TRAIN_AUTOSUGGEST_URL",
+    "PNR_ENCRYPTION_KEY",
+    "PNR_ENCRYPTION_IV",
 
     # Autosuggest Services
     "SOLR_BASE_URL",
