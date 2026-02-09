@@ -164,7 +164,6 @@ PNR_STATUS_TEMPLATE = """
 .train-route-container {
   display: flex;
   gap: 12px;
-  margin-bottom: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid #eee;
   align-items: center;
@@ -178,6 +177,11 @@ PNR_STATUS_TEMPLATE = """
   font-size: 14px;
   font-weight: 600;
   color: #202020;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
 }
 
 .train-number {
@@ -193,17 +197,23 @@ PNR_STATUS_TEMPLATE = """
 }
 
 .route-line {
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
   color: #202020;
-  text-align: right;
+  text-align: center;
+  margin-bottom: 12px;
   line-height: 1.4;
+  background: #d4e9ff;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid #8ec3ff;
 }
 
 .route-line .route-arrow {
-  margin: 0 4px;
-  color: #ef6614;
+  margin: 0 6px;
+  color: #4a90e2;
   font-weight: 700;
+  font-size: 16px;
 }
 
 .route-info {
@@ -251,11 +261,11 @@ PNR_STATUS_TEMPLATE = """
 .info-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   background: #f1f3f5;
-  padding: 6px 10px;
+  padding: 5px 8px;
   border-radius: 8px;
-  font-size: 11px;
+  font-size: 10px;
   border: 1px solid #e5e7eb;
 }
 
@@ -384,18 +394,19 @@ PNR_STATUS_TEMPLATE = """
   <div class="pnr-body">
     <div class="train-route-container">
       <div class="train-info">
-        <div class="train-name">{{ train_name }}</div>
+        <div class="train-name" title="{{ train_name }}">{{ train_name }}</div>
         <div class="train-number">Train No: {{ train_number }}</div>
       </div>
 
       <div class="route-info">
-        <div class="route-line">
-          {{ source_station_name }} ({{ source_station }})
-          <span class="route-arrow">&#8594;</span>
-          {{ destination_station_name }} ({{ destination_station }})
-        </div>
         <div class="journey-date">Journey Date: {{ date_of_journey }}</div>
       </div>
+    </div>
+
+    <div class="route-line">
+      {{ source_station_name }} ({{ source_station }})
+      <span class="route-arrow">&#8594;</span>
+      {{ destination_station_name }} ({{ destination_station }})
     </div>
 
     <div class="journey-details">
