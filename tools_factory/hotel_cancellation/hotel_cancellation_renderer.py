@@ -76,12 +76,47 @@ BOOKING_DETAILS_TEMPLATE = """
   font-weight: 600;
   color: #202020;
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.booking-details-carousel .hotel-name img {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .booking-details-carousel .hotel-address {
   font-size: 12px;
   color: #646d74;
   margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.booking-details-carousel .hotel-address img {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.booking-details-carousel .book-now-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 15px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.booking-details-carousel .book-now-btn:hover {
+  opacity: 0.85;
 }
 
 .booking-details-carousel .hotel-dates {
@@ -157,7 +192,7 @@ BOOKING_DETAILS_TEMPLATE = """
   font-size: 15px;
   font-weight: 600;
   color: #202020;
-  margin-bottom: 4px;
+  margin-bottom: 0px;
 }
 
 .booking-details-carousel .room-number {
@@ -310,9 +345,9 @@ BOOKING_DETAILS_TEMPLATE = """
 
     {% if hotel_info %}
     <div class="hotel-info">
-      <div class="hotel-name">{{ hotel_info.name }}</div>
+      <div class="hotel-name"><img src="https://mybookings.easemytrip.com/Content/assest/img/hotel-blic.svg" alt="">{{ hotel_info.name }}</div>
       {% if hotel_info.address %}
-      <div class="hotel-address">{{ hotel_info.address }}</div>
+      <div class="hotel-address"><img src="https://mybookings.easemytrip.com/Content/assest/img/ico-map.svg" alt="">{{ hotel_info.address }}</div>
       {% endif %}
       <div class="hotel-dates">
         {% if hotel_info.check_in %}
@@ -340,12 +375,6 @@ BOOKING_DETAILS_TEMPLATE = """
           <div class="room-card">
             <div class="room-header">
               <div class="room-type">{{ room.room_type }}</div>
-              {% if room.room_no %}
-              <div class="room-number">Room {{ room.room_no }}</div>
-              {% endif %}
-              {% if room.room_id %}
-              <div class="room-id">ID: {{ room.room_id }}</div>
-              {% endif %}
             </div>
 
             <div class="room-details">
@@ -359,7 +388,7 @@ BOOKING_DETAILS_TEMPLATE = """
               {% if room.is_pay_at_hotel is not none %}
               <div class="detail-row">
                 <span class="detail-label">Payment</span>
-                <span class="detail-value">{% if room.is_pay_at_hotel %}Pay at Hotel{% else %}Prepaid{% endif %}</span>
+                <span class="detail-value">{% if room.is_pay_at_hotel and payment_url %}<a href="{{ payment_url }}" target="_blank" class="book-now-btn">Pay Now</a>{% elif room.is_pay_at_hotel %}Pay at Hotel{% else %}Prepaid{% endif %}</span>
               </div>
               {% endif %}
 
@@ -497,11 +526,14 @@ def render_booking_details(booking_details: Dict[str, Any]) -> str:
 
     # Render template
     template = _jinja_env.from_string(BOOKING_DETAILS_TEMPLATE)
+    payment_url = booking_details.get("payment_url", "")
+
     return template.render(
         title=title,
         subtitle=subtitle,
         hotel_info=hotel_info,
         rooms=rooms_ui,
+        payment_url=payment_url,
     )
 
 
