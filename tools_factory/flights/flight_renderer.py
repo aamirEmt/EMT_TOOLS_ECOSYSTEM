@@ -163,6 +163,7 @@ BASE_FLIGHT_STYLES = """
 }
 
 .flight-carousel .j-br.lyovr::after {
+  content: "";
   height: 6px;
   width: 6px;
   background: #2196f3;
