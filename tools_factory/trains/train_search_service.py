@@ -136,6 +136,8 @@ def _process_class_availability(
         class_name = class_info.get("enqClassName", "")
         fare = class_info.get("totalFare") or "0"
         fare_updated = class_info.get("UpdationTime") or ""
+        class_quota = class_info.get("quota", "")
+        class_quota_name = class_info.get("quotaName", "")
 
         # Get availability from avlDayList
         availability_status = "N/A"
@@ -154,7 +156,7 @@ def _process_class_availability(
             train_number=train_number,
             from_station_code=from_station_code,
             to_station_code=to_station_code,
-            quota=quota,
+            quota=class_quota or quota,  # Use class-specific quota if available, otherwise use default
             departure_date=departure_date,
         )
 
@@ -166,6 +168,8 @@ def _process_class_availability(
                 availability_status=availability_status,
                 fare_updated=fare_updated,
                 book_now=book_now,
+                quota=class_quota,
+                quota_name=class_quota_name,
             )
         )
 

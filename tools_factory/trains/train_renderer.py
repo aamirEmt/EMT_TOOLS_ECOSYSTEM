@@ -305,7 +305,8 @@ TRAIN_CAROUSEL_TEMPLATE = """
 
 .train-carousel .class-availability {
   font-size: 9px;
-  margin-top: 4px;
+  margin-top: auto;
+  padding-top: 4px;
   font-weight: 500;
 }
 
@@ -652,10 +653,10 @@ TRAIN_CAROUSEL_TEMPLATE = """
             <div class="class-carousel-wrapper">
               <div class="class-carousel">
                 {% for cls in train.classes %}
-                {% set is_bookable = 'AVAILABLE' in cls.availability_status or 'WL' in cls.availability_status or 'RAC' in cls.availability_status or cls.availability_status == 'Check Online' %}
                 {% set is_regret = 'REGRET' in cls.availability_status or 'NOT AVAILABLE' in cls.availability_status or 'TRAIN CANCELLED' in cls.availability_status %}
+                {% set is_bookable = 'AVAILABLE' in cls.availability_status or 'WL' in cls.availability_status or 'RAC' in cls.availability_status or cls.availability_status == 'Check Online' %}
                 {% set needs_refresh = cls.availability_status in ['N/A', 'Tap To Refresh', 'Check Online', ''] or not cls.availability_status %}
-                <div class="class-card" data-train-no="{{ train.train_number }}" data-class-code="{{ cls.class_code }}" data-from-code="{{ train.from_station_code }}" data-to-code="{{ train.to_station_code }}" data-quota="{{ quota }}" data-journey-date="{{ journey_date_api }}" data-from-display="{{ from_display }}" data-to-display="{{ to_display }}">
+                <div class="class-card" data-train-no="{{ train.train_number }}" data-class-code="{{ cls.class_code }}" data-from-code="{{ train.from_station_code }}" data-to-code="{{ train.to_station_code }}" data-quota="{{ cls.quota or quota }}" data-journey-date="{{ journey_date_api }}" data-from-display="{{ from_display }}" data-to-display="{{ to_display }}">
                   <button type="button" class="class-refresh-icon-btn" title="Refresh availability">
                     <img src="https://railways.easemytrip.com/img/refresh-icon.svg" alt="Refresh" />
                   </button>
@@ -666,8 +667,8 @@ TRAIN_CAROUSEL_TEMPLATE = """
                   <div class="class-fare-updated">{{ cls.fare_updated }}</div>
                   {% endif %}
                   {% endif %}
-                  <div class="class-availability {% if 'AVAILABLE' in cls.availability_status %}available{% elif 'WL' in cls.availability_status %}waitlist{% elif 'RAC' in cls.availability_status %}rac{% elif cls.availability_status == 'Check Online' %}{% else %}unavailable{% endif %}">
-                    {{ cls.availability_status | truncate_text(15) }}
+                  <div class="class-availability {% if is_regret %}unavailable{% elif 'WL' in cls.availability_status %}waitlist{% elif 'RAC' in cls.availability_status %}rac{% elif 'AVAILABLE' in cls.availability_status %}available{% elif cls.availability_status == 'Check Online' %}{% else %}unavailable{% endif %}">
+                    {% if needs_refresh and cls.quota == 'TQ' %}Tatkal{% else %}{{ cls.availability_status | truncate_text(15) }}{% endif %}
                   </div>
                   {% if needs_refresh %}
                   <button type="button" class="class-refresh-btn">
@@ -677,7 +678,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
                     Tap To Refresh
                   </button>
                   {% elif cls.book_now %}
-                  <a href="{% if is_regret %}javascript:void(0){% else %}{{ cls.book_now }}{% endif %}" {% if not is_regret %}target="_blank" rel="noopener noreferrer"{% endif %} class="class-book-btn {% if is_regret %}disabled{% endif %}">Book Now</a>
+                  <a href="{% if is_regret %}javascript:void(0){% else %}{{ cls.book_now }}{% endif %}" {% if not is_regret %}target="_blank" rel="noopener noreferrer"{% endif %} class="class-book-btn {% if is_regret %}disabled{% endif %}">{% if cls.quota == 'TQ' %}Book Tatkal{% else %}Book Now{% endif %}</a>
                   {% endif %}
                 </div>
                 {% endfor %}
@@ -842,12 +843,14 @@ async function refreshAvailability(btn) {
       availabilityEl.textContent = availability.length > 15 ? availability.substring(0, 15) + '...' : availability;
 
       availabilityEl.classList.remove('available', 'waitlist', 'rac', 'unavailable');
-      if (availability.includes('AVAILABLE')) {
-        availabilityEl.classList.add('available');
+      if (availability.includes('REGRET') || availability.includes('NOT AVAILABLE') || availability.includes('CANCELLED')) {
+        availabilityEl.classList.add('unavailable');
       } else if (availability.includes('WL')) {
         availabilityEl.classList.add('waitlist');
       } else if (availability.includes('RAC')) {
         availabilityEl.classList.add('rac');
+      } else if (availability.includes('AVAILABLE')) {
+        availabilityEl.classList.add('available');
       } else {
         availabilityEl.classList.add('unavailable');
       }
@@ -884,7 +887,7 @@ async function refreshAvailability(btn) {
     if (!bookBtn) {
       const newBookBtn = document.createElement('a');
       newBookBtn.className = 'class-book-btn';
-      newBookBtn.textContent = 'Book Now';
+      newBookBtn.textContent = quota === 'TQ' ? 'Book Tatkal' : 'Book Now';
       newBookBtn.target = '_blank';
       newBookBtn.rel = 'noopener noreferrer';
 
@@ -963,14 +966,32 @@ def _normalize_train_for_ui(train: Dict[str, Any]) -> Dict[str, Any]:
         Normalized train data for template rendering
     """
     classes = []
+    tatkal_classes = []
+    general_classes = []
+    other_classes = []
+
+    # First, separate classes by quota
     for cls in train.get("classes", []):
-        classes.append({
+        quota = cls.get("quota", "GN")
+        class_data = {
             "class_code": cls.get("class_code", ""),
             "fare": cls.get("fare", "0"),
             "fare_updated": _parse_fare_updated(cls.get("fare_updated", "")),
             "availability_status": cls.get("availability_status", "N/A"),
             "book_now": cls.get("book_now", ""),
-        })
+            "quota": quota,
+            "quota_name": cls.get("quota_name", ""),
+        }
+
+        if quota == "TQ":
+            tatkal_classes.append(class_data)
+        elif quota == "GN":
+            general_classes.append(class_data)
+        else:
+            other_classes.append(class_data)
+
+    # Prioritize: Tatkal first, then general, then other quotas
+    classes = tatkal_classes + general_classes + other_classes
 
     return {
         "train_number": train.get("train_number", ""),
