@@ -871,3 +871,221 @@ async def test_debug_search_buses_exception():
         traceback.print_exc()
     
     print("\n" + "=" * 60)
+
+# ============================================================================
+# PAGINATION TESTS
+# ============================================================================
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_page_1():
+    """Test bus search pagination - page 1."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    payload = {
+        "source_name": "Delhi",
+        "destination_name": "Manali",
+        "journey_date": journey_date,
+        "page": 1,
+    }
+
+    print(f"\n📄 Testing pagination - Page 1")
+
+    result = await tool.execute(**payload)
+
+    assert not result.is_error
+    data = result.structured_content
+    
+    assert "pagination" in data, "Pagination metadata should be present"
+    
+    pagination = data["pagination"]
+    print(f"   Current Page: {pagination.get('current_page')}")
+    print(f"   Per Page: {pagination.get('per_page')}")
+    print(f"   Total Results: {pagination.get('total_results')}")
+    print(f"   Total Pages: {pagination.get('total_pages')}")
+    print(f"   Showing: {pagination.get('showing_from')}-{pagination.get('showing_to')}")
+    print(f"   Has Next: {pagination.get('has_next_page')}")
+    print(f"   Has Previous: {pagination.get('has_previous_page')}")
+    
+    assert pagination["current_page"] == 1
+    assert pagination["has_previous_page"] == False
+    assert pagination["showing_from"] == 1
+    
+    buses = data.get("buses", [])
+    print(f"   Buses returned: {len(buses)}")
+    
+    assert len(buses) <= pagination["per_page"]
+
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_page_2():
+    """Test bus search pagination - page 2."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    payload = {
+        "source_name": "Delhi",
+        "destination_name": "Manali",
+        "journey_date": journey_date,
+        "page": 2,
+    }
+
+    print(f"\n📄 Testing pagination - Page 2")
+
+    result = await tool.execute(**payload)
+
+    assert not result.is_error
+    data = result.structured_content
+    pagination = data["pagination"]
+    
+    print(f"   Current Page: {pagination.get('current_page')}")
+    print(f"   Showing: {pagination.get('showing_from')}-{pagination.get('showing_to')}")
+    print(f"   Has Previous: {pagination.get('has_previous_page')}")
+    
+    assert pagination["current_page"] == 2
+    assert pagination["has_previous_page"] == True
+    assert pagination["showing_from"] == 16  # (2-1)*15 + 1
+
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_different_pages_different_buses():
+    """Test that page 1 and page 2 return different buses."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    base_payload = {
+        "source_name": "Delhi",
+        "destination_name": "Manali",
+        "journey_date": journey_date,
+    }
+
+    print(f"\n📄 Testing that pages return different buses")
+
+    # Get page 1
+    result1 = await tool.execute(**{**base_payload, "page": 1})
+    buses1 = result1.structured_content.get("buses", [])
+    bus_ids_1 = {b.get("bus_id") for b in buses1}
+
+    # Get page 2
+    result2 = await tool.execute(**{**base_payload, "page": 2})
+    buses2 = result2.structured_content.get("buses", [])
+    bus_ids_2 = {b.get("bus_id") for b in buses2}
+
+    print(f"   Page 1 buses: {len(buses1)}")
+    print(f"   Page 2 buses: {len(buses2)}")
+
+    if buses2:  # Only check if page 2 has results
+        overlap = bus_ids_1.intersection(bus_ids_2)
+        print(f"   Overlap: {len(overlap)} buses")
+        assert len(overlap) == 0, "Page 1 and Page 2 should have different buses"
+        print(f"   ✅ No overlap - pagination working correctly")
+    else:
+        print(f"   ⚠️ Page 2 empty (not enough buses for 2 pages)")
+
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_response_text():
+    """Test pagination info appears in response text."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    payload = {
+        "source_name": "Delhi",
+        "destination_name": "Manali",
+        "journey_date": journey_date,
+        "page": 1,
+    }
+
+    result = await tool.execute(**payload)
+
+    print(f"\n📄 Testing response text format")
+    print(f"   Response: {result.response_text}")
+
+    # Should contain "Showing X-Y of Z" format
+    assert "Showing" in result.response_text or "Found" in result.response_text
+    assert "Page" in result.response_text or "buses" in result.response_text.lower()
+
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_with_custom_limit():
+    """Test pagination with custom _limit parameter."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    payload = {
+        "source_name": "Delhi",
+        "destination_name": "Manali",
+        "journey_date": journey_date,
+        "page": 1,
+        "_limit": 5,  # Custom limit
+    }
+
+    print(f"\n📄 Testing pagination with custom limit=5")
+
+    result = await tool.execute(**payload)
+    data = result.structured_content
+    pagination = data["pagination"]
+    buses = data.get("buses", [])
+
+    print(f"   Per Page: {pagination.get('per_page')}")
+    print(f"   Buses returned: {len(buses)}")
+    print(f"   Total Pages: {pagination.get('total_pages')}")
+
+    assert pagination["per_page"] == 5
+    assert len(buses) <= 5
+
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_last_page():
+    """Test pagination on last page."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    # First get total to calculate last page
+    result1 = await tool.execute(
+        source_name="Delhi",
+        destination_name="Manali",
+        journey_date=journey_date,
+        page=1,
+    )
+    
+    pagination = result1.structured_content.get("pagination", {})
+    total_pages = pagination.get("total_pages", 1)
+
+    print(f"\n📄 Testing last page (page {total_pages})")
+
+    # Now fetch last page
+    result_last = await tool.execute(
+        source_name="Delhi",
+        destination_name="Manali",
+        journey_date=journey_date,
+        page=total_pages,
+    )
+
+    data = result_last.structured_content
+    pagination = data["pagination"]
+
+    print(f"   Current Page: {pagination.get('current_page')}")
+    print(f"   Has Next: {pagination.get('has_next_page')}")
+    print(f"   Buses on last page: {len(data.get('buses', []))}")
+
+    assert pagination["current_page"] == total_pages
+    assert pagination["has_next_page"] == False

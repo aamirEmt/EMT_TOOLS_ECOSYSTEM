@@ -478,6 +478,218 @@ async def test_generate_live_html_file():
     assert os.path.exists(filepath)
 
 
+@pytest.mark.asyncio
+async def test_generate_pagination_html():
+    """Generate HTML file showing pagination across multiple pages."""
+    from tools_factory.buses.bus_renderer import render_bus_results_with_limit
+    from tools_factory.factory import get_tool_factory
+    
+    print("\n📄 Generating PAGINATION test HTML...")
+    
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+    
+    journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
+    
+    sections = []
+    
+    # Fetch multiple pages
+    for page_num in range(1, 4):  # Pages 1, 2, 3
+        print(f"\n--- Fetching Page {page_num} ---")
+        
+        result = await tool.execute(
+            source_name="Delhi",
+            destination_name="Manali",
+            journey_date=journey_date,
+            page=page_num,
+            _display_limit=15,
+        )
+        
+        data = result.structured_content
+        pagination = data.get("pagination", {})
+        buses = data.get("buses", [])
+        
+        print(f"   Buses on page: {len(buses)}")
+        print(f"   Pagination: {pagination}")
+        
+        if not buses:
+            print(f"   ⚠️ No buses on page {page_num}, stopping")
+            sections.append(f"""
+            <div class="test-section">
+                <div class="test-title">📄 Page {page_num} - No Results</div>
+                <div class="test-meta">No more buses available</div>
+            </div>
+            """)
+            break
+        
+        # Render the carousel for this page
+        html = render_bus_results_with_limit(data, display_limit=15, show_view_all=False)
+        
+        # Get first and last bus names for reference
+        first_bus = buses[0].get("operator_name", "N/A") if buses else "N/A"
+        last_bus = buses[-1].get("operator_name", "N/A") if buses else "N/A"
+        
+        sections.append(f"""
+        <div class="test-section">
+            <div class="test-title">📄 Page {page_num} of {pagination.get('total_pages', '?')}</div>
+            <div class="test-meta">
+                <strong>Pagination Info:</strong><br>
+                Showing: <code>{pagination.get('showing_from', '?')}-{pagination.get('showing_to', '?')}</code> of <code>{pagination.get('total_results', '?')}</code> buses<br>
+                Per Page: <code>{pagination.get('per_page', '?')}</code> |
+                Has Previous: <code>{pagination.get('has_previous_page', '?')}</code> |
+                Has Next: <code>{pagination.get('has_next_page', '?')}</code><br>
+                First Bus: <code>{first_bus[:30]}</code> |
+                Last Bus: <code>{last_bus[:30]}</code>
+            </div>
+            {html}
+        </div>
+        """)
+        
+        print(f"   ✅ Page {page_num} rendered")
+    
+    # Add summary section
+    sections.insert(0, f"""
+    <div class="test-section" style="background: #e3f2fd;">
+        <div class="test-title">🔢 Pagination Test Summary</div>
+        <div class="test-meta">
+            <strong>Route:</strong> Delhi → Manali<br>
+            <strong>Date:</strong> {journey_date}<br>
+            <strong>Pages Generated:</strong> {len([s for s in sections if 'Page' in s])}
+        </div>
+    </div>
+    """)
+    
+    # Combine and save
+    full_content = "\n".join(sections)
+    full_html = wrap_html_page(full_content, "Bus Pagination Test")
+    
+    filepath = save_html_file(full_html, "bus_pagination_test.html")
+    
+    print(f"\n✅ Pagination HTML generated: {filepath}")
+    print(f"   Open in browser: file://{os.path.abspath(filepath)}")
+    
+    assert os.path.exists(filepath)
+    return filepath
+
+
+async def generate_pagination_html_standalone():
+    """Standalone function to generate pagination HTML."""
+    from tools_factory.buses.bus_renderer import render_bus_results_with_limit
+    from tools_factory.factory import get_tool_factory
+    
+    print("=" * 60)
+    print("🔢 BUS PAGINATION HTML GENERATOR")
+    print("=" * 60)
+    
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+    os.makedirs(output_dir, exist_ok=True)
+    
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+    
+    journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
+    
+    sections = []
+    total_results = 0
+    total_pages = 0
+    
+    # Fetch pages 1-3
+    for page_num in range(1, 4):
+        print(f"\n📦 Fetching Page {page_num}...")
+        
+        try:
+            result = await tool.execute(
+                source_name="Delhi",
+                destination_name="Manali",
+                journey_date=journey_date,
+                page=page_num,
+                _display_limit=15,
+            )
+            
+            if result.is_error:
+                print(f"   ❌ Error: {result.response_text}")
+                break
+            
+            data = result.structured_content
+            pagination = data.get("pagination", {})
+            buses = data.get("buses", [])
+            
+            total_results = pagination.get("total_results", 0)
+            total_pages = pagination.get("total_pages", 0)
+            
+            print(f"   Response: {result.response_text}")
+            print(f"   Buses: {len(buses)}")
+            
+            if not buses:
+                break
+            
+            html = render_bus_results_with_limit(data, display_limit=15, show_view_all=False)
+            
+            first_bus = buses[0].get("operator_name", "N/A")[:25] if buses else "N/A"
+            last_bus = buses[-1].get("operator_name", "N/A")[:25] if buses else "N/A"
+            
+            # Color code based on page
+            page_colors = {1: "#e8f5e9", 2: "#fff3e0", 3: "#e3f2fd"}
+            bg_color = page_colors.get(page_num, "#ffffff")
+            
+            sections.append(f"""
+            <div class="test-section" style="background: {bg_color};">
+                <div class="test-title">📄 PAGE {page_num} of {total_pages}</div>
+                <div class="test-meta">
+                    <table style="width: 100%; font-size: 12px;">
+                        <tr>
+                            <td><strong>Showing:</strong> {pagination.get('showing_from')}-{pagination.get('showing_to')} of {total_results}</td>
+                            <td><strong>Per Page:</strong> {pagination.get('per_page')}</td>
+                            <td><strong>Has Prev:</strong> {'✅' if pagination.get('has_previous_page') else '❌'}</td>
+                            <td><strong>Has Next:</strong> {'✅' if pagination.get('has_next_page') else '❌'}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><strong>First Bus:</strong> {first_bus}</td>
+                            <td colspan="2"><strong>Last Bus:</strong> {last_bus}</td>
+                        </tr>
+                    </table>
+                </div>
+                {html}
+            </div>
+            """)
+            
+        except Exception as e:
+            print(f"   ❌ Error: {e}")
+            import traceback
+            traceback.print_exc()
+            break
+    
+    # Summary header
+    summary = f"""
+    <div class="test-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <div class="test-title" style="color: white; border-bottom-color: rgba(255,255,255,0.3);">🚌 Bus Pagination Test</div>
+        <div class="test-meta" style="background: rgba(255,255,255,0.1); color: white;">
+            <strong>Route:</strong> Delhi → Manali<br>
+            <strong>Date:</strong> {journey_date}<br>
+            <strong>Total Buses:</strong> {total_results}<br>
+            <strong>Total Pages:</strong> {total_pages}<br>
+            <strong>Pages Shown Below:</strong> {len(sections)}
+        </div>
+    </div>
+    """
+    
+    sections.insert(0, summary)
+    
+    # Save
+    full_content = "\n".join(sections)
+    full_html = wrap_html_page(full_content, "Bus Pagination Test")
+    filepath = save_html_file(full_html, "bus_pagination_test.html", output_dir)
+    
+    print("\n" + "=" * 60)
+    print("✅ PAGINATION HTML GENERATED")
+    print("=" * 60)
+    print(f"\n📄 File: {filepath}")
+    print(f"\n🌐 Open in browser:")
+    print(f"   file://{os.path.abspath(filepath)}")
+    print("\n" + "=" * 60)
+    
+    return filepath
+
 # ============================================================================
 # STANDALONE EXECUTION
 # ============================================================================
@@ -571,7 +783,14 @@ async def generate_live_html_files():
 
 def main():
     """Main entry point for standalone execution."""
-    asyncio.run(generate_live_html_files())
+    import sys
+    
+    if len(sys.argv) > 1 and sys.argv[1] == "pagination":
+        # Run pagination test specifically
+        asyncio.run(generate_pagination_html_standalone())
+    else:
+        # Run default live HTML generation
+        asyncio.run(generate_live_html_files())
 
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ class BusSearchTool(BaseTool):
         )
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
-        limit = kwargs.pop("_limit", None)
+        limit = kwargs.pop("_limit", 15)  # Default limit: 15 buses per page
         user_type = kwargs.pop("_user_type", "website")
         display_limit = kwargs.pop("_display_limit", 15)
         is_whatsapp = user_type.lower() == "whatsapp"
@@ -94,21 +94,33 @@ class BusSearchTool(BaseTool):
 
         has_error = bool(bus_results.get("error"))
 
-        # Get total count BEFORE any limiting
+        # Store original total count BEFORE pagination
+        total_bus_count = len(bus_results.get("buses", []))
+
+        # Apply pagination
+        if not has_error and "buses" in bus_results:
+            page = payload.page  # Get page from validated payload
+            offset = (page - 1) * limit
+            end = offset + limit
+            bus_results["buses"] = bus_results["buses"][offset:end]
+
+            # Add pagination metadata
+            bus_results["pagination"] = {
+                "current_page": page,
+                "per_page": limit,
+                "total_results": total_bus_count,
+                "total_pages": (total_bus_count + limit - 1) // limit if limit > 0 else 0,
+                "has_next_page": end < total_bus_count,
+                "has_previous_page": page > 1,
+                "showing_from": offset + 1 if bus_results["buses"] else 0,
+                "showing_to": min(end, total_bus_count)
+            }
+
         buses = bus_results.get("buses", [])
-        total_bus_count = len(buses)
+        bus_count = len(buses)
 
-        # Apply limit to structured_content only (for API response), NOT for rendering
-        limited_bus_results = bus_results.copy()
-        if limit is not None and "buses" in limited_bus_results:
-            limited_bus_results["buses"] = limited_bus_results["buses"][:limit]
-
-        bus_count = len(limited_bus_results.get("buses", []))
-
-        # # Build WhatsApp response if needed
-        # whatsapp_response = None
-        # if is_whatsapp and not has_error:
-        #     whatsapp_response = build_whatsapp_bus_response(payload, bus_results)
+        # Create limited version for structured_content (same as paginated now)
+        limited_bus_results = bus_results
 
         # Build WhatsApp response if needed
         whatsapp_response = None
@@ -151,7 +163,15 @@ class BusSearchTool(BaseTool):
         if has_error:
             text = f"No buses found. {bus_results.get('message', '')}"
         else:
-            text = f"Found {total_bus_count} buses from {source_display} to {dest_display}!"
+            pagination = bus_results.get("pagination", {})
+            if pagination:
+                total = pagination.get("total_results", bus_count)
+                current_page = pagination.get("current_page", 1)
+                showing_from = pagination.get("showing_from", 1)
+                showing_to = pagination.get("showing_to", bus_count)
+                text = f"Showing buses {showing_from}-{showing_to} of {total} from {source_display} to {dest_display} (Page {current_page})"
+            else:
+                text = f"Found {total_bus_count} buses from {source_display} to {dest_display}!"
 
         return ToolResponseFormat(
             response_text=text,
