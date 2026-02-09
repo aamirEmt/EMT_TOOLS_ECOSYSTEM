@@ -590,13 +590,6 @@ CANCELLATION_SUCCESS_TEMPLATE = """
   margin-bottom: 12px;
 }
 
-.cancellation-success .success-message {
-  font-size: 15px;
-  color: #555;
-  line-height: 1.6;
-  margin-bottom: 28px;
-}
-
 .cancellation-success .details-section {
   background: #fff;
   border-radius: 12px;
@@ -670,29 +663,6 @@ CANCELLATION_SUCCESS_TEMPLATE = """
   line-height: 1.5;
 }
 
-.cancellation-success .next-steps {
-  background: #e3f2fd;
-  border-left: 4px solid #2196f3;
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 24px;
-  text-align: left;
-}
-
-.cancellation-success .next-steps-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1565c0;
-  margin-bottom: 10px;
-}
-
-.cancellation-success .next-steps-list {
-  font-size: 13px;
-  color: #444;
-  line-height: 1.8;
-  margin-left: 20px;
-}
-
 .cancellation-success .footer-note {
   font-size: 12px;
   color: #868686;
@@ -715,10 +685,6 @@ CANCELLATION_SUCCESS_TEMPLATE = """
 
 .cancellation-success.dark .success-title {
   color: #66bb6a;
-}
-
-.cancellation-success.dark .success-message {
-  color: #bcbcbc;
 }
 
 .cancellation-success.dark .details-section {
@@ -744,18 +710,6 @@ CANCELLATION_SUCCESS_TEMPLATE = """
   border-color: #ffc107;
 }
 
-.cancellation-success.dark .next-steps {
-  background: #0d1f2d;
-  border-color: #2196f3;
-}
-
-.cancellation-success.dark .next-steps-title {
-  color: #64b5f6;
-}
-
-.cancellation-success.dark .next-steps-list {
-  color: #bcbcbc;
-}
 </style>
 
 <div class="cancellation-success">
@@ -768,10 +722,6 @@ CANCELLATION_SUCCESS_TEMPLATE = """
       </div>
 
       <h1 class="success-title">Cancellation Confirmed!</h1>
-      <p class="success-message">
-        Your hotel booking has been successfully cancelled.
-        {% if refund_info %}The refund will be processed according to the hotel's policy.{% endif %}
-      </p>
 
       <div class="details-section">
         <div class="details-title">Cancellation Details</div>
@@ -822,15 +772,6 @@ CANCELLATION_SUCCESS_TEMPLATE = """
       </div>
       {% endif %}
 
-      <div class="next-steps">
-        <div class="next-steps-title">What happens next?</div>
-        <ul class="next-steps-list">
-          <li>You will receive a cancellation confirmation email shortly</li>
-          {% if refund_info %}<li>Refund will be processed within 5-7 business days</li>{% endif %}
-          <li>The refund will be credited to your original payment method</li>
-          <li>For any queries, contact customer support with your booking ID</li>
-        </ul>
-      </div>
     </div>
 
     <div class="footer-note">
