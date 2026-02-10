@@ -170,6 +170,8 @@ class TrainClassAvailability(BaseModel):
     availability_status: str
     fare_updated: Optional[str] = None
     book_now: Optional[str] = None
+    quota: Optional[str] = None
+    quota_name: Optional[str] = None
 
 
 class TrainInfo(BaseModel):
