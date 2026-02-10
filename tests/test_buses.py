@@ -619,3 +619,473 @@ async def test_bus_search_with_limit(dummy_bus_search_delhi_manali):
     assert len(buses) <= 5, f"Expected at most 5 buses, got {len(buses)}"
 
     print(f"✅ Limited search returned {len(buses)} buses (max 5)")
+
+
+# ============================================================================
+# DEBUG TESTS - TEMPORARY
+# ============================================================================
+
+@pytest.mark.asyncio
+async def test_debug_mumbai_pune_api_response():
+    """DEBUG: Check raw API response for Mumbai to Pune."""
+    from tools_factory.buses.bus_search_service import (
+        search_buses, 
+        get_city_suggestions,
+        get_city_info,
+    )
+    from datetime import datetime, timedelta
+    
+    print("\n" + "=" * 60)
+    print("🔍 DEBUG: Mumbai to Pune API Response")
+    print("=" * 60)
+    
+    journey_date = (datetime.now() + timedelta(days=3)).strftime("%d-%m-%Y")
+    
+    # Step 1: Check city suggestions for Mumbai
+    print("\n📍 Step 1: City suggestions for 'Mumbai'")
+    mumbai_suggestions = await get_city_suggestions("Mumbai")
+    print(f"   Found {len(mumbai_suggestions)} suggestions:")
+    for s in mumbai_suggestions[:5]:
+        print(f"      - {s.get('name')} (ID: {s.get('id')}, State: {s.get('state')})")
+    
+    # Step 2: Check city suggestions for Pune
+    print("\n📍 Step 2: City suggestions for 'Pune'")
+    pune_suggestions = await get_city_suggestions("Pune")
+    print(f"   Found {len(pune_suggestions)} suggestions:")
+    for s in pune_suggestions[:5]:
+        print(f"      - {s.get('name')} (ID: {s.get('id')}, State: {s.get('state')})")
+    
+    # Step 3: Get resolved city info
+    print("\n📍 Step 3: Resolved city info")
+    mumbai_info = await get_city_info("Mumbai")
+    pune_info = await get_city_info("Pune")
+    print(f"   Mumbai: {mumbai_info}")
+    print(f"   Pune: {pune_info}")
+    
+    # Step 4: Search with city names
+    print("\n📍 Step 4: Search with city NAMES")
+    print(f"   Date: {journey_date}")
+    results_by_name = await search_buses(
+        source_name="Mumbai",
+        destination_name="Pune",
+        journey_date=journey_date,
+    )
+    print(f"   Error: {results_by_name.get('error')}")
+    print(f"   Message: {results_by_name.get('message')}")
+    print(f"   Source ID resolved: {results_by_name.get('source_id')}")
+    print(f"   Source Name resolved: {results_by_name.get('source_name')}")
+    print(f"   Dest ID resolved: {results_by_name.get('destination_id')}")
+    print(f"   Dest Name resolved: {results_by_name.get('destination_name')}")
+    print(f"   Total buses: {len(results_by_name.get('buses', []))}")
+    print(f"   is_bus_available: {results_by_name.get('is_bus_available')}")
+    
+    # Step 5: If we have IDs, try direct search
+    if mumbai_info and pune_info:
+        mumbai_id = mumbai_info.get('id')
+        pune_id = pune_info.get('id')
+        
+        print(f"\n📍 Step 5: Search with city IDs directly")
+        print(f"   Mumbai ID: {mumbai_id}")
+        print(f"   Pune ID: {pune_id}")
+        
+        results_by_id = await search_buses(
+            source_id=mumbai_id,
+            destination_id=pune_id,
+            journey_date=journey_date,
+        )
+        print(f"   Error: {results_by_id.get('error')}")
+        print(f"   Message: {results_by_id.get('message')}")
+        print(f"   Total buses: {len(results_by_id.get('buses', []))}")
+    
+    # Step 6: Try raw API call to see full response
+    print("\n📍 Step 6: Raw API call")
+    from emt_client.clients.bus_client import BusApiClient
+    
+    client = BusApiClient()
+    payload = {
+        'SourceCityId': mumbai_info.get('id') if mumbai_info else '682',
+        'DestinationCityId': pune_info.get('id') if pune_info else '734',
+        'SourceCityName': 'Mumbai',
+        'DestinatinCityName': 'Pune',
+        'JournyDate': journey_date,
+        'Vid': 'test123',
+        'Sid': 'test456',
+        'agentCode': 'NAN',
+        'agentType': 'NAN',
+        'CurrencyDomain': 'IN',
+        'snapApp': 'Emt',
+        'TravelPolicy': [],
+        'isInventory': 0,
+    }
+    print(f"   Payload: {payload}")
+    
+    raw_result = await client.search(payload)
+    print(f"\n   Raw API Response Keys: {raw_result.keys() if raw_result else 'None'}")
+    print(f"   IsSearchCompleted: {raw_result.get('IsSearchCompleted')}")
+    
+    response = raw_result.get('Response')
+    if response:
+        print(f"   Response Keys: {response.keys()}")
+        print(f"   TotalTrips: {response.get('TotalTrips')}")
+        print(f"   AcCount: {response.get('AcCount')}")
+        print(f"   NonAcCount: {response.get('NonAcCount')}")
+        print(f"   AvailableTrips count: {len(response.get('AvailableTrips', []))}")
+        
+        trips = response.get('AvailableTrips', [])
+        if trips:
+            print(f"\n   First 3 buses:")
+            for i, bus in enumerate(trips[:3]):
+                print(f"      {i+1}. {bus.get('Travels')} - {bus.get('busType')} - ₹{bus.get('price')}")
+    else:
+        print(f"   Response is None or empty!")
+        print(f"   Full raw result: {raw_result}")
+    
+    print("\n" + "=" * 60)
+
+
+@pytest.mark.asyncio
+async def test_debug_search_buses_exception():
+    """DEBUG: Find the actual exception in search_buses."""
+    from tools_factory.buses.bus_search_service import (
+        search_buses,
+        get_city_info,
+        process_bus_results,
+    )
+    from emt_client.clients.bus_client import BusApiClient
+    from datetime import datetime, timedelta
+    import traceback
+    
+    print("\n" + "=" * 60)
+    print("🔍 DEBUG: Finding exception in search_buses")
+    print("=" * 60)
+    
+    journey_date = (datetime.now() + timedelta(days=3)).strftime("%d-%m-%Y")
+    
+    # Get city info
+    mumbai_info = await get_city_info("Mumbai")
+    pune_info = await get_city_info("Pune")
+    
+    source_id = mumbai_info.get('id')
+    dest_id = pune_info.get('id')
+    source_name = mumbai_info.get('name')
+    dest_name = pune_info.get('name')
+    
+    print(f"   Source: {source_name} ({source_id})")
+    print(f"   Dest: {dest_name} ({dest_id})")
+    print(f"   Date: {journey_date}")
+    
+    # Step 1: Make API call manually
+    print("\n📍 Step 1: Raw API call")
+    import uuid
+    sid = uuid.uuid4().hex
+    vid = uuid.uuid4().hex
+    
+    payload = {
+        "SourceCityId": source_id,
+        "DestinationCityId": dest_id,
+        "SourceCityName": source_name,
+        "DestinatinCityName": dest_name,
+        "JournyDate": journey_date,
+        "Vid": vid,
+        "Sid": sid,
+        "agentCode": "NAN",
+        "agentType": "NAN",
+        "CurrencyDomain": "IN",
+        "snapApp": "Emt",
+        "TravelPolicy": [],
+        "isInventory": 0,
+    }
+    
+    client = BusApiClient()
+    data = await client.search(payload)
+    print(f"   API returned: {len(data.get('Response', {}).get('AvailableTrips', []))} buses")
+    
+    # Step 2: Try process_bus_results
+    print("\n📍 Step 2: process_bus_results")
+    try:
+        processed = process_bus_results(
+            data,
+            source_id,
+            dest_id,
+            journey_date,
+            source_name,
+            dest_name,
+            None,  # filter_volvo
+        )
+        print(f"   Processed: {len(processed.get('buses', []))} buses")
+        print(f"   is_bus_available: {processed.get('is_bus_available')}")
+    except Exception as e:
+        print(f"   ❌ Exception in process_bus_results:")
+        print(f"   {type(e).__name__}: {e}")
+        traceback.print_exc()
+    
+    # Step 3: Try search_buses with verbose error
+    print("\n📍 Step 3: search_buses with traceback")
+    try:
+        # Manually replicate search_buses logic to find error
+        from tools_factory.buses.bus_search_service import (
+            _generate_session_id,
+            _generate_visitor_id,
+        )
+        
+        api_date = journey_date  # Already in dd-MM-yyyy format
+        sid = _generate_session_id()
+        vid = _generate_visitor_id()
+        
+        payload = {
+            "SourceCityId": source_id,
+            "DestinationCityId": dest_id,
+            "SourceCityName": source_name,
+            "DestinatinCityName": dest_name,
+            "JournyDate": api_date,
+            "Vid": vid,
+            "Sid": sid,
+            "agentCode": "NAN",
+            "agentType": "NAN",
+            "CurrencyDomain": "IN",
+            "snapApp": "Emt",
+            "TravelPolicy": [],
+            "isInventory": 0,
+        }
+        
+        client = BusApiClient()
+        data = await client.search(payload)
+        print(f"   API call successful: {bool(data)}")
+        print(f"   Has error key: {'error' in data}")
+        
+        if "error" not in data:
+            processed_data = process_bus_results(
+                data,
+                source_id,
+                dest_id,
+                journey_date,
+                source_name,
+                dest_name,
+                None,
+            )
+            print(f"   Processing successful: {len(processed_data.get('buses', []))} buses")
+        
+    except Exception as e:
+        print(f"   ❌ Exception:")
+        print(f"   {type(e).__name__}: {e}")
+        traceback.print_exc()
+    
+    print("\n" + "=" * 60)
+
+# ============================================================================
+# PAGINATION TESTS
+# ============================================================================
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_page_1():
+    """Test bus search pagination - page 1."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    payload = {
+        "source_name": "Delhi",
+        "destination_name": "Manali",
+        "journey_date": journey_date,
+        "page": 1,
+    }
+
+    print(f"\n📄 Testing pagination - Page 1")
+
+    result = await tool.execute(**payload)
+
+    assert not result.is_error
+    data = result.structured_content
+    
+    assert "pagination" in data, "Pagination metadata should be present"
+    
+    pagination = data["pagination"]
+    print(f"   Current Page: {pagination.get('current_page')}")
+    print(f"   Per Page: {pagination.get('per_page')}")
+    print(f"   Total Results: {pagination.get('total_results')}")
+    print(f"   Total Pages: {pagination.get('total_pages')}")
+    print(f"   Showing: {pagination.get('showing_from')}-{pagination.get('showing_to')}")
+    print(f"   Has Next: {pagination.get('has_next_page')}")
+    print(f"   Has Previous: {pagination.get('has_previous_page')}")
+    
+    assert pagination["current_page"] == 1
+    assert pagination["has_previous_page"] == False
+    assert pagination["showing_from"] == 1
+    
+    buses = data.get("buses", [])
+    print(f"   Buses returned: {len(buses)}")
+    
+    assert len(buses) <= pagination["per_page"]
+
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_page_2():
+    """Test bus search pagination - page 2."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    payload = {
+        "source_name": "Delhi",
+        "destination_name": "Manali",
+        "journey_date": journey_date,
+        "page": 2,
+    }
+
+    print(f"\n📄 Testing pagination - Page 2")
+
+    result = await tool.execute(**payload)
+
+    assert not result.is_error
+    data = result.structured_content
+    pagination = data["pagination"]
+    
+    print(f"   Current Page: {pagination.get('current_page')}")
+    print(f"   Showing: {pagination.get('showing_from')}-{pagination.get('showing_to')}")
+    print(f"   Has Previous: {pagination.get('has_previous_page')}")
+    
+    assert pagination["current_page"] == 2
+    assert pagination["has_previous_page"] == True
+    assert pagination["showing_from"] == 16  # (2-1)*15 + 1
+
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_different_pages_different_buses():
+    """Test that page 1 and page 2 return different buses."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    base_payload = {
+        "source_name": "Delhi",
+        "destination_name": "Manali",
+        "journey_date": journey_date,
+    }
+
+    print(f"\n📄 Testing that pages return different buses")
+
+    # Get page 1
+    result1 = await tool.execute(**{**base_payload, "page": 1})
+    buses1 = result1.structured_content.get("buses", [])
+    bus_ids_1 = {b.get("bus_id") for b in buses1}
+
+    # Get page 2
+    result2 = await tool.execute(**{**base_payload, "page": 2})
+    buses2 = result2.structured_content.get("buses", [])
+    bus_ids_2 = {b.get("bus_id") for b in buses2}
+
+    print(f"   Page 1 buses: {len(buses1)}")
+    print(f"   Page 2 buses: {len(buses2)}")
+
+    if buses2:  # Only check if page 2 has results
+        overlap = bus_ids_1.intersection(bus_ids_2)
+        print(f"   Overlap: {len(overlap)} buses")
+        assert len(overlap) == 0, "Page 1 and Page 2 should have different buses"
+        print(f"   ✅ No overlap - pagination working correctly")
+    else:
+        print(f"   ⚠️ Page 2 empty (not enough buses for 2 pages)")
+
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_response_text():
+    """Test pagination info appears in response text."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    payload = {
+        "source_name": "Delhi",
+        "destination_name": "Manali",
+        "journey_date": journey_date,
+        "page": 1,
+    }
+
+    result = await tool.execute(**payload)
+
+    print(f"\n📄 Testing response text format")
+    print(f"   Response: {result.response_text}")
+
+    # Should contain "Showing X-Y of Z" format
+    assert "Showing" in result.response_text or "Found" in result.response_text
+    assert "Page" in result.response_text or "buses" in result.response_text.lower()
+
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_with_custom_limit():
+    """Test pagination with custom _limit parameter."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    payload = {
+        "source_name": "Delhi",
+        "destination_name": "Manali",
+        "journey_date": journey_date,
+        "page": 1,
+        "_limit": 5,  # Custom limit
+    }
+
+    print(f"\n📄 Testing pagination with custom limit=5")
+
+    result = await tool.execute(**payload)
+    data = result.structured_content
+    pagination = data["pagination"]
+    buses = data.get("buses", [])
+
+    print(f"   Per Page: {pagination.get('per_page')}")
+    print(f"   Buses returned: {len(buses)}")
+    print(f"   Total Pages: {pagination.get('total_pages')}")
+
+    assert pagination["per_page"] == 5
+    assert len(buses) <= 5
+
+
+@pytest.mark.asyncio
+async def test_bus_search_pagination_last_page():
+    """Test pagination on last page."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_buses")
+
+    today = datetime.now()
+    journey_date = (today + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    # First get total to calculate last page
+    result1 = await tool.execute(
+        source_name="Delhi",
+        destination_name="Manali",
+        journey_date=journey_date,
+        page=1,
+    )
+    
+    pagination = result1.structured_content.get("pagination", {})
+    total_pages = pagination.get("total_pages", 1)
+
+    print(f"\n📄 Testing last page (page {total_pages})")
+
+    # Now fetch last page
+    result_last = await tool.execute(
+        source_name="Delhi",
+        destination_name="Manali",
+        journey_date=journey_date,
+        page=total_pages,
+    )
+
+    data = result_last.structured_content
+    pagination = data["pagination"]
+
+    print(f"   Current Page: {pagination.get('current_page')}")
+    print(f"   Has Next: {pagination.get('has_next_page')}")
+    print(f"   Buses on last page: {len(data.get('buses', []))}")
+
+    assert pagination["current_page"] == total_pages
+    assert pagination["has_next_page"] == False

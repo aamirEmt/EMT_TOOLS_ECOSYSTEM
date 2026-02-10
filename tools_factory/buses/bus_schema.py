@@ -36,6 +36,11 @@ class BusSearchInput(BaseModel):
         alias="isVolvo",
         description="Filter for Volvo buses only",
     )
+    page: int = Field(
+        default=1,
+        ge=1,
+        description="Page number for pagination. Default: 1",
+    )
     model_config = ConfigDict(
         populate_by_name=True,
         extra="forbid",

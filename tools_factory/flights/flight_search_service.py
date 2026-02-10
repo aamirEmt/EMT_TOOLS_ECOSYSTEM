@@ -1277,7 +1277,7 @@ def build_whatsapp_flight_response(
     )
 
     return WhatsappFlightFinalResponse(
-        response_text=f"Here are the best flight options from {payload.origin} to {payload.destination}",
+        response_text=f"Here are the best flights options from {payload.origin} to {payload.destination}",
         whatsapp_json=whatsapp_json,
     )
 
