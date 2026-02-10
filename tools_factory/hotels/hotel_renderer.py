@@ -980,7 +980,7 @@ def render_hotel_results(
         subtitle_parts.append(', '.join(traveler_parts))
     
     # Add total hotel count to subtitle
-    subtitle_parts.append(f"{total_hotel_count} hotel{'s' if total_hotel_count != 1 else ''} found")
+    # subtitle_parts.append(f"{total_hotel_count} hotel{'s' if total_hotel_count != 1 else ''} found")
     
     subtitle = ' • '.join(subtitle_parts)
     
