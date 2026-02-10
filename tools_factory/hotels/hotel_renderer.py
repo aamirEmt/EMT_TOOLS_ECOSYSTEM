@@ -797,12 +797,115 @@ def _normalize_hotel_for_ui(hotel: Dict[str, Any], check_in=None, check_out=None
 # =====================================================================
 # 🎨 FINAL RENDERER (PURE, SAFE, COMPATIBLE)
 # =====================================================================
-def render_hotel_results(hotel_results: Dict[str, Any]) -> str:
+# def render_hotel_results(hotel_results: Dict[str, Any]) -> str:
+#     """
+#     Renders hotel results into HTML.
+    
+#     Args:
+#         hotel_results: Hotel search results from API
+    
+#     Returns:
+#         HTML string with rendered hotel cards
+#     """
+#     # Unwrap structured_content if present
+#     if "structured_content" in hotel_results:
+#         hotel_results = hotel_results["structured_content"]
+    
+#     # Extract hotels list
+#     hotels = hotel_results.get("hotels") or hotel_results.get("results", [])
+    
+#     if not hotels:
+#         return "<div class='hotel-carousel'><p>No hotels available.</p></div>"
+    
+#     # Get date info
+#     check_in = (
+#         hotel_results.get('check_in') or 
+#         hotel_results.get('check_in_date') or 
+#         hotel_results.get('checkIn')
+#     )
+#     check_out = (
+#         hotel_results.get('check_out') or 
+#         hotel_results.get('check_out_date') or 
+#         hotel_results.get('checkOut')
+#     )
+    
+#     # Build title and subtitle
+#     city = hotel_results.get('city') or hotel_results.get('city_name') or ''
+#     title = f"Stays in {city}" if city else "Hotel results"
+    
+#     # Build subtitle (date range + travelers)
+#     subtitle_parts = []
+    
+#     if check_in and check_out:
+#         try:
+#             from datetime import datetime
+#             start_date = datetime.fromisoformat(check_in.replace('Z', '+00:00')) if isinstance(check_in, str) else check_in
+#             end_date = datetime.fromisoformat(check_out.replace('Z', '+00:00')) if isinstance(check_out, str) else check_out
+            
+#             start_str = start_date.strftime('%d %b')
+#             end_str = end_date.strftime('%d %b')
+            
+#             # Calculate nights
+#             nights = (end_date - start_date).days
+#             nights_text = f"{nights} night{'s' if nights > 1 else ''}" if nights > 0 else ""
+            
+#             date_range = f"{start_str} - {end_str}"
+#             if nights_text:
+#                 date_range += f" • {nights_text}"
+#             subtitle_parts.append(date_range)
+#         except:
+#             subtitle_parts.append("Flexible dates")
+    
+#     # Add travelers info
+#     adults = hotel_results.get('num_adults') or hotel_results.get('adults')
+#     children = hotel_results.get('num_children') or hotel_results.get('children')
+#     rooms = hotel_results.get('num_rooms') or hotel_results.get('rooms')
+    
+#     traveler_parts = []
+#     if adults:
+#         traveler_parts.append(f"{adults} adult{'s' if adults > 1 else ''}")
+#     if children:
+#         traveler_parts.append(f"{children} child{'ren' if children > 1 else ''}")
+#     if rooms:
+#         traveler_parts.append(f"{rooms} room{'s' if rooms > 1 else ''}")
+    
+#     if traveler_parts:
+#         subtitle_parts.append(', '.join(traveler_parts))
+    
+#     subtitle = ' • '.join(subtitle_parts)
+    
+#     # Normalize hotels for UI
+#     hotels_ui = [
+#         _normalize_hotel_for_ui(hotel, check_in, check_out)
+#         for hotel in hotels
+#     ]
+    
+#     # Remove empty normalizations
+#     hotels_ui = [h for h in hotels_ui if h and h.get('name')]
+    
+#     if not hotels_ui:
+#         return "<div class='hotel-carousel'><p>No hotels available.</p></div>"
+    
+#     # Render template
+#     template = _jinja_env.from_string(HOTEL_CAROUSEL_TEMPLATE)
+#     return template.render(
+#         title=title,
+#         subtitle=subtitle,
+#         hotels=hotels_ui,
+#         view_all_link=hotel_results.get('viewAll'),
+#     )
+
+
+def render_hotel_results(
+    hotel_results: Dict[str, Any],
+    total_hotel_count: int = None,  # NEW PARAMETER
+) -> str:
     """
     Renders hotel results into HTML.
     
     Args:
         hotel_results: Hotel search results from API
+        total_hotel_count: Total number of hotels (for header/View All card)
     
     Returns:
         HTML string with rendered hotel cards
@@ -816,6 +919,10 @@ def render_hotel_results(hotel_results: Dict[str, Any]) -> str:
     
     if not hotels:
         return "<div class='hotel-carousel'><p>No hotels available.</p></div>"
+    
+    # Use passed total_hotel_count if provided, otherwise use totalResults from data, otherwise len(hotels)
+    if total_hotel_count is None:
+        total_hotel_count = hotel_results.get("totalResults") or hotel_results.get("total_results") or len(hotels)
     
     # Get date info
     check_in = (
@@ -871,6 +978,9 @@ def render_hotel_results(hotel_results: Dict[str, Any]) -> str:
     
     if traveler_parts:
         subtitle_parts.append(', '.join(traveler_parts))
+    
+    # Add total hotel count to subtitle
+    subtitle_parts.append(f"{total_hotel_count} hotel{'s' if total_hotel_count != 1 else ''} found")
     
     subtitle = ' • '.join(subtitle_parts)
     

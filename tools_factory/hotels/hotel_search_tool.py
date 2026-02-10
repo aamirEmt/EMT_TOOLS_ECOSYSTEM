@@ -126,54 +126,139 @@ class HotelSearchTool(BaseTool):
                 is_error=True,
             )
        
-        if limit is not None and "hotels" in results:
-                results["hotels"] = results["hotels"][:limit]
+        # Store original total count BEFORE pagination
+        all_hotels = results.get("hotels", [])
+        total_hotel_count = len(all_hotels)
+        
+        # Pagination logic (same as buses)
+        limit = kwargs.pop("_limit", 15) if "_limit" not in locals() else limit
+        if limit is None:
+            limit = 15
+        
+        page = search_input.page
+        offset = (page - 1) * limit
+        end = offset + limit
+        paginated_hotels = all_hotels[offset:end] if not results.get("error") else []
+        
+        # Create limited_results as a COPY with paginated hotels
+        limited_results = results.copy()
+        limited_results["hotels"] = paginated_hotels
+        limited_results["pagination"] = {
+            "current_page": page,
+            "per_page": limit,
+            "total_results": total_hotel_count,
+            "total_pages": (total_hotel_count + limit - 1) // limit if limit > 0 else 1,
+            "has_next_page": end < total_hotel_count,
+            "has_previous_page": page > 1,
+            "showing_from": offset + 1 if paginated_hotels else 0,
+            "showing_to": min(end, total_hotel_count),
+        }
+        
+        hotel_count = len(paginated_hotels)
+
         try:
-            if results["hotels"]:
-                results["hotels"] = generate_short_link(
-                    results["hotels"],
+            if paginated_hotels:
+                limited_results["hotels"] = generate_short_link(
+                    paginated_hotels,
                     product_type="hotel"
                 )
         except Exception as e:
             # DO NOT FAIL hotel search because of short-link issues
-            results["hotels"] = results["hotels"]
-
-            
-           
-          
-            
-        hotels = results.get("hotels", [])
-        hotel_count = len(hotels)
+            pass
 
         whatsapp_response = None
         if is_whatsapp and not results.get("error"):
             whatsapp_response = self.service.build_whatsapp_hotel_response(
-                results=results,
+                results=limited_results,
                 search_input=search_input
             )
             
-            # Create human-readable message
+        # Create human-readable message
         if results.get("error"):
             text = f"No hotels found. {results.get('message', '')}"
         else:
-            text = f"Found {hotel_count} hotels in {search_input.city_name}!"
+            pagination = limited_results.get("pagination", {})
+            if pagination and page > 1:
+                showing_from = pagination.get("showing_from", 1)
+                showing_to = pagination.get("showing_to", hotel_count)
+                text = f"Showing hotels {showing_from}-{showing_to} of {total_hotel_count} in {search_input.city_name} (Page {page})"
+            else:
+                text = f"Found {total_hotel_count} hotels in {search_input.city_name}!"
+
+        # Render HTML for website
+        # Create render data with paginated hotels but preserve total count for header
+        html_output = None
+        if render_html and not results.get("error") and total_hotel_count > 0:
+            render_data = results.copy()
+            render_data["hotels"] = paginated_hotels
+            
+            html_output = render_hotel_results(
+                render_data,
+                total_hotel_count=total_hotel_count,  # Pass original total
+            )
 
         # --------------------------------------------------
         # Final unified response
         # --------------------------------------------------
         return ToolResponseFormat(
             response_text=text,
-            structured_content=results if not is_whatsapp else {},
-            html=render_hotel_results(results)
-            if render_html and not results.get("error") and hotel_count > 0
-            else None,
-             whatsapp_response=(
+            structured_content=limited_results if not is_whatsapp else {},
+            html=html_output,
+            whatsapp_response=(
                 whatsapp_response.model_dump()
                 if whatsapp_response
                 else None
             ),
             is_error=results.get("error") is not None,
         )
+        # if limit is not None and "hotels" in results:
+        #         results["hotels"] = results["hotels"][:limit]
+        # try:
+        #     if results["hotels"]:
+        #         results["hotels"] = generate_short_link(
+        #             results["hotels"],
+        #             product_type="hotel"
+        #         )
+        # except Exception as e:
+        #     # DO NOT FAIL hotel search because of short-link issues
+        #     results["hotels"] = results["hotels"]
+
+            
+           
+          
+            
+        # hotels = results.get("hotels", [])
+        # hotel_count = len(hotels)
+
+        # whatsapp_response = None
+        # if is_whatsapp and not results.get("error"):
+        #     whatsapp_response = self.service.build_whatsapp_hotel_response(
+        #         results=results,
+        #         search_input=search_input
+        #     )
+            
+        #     # Create human-readable message
+        # if results.get("error"):
+        #     text = f"No hotels found. {results.get('message', '')}"
+        # else:
+        #     text = f"Found {hotel_count} hotels in {search_input.city_name}!"
+
+        # # --------------------------------------------------
+        # # Final unified response
+        # # --------------------------------------------------
+        # return ToolResponseFormat(
+        #     response_text=text,
+        #     structured_content=results if not is_whatsapp else {},
+        #     html=render_hotel_results(results)
+        #     if render_html and not results.get("error") and hotel_count > 0
+        #     else None,
+        #      whatsapp_response=(
+        #         whatsapp_response.model_dump()
+        #         if whatsapp_response
+        #         else None
+        #     ),
+        #     is_error=results.get("error") is not None,
+        # )
 
 
 def create_hotel_search_tool() -> HotelSearchTool:
