@@ -21,6 +21,11 @@ class TrainSearchInput(BaseModel):
         alias="journeyDate",
         description="Journey date in DD-MM-YYYY format",
     )
+    page: int = Field(
+        default=1,
+        ge=1,
+        description="Page number for pagination. Default: 1",
+    )
     travel_class: Optional[str] = Field(
         None,
         alias="travelClass",

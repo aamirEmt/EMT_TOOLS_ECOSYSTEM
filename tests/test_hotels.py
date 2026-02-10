@@ -53,13 +53,13 @@ def dummy_hotel_with_filters():
         "city_name": "Goa",
         "check_in_date": checkin,
         "check_out_date": checkout,
-        "num_rooms": 2,
-        "num_adults": 4,
-        "num_children": 2,
+        "num_rooms": 1,
+        "num_adults": 2,
+        "num_children": 0,
         "min_price": 2000,
-        "max_price": 10000,
+        "max_price": 1000000,
         "rating": ["4", "5"],
-        "amenities": ["Wi-Fi", "Swimming Pool"]
+        "amenities": ["Swimming Pool"]
     }
 
 
