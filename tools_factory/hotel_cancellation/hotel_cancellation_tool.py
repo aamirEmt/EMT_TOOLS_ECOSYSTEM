@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 _sessions: Dict[str, Tuple[HotelCancellationService, float]] = {}
 _sessions_lock = asyncio.Lock()
 _SESSION_TTL_SECONDS = 1800  # 30 minutes
+_MAX_SESSIONS = 500
 
 
 def _session_key(booking_id: str, email: str) -> str:
@@ -31,24 +32,42 @@ async def get_user_service(booking_id: str, email: str) -> HotelCancellationServ
     """Get or create a per-user service instance with TTL cleanup"""
     key = _session_key(booking_id, email)
     now = time.monotonic()
+    expired_services = []
 
     async with _sessions_lock:
-        # Cleanup expired sessions
+        # Collect expired sessions (don't close yet — avoid I/O inside lock)
         expired = [k for k, (svc, ts) in _sessions.items() if now - ts > _SESSION_TTL_SECONDS]
         for k in expired:
             svc, _ = _sessions.pop(k)
-            await svc.close()
-            logger.info(f"Cleaned up expired session: {k}")
+            expired_services.append(svc)
 
         if key in _sessions:
             svc, _ = _sessions[key]
             _sessions[key] = (svc, now)  # refresh TTL
-            return svc
+            result = svc
+        elif len(_sessions) >= _MAX_SESSIONS:
+            # Evict oldest session to make room
+            oldest_key = min(_sessions, key=lambda k: _sessions[k][1])
+            old_svc, _ = _sessions.pop(oldest_key)
+            expired_services.append(old_svc)
+            logger.warning(f"Session limit reached, evicted: {oldest_key}")
+            svc = HotelCancellationService()
+            _sessions[key] = (svc, now)
+            result = svc
+        else:
+            svc = HotelCancellationService()
+            _sessions[key] = (svc, now)
+            logger.info(f"Created new session for: {key}")
+            result = svc
 
-        svc = HotelCancellationService()
-        _sessions[key] = (svc, now)
-        logger.info(f"Created new session for: {key}")
-        return svc
+    # Close expired services OUTSIDE the lock (non-blocking for other users)
+    for svc in expired_services:
+        try:
+            await svc.close()
+        except Exception:
+            logger.warning("Failed to close expired session", exc_info=True)
+
+    return result
 
 
 # ============================================================
@@ -118,10 +137,17 @@ class HotelCancellationTool(BaseTool):
         service = await get_user_service(input_data.booking_id, input_data.email)
 
         # Step 1: Guest login
-        login_result = await service.guest_login(
-            booking_id=input_data.booking_id,
-            email=input_data.email,
-        )
+        try:
+            login_result = await service.guest_login(
+                booking_id=input_data.booking_id,
+                email=input_data.email,
+            )
+        except Exception as exc:
+            logger.error(f"Service error during guest login: {exc}", exc_info=True)
+            return ToolResponseFormat(
+                response_text="Something went wrong while logging in. Please try again.",
+                is_error=True,
+            )
 
         if not login_result["success"]:
             return ToolResponseFormat(
@@ -133,7 +159,14 @@ class HotelCancellationTool(BaseTool):
         bid = login_result["ids"]["bid"]
 
         # Step 2: Fetch booking details
-        details_result = await service.fetch_booking_details(bid=bid)
+        try:
+            details_result = await service.fetch_booking_details(bid=bid)
+        except Exception as exc:
+            logger.error(f"Service error during fetch details: {exc}", exc_info=True)
+            return ToolResponseFormat(
+                response_text="Something went wrong while fetching booking details. Please try again.",
+                is_error=True,
+            )
 
         combined = {
             "login": login_result,
@@ -275,10 +308,17 @@ class HotelCancellationTool(BaseTool):
     # ----------------------------------------------------------
     async def _handle_send_otp(self, input_data: HotelCancellationInput) -> ToolResponseFormat:
         service = await get_user_service(input_data.booking_id, input_data.email)
-        result = await service.send_cancellation_otp(
-            booking_id=input_data.booking_id,
-            email=input_data.email,
-        )
+        try:
+            result = await service.send_cancellation_otp(
+                booking_id=input_data.booking_id,
+                email=input_data.email,
+            )
+        except Exception as exc:
+            logger.error(f"Service error during send OTP: {exc}", exc_info=True)
+            return ToolResponseFormat(
+                response_text="Something went wrong while sending OTP. Please try again.",
+                is_error=True,
+            )
 
         if not result["success"]:
             return ToolResponseFormat(
@@ -311,17 +351,24 @@ class HotelCancellationTool(BaseTool):
             )
 
         service = await get_user_service(input_data.booking_id, input_data.email)
-        result = await service.request_cancellation(
-            booking_id=input_data.booking_id,
-            email=input_data.email,
-            otp=input_data.otp,
-            room_id=input_data.room_id,
-            transaction_id=input_data.transaction_id,
-            is_pay_at_hotel=input_data.is_pay_at_hotel,
-            payment_url=input_data.payment_url or "",
-            reason=input_data.reason,
-            remark=input_data.remark,
-        )
+        try:
+            result = await service.request_cancellation(
+                booking_id=input_data.booking_id,
+                email=input_data.email,
+                otp=input_data.otp,
+                room_id=input_data.room_id,
+                transaction_id=input_data.transaction_id,
+                is_pay_at_hotel=input_data.is_pay_at_hotel,
+                payment_url=input_data.payment_url or "",
+                reason=input_data.reason,
+                remark=input_data.remark,
+            )
+        except Exception as exc:
+            logger.error(f"Service error during cancellation: {exc}", exc_info=True)
+            return ToolResponseFormat(
+                response_text="Something went wrong while submitting cancellation. Please try again.",
+                is_error=True,
+            )
 
         if not result["success"]:
             return ToolResponseFormat(
@@ -336,19 +383,19 @@ class HotelCancellationTool(BaseTool):
             refund_amount = refund_info.get('refund_amount', 'N/A')
             cancellation_charges = refund_info.get('cancellation_charges', 'N/A')
             success_text = (
-                f"✅ Your hotel booking has been successfully cancelled!\n\n"
-                f"💰 Refund Details:\n"
+                f" Your hotel booking has been successfully cancelled!\n\n"
+                f" Refund Details:\n"
                 f"   • Refund Amount: ₹{refund_amount}\n"
                 f"   • Cancellation Charges: ₹{cancellation_charges}\n"
                 f"   • Refund Mode: {refund_info.get('refund_mode', 'Original payment method')}\n\n"
-                f"📧 You will receive a cancellation confirmation email shortly.\n"
-                f"💳 The refund will be processed within 5-7 business days.\n\n"
+                f" You will receive a cancellation confirmation email shortly.\n"
+                f" The refund will be processed within 5-7 business days.\n\n"
                 f"Thank you for using EaseMyTrip. We hope to serve you again!"
             )
         else:
             success_text = (
-                f"✅ Your hotel booking has been successfully cancelled!\n\n"
-                f"📧 You will receive a cancellation confirmation email shortly.\n\n"
+                f" Your hotel booking has been successfully cancelled!\n\n"
+                f" You will receive a cancellation confirmation email shortly.\n\n"
                 f"Thank you for using EaseMyTrip. We hope to serve you again!"
             )
 
