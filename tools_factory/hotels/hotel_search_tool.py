@@ -50,52 +50,13 @@ class HotelSearchTool(BaseTool):
         )
     
     async def execute(self, **kwargs) -> ToolResponseFormat:
-        """
-        Execute hotel search with provided parameters.
-        
-        Args:
-            city_name (str): City or area name (e.g., "Pune", "Viman Nagar, Pune")
-            check_in_date (str): Check-in date in YYYY-MM-DD format
-            check_out_date (str): Check-out date in YYYY-MM-DD format
-            num_rooms (int, optional): Number of rooms. Default: 1
-            num_adults (int, optional): Number of adults. Default: 2
-            num_children (int, optional): Number of children. Default: 0
-            page_no (int, optional): Page number for pagination. Default: 1
-            hotel_count (int, optional): Max hotels per page. Default: 30
-            min_price (int, optional): Minimum price filter in INR
-            max_price (int, optional): Maximum price filter in INR. Default: 10000000
-            sort_type (str, optional): Sort criteria ('price|ASC', 'price|DESC', 'Popular|DSC'). Default: "Popular|DSC"
-            rating (List[str], optional): Star ratings filter (e.g., ["3", "4", "5"])
-            user_rating (List[str], optional): Guest rating filter - '5' (Excellent 4.2+), '4' (Very Good 3.5+), '3' (Good 3+)
-            amenities (List[str], optional): Amenities filter - Valid values: 'Free Cancellation', '24 Hour Front Desk', 'AC', 'Bar', 'Wi-Fi', 'Breakfast', 'Spa Service', 'Swimming Pool', 'Parking', 'Restaurant'
-            _limit (int, optional): Limit number of hotels returned (internal use)
-            _html (bool, optional): Render HTML carousel (internal use)
-        
-        Returns:
-            Dict containing:
-                - text (str): Human-readable summary of results
-                - structured_content (dict): Search results with hotel list and metadata
-                - html (str): Rendered HTML carousel (if _html=True)
-                - is_error (bool): Whether an error occurred
-        
-        Example:
-            >>> tool = HotelSearchTool()
-            >>> result = await tool.execute(
-            ...     city_name="Pune",
-            ...     check_in_date="2024-12-25",
-            ...     check_out_date="2024-12-27",
-            ...     num_rooms=1,
-            ...     num_adults=2,
-            ...     rating=["4", "5"],
-            ...     amenities=["Free WiFi", "Pool"]
-            ... )
-            >>> print(result["text"])
-            Found 150 hotels!
-        """
-        limit = kwargs.pop("_limit", None)
+        limit = kwargs.pop("_limit", 15) 
         user_type = kwargs.pop("_user_type", "website")
         render_html = user_type.lower() == "website"
         is_whatsapp = user_type.lower() == "whatsapp"
+        
+        if limit is None:
+            limit = 15
         
         try:
             search_input = HotelSearchInput.model_validate(kwargs)
@@ -111,7 +72,7 @@ class HotelSearchTool(BaseTool):
                 is_error=True,
             )
             
-            # Execute search through service layer
+        # Execute search through service layer
         try:
             results: Dict[str, Any] = await self.service.search(search_input)
         except Exception as exc:
@@ -125,20 +86,18 @@ class HotelSearchTool(BaseTool):
                 whatsapp_response=None,
                 is_error=True,
             )
-       
+        
+        has_error = bool(results.get("error"))
+        
         # Store original total count BEFORE pagination
         all_hotels = results.get("hotels", [])
         total_hotel_count = len(all_hotels)
         
-        # Pagination logic (same as buses)
-        limit = kwargs.pop("_limit", 15) if "_limit" not in locals() else limit
-        if limit is None:
-            limit = 15
-        
+        # Pagination logic
         page = search_input.page
         offset = (page - 1) * limit
         end = offset + limit
-        paginated_hotels = all_hotels[offset:end] if not results.get("error") else []
+        paginated_hotels = all_hotels[offset:end] if not has_error else []
         
         # Create limited_results as a COPY with paginated hotels
         limited_results = results.copy()
@@ -156,6 +115,7 @@ class HotelSearchTool(BaseTool):
         
         hotel_count = len(paginated_hotels)
 
+        # Generate short links for paginated hotels
         try:
             if paginated_hotels:
                 limited_results["hotels"] = generate_short_link(
@@ -166,15 +126,16 @@ class HotelSearchTool(BaseTool):
             # DO NOT FAIL hotel search because of short-link issues
             pass
 
+        # Build WhatsApp response if needed
         whatsapp_response = None
-        if is_whatsapp and not results.get("error"):
+        if is_whatsapp and not has_error:
             whatsapp_response = self.service.build_whatsapp_hotel_response(
                 results=limited_results,
                 search_input=search_input
             )
             
         # Create human-readable message
-        if results.get("error"):
+        if has_error:
             text = f"No hotels found. {results.get('message', '')}"
         else:
             pagination = limited_results.get("pagination", {})
@@ -185,9 +146,8 @@ class HotelSearchTool(BaseTool):
                 text = f"Here are some hotel options in {search_input.city_name}."
 
         # Render HTML for website
-        # Create render data with paginated hotels but preserve viewAll link
         html_output = None
-        if render_html and not results.get("error") and total_hotel_count > 0:
+        if render_html and not has_error and total_hotel_count > 0:
             render_data = results.copy()
             render_data["hotels"] = limited_results["hotels"]  # Use short-linked hotels
             render_data["viewAll"] = results.get("viewAll", "")  # Explicitly preserve viewAll
@@ -197,9 +157,7 @@ class HotelSearchTool(BaseTool):
                 total_hotel_count=total_hotel_count,
             )
 
-        # --------------------------------------------------
         # Final unified response
-        # --------------------------------------------------
         return ToolResponseFormat(
             response_text=text,
             structured_content=limited_results if not is_whatsapp else {},
@@ -209,56 +167,8 @@ class HotelSearchTool(BaseTool):
                 if whatsapp_response
                 else None
             ),
-            is_error=results.get("error") is not None,
+            is_error=has_error,
         )
-        # if limit is not None and "hotels" in results:
-        #         results["hotels"] = results["hotels"][:limit]
-        # try:
-        #     if results["hotels"]:
-        #         results["hotels"] = generate_short_link(
-        #             results["hotels"],
-        #             product_type="hotel"
-        #         )
-        # except Exception as e:
-        #     # DO NOT FAIL hotel search because of short-link issues
-        #     results["hotels"] = results["hotels"]
-
-            
-           
-          
-            
-        # hotels = results.get("hotels", [])
-        # hotel_count = len(hotels)
-
-        # whatsapp_response = None
-        # if is_whatsapp and not results.get("error"):
-        #     whatsapp_response = self.service.build_whatsapp_hotel_response(
-        #         results=results,
-        #         search_input=search_input
-        #     )
-            
-        #     # Create human-readable message
-        # if results.get("error"):
-        #     text = f"No hotels found. {results.get('message', '')}"
-        # else:
-        #     text = f"Found {hotel_count} hotels in {search_input.city_name}!"
-
-        # # --------------------------------------------------
-        # # Final unified response
-        # # --------------------------------------------------
-        # return ToolResponseFormat(
-        #     response_text=text,
-        #     structured_content=results if not is_whatsapp else {},
-        #     html=render_hotel_results(results)
-        #     if render_html and not results.get("error") and hotel_count > 0
-        #     else None,
-        #      whatsapp_response=(
-        #         whatsapp_response.model_dump()
-        #         if whatsapp_response
-        #         else None
-        #     ),
-        #     is_error=results.get("error") is not None,
-        # )
 
 
 def create_hotel_search_tool() -> HotelSearchTool:
