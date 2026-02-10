@@ -185,15 +185,16 @@ class HotelSearchTool(BaseTool):
                 text = f"Here are some hotel options in {search_input.city_name}."
 
         # Render HTML for website
-        # Create render data with paginated hotels but preserve total count for header
+        # Create render data with paginated hotels but preserve viewAll link
         html_output = None
         if render_html and not results.get("error") and total_hotel_count > 0:
             render_data = results.copy()
-            render_data["hotels"] = paginated_hotels
+            render_data["hotels"] = limited_results["hotels"]  # Use short-linked hotels
+            render_data["viewAll"] = results.get("viewAll", "")  # Explicitly preserve viewAll
             
             html_output = render_hotel_results(
                 render_data,
-                total_hotel_count=total_hotel_count,  # Pass original total
+                total_hotel_count=total_hotel_count,
             )
 
         # --------------------------------------------------
