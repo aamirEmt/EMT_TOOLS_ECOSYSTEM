@@ -182,12 +182,11 @@ class HotelCancellationTool(BaseTool):
                 is_error=True,
             )
 
-        # Website mode: render interactive HTML (or display-only if no api_base_url)
+        # Website mode: render interactive HTML
         if render_html:
             details_result["booking_id"] = input_data.booking_id
             html = render_booking_details(
                 booking_details=details_result,
-                interactive=bool(api_base_url),
                 api_base_url=api_base_url or "",
                 booking_id=input_data.booking_id,
                 email=input_data.email,

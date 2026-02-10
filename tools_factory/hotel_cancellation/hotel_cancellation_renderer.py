@@ -21,401 +21,6 @@ _jinja_env.filters['truncate_text'] = _truncate_text
 
 
 # =====================================================================
-# 🏨 BOOKING DETAILS DISPLAY TEMPLATE (DISPLAY-ONLY, NO FORMS)
-# =====================================================================
-BOOKING_DETAILS_TEMPLATE = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-
-.booking-details-carousel {
-  font-family: poppins, sans-serif;
-  color: #202020;
-  background: rgba(255, 255, 255, 0.92);
-  position: relative;
-}
-
-.booking-details-carousel * {
-  font-family: inherit;
-  box-sizing: border-box;
-  margin: 0;
-}
-
-.booking-details-carousel main {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 20px 0 30px;
-}
-
-.booking-details-carousel .bkhd {
-  margin-bottom: 16px;
-}
-
-.booking-details-carousel .bkttl {
-  font-size: 18px;
-  font-weight: 600;
-  color: #202020;
-  margin-bottom: 4px;
-}
-
-.booking-details-carousel .bksub {
-  font-size: 12px;
-  color: #646d74;
-  margin-top: 4px;
-}
-
-.booking-details-carousel .hotel-info {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 16px;
-  border: 1px solid #e0e0e0;
-}
-
-.booking-details-carousel .hotel-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #202020;
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.booking-details-carousel .hotel-name img {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
-
-.booking-details-carousel .hotel-address {
-  font-size: 12px;
-  color: #646d74;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: flex-start;
-  gap: 4px;
-}
-
-.booking-details-carousel .hotel-address img {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.booking-details-carousel .book-now-btn {
-  display: inline-block;
-  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 15px;
-  text-decoration: none;
-  transition: opacity 0.2s;
-}
-
-.booking-details-carousel .book-now-btn:hover {
-  opacity: 0.85;
-}
-
-.booking-details-carousel .hotel-dates {
-  display: flex;
-  gap: 16px;
-  font-size: 12px;
-  color: #202020;
-  margin-top: 8px;
-}
-
-.booking-details-carousel .date-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.booking-details-carousel .date-label {
-  font-size: 10px;
-  color: #868686;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-.booking-details-carousel .date-value {
-  font-weight: 600;
-}
-
-.booking-details-carousel .rooms-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #202020;
-  margin-bottom: 12px;
-}
-
-.booking-details-carousel .slider-shell {
-  position: relative;
-}
-
-.booking-details-carousel .rsltcvr {
-  width: 90%;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  cursor: grab;
-}
-
-.booking-details-carousel .rsltcvr:active {
-  cursor: grabbing;
-}
-
-.booking-details-carousel .embla__container {
-  display: flex;
-  gap: 16px;
-}
-
-.booking-details-carousel .room-card {
-  width: 280px;
-  min-width: 280px;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  background: #fff;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-}
-
-.booking-details-carousel .room-header {
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-}
-
-.booking-details-carousel .room-type {
-  font-size: 15px;
-  font-weight: 600;
-  color: #202020;
-  margin-bottom: 0px;
-}
-
-.booking-details-carousel .room-number {
-  font-size: 12px;
-  color: #646d74;
-  margin-bottom: 8px;
-}
-
-.booking-details-carousel .room-id {
-  font-size: 10px;
-  color: #868686;
-  font-family: monospace;
-  background: #f5f5f5;
-  padding: 2px 6px;
-  border-radius: 4px;
-  display: inline-block;
-}
-
-.booking-details-carousel .room-details {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1;
-}
-
-.booking-details-carousel .detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  font-size: 12px;
-}
-
-.booking-details-carousel .detail-label {
-  color: #646d74;
-  font-weight: 500;
-}
-
-.booking-details-carousel .detail-value {
-  color: #202020;
-  font-weight: 600;
-  text-align: right;
-  max-width: 60%;
-}
-
-.booking-details-carousel .amount-highlight {
-  font-size: 16px;
-  font-family: inter, sans-serif;
-  color: #ef6614;
-}
-
-.booking-details-carousel .policy-text {
-  font-size: 11px;
-  color: #646d74;
-  background: #fff8e1;
-  padding: 8px;
-  border-radius: 6px;
-  border-left: 3px solid #ffc107;
-  margin-top: 8px;
-  line-height: 1.4;
-  white-space: pre-line;
-}
-
-.booking-details-carousel .refundable {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: #2e7d32;
-  background: #e8f5e9;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-  margin-top: 8px;
-}
-
-.booking-details-carousel .refundable::before {
-  content: '✓';
-  font-weight: bold;
-}
-
-.booking-details-carousel .non-refundable {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: #d32f2f;
-  background: #ffebee;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-  margin-top: 8px;
-}
-
-.booking-details-carousel .non-refundable::before {
-  content: '✗';
-  font-weight: bold;
-}
-
-.booking-details-carousel .empty-state {
-  text-align: center;
-  color: #646d74;
-  padding: 60px 20px;
-  font-size: 14px;
-}
-
-/* Dark mode support */
-.booking-details-carousel.dark {
-  background: #000;
-  color: #fff;
-}
-
-.booking-details-carousel.dark .room-card,
-.booking-details-carousel.dark .hotel-info {
-  background: #000;
-  border-color: #373737;
-}
-
-.booking-details-carousel.dark .room-header {
-  border-color: #373737;
-}
-
-.booking-details-carousel.dark .bkttl,
-.booking-details-carousel.dark .hotel-name,
-.booking-details-carousel.dark .room-type,
-.booking-details-carousel.dark .date-value,
-.booking-details-carousel.dark .detail-value {
-  color: #fff;
-}
-
-.booking-details-carousel.dark .bksub,
-.booking-details-carousel.dark .hotel-address,
-.booking-details-carousel.dark .room-number,
-.booking-details-carousel.dark .date-label,
-.booking-details-carousel.dark .detail-label {
-  color: #bcbcbc;
-}
-
-.booking-details-carousel.dark .room-id {
-  background: #1a1a1a;
-  color: #bcbcbc;
-}
-</style>
-
-<div class="booking-details-carousel">
-  <main>
-    <div class="bkhd">
-      <div class="bkttl">{{ title }}</div>
-      <div class="bksub">{{ subtitle }}</div>
-    </div>
-
-    {% if hotel_info %}
-    <div class="hotel-info">
-      <div class="hotel-name"><img src="https://mybookings.easemytrip.com/Content/assest/img/hotel-blic.svg" alt="">{{ hotel_info.name }}</div>
-      {% if hotel_info.address %}
-      <div class="hotel-address"><img src="https://mybookings.easemytrip.com/Content/assest/img/ico-map.svg" alt="">{{ hotel_info.address }}</div>
-      {% endif %}
-      <div class="hotel-dates">
-        {% if hotel_info.check_in %}
-        <div class="date-item">
-          <div class="date-label">Check-in</div>
-          <div class="date-value">{{ hotel_info.check_in }}</div>
-        </div>
-        {% endif %}
-        {% if hotel_info.check_out %}
-        <div class="date-item">
-          <div class="date-label">Check-out</div>
-          <div class="date-value">{{ hotel_info.check_out }}</div>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-    {% endif %}
-
-    {% if rooms %}
-    <div class="rooms-title">Rooms in this booking</div>
-    <div class="slider-shell">
-      <div class="rsltcvr">
-        <div class="embla__container">
-        {% for room in rooms %}
-          <div class="room-card">
-            <div class="room-header">
-              <div class="room-type">{{ room.room_type }}</div>
-            </div>
-
-            <div class="room-details">
-              {% if room.amount %}
-              <div class="detail-row">
-                <span class="detail-label">Amount</span>
-                <span class="detail-value amount-highlight">₹{{ room.amount }}</span>
-              </div>
-              {% endif %}
-
-              {% if room.is_pay_at_hotel is not none %}
-              <div class="detail-row">
-                <span class="detail-label">Payment</span>
-                <span class="detail-value">{% if room.is_pay_at_hotel and payment_url %}<a href="{{ payment_url }}" target="_blank" class="book-now-btn">Pay Now</a>{% elif room.is_pay_at_hotel %}Pay at Hotel{% else %}Prepaid{% endif %}</span>
-              </div>
-              {% endif %}
-
-              {% if room.cancellation_policy %}
-              <div class="policy-text">{{ room.cancellation_policy }}</div>
-              {% endif %}
-
-              {% if room.is_refundable %}
-              <div class="refundable">Refundable</div>
-              {% elif room.is_refundable is not none %}
-              <div class="non-refundable">Non-Refundable</div>
-              {% endif %}
-            </div>
-          </div>
-        {% endfor %}
-        </div>
-      </div>
-    </div>
-    {% else %}
-    <div class="empty-state">No room information available</div>
-    {% endif %}
-  </main>
-</div>
-"""
-
-
-# =====================================================================
 # 🏨 INTERACTIVE BOOKING TEMPLATE (WITH JS FOR CANCEL FLOW)
 # =====================================================================
 INTERACTIVE_BOOKING_TEMPLATE = """
@@ -1336,27 +941,24 @@ def render_cancellation_flow(booking_id: str, email: str) -> str:
 
 def render_booking_details(
     booking_details: Dict[str, Any],
-    interactive: bool = False,
     api_base_url: str = "",
     booking_id: str = "",
     email: str = "",
 ) -> str:
     """
-    Render booking details as HTML.
+    Render booking details as interactive HTML with cancellation flow.
 
-    When interactive=True and api_base_url is provided, renders an interactive
-    template with embedded JS for the full cancellation flow (room selection,
-    OTP, confirmation). Otherwise, renders the display-only carousel.
+    Renders an interactive template with embedded JS for the full cancellation
+    flow (room selection, OTP, confirmation).
 
     Args:
         booking_details: Booking details from API including hotel info, guest info, and rooms
-        interactive: Whether to render the interactive cancellation template
-        api_base_url: API endpoint URL for JS callbacks (required for interactive mode)
-        booking_id: Booking ID (used in interactive mode for API calls)
-        email: User email (used in interactive mode for API calls)
+        api_base_url: API endpoint URL for JS callbacks (required)
+        booking_id: Booking ID (used for API calls)
+        email: User email (used for API calls)
 
     Returns:
-        HTML string with rendered booking details
+        HTML string with rendered interactive booking details
     """
     # Extract hotel information (from nested hotel_info dict)
     hotel_info_raw = booking_details.get("hotel_info", {})
@@ -1430,47 +1032,35 @@ def render_booking_details(
 
     payment_url = booking_details.get("payment_url", "")
 
-    # Interactive mode: render template with embedded JS for full cancel flow
-    if interactive and api_base_url:
-        import uuid
-        instance_id = str(uuid.uuid4())[:8]
+    # Render interactive template with embedded JS for full cancel flow
+    import uuid
+    instance_id = str(uuid.uuid4())[:8]
 
-        # Prepare room data for JS embedding
-        rooms_json = [
-            {
-                "room_id": r.get("room_id"),
-                "room_type": r.get("room_type"),
-                "room_no": r.get("room_no"),
-                "transaction_id": r.get("transaction_id"),
-                "is_pay_at_hotel": r.get("is_pay_at_hotel"),
-                "amount": r.get("amount"),
-            }
-            for r in rooms_ui
-        ]
+    # Prepare room data for JS embedding
+    rooms_json = [
+        {
+            "room_id": r.get("room_id"),
+            "room_type": r.get("room_type"),
+            "room_no": r.get("room_no"),
+            "transaction_id": r.get("transaction_id"),
+            "is_pay_at_hotel": r.get("is_pay_at_hotel"),
+            "amount": r.get("amount"),
+        }
+        for r in rooms_ui
+    ]
 
-        template = _jinja_env.from_string(INTERACTIVE_BOOKING_TEMPLATE)
-        return template.render(
-            title=title,
-            subtitle=subtitle,
-            hotel_info=hotel_info,
-            rooms=rooms_ui,
-            payment_url=payment_url,
-            instance_id=instance_id,
-            api_base_url=api_base_url,
-            booking_id=booking_id,
-            email=email,
-            rooms_json=rooms_json,
-        )
-
-    # Display-only mode (default)
-    template = _jinja_env.from_string(BOOKING_DETAILS_TEMPLATE)
-
+    template = _jinja_env.from_string(INTERACTIVE_BOOKING_TEMPLATE)
     return template.render(
         title=title,
         subtitle=subtitle,
         hotel_info=hotel_info,
         rooms=rooms_ui,
         payment_url=payment_url,
+        instance_id=instance_id,
+        api_base_url=api_base_url,
+        booking_id=booking_id,
+        email=email,
+        rooms_json=rooms_json,
     )
 
 
