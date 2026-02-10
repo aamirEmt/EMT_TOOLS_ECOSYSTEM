@@ -663,13 +663,13 @@ TRAIN_CAROUSEL_TEMPLATE = """
                   <div class="class-code">{{ cls.class_code }}</div>
                   {% if cls.fare != "0" %}
                   <div class="class-fare">₹{{ cls.fare }}</div>
-                  {% if cls.fare_updated %}
-                  <div class="class-fare-updated">{{ cls.fare_updated }}</div>
-                  {% endif %}
                   {% endif %}
                   <div class="class-availability {% if is_regret %}unavailable{% elif 'WL' in cls.availability_status %}waitlist{% elif 'RAC' in cls.availability_status %}rac{% elif 'AVAILABLE' in cls.availability_status %}available{% elif cls.availability_status == 'Check Online' %}{% else %}unavailable{% endif %}">
                     {% if needs_refresh and cls.quota == 'TQ' %}Tatkal{% else %}{{ cls.availability_status | truncate_text(15) }}{% endif %}
                   </div>
+                  {% if cls.fare != "0" and cls.fare_updated %}
+                  <div class="class-fare-updated">{{ cls.fare_updated }}</div>
+                  {% endif %}
                   {% if needs_refresh %}
                   <button type="button" class="class-refresh-btn">
                     <svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -861,14 +861,9 @@ async function refreshAvailability(btn) {
       if (!fareUpdatedEl) {
         fareUpdatedEl = document.createElement('div');
         fareUpdatedEl.className = 'class-fare-updated';
-        const fareEl = card.querySelector('.class-fare');
-        if (fareEl) {
-          fareEl.after(fareUpdatedEl);
-        } else {
-          const availabilityEl = card.querySelector('.class-availability');
-          if (availabilityEl) {
-            availabilityEl.before(fareUpdatedEl);
-          }
+        const availabilityEl = card.querySelector('.class-availability');
+        if (availabilityEl) {
+          availabilityEl.after(fareUpdatedEl);
         }
       }
       fareUpdatedEl.textContent = fareUpdated;
