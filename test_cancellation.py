@@ -1,122 +1,117 @@
-"""Interactive terminal test for Hotel Cancellation Flow"""
+"""Interactive terminal test for Hotel Cancellation Flow (unified tool)"""
 import asyncio
 import logging
-from tools_factory.hotel_cancellation.hotel_cancellation_service import HotelCancellationService
+from tools_factory.factory import get_tool_factory
 
 # Enable logging to see debug messages
 logging.basicConfig(level=logging.INFO, format='%(name)s - %(levelname)s - %(message)s')
 
 
 async def main():
-    # Use async context manager to ensure proper cleanup
-    async with HotelCancellationService() as svc:
-        print("=" * 50)
-        print("  Hotel Booking Cancellation - Test")
-        print("=" * 50)
+    factory = get_tool_factory()
+    tool = factory.get_tool("hotel_cancellation")
 
-        # Step 1: Guest Login
-        booking_id = input("\nBooking ID (e.g. EMT1624718): ").strip()
-        email = input("Email: ").strip()
+    if not tool:
+        print("ERROR: hotel_cancellation tool not found in factory!")
+        return
 
-        print("\n[Step 1] Logging in...")
-        login = await svc.guest_login(booking_id, email)
+    print("=" * 50)
+    print("  Hotel Booking Cancellation - Test")
+    print("=" * 50)
 
-        if not login["success"]:
-            print(f"Login failed: {login['message']}")
-            return
+    # Step 1: Start (login + fetch details)
+    booking_id = input("\nBooking ID (e.g. EMT1624718): ").strip()
+    email = input("Email: ").strip()
 
-        bid = login["ids"]["bid"]
-        print(f"Login successful! Transaction ID: {login['ids'].get('transaction_id')}")
+    print("\n[Action: start] Logging in and fetching details...")
+    result = await tool.execute(
+        action="start",
+        booking_id=booking_id,
+        email=email,
+    )
 
-        # Step 2: Fetch Booking Details
-        print("\n[Step 2] Fetching booking details...")
-        details = await svc.fetch_booking_details(bid)
+    print(f"\nResponse: {result.response_text}")
 
-        if not details["success"]:
-            print(f"Failed to fetch details: {details['error']}")
-            return
+    if result.is_error:
+        print("Flow stopped due to error.")
+        return
 
-        rooms = details["rooms"]
-        print(f"\nFound {len(rooms)} room(s):")
-        for i, r in enumerate(rooms):
-            print(f"  [{i}] {r.get('room_type', 'N/A')} - Room {r.get('room_no', 'N/A')}")
-            print(f"      ID: {r.get('room_id')}")
-            print(f"      Hotel: {r.get('hotel_name', 'N/A')}")
-            print(f"      Check-in: {r.get('check_in', 'N/A')}")
-            print(f"      Check-out: {r.get('check_out', 'N/A')}")
-            print(f"      Policy: {r.get('cancellation_policy', 'N/A')}")
-            print(f"      Amount: {r.get('amount', 'N/A')}")
-            print(f"      Pay at hotel: {r.get('is_pay_at_hotel')}")
+    # Show rooms from structured content
+    details = result.structured_content.get("booking_details", {})
+    rooms = details.get("rooms", [])
+    print(f"\nFound {len(rooms)} room(s):")
+    for i, r in enumerate(rooms):
+        print(f"  [{i}] {r.get('room_type', 'N/A')} - Room {r.get('room_no', 'N/A')}")
+        print(f"      ID: {r.get('room_id')}")
+        print(f"      Transaction ID: {r.get('transaction_id')}")
+        print(f"      Hotel: {r.get('hotel_name', 'N/A')}")
+        print(f"      Check-in: {r.get('check_in', 'N/A')}")
+        print(f"      Check-out: {r.get('check_out', 'N/A')}")
+        print(f"      Policy: {r.get('cancellation_policy', 'N/A')}")
+        print(f"      Amount: {r.get('amount', 'N/A')}")
+        print(f"      Pay at hotel: {r.get('is_pay_at_hotel')}")
 
-        proceed = input("\nProceed to cancel? (y/n): ").strip().lower()
-        if proceed != "y":
-            print("Cancelled by user.")
-            return
+    proceed = input("\nProceed to cancel? (y/n): ").strip().lower()
+    if proceed != "y":
+        print("Cancelled by user.")
+        return
 
-        # Select room
-        if len(rooms) == 1:
-            room_idx = 0
-        else:
-            room_idx = int(input(f"Select room index (0-{len(rooms)-1}): ").strip())
+    # Select room
+    if len(rooms) == 1:
+        room_idx = 0
+    else:
+        room_idx = int(input(f"Select room index (0-{len(rooms)-1}): ").strip())
 
-        room = rooms[room_idx]
+    room = rooms[room_idx]
 
-        # Debug: Print room details including IDs
-        print(f"\nSelected room details:")
-        print(f"  room_id: {room.get('room_id')}")
-        print(f"  transaction_id: {room.get('transaction_id')}")
+    if not room.get("room_id") or room.get("room_id") == "undefined":
+        print(f"\nERROR: Room ID is missing or invalid! Room data: {room}")
+        return
 
-        # Validate room_id exists
-        if not room.get("room_id") or room.get("room_id") == "undefined":
-            print("\nERROR: Room ID is missing or invalid!")
-            print(f"Available room data: {room}")
-            return
+    reason = input("\nReason (or press Enter for 'Change of plans'): ").strip()
+    if not reason:
+        reason = "Change of plans"
+    remark = input("Remark (optional, press Enter to skip): ").strip()
 
-        reason = input("\nReason (or press Enter for 'Change of plans'): ").strip()
-        if not reason:
-            reason = "Change of plans"
-        remark = input("Remark (optional, press Enter to skip): ").strip()
+    # Step 2: Send OTP
+    print("\n[Action: send_otp] Sending cancellation OTP...")
+    otp_result = await tool.execute(
+        action="send_otp",
+        booking_id=booking_id,
+        email=email,
+    )
 
-        # Step 3: Send OTP (auto-refreshes session internally)
-        print("\n[Step 3] Sending cancellation OTP...")
-        otp_result = await svc.send_cancellation_otp(
-            booking_id=booking_id,
-            email=email,
-        )
+    print(f"\nResponse: {otp_result.response_text}")
 
-        if not otp_result["success"]:
-            print(f"Failed to send OTP: {otp_result['message']}")
-            print(f"Raw response: {otp_result.get('raw_response')}")
-            return
+    if otp_result.is_error:
+        print("Flow stopped due to error.")
+        return
 
-        print(f"OTP sent: {otp_result['message']}")
+    # Step 3: Confirm cancellation
+    otp = input("\nEnter OTP: ").strip()
 
-        # Step 4: Request Cancellation (auto-refreshes session internally)
-        otp = input("\nEnter OTP: ").strip()
+    print("\n[Action: confirm] Submitting cancellation request...")
+    cancel_result = await tool.execute(
+        action="confirm",
+        booking_id=booking_id,
+        email=email,
+        otp=otp,
+        room_id=room["room_id"],
+        transaction_id=room["transaction_id"],
+        is_pay_at_hotel=room.get("is_pay_at_hotel", False),
+        payment_url=details.get("payment_url", ""),
+        reason=reason,
+        remark=remark,
+    )
 
-        print("\n[Step 4] Submitting cancellation request...")
-        cancel = await svc.request_cancellation(
-            booking_id=booking_id,
-            email=email,
-            otp=otp,
-            room_id=room["room_id"],
-            transaction_id=room["transaction_id"],
-            is_pay_at_hotel=room["is_pay_at_hotel"],
-            payment_url=details.get("payment_url", ""),
-            reason=reason,
-            remark=remark,
-        )
+    print(f"\nResponse: {cancel_result.response_text}")
 
-        if cancel["success"]:
-            print(f"\nCancellation successful! {cancel['message']}")
-            if cancel.get("refund_info"):
-                ri = cancel["refund_info"]
-                print(f"  Refund: {ri.get('refund_amount', 'N/A')}")
-                print(f"  Charges: {ri.get('cancellation_charges', 'N/A')}")
-        else:
-            print(f"\nCancellation failed: {cancel['message']}")
+    if cancel_result.is_error:
+        print("Cancellation failed.")
+    else:
+        print("Cancellation successful!")
 
-        print("\nRaw response:", cancel.get("raw_response"))
+    print("\nRaw structured content:", cancel_result.structured_content)
 
 
 if __name__ == "__main__":
