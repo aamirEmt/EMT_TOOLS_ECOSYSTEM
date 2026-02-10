@@ -179,11 +179,10 @@ class HotelSearchTool(BaseTool):
         else:
             pagination = limited_results.get("pagination", {})
             if pagination and page > 1:
-                showing_from = pagination.get("showing_from", 1)
-                showing_to = pagination.get("showing_to", hotel_count)
-                text = f"Showing hotels {showing_from}-{showing_to} of {total_hotel_count} in {search_input.city_name} (Page {page})"
+                current_page = pagination.get("current_page", page)
+                text = f"Here are more hotel options in {search_input.city_name} on page {current_page}."
             else:
-                text = f"Found {total_hotel_count} hotels in {search_input.city_name}!"
+                text = f"Here are some hotel options in {search_input.city_name}."
 
         # Render HTML for website
         # Create render data with paginated hotels but preserve total count for header
