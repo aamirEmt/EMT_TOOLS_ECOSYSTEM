@@ -1785,10 +1785,57 @@ def render_bus_results(bus_results: Dict[str, Any]) -> str:
     )
 
 
+# def render_bus_results_with_limit(
+#     bus_results: Dict[str, Any],
+#     display_limit: int = 5,
+#     show_view_all: bool = True,
+# ) -> str:
+#     if "structured_content" in bus_results:
+#         bus_results = bus_results["structured_content"]
+    
+#     buses = bus_results.get("buses", [])
+    
+#     if not buses:
+#         return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
+    
+#     total_buses = len(buses)
+#     display_buses = buses[:display_limit]
+    
+#     buses_ui = [_normalize_bus_for_ui(bus) for bus in display_buses]
+#     buses_ui = [b for b in buses_ui if b]
+    
+#     if not buses_ui:
+#         return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
+    
+#     source_city = bus_results.get("source_name") or bus_results.get("source_id", "")
+#     destination_city = bus_results.get("destination_name") or bus_results.get("destination_id", "")
+#     journey_date = _format_date(bus_results.get("journey_date"))
+#     ac_count = bus_results.get("ac_count", 0)
+#     non_ac_count = bus_results.get("non_ac_count", 0)
+#     view_all_link = bus_results.get("view_all_link", "")
+    
+#     should_show_view_all = show_view_all and total_buses > display_limit and view_all_link
+    
+#     template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
+#     return template.render(
+#         styles=BUS_CAROUSEL_STYLES,
+#         source_city=source_city,
+#         destination_city=destination_city,
+#         journey_date=journey_date,
+#         bus_count=total_buses,
+#         ac_count=ac_count,
+#         non_ac_count=non_ac_count,
+#         buses=buses_ui,
+#         view_all_link=view_all_link,
+#         show_view_all_card=should_show_view_all,
+#         total_bus_count=total_buses,
+#     )
+
 def render_bus_results_with_limit(
     bus_results: Dict[str, Any],
     display_limit: int = 5,
     show_view_all: bool = True,
+    total_bus_count: int = None,  # NEW PARAMETER
 ) -> str:
     if "structured_content" in bus_results:
         bus_results = bus_results["structured_content"]
@@ -1798,7 +1845,10 @@ def render_bus_results_with_limit(
     if not buses:
         return "<div class='bus-carousel'><main><div class='emt-empty'>No buses found for this route</div></main></div>"
     
-    total_buses = len(buses)
+    # Use passed total_bus_count if provided, otherwise use total_count from data, otherwise len(buses)
+    if total_bus_count is None:
+        total_bus_count = bus_results.get("total_count") or len(buses)
+    
     display_buses = buses[:display_limit]
     
     buses_ui = [_normalize_bus_for_ui(bus) for bus in display_buses]
@@ -1814,7 +1864,8 @@ def render_bus_results_with_limit(
     non_ac_count = bus_results.get("non_ac_count", 0)
     view_all_link = bus_results.get("view_all_link", "")
     
-    should_show_view_all = show_view_all and total_buses > display_limit and view_all_link
+    # Always show View All card if link exists and show_view_all is True
+    should_show_view_all = show_view_all and view_all_link
     
     template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
     return template.render(
@@ -1822,15 +1873,14 @@ def render_bus_results_with_limit(
         source_city=source_city,
         destination_city=destination_city,
         journey_date=journey_date,
-        bus_count=total_buses,
+        bus_count=total_bus_count,  # Use total, not len(buses)
         ac_count=ac_count,
         non_ac_count=non_ac_count,
         buses=buses_ui,
         view_all_link=view_all_link,
         show_view_all_card=should_show_view_all,
-        total_bus_count=total_buses,
+        total_bus_count=total_bus_count,  # Use total for View All card
     )
-
 
 def _get_seat_status_class(seat: Dict[str, Any]) -> str:
     if seat.get("is_booked"):
