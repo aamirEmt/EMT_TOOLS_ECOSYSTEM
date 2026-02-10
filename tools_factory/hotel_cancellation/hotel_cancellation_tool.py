@@ -131,7 +131,7 @@ class HotelCancellationTool(BaseTool):
     # ----------------------------------------------------------
     # action = "start" — login + fetch booking details
     # ----------------------------------------------------------
-    async def _handle_start(self, input_data: HotelCancellationInput, user_type: str) -> ToolResponseFormat:
+    async def _handle_start(self, input_data: HotelCancellationInput, user_type: str, api_base_url: str = None) -> ToolResponseFormat:
         render_html = user_type.lower() == "website"
         is_whatsapp = user_type.lower() == "whatsapp"
 
@@ -187,8 +187,8 @@ class HotelCancellationTool(BaseTool):
             details_result["booking_id"] = input_data.booking_id
             html = render_booking_details(
                 booking_details=details_result,
-                interactive=bool(input_data.api_base_url),
-                api_base_url=input_data.api_base_url or "",
+                interactive=bool(api_base_url),
+                api_base_url=api_base_url or "",
                 booking_id=input_data.booking_id,
                 email=input_data.email,
             )

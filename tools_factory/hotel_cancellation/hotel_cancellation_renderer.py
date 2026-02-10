@@ -977,7 +977,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 }
 </style>
 
-<div class="booking-details-carousel" data-instance-id="{{ instance_id }}">
+<div class="booking-details-carousel round-trip-selector" data-instance-id="{{ instance_id }}">
   <main>
     <!-- Loading overlay -->
     <div class="hc-loading"><div class="hc-spinner"></div></div>
