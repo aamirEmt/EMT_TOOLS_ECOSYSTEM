@@ -727,7 +727,9 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   if (container.hasAttribute('data-initialized')) return;
   container.setAttribute('data-initialized', 'true');
 
-  var API_URL = '{{ api_base_url }}';
+  var OTP_URL = 'https://mybookings.easemytrip.com/Hotels/CancellationOtp';
+  var CANCEL_URL = 'https://mybookings.easemytrip.com/Hotels/RequestCancellation';
+  var BID = '{{ bid }}';
   var BOOKING_ID = '{{ booking_id }}';
   var EMAIL = '{{ email }}';
   var ROOMS = {{ rooms_json | tojson }};
@@ -770,21 +772,62 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     }
   }
 
-  /* ---- API helper ---- */
-  function callApi(payload) {
+  /* ---- API helpers (direct EaseMyTrip calls) ---- */
+  function sendOtp() {
     showLoading(true);
     errorBanner.style.display = 'none';
-
-    return fetch(API_URL, {
+    return fetch(OTP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ EmtScreenID: BID })
     })
     .then(function(resp) { return resp.json(); })
     .then(function(data) {
       showLoading(false);
-      if (data.is_error) {
-        showError(data.response_text || 'Something went wrong. Please try again.');
+      if (!data.isStatus) {
+        showError(data.Msg || data.Message || 'Failed to send OTP. Please try again.');
+        return null;
+      }
+      return data;
+    })
+    .catch(function(err) {
+      showLoading(false);
+      showError('Network error. Please check your connection and try again.');
+      return null;
+    });
+  }
+
+  function confirmCancellation(otp, reason, remark) {
+    showLoading(true);
+    errorBanner.style.display = 'none';
+    return fetch(CANCEL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        Remark: remark || '',
+        Reason: reason || 'Change of plans',
+        OTP: otp,
+        RoomId: 'undefined',
+        TransactionId: selectedRoom ? String(selectedRoom.transaction_id) : '',
+        IsPayHotel: selectedRoom ? String(!!selectedRoom.is_pay_at_hotel) : 'false',
+        PaymentUrl: PAYMENT_URL || '',
+        ApplicationType: 'false',
+        Bid: BID
+      })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      showLoading(false);
+      if (typeof data === 'string') {
+        var success = data.toLowerCase().indexOf('success') !== -1;
+        if (!success) {
+          showError(data || 'Cancellation failed. Please try again.');
+          return null;
+        }
+        return { Status: true, message: data };
+      }
+      if (!data.Status && !data.isStatus) {
+        showError(data.LogMessage || data.Message || data.Msg || 'Cancellation failed. Please try again.');
         return null;
       }
       return data;
@@ -818,14 +861,8 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   var sendOtpBtn = container.querySelector('.hc-send-otp-btn');
   if (sendOtpBtn) {
     sendOtpBtn.addEventListener('click', function() {
-      callApi({
-        action: 'send_otp',
-        booking_id: BOOKING_ID,
-        email: EMAIL
-      }).then(function(result) {
-        if (result) {
-          showStep('otp');
-        }
+      sendOtp().then(function(result) {
+        if (result) showStep('otp');
       });
     });
   }
@@ -844,18 +881,11 @@ INTERACTIVE_BOOKING_TEMPLATE = """
       var reasonSelect = container.querySelector('.hc-reason-select');
       var remarkTextarea = container.querySelector('.hc-remark-textarea');
 
-      callApi({
-        action: 'confirm',
-        booking_id: BOOKING_ID,
-        email: EMAIL,
-        otp: otp,
-        room_id: selectedRoom.room_id,
-        transaction_id: selectedRoom.transaction_id,
-        is_pay_at_hotel: selectedRoom.is_pay_at_hotel || false,
-        payment_url: PAYMENT_URL,
-        reason: reasonSelect ? reasonSelect.value : 'Change of plans',
-        remark: remarkTextarea ? remarkTextarea.value : ''
-      }).then(function(result) {
+      confirmCancellation(
+        otp,
+        reasonSelect ? reasonSelect.value : 'Change of plans',
+        remarkTextarea ? remarkTextarea.value : ''
+      ).then(function(result) {
         if (result) {
           renderResult(result);
           showStep('result');
@@ -864,27 +894,37 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     });
   }
 
-  /* ---- Step 4: Render result ---- */
+  /* ---- Step 4: Render result (direct API response format) ---- */
   function renderResult(data) {
     var resultContainer = container.querySelector('.hc-result-content');
-    var sc = data.structured_content || {};
-    var refund = sc.refund_info;
 
     var html = '<div class="hc-success-box">';
     html += '<div class="hc-success-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>';
     html += '<div class="hc-success-title">Cancellation Confirmed!</div>';
 
-    if (refund) {
+    /* Parse refund info from direct API response */
+    var refundAmount = data.RefundAmount;
+    var cancellationCharges = data.CancellationCharges;
+    var refundMode = data.RefundMode;
+    var detail = data.Data || {};
+
+    if (detail.charge) cancellationCharges = detail.charge;
+    if (detail.currency) refundMode = detail.currency;
+    if (detail.Text) {
+      html += '<p style="font-size:13px;color:#646d74;margin-bottom:12px;">' + detail.Text + '</p>';
+    }
+
+    if (refundAmount || cancellationCharges || refundMode) {
       html += '<div class="hc-refund-box">';
       html += '<div class="hc-refund-title">Refund Information</div>';
-      if (refund.refund_amount) {
-        html += '<div class="hc-refund-amount">₹' + refund.refund_amount + '</div>';
+      if (refundAmount) {
+        html += '<div class="hc-refund-amount">₹' + refundAmount + '</div>';
       }
-      if (refund.cancellation_charges) {
-        html += '<div class="hc-refund-row"><span class="hc-refund-label">Cancellation Charges</span><span class="hc-refund-value">₹' + refund.cancellation_charges + '</span></div>';
+      if (cancellationCharges) {
+        html += '<div class="hc-refund-row"><span class="hc-refund-label">Cancellation Charges</span><span class="hc-refund-value">₹' + cancellationCharges + '</span></div>';
       }
-      if (refund.refund_mode) {
-        html += '<div class="hc-refund-row"><span class="hc-refund-label">Refund Mode</span><span class="hc-refund-value">' + refund.refund_mode + '</span></div>';
+      if (refundMode) {
+        html += '<div class="hc-refund-row"><span class="hc-refund-label">Refund Mode</span><span class="hc-refund-value">' + refundMode + '</span></div>';
       }
       html += '</div>';
     }
@@ -941,21 +981,21 @@ def render_cancellation_flow(booking_id: str, email: str) -> str:
 
 def render_booking_details(
     booking_details: Dict[str, Any],
-    api_base_url: str = "",
     booking_id: str = "",
     email: str = "",
+    bid: str = "",
 ) -> str:
     """
     Render booking details as interactive HTML with cancellation flow.
 
-    Renders an interactive template with embedded JS for the full cancellation
-    flow (room selection, OTP, confirmation).
+    Renders an interactive template with embedded JS that calls EaseMyTrip
+    APIs directly for OTP and cancellation.
 
     Args:
         booking_details: Booking details from API including hotel info, guest info, and rooms
-        api_base_url: API endpoint URL for JS callbacks (required)
         booking_id: Booking ID (used for API calls)
         email: User email (used for API calls)
+        bid: Encrypted booking ID from guest login (used as EmtScreenID/Bid in API calls)
 
     Returns:
         HTML string with rendered interactive booking details
@@ -1057,7 +1097,7 @@ def render_booking_details(
         rooms=rooms_ui,
         payment_url=payment_url,
         instance_id=instance_id,
-        api_base_url=api_base_url,
+        bid=bid,
         booking_id=booking_id,
         email=email,
         rooms_json=rooms_json,

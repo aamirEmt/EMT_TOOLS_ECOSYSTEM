@@ -99,7 +99,6 @@ class HotelCancellationTool(BaseTool):
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
         user_type = kwargs.pop("_user_type", "chatbot")
-        api_base_url = kwargs.pop("_api_base_url", None)
         kwargs.pop("_limit", None)
 
         try:
@@ -117,7 +116,7 @@ class HotelCancellationTool(BaseTool):
         action = input_data.action.lower().strip()
 
         if action == "start":
-            return await self._handle_start(input_data, user_type, api_base_url)
+            return await self._handle_start(input_data, user_type)
         elif action == "send_otp":
             return await self._handle_send_otp(input_data)
         elif action == "confirm":
@@ -131,7 +130,7 @@ class HotelCancellationTool(BaseTool):
     # ----------------------------------------------------------
     # action = "start" — login + fetch booking details
     # ----------------------------------------------------------
-    async def _handle_start(self, input_data: HotelCancellationInput, user_type: str, api_base_url: str = None) -> ToolResponseFormat:
+    async def _handle_start(self, input_data: HotelCancellationInput, user_type: str) -> ToolResponseFormat:
         render_html = user_type.lower() == "website"
         is_whatsapp = user_type.lower() == "whatsapp"
 
@@ -187,9 +186,9 @@ class HotelCancellationTool(BaseTool):
             details_result["booking_id"] = input_data.booking_id
             html = render_booking_details(
                 booking_details=details_result,
-                api_base_url=api_base_url or "",
                 booking_id=input_data.booking_id,
                 email=input_data.email,
+                bid=bid,
             )
             return ToolResponseFormat(
                 response_text=f"Booking details for {input_data.booking_id}",
