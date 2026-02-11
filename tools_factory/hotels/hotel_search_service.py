@@ -106,6 +106,9 @@ class HotelSearchService:
                 "selectedRating": search_input.rating or [],
                 "selectedTARating": search_input.user_rating or [],
             }
+
+            print(f"DEBUG: Hotel API payload HotelCount: {payload.get('HotelCount')}")
+
             #print(payload)
             # Step 4: Call API (tokens injected automatically)
             response = await self.client.search(HOTEL_SEARCH_URL, payload)
