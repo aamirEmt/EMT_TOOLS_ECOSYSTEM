@@ -87,6 +87,8 @@ class TrainAvailabilityCheckTool(BaseTool):
                 train_info=train_info,
                 classes=classes,
                 journey_date=payload.journey_date,
+                route_info=route_info,
+                quota="GN",  # Always use General quota
             )
 
         # Render HTML for website users

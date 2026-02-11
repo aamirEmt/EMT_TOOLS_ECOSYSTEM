@@ -248,6 +248,8 @@ def build_whatsapp_availability_response(
     train_info: Dict[str, Any],
     classes: List[Dict[str, Any]],
     journey_date: str,
+    route_info: Dict[str, Any],
+    quota: str = "GN",
 ) -> Dict[str, Any]:
     """
     Build WhatsApp-formatted response matching requirements.
@@ -256,17 +258,44 @@ def build_whatsapp_availability_response(
         train_info: Dictionary with train_no and train_name
         classes: List of class availability dictionaries
         journey_date: Journey date in DD-MM-YYYY format
+        route_info: Dictionary with station codes and names
+        quota: Quota code (default: "GN")
 
     Returns:
         WhatsApp-formatted response dictionary
     """
+    # Import booking link builder from renderer
+    from .availability_check_renderer import _build_book_url
+
+    # Extract station info
+    from_station_code = route_info.get("from_station_code", "")
+    to_station_code = route_info.get("to_station_code", "")
+    from_station_display = route_info.get("from_station_name", from_station_code)
+    to_station_display = route_info.get("to_station_name", to_station_code)
+
+    # Convert journey date to API format (DD-MM-YYYY -> DD/MM/YYYY)
+    journey_date_api = journey_date.replace("-", "/")
+
     # Format classes for WhatsApp (matching exact requirements format)
     whatsapp_classes = []
     for cls in classes:
+        # Build booking link for this class
+        booking_link = _build_book_url(
+            train_no=train_info["train_no"],
+            class_code=cls["class_code"],
+            from_code=from_station_code,
+            to_code=to_station_code,
+            quota=quota,
+            journey_date=journey_date_api,
+            from_display=from_station_display,
+            to_display=to_station_display,
+        )
+
         whatsapp_classes.append({
             "class": cls["class_code"],
             "status": cls["status"],
             "fare": cls.get("fare"),
+            "booking_link": booking_link,
         })
 
     # Format journey date for display (DD-MM-YYYY -> DD Mon YYYY)
