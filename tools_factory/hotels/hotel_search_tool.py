@@ -146,13 +146,21 @@ class HotelSearchTool(BaseTool):
         # Create human-readable message
         if has_error:
             text = f"No hotels found. {results.get('message', '')}"
+        elif hotel_count == 0:
+            text = f"No more hotels available in {search_input.city_name}. All {total_hotel_count} hotels have been shown."
         else:
             pagination = limited_results.get("pagination", {})
-            if pagination and page > 1:
-                current_page = pagination.get("current_page", page)
-                text = f"Here are more hotel options in {search_input.city_name} on page {current_page}."
+            has_more = pagination.get("has_next_page", False)
+            if page > 1:
+                if has_more:
+                    text = f"Here are {hotel_count} more hotels in {search_input.city_name} (page {page}). More available."
+                else:
+                    text = f"Here are the last {hotel_count} hotels in {search_input.city_name} (page {page}). This completes all {total_hotel_count} hotels."
             else:
-                text = f"Here are some hotel options in {search_input.city_name}."
+                if has_more:
+                    text = f"Here are {hotel_count} hotels in {search_input.city_name}. Say 'show more' for additional options."
+                else:
+                    text = f"Here are all {hotel_count} hotels available in {search_input.city_name}."
 
         # Render HTML for website
         html_output = None
