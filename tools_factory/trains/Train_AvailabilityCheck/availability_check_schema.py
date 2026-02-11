@@ -24,10 +24,10 @@ class AvailabilityCheckInput(BaseModel):
         description="List of class codes to check availability for. MUST use exact codes only: '1A' (First AC), '2A' (AC 2 Tier), '3A' (Third AC), 'SL' (Sleeper Class), '2S' (Second Seating), 'CC' (AC Chair Car), 'EC' (Executive Class), '3E' (AC 3 Tier Economy), 'FC' (First Class), 'EV' (Vistadome AC), 'VS' (Vistadome Non-AC), 'EA' (Anubhuti Class), 'VC' (Vistadome Chair Car). Do not use full names like 'Chair Car' or variations like '3AC' - use only the exact codes.",
     )
 
-    # quota: str = Field(
-    #     default="GN",
-    #     description="Booking quota (GN=General, TQ=Tatkal, SS=Senior Citizen, LD=Ladies)",
-    # )
+    quota: str = Field(
+        default="GN",
+        description="Booking quota (GN=General, TQ=Tatkal, SS=Senior Citizen, LD=Ladies)",
+    )
 
     model_config = ConfigDict(
         populate_by_name=True,

@@ -52,12 +52,11 @@ class TrainAvailabilityCheckTool(BaseTool):
             )
 
         # Check availability across multiple classes (route is fetched automatically)
-        # Always use General (GN) quota
         result = await self.service.check_availability_multiple_classes(
             train_no=payload.train_no,
             classes=payload.classes,
             journey_date=payload.journey_date,
-            quota="GN",
+            quota=payload.quota,
         )
 
         has_error = not result.get("success")
@@ -71,6 +70,27 @@ class TrainAvailabilityCheckTool(BaseTool):
 
         train_info = result.get("train_info", {})
         classes = result.get("classes", [])
+
+        # Check if ALL classes have error messages (quota/tatkal errors)
+        if classes:
+            error_keywords = [
+                "quota", "not valid", "tatkal", "advance reservation period",
+                "error", "regret", "not available", "does not exist",
+                "class does not exist", "invalid", "failed"
+            ]
+            all_errors = all(
+                any(keyword in cls.get("status", "").lower() for keyword in error_keywords)
+                for cls in classes
+            )
+
+            if all_errors:
+                # All classes have errors - return error response without UI
+                error_status = classes[0].get("status", "Availability check failed")
+                return ToolResponseFormat(
+                    response_text=error_status,
+                    structured_content=result,
+                    is_error=True,
+                )
 
         # Get route information from result
         route_info = result.get("route_info", {})
@@ -88,7 +108,7 @@ class TrainAvailabilityCheckTool(BaseTool):
                 classes=classes,
                 journey_date=payload.journey_date,
                 route_info=route_info,
-                quota="GN",  # Always use General quota
+                quota=payload.quota,
             )
 
         # Render HTML for website users
@@ -100,7 +120,7 @@ class TrainAvailabilityCheckTool(BaseTool):
                 journey_date=payload.journey_date,
                 from_station=from_station,
                 to_station=to_station,
-                quota="GN",  # Always use General quota
+                quota=payload.quota,
                 from_station_code=route_info.get("from_station_code", ""),
                 to_station_code=route_info.get("to_station_code", ""),
             )

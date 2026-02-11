@@ -199,7 +199,22 @@ class AvailabilityCheckService:
                 to_display=to_station_display,
             )
 
-            # Extract availability status
+            # Check for API errors first (ErrorMsg will be null for successful responses)
+            if response.get("ErrorMsg") and response["ErrorMsg"].get("ErrorMessage"):
+                error_msg = response["ErrorMsg"]["ErrorMessage"].strip()
+                # Return error status that will be displayed to user
+                return {
+                    "success": True,  # API call succeeded (even though quota/date is invalid)
+                    "class_info": ClassAvailabilityInfo(
+                        class_code=class_code,
+                        status=error_msg,  # Show actual error: "Quota Code is not Valid" or "Outside Tatkal period"
+                        fare=None,
+                        fare_updated=None,
+                    ),
+                    "train_info": None,
+                }
+
+            # Extract availability status (for successful responses)
             status = "N/A"
             fare = None
             fare_updated = None
