@@ -39,8 +39,8 @@ class TrainApiClient:
             from_station_code: Origin station code (e.g., "ANVT")
             to_station_code: Destination station code (e.g., "BBS")
             journey_date: Date in DD/MM/YYYY format
-            from_display: Full from station display (e.g., "Delhi All Stations (NDLS)")
-            to_display: Full to station display (e.g., "BaniBihar (BNBH)")
+            from_display: Full from station display (e.g., "Delhi All Stations (NDLS)") - not used in current API
+            to_display: Full to station display (e.g., "BaniBihar (BNBH)") - not used in current API
 
         Returns:
             API response with avlDayList containing real availability
@@ -51,7 +51,90 @@ class TrainApiClient:
             "quotaSelectdd": quota,
             "fromstation": from_station_code,
             "tostation": to_station_code,
-            "e": f"{journey_date}|{from_display}|{to_display}",
+            "e": journey_date,  # Just the date in DD/MM/YYYY format
+            "lstSearch": {
+                "SelectQuta": "",
+                "arrivalTime": "",
+                "atasOpted": "",
+                "avlClasses": [
+                    {"code": "", "Name": "", "TotalPrice": ""},
+                    {"code": "", "Name": "", "TotalPrice": ""},
+                    {"code": "", "Name": "", "TotalPrice": ""},
+                    {"code": "", "Name": "", "TotalPrice": ""},
+                    {"code": "", "Name": "", "TotalPrice": ""}
+                ],
+                "departureTime": "",
+                "distance": "",
+                "duration": "",
+                "flexiFlag": "",
+                "fromStnName": "",
+                "fromStnCode": "",
+                "runningFri": "",
+                "runningMon": "",
+                "runningSat": "",
+                "runningSun": "",
+                "runningThu": "",
+                "runningTue": "",
+                "runningWed": "",
+                "toStnCode": "",
+                "toStnName": "",
+                "trainName": "",
+                "trainNumber": "",
+                "trainType": [
+                    {"code": "", "Name": "", "TotalPrice": None}
+                ],
+                "JourneyDate": None,
+                "ArrivalDate": "",
+                "departuredate": "",
+                "_TrainAvilFare": [],
+                "DistanceFromSrc": "",
+                "DistanceFromDest": "",
+                "DeptTime_12": None,
+                "ArrTime_12": None,
+                "TrainClassWiseFare": [
+                    {
+                        "BerthType": None,
+                        "EnqClassType": None,
+                        "enqClass": "",
+                        "enqClassName": "",
+                        "from": None,
+                        "quota": "",
+                        "quotaName": "",
+                        "to": None,
+                        "totalFare": "",
+                        "trainName": None,
+                        "trainNo": None,
+                        "departureTime": None,
+                        "ArrivalTime": None,
+                        "avlDayList": [
+                            {
+                                "availablityDate": "",
+                                "availablityStatus": "",
+                                "availablityType": "",
+                                "currentBkgFlag": None,
+                                "reason": None,
+                                "reasonType": None,
+                                "wlType": None,
+                                "creationTime": None,
+                                "totalFare": None,
+                                "availablityStatusNew": ""
+                            }
+                        ],
+                        "creationTime": None,
+                        "totalCollectibleAmount": None,
+                        "FileCreationTime": None,
+                        "UpdationTime": ""
+                    }
+                ],
+                "isCheckAvaibility": False,
+                "isShowClass": False,
+                "isShowQuota": False,
+                "NearByStation": ""
+            },
+            "Searchsource": "",
+            "Searchdestination": "",
+            "tkn": "",
+            "IPAdress": ""
         }
         return await self.client.post(AVAILABILITY_CHECK_URL, payload)
 
