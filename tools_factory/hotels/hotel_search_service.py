@@ -172,6 +172,9 @@ class HotelSearchService:
     search_key: str
     ) -> Dict[str, Any]:
 
+        print(f"DEBUG: API response keys: {response.keys()}")
+        print(f"DEBUG: API response (excluding htllist): { {k: v for k, v in response.items() if k != 'htllist'} }")
+
         hotels = response.get("htllist", []) or []
         resolved_key = response.get("key") or response.get("SearchKey") or search_key
 
