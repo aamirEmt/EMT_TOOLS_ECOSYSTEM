@@ -77,7 +77,7 @@ class HotelSearchInput(BaseModel):
     
     # Pagination
     page_no: int = Field(default=1, ge=1, description="Page number for results")
-    hotel_count: int = Field(default=30, ge=1, le=50, description="Max hotels per page")
+    hotel_count: int = Field(default=50, ge=1, le=100, description="Max hotels per page")
     page: int = Field(
         default=1,
         ge=1,
