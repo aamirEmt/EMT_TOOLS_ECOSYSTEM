@@ -7,13 +7,11 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 from emt_client.clients.train_client import TrainApiClient
+from emt_client.config import TRAIN_NAME_API_URL
 from .availability_check_schema import ClassAvailabilityInfo
 
 
 logger = logging.getLogger(__name__)
-
-# Train name autosuggest API
-TRAIN_NAME_API_URL = "https://autosuggest.easemytrip.com/api/auto/train_name?useby=popularu&key=jNUYK0Yj5ibO6ZVIkfTiFA=="
 
 
 async def fetch_train_details(train_no: str) -> Optional[Dict[str, str]]:
