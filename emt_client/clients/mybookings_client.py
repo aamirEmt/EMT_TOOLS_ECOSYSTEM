@@ -42,6 +42,16 @@ class MyBookingsApiClient:
         }
         return await self._post(url, payload)
 
+    async def verify_guest_login_otp(self, bid: str, otp: str) -> Dict[str, Any]:
+        """Step 1b: POST /Mybooking/VerifyGuestLoginOtp"""
+        url = f"{self.base_url}/Mybooking/VerifyGuestLoginOtp"
+        payload = {
+            "BetId": bid,
+            "otp": otp,
+            "transactionType": "Hotel",
+        }
+        return await self._post(url, payload)
+
     async def fetch_booking_details(self, bid: str) -> Dict[str, Any]:
         """Step 2: POST /Hotels/BookingDetails"""
         url = f"{self.base_url}/Hotels/BookingDetails"
