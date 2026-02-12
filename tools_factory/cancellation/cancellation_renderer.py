@@ -522,6 +522,28 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   line-height: 1.4;
 }
 
+.booking-details-carousel .hc-resend-otp-btn {
+  background: none;
+  border: none;
+  color: #2196f3;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 8px;
+  text-decoration: none;
+  display: inline-block;
+}
+.booking-details-carousel .hc-resend-otp-btn:hover {
+  text-decoration: underline;
+  color: #1565c0;
+}
+.booking-details-carousel .hc-resend-otp-btn:disabled {
+  color: #999;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
 .booking-details-carousel .hc-verify-icon--cancel {
   background: linear-gradient(135deg, #d32f2f 0%, #ef5350 100%);
   box-shadow: 0 4px 16px rgba(211, 47, 47, 0.25);
@@ -821,7 +843,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
           <input type="text" class="hc-login-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
         </div>
         <button type="button" class="hc-submit-btn hc-verify-otp-btn">Verify &amp; Continue</button>
-        <p class="hc-verify-footer">Didn't receive the OTP? Check your spam folder or try again later.</p>
+        <p class="hc-verify-footer">Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-login-otp">Resend OTP</button></p>
       </div>
     </div>
     {% endif %}
@@ -928,7 +950,10 @@ INTERACTIVE_BOOKING_TEMPLATE = """
           <button type="button" class="hc-back-btn" data-back-to="reason">Back</button>
           <button type="button" class="hc-submit-btn hc-confirm-btn">Confirm Cancellation</button>
         </div>
-        <p class="hc-verify-footer">This action cannot be undone. Refund will be processed as per cancellation policy.</p>
+        <p class="hc-verify-footer">
+          This action cannot be undone. Refund will be processed as per cancellation policy.<br>
+          Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-cancel-otp">Resend OTP</button>
+        </p>
       </div>
     </div>
 
@@ -954,6 +979,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   var VERIFY_OTP_URL = API_BASE + '/api/hotel-cancel/verify-otp';
   var OTP_URL = API_BASE + '/api/hotel-cancel/send-otp';
   var CANCEL_URL = API_BASE + '/api/hotel-cancel/confirm';
+  var RESEND_LOGIN_OTP_URL = API_BASE + '/api/hotel-cancel/resend-login-otp';
   var BID = '{{ bid }}';
   var BOOKING_ID = '{{ booking_id }}';
   var EMAIL = '{{ email }}';
@@ -1135,6 +1161,31 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     });
   }
 
+  /* ---- Resend login OTP ---- */
+  var resendLoginOtpBtn = container.querySelector('.hc-resend-login-otp');
+  if (resendLoginOtpBtn) {
+    resendLoginOtpBtn.addEventListener('click', function() {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      fetch(RESEND_LOGIN_OTP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL })
+      })
+      .then(function(resp) { return resp.json(); })
+      .then(function(data) {
+        btn.textContent = 'OTP Sent!';
+        setTimeout(function() { btn.textContent = 'Resend OTP'; btn.disabled = false; }, 3000);
+      })
+      .catch(function() {
+        showError('Failed to resend OTP. Please try again.');
+        btn.textContent = 'Resend OTP';
+        btn.disabled = false;
+      });
+    });
+  }
+
   /* ---- Step 1: Room selection ---- */
   var cancelBtns = container.querySelectorAll('.hc-cancel-btn');
   for (var i = 0; i < cancelBtns.length; i++) {
@@ -1186,6 +1237,25 @@ INTERACTIVE_BOOKING_TEMPLATE = """
           renderResult(result);
           showStep('result');
         }
+      });
+    });
+  }
+
+  /* ---- Resend cancellation OTP ---- */
+  var resendCancelOtpBtn = container.querySelector('.hc-resend-cancel-otp');
+  if (resendCancelOtpBtn) {
+    resendCancelOtpBtn.addEventListener('click', function() {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      sendOtp().then(function(result) {
+        if (result) {
+          btn.textContent = 'OTP Sent!';
+        } else {
+          btn.textContent = 'Resend OTP';
+        }
+        btn.disabled = false;
+        setTimeout(function() { btn.textContent = 'Resend OTP'; }, 3000);
       });
     });
   }
@@ -2092,6 +2162,13 @@ TRAIN_BOOKING_TEMPLATE = """
 .train-cancel-carousel .hc-refund-amount { font-size: 24px; font-weight: 700; color: #ef6614; font-family: inter, sans-serif; margin-bottom: 8px; }
 .train-cancel-carousel .hc-footer-note { font-size: 12px; color: #868686; text-align: center; margin-top: 20px; }
 
+.train-cancel-carousel .hc-resend-otp-btn {
+  background: none; border: none; color: #2196f3; font-size: 12px; font-weight: 600;
+  cursor: pointer; padding: 0; margin-top: 8px; text-decoration: none; display: inline-block;
+}
+.train-cancel-carousel .hc-resend-otp-btn:hover { text-decoration: underline; color: #1565c0; }
+.train-cancel-carousel .hc-resend-otp-btn:disabled { color: #999; cursor: not-allowed; text-decoration: none; }
+
 /* Dark mode */
 .train-cancel-carousel.dark { background: #000; color: #fff; }
 .train-cancel-carousel.dark .tc-train-info,
@@ -2196,7 +2273,7 @@ TRAIN_BOOKING_TEMPLATE = """
           <input type="text" class="hc-login-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
         </div>
         <button type="button" class="hc-submit-btn hc-verify-otp-btn">Verify &amp; Continue</button>
-        <p class="hc-verify-footer">Didn't receive the OTP? Check your spam folder or try again later.</p>
+        <p class="hc-verify-footer">Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-login-otp">Resend OTP</button></p>
       </div>
     </div>
     {% endif %}
@@ -2288,7 +2365,10 @@ TRAIN_BOOKING_TEMPLATE = """
           <button type="button" class="hc-back-btn" data-back-to="details">Back</button>
           <button type="button" class="hc-submit-btn tc-confirm-btn">Confirm Cancellation</button>
         </div>
-        <p class="hc-verify-footer">This action cannot be undone. Refund will be processed as per IRCTC cancellation policy.</p>
+        <p class="hc-verify-footer">
+          This action cannot be undone. Refund will be processed as per IRCTC cancellation policy.<br>
+          Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-cancel-otp">Resend OTP</button>
+        </p>
       </div>
     </div>
 
@@ -2314,6 +2394,7 @@ TRAIN_BOOKING_TEMPLATE = """
   var VERIFY_OTP_URL = API_BASE + '/api/hotel-cancel/verify-otp';
   var OTP_URL = API_BASE + '/api/hotel-cancel/send-otp';
   var CANCEL_URL = API_BASE + '/api/hotel-cancel/confirm';
+  var RESEND_LOGIN_OTP_URL = API_BASE + '/api/hotel-cancel/resend-login-otp';
   var BID = '{{ bid }}';
   var BOOKING_ID = '{{ booking_id }}';
   var EMAIL = '{{ email }}';
@@ -2479,6 +2560,31 @@ TRAIN_BOOKING_TEMPLATE = """
     });
   }
 
+  /* Resend login OTP */
+  var resendLoginOtpBtn = container.querySelector('.hc-resend-login-otp');
+  if (resendLoginOtpBtn) {
+    resendLoginOtpBtn.addEventListener('click', function() {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      fetch(RESEND_LOGIN_OTP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL })
+      })
+      .then(function(resp) { return resp.json(); })
+      .then(function() {
+        btn.textContent = 'OTP Sent!';
+        setTimeout(function() { btn.textContent = 'Resend OTP'; btn.disabled = false; }, 3000);
+      })
+      .catch(function() {
+        showError('Failed to resend OTP. Please try again.');
+        btn.textContent = 'Resend OTP';
+        btn.disabled = false;
+      });
+    });
+  }
+
   /* Step 1: Proceed with selected passengers */
   var proceedBtn = container.querySelector('.tc-proceed-btn');
   if (proceedBtn) {
@@ -2498,6 +2604,25 @@ TRAIN_BOOKING_TEMPLATE = """
       if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
       confirmCancellation(otp).then(function(result) {
         if (result) { renderResult(result); showStep('result'); }
+      });
+    });
+  }
+
+  /* Resend cancellation OTP */
+  var resendCancelOtpBtn = container.querySelector('.hc-resend-cancel-otp');
+  if (resendCancelOtpBtn) {
+    resendCancelOtpBtn.addEventListener('click', function() {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      sendOtp().then(function(result) {
+        if (result) {
+          btn.textContent = 'OTP Sent!';
+        } else {
+          btn.textContent = 'Resend OTP';
+        }
+        btn.disabled = false;
+        setTimeout(function() { btn.textContent = 'Resend OTP'; }, 3000);
       });
     });
   }
