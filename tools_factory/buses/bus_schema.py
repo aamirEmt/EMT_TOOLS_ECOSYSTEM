@@ -32,7 +32,7 @@ class BusSearchInput(BaseModel):
         description="Journey date in dd-mm-yyyy format (e.g., '30-01-2026')",
     )
     is_volvo: Optional[bool] = Field(
-        False,
+        None,
         alias="isVolvo",
         description="Filter for Volvo buses only",
     )
