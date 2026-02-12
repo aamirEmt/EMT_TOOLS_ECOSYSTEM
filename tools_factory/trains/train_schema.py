@@ -292,16 +292,19 @@ class WhatsappTrainFormat(BaseModel):
 
     @model_validator(mode='after')
     def validate_conditional_fields(self) -> 'WhatsappTrainFormat':
-        """Ensure correct fields are populated based on is_class_mentioned."""
+        """Ensure correct fields are populated based on is_class_mentioned.
+
+        Note: Empty lists are allowed (for "no trains found" scenarios).
+        """
         if self.is_class_mentioned:
-            if not self.trains:
+            if self.trains is None:
                 raise ValueError("trains list required when is_class_mentioned=True")
-            if self.options:
+            if self.options is not None:
                 raise ValueError("options should not be set when is_class_mentioned=True")
         else:
-            if not self.options:
+            if self.options is None:
                 raise ValueError("options list required when is_class_mentioned=False")
-            if self.trains:
+            if self.trains is not None:
                 raise ValueError("trains should not be set when is_class_mentioned=False")
         return self
 
