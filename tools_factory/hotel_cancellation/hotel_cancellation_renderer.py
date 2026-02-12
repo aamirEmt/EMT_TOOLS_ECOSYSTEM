@@ -438,6 +438,124 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   line-height: 1.5;
 }
 
+/* Verify OTP card */
+.booking-details-carousel .hc-verify-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.booking-details-carousel .hc-verify-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(239, 102, 20, 0.25);
+}
+
+.booking-details-carousel .hc-verify-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202020;
+  margin-bottom: 8px;
+}
+
+.booking-details-carousel .hc-verify-desc {
+  font-size: 13px;
+  color: #646d74;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.booking-details-carousel .hc-otp-field {
+  margin-bottom: 16px;
+}
+
+.booking-details-carousel .hc-otp-field .hc-login-otp-input {
+  width: 100%;
+  max-width: 240px;
+  padding: 14px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 4px;
+  font-family: inter, sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff;
+  color: #202020;
+}
+
+.booking-details-carousel .hc-otp-field .hc-login-otp-input:focus {
+  border-color: #ef6614;
+  box-shadow: 0 0 0 3px rgba(239, 102, 20, 0.1);
+}
+
+.booking-details-carousel .hc-otp-field .hc-login-otp-input::placeholder {
+  font-size: 14px;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: #bbb;
+}
+
+.booking-details-carousel .hc-verify-card .hc-submit-btn {
+  width: 100%;
+  max-width: 240px;
+  padding: 14px 24px;
+}
+
+.booking-details-carousel .hc-verify-footer {
+  font-size: 11px;
+  color: #999;
+  margin-top: 16px;
+  line-height: 1.4;
+}
+
+.booking-details-carousel .hc-verify-icon--cancel {
+  background: linear-gradient(135deg, #d32f2f 0%, #ef5350 100%);
+  box-shadow: 0 4px 16px rgba(211, 47, 47, 0.25);
+}
+
+.booking-details-carousel .hc-verify-card .hc-otp-input {
+  width: 100%;
+  max-width: 240px;
+  padding: 14px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 4px;
+  font-family: inter, sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff;
+  color: #202020;
+}
+
+.booking-details-carousel .hc-verify-card .hc-otp-input:focus {
+  border-color: #ef6614;
+  box-shadow: 0 0 0 3px rgba(239, 102, 20, 0.1);
+}
+
+.booking-details-carousel .hc-verify-card .hc-otp-input::placeholder {
+  font-size: 14px;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: #bbb;
+}
+
 /* Success result styling */
 .booking-details-carousel .hc-success-box {
   background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
@@ -608,6 +726,45 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 .booking-details-carousel.dark .hc-pay-pending {
   color: #ffb74d;
 }
+
+.booking-details-carousel.dark .hc-verify-card {
+  background: linear-gradient(135deg, #1a1a1a 0%, #111 100%);
+  border-color: #373737;
+}
+
+.booking-details-carousel.dark .hc-verify-title {
+  color: #fff;
+}
+
+.booking-details-carousel.dark .hc-verify-desc {
+  color: #bcbcbc;
+}
+
+.booking-details-carousel.dark .hc-otp-field .hc-login-otp-input {
+  background: #000;
+  border-color: #373737;
+  color: #fff;
+}
+
+.booking-details-carousel.dark .hc-otp-field .hc-login-otp-input:focus {
+  border-color: #ef6614;
+  box-shadow: 0 0 0 3px rgba(239, 102, 20, 0.2);
+}
+
+.booking-details-carousel.dark .hc-verify-footer {
+  color: #666;
+}
+
+.booking-details-carousel.dark .hc-verify-card .hc-otp-input {
+  background: #000;
+  border-color: #373737;
+  color: #fff;
+}
+
+.booking-details-carousel.dark .hc-verify-card .hc-otp-input:focus {
+  border-color: #ef6614;
+  box-shadow: 0 0 0 3px rgba(239, 102, 20, 0.2);
+}
 </style>
 
 <div class="booking-details-carousel round-trip-selector" data-instance-id="{{ instance_id }}">
@@ -650,15 +807,21 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     <!-- STEP 0: Login OTP verification -->
     {% if is_otp_send %}
     <div class="hc-step active" data-step="verify-otp">
-      <p class="hc-otp-hint">
-        📧 An OTP has been sent to your registered email/phone. Please enter it below to verify your identity before proceeding.
-      </p>
-      <div class="hc-form-group">
-        <label>Enter Login OTP</label>
-        <input type="text" class="hc-login-otp-input" maxlength="10" placeholder="e.g., 123456" autocomplete="one-time-code" />
-      </div>
-      <div class="hc-btn-row">
-        <button type="button" class="hc-submit-btn hc-verify-otp-btn">Verify OTP</button>
+      <div class="hc-verify-card">
+        <div class="hc-verify-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+          </svg>
+        </div>
+        <div class="hc-verify-title">Verify Your Identity</div>
+        <p class="hc-verify-desc">
+          We've sent a One-Time Password to your registered email &amp; phone number. Enter it below to continue.
+        </p>
+        <div class="hc-otp-field">
+          <input type="text" class="hc-login-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
+        </div>
+        <button type="button" class="hc-submit-btn hc-verify-otp-btn">Verify &amp; Continue</button>
+        <p class="hc-verify-footer">Didn't receive the OTP? Check your spam folder or try again later.</p>
       </div>
     </div>
     {% endif %}
@@ -748,16 +911,24 @@ INTERACTIVE_BOOKING_TEMPLATE = """
       <div class="hc-selected-room-badge">
         Cancelling: <strong class="hc-selected-room-label"></strong>
       </div>
-      <p class="hc-otp-hint">
-        An OTP has been sent to your registered email and phone number. Please enter it below to confirm the cancellation.
-      </p>
-      <div class="hc-form-group">
-        <label>Enter OTP</label>
-        <input type="text" class="hc-otp-input" maxlength="10" placeholder="e.g., ABC123" autocomplete="one-time-code" />
-      </div>
-      <div class="hc-btn-row">
-        <button type="button" class="hc-back-btn" data-back-to="reason">Back</button>
-        <button type="button" class="hc-submit-btn hc-confirm-btn">Confirm Cancellation</button>
+      <div class="hc-verify-card">
+        <div class="hc-verify-icon hc-verify-icon--cancel">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+          </svg>
+        </div>
+        <div class="hc-verify-title">Confirm Cancellation</div>
+        <p class="hc-verify-desc">
+          A cancellation OTP has been sent to your registered email &amp; phone. Enter it below to confirm.
+        </p>
+        <div class="hc-otp-field">
+          <input type="text" class="hc-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
+        </div>
+        <div class="hc-btn-row" style="justify-content: center;">
+          <button type="button" class="hc-back-btn" data-back-to="reason">Back</button>
+          <button type="button" class="hc-submit-btn hc-confirm-btn">Confirm Cancellation</button>
+        </div>
+        <p class="hc-verify-footer">This action cannot be undone. Refund will be processed as per cancellation policy.</p>
       </div>
     </div>
 
@@ -838,8 +1009,30 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     .then(function(resp) { return resp.json(); })
     .then(function(data) {
       showLoading(false);
-      if (!data.success) {
-        showError(data.message || 'Invalid OTP. Please try again.');
+      /* Handle multiple response formats:
+         - Direct API: { isVerify: "true", Message: "valid otp." }
+         - Tool response: { success: true, message: "..." }
+         - Wrapped: { structured_content: { success: true }, response_text: "..." }
+         - Status-based: { isStatus: true, Msg: "..." } */
+      var isVerified = false;
+      var msg = '';
+
+      if (data.structured_content) {
+        isVerified = !!data.structured_content.success;
+        msg = data.structured_content.message || data.response_text || '';
+      } else if (data.isVerify !== undefined) {
+        isVerified = String(data.isVerify).toLowerCase() === 'true';
+        msg = data.Message || data.Msg || '';
+      } else if (data.success !== undefined) {
+        isVerified = !!data.success;
+        msg = data.message || data.Message || '';
+      } else if (data.isStatus !== undefined) {
+        isVerified = !!data.isStatus;
+        msg = data.Msg || data.Message || '';
+      }
+
+      if (!isVerified) {
+        showError(msg || 'Invalid OTP. Please check and try again.');
         return null;
       }
       return data;
