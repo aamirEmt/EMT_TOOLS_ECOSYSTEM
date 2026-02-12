@@ -52,10 +52,11 @@ class TrainSearchInput(BaseModel):
         alias="arrivalTimeMax",
         description="Filter trains arriving at or before this time. Format: HH:MM in 24-hour format (e.g., '22:00' for 10:00 PM). Optional.",
     )
-    # quota: Optional[str] = Field(
-    #     "GN",
-    #     description="Booking quota (GN=General, TQ=Tatkal, SS=Senior Citizen, LD=Ladies)",
-    # )
+    quota: Optional[str] = Field(
+        "GN",
+        alias="quota",
+        description="Booking quota. Options: GN=General (default), TQ=Tatkal, SS=Senior Citizen, LD=Ladies.",
+    )
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -189,6 +190,24 @@ class TrainSearchInput(BaseModel):
                 "Time must be in HH:MM 24-hour format (e.g., '14:30', '09:00'). "
                 "Hours: 00-23, Minutes: 00-59."
             )
+
+        return v
+
+    @field_validator("quota")
+    @classmethod
+    def validate_quota(cls, v: Optional[str]) -> str:
+        """Validate and normalize quota code."""
+        if v is None:
+            return "GN"
+
+        v = v.strip().upper()
+
+        # Valid quota codes
+        valid_quotas = ["GN", "TQ", "SS", "LD"]
+
+        if v not in valid_quotas:
+            # Default to GN for invalid codes
+            return "GN"
 
         return v
 

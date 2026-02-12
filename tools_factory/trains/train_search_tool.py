@@ -50,7 +50,7 @@ class TrainSearchTool(BaseTool):
             to_station=payload.to_station,
             journey_date=payload.journey_date,
             travel_class=payload.travel_class,
-            quota="GN",
+            quota=payload.quota,
             departure_time_min=payload.departure_time_min,
             departure_time_max=payload.departure_time_max,
             arrival_time_min=payload.arrival_time_min,
@@ -67,7 +67,7 @@ class TrainSearchTool(BaseTool):
                     trains=train_results.get("trains", []),
                     travel_class=payload.travel_class,
                     journey_date=payload.journey_date,
-                    quota="GN",
+                    quota=payload.quota,
                     max_concurrent=5,  # Can be made configurable
                     max_trains=20,     # Can be made configurable
                 )
@@ -110,6 +110,17 @@ class TrainSearchTool(BaseTool):
         filter_parts = []
         if payload.travel_class:
             filter_parts.append(f"class {payload.travel_class}")
+
+        # Add quota info if not General
+        if payload.quota and payload.quota != "GN":
+            quota_labels = {
+                "TQ": "Tatkal",
+                "SS": "Senior Citizen",
+                "LD": "Ladies",
+            }
+            quota_label = quota_labels.get(payload.quota, payload.quota)
+            filter_parts.append(f"{quota_label} quota")
+
         if payload.departure_time_min or payload.departure_time_max:
             if payload.departure_time_min and payload.departure_time_max:
                 filter_parts.append(f"departure {payload.departure_time_min}-{payload.departure_time_max}")
