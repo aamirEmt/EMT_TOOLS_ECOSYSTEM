@@ -345,9 +345,9 @@ class HotelCancellationTool(BaseTool):
             structured_content=result,
         )
 
-    # ----------------------------------------------------------
+    # -----------------------------------------------------------
     # action = "confirm" — submit cancellation with OTP
-    # ----------------------------------------------------------
+    # -----------------------------------------------------------
     async def _handle_confirm(self, input_data: HotelCancellationInput, user_type: str) -> ToolResponseFormat:
         render_html = user_type.lower() == "website"
 

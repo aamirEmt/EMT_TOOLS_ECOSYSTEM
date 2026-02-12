@@ -1412,7 +1412,7 @@ def render_cancellation_success(cancellation_result: Dict[str, Any]) -> str:
     else:
         refund_data = None
 
-    # Get current date for cancellation date
+    
     cancellation_date = datetime.now().strftime("%d %b %Y, %I:%M %p")
 
     # Render template
