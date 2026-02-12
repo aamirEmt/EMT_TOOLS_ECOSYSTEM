@@ -53,7 +53,7 @@ AVAILABILITY_CHECK_TEMPLATE = """
 }
 
 .train-availability .avl-card {
-  width: 100%;
+  width: 80%;
   max-width: 294px;
   border: 1px solid #e0e0e0;
   border-radius: 12px;

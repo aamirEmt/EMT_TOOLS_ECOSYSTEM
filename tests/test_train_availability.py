@@ -51,6 +51,22 @@ def dummy_availability_check_mewar():
     }
 
 
+@pytest.fixture
+def dummy_availability_check_vande_bharat():
+    """Dummy payload for Vande Bharat Express availability check (NDLS to PRYJ)."""
+    today = datetime.now()
+    journey_date = (today + timedelta(days=25)).strftime("%d-%m-%Y")
+
+    return {
+        "trainNo": "22436",
+        "journeyDate": journey_date,
+        "classes": ["CC", "EC"],
+        "quota": "GN",
+        "fromStationCode": "NDLS",
+        "toStationCode": "PRYJ",
+    }
+
+
 # ============================================================================
 # TEST CASES - BASIC FUNCTIONALITY
 # ============================================================================
@@ -281,3 +297,59 @@ async def test_availability_check_all_classes():
     print(f"   Classes checked: {len(classes)}")
     for cls in classes:
         print(f"   - {cls['class_code']}: {cls['status']}")
+
+
+# ============================================================================
+# TEST CASES - STATION CODE OVERRIDE
+# ============================================================================
+
+@pytest.mark.asyncio
+async def test_availability_check_with_station_codes(dummy_availability_check_vande_bharat):
+    """Test availability check with explicit station codes (NDLS to PRYJ)."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("check_train_availability")
+
+    assert tool is not None, "❌ Tool 'check_train_availability' not found in factory!"
+
+    # Execute with station codes provided
+    payload = {**dummy_availability_check_vande_bharat, "_user_type": "website"}
+    result = await tool.execute(**payload)
+
+    # Assertions
+    assert isinstance(result, ToolResponseFormat), "Should return ToolResponseFormat"
+    assert not result.is_error, f"Should not have errors. Error: {result.response_text}"
+    assert result.response_text, "Should have response text"
+    assert result.html is not None, "Website mode should return HTML"
+
+    # Check structured content
+    assert result.structured_content is not None, "Should have structured content"
+    assert "train_info" in result.structured_content, "Should have train info"
+    assert "classes" in result.structured_content, "Should have classes"
+    assert "route_info" in result.structured_content, "Should have route info"
+
+    train_info = result.structured_content["train_info"]
+    assert train_info.get("train_no") == "22436", "Should have correct train number"
+    assert train_info.get("train_name"), "Should have train name"
+
+    route_info = result.structured_content["route_info"]
+    assert route_info.get("from_station_code") == "NDLS", "Should have NDLS as origin"
+    assert route_info.get("to_station_code") == "PRYJ", "Should have PRYJ as destination"
+
+    classes = result.structured_content["classes"]
+    assert len(classes) == 2, "Should have 2 classes (CC and EC)"
+
+    class_codes = [cls["class_code"] for cls in classes]
+    assert "CC" in class_codes, "Should have CC class"
+    assert "EC" in class_codes, "Should have EC class"
+
+    # Check each class has required fields
+    for cls in classes:
+        assert "class_code" in cls, "Class should have code"
+        assert "status" in cls, "Class should have status"
+
+    print(f"\n[PASS] Station Code Override Test Passed")
+    print(f"   Train: {train_info.get('train_name')} ({train_info.get('train_no')})")
+    print(f"   Route: {route_info.get('from_station_code')} → {route_info.get('to_station_code')}")
+    print(f"   Classes checked: {len(classes)}")
+    for cls in classes:
+        print(f"   - {cls['class_code']}: {cls['status']} (Rs.{cls.get('fare', 'N/A')})")

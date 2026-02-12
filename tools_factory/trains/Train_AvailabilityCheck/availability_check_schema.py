@@ -32,13 +32,13 @@ class AvailabilityCheckInput(BaseModel):
     from_station_code: Optional[str] = Field(
         default=None,
         alias="fromStationCode",
-        description="Origin station code (e.g., 'NDLS', 'BCT'). If not provided, will be fetched from train route.",
+        description="Origin/source station code. Station codes are typically 2-5 uppercase letters (e.g., 'NDLS' for New Delhi, 'BCT' for Mumbai Central, 'HWH' for Howrah, 'MAS' for Chennai, 'PRYJ' for Prayagraj). When user mentions 'from [STATION_CODE]' or '[STATION_CODE] to', extract and use this field. If not provided, the full train route will be used (origin to final destination).",
     )
 
     to_station_code: Optional[str] = Field(
         default=None,
         alias="toStationCode",
-        description="Destination station code (e.g., 'HWH', 'PUNE'). If not provided, will be fetched from train route.",
+        description="Destination station code. Station codes are typically 2-5 uppercase letters (e.g., 'NDLS' for New Delhi, 'PRYJ' for Prayagraj, 'PUNE' for Pune, 'BLR' for Bangalore). When user mentions 'to [STATION_CODE]' or '[STATION_CODE] from', extract and use this field. If not provided, the full train route will be used (origin to final destination).",
     )
 
     model_config = ConfigDict(
