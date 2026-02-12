@@ -71,6 +71,9 @@ class BusSearchTool(BaseTool):
             destination_id=payload.destination_id,
             journey_date=payload.journey_date,
             is_volvo=payload.is_volvo,
+            is_ac=payload.is_ac,
+            is_seater=payload.is_seater,
+            is_sleeper=payload.is_sleeper,
             source_name=payload.source_name,
             destination_name=payload.destination_name,
         )

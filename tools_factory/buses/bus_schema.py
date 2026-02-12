@@ -36,6 +36,21 @@ class BusSearchInput(BaseModel):
         alias="isVolvo",
         description="Filter for Volvo buses only",
     )
+    is_ac: Optional[bool] = Field(
+        None,
+        alias="isAC",
+        description="Filter for AC buses only. Set True for AC, False for Non-AC, None for all.",
+    )
+    is_seater: Optional[bool] = Field(
+        None,
+        alias="isSeater",
+        description="Filter for Seater buses only. Set True for Seater, False for Sleeper, None for all.",
+    )
+    is_sleeper: Optional[bool] = Field(
+        None,
+        alias="isSleeper",
+        description="Filter for Sleeper buses only. Set True for Sleeper, False for Seater, None for all.",
+    )
     page: int = Field(
         default=1,
         ge=1,

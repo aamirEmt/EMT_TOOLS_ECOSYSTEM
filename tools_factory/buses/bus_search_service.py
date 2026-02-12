@@ -454,6 +454,9 @@ def _process_single_bus(
     source_name: str = "",
     destination_name: str = "",
     filter_volvo: Optional[bool] = None,
+    filter_ac: Optional[bool] = None,
+    filter_seater: Optional[bool] = None,
+    filter_sleeper: Optional[bool] = None,
 ) -> Optional[BusInfo]:
     """
     Process a single bus from API response.
@@ -462,6 +465,24 @@ def _process_single_bus(
     """
     is_volvo = bus.get("isVolvo", False)
     if filter_volvo is True and not is_volvo:
+        return None
+
+    # AC filter: True = only AC, False = only Non-AC, None = all
+    bus_is_ac = bus.get("AC", False)
+    bus_is_non_ac = bus.get("nonAC", False)
+    if filter_ac is True and not bus_is_ac:
+        return None
+    if filter_ac is False and not bus_is_non_ac:
+        return None
+
+    # Seater filter: True = only Seater, None = all
+    bus_is_seater = bus.get("seater", False)
+    if filter_seater is True and not bus_is_seater:
+        return None
+
+    # Sleeper filter: True = only Sleeper, None = all
+    bus_is_sleeper = bus.get("sleeper", False)
+    if filter_sleeper is True and not bus_is_sleeper:
         return None
 
     bus_id = str(bus.get("id", ""))
@@ -537,6 +558,9 @@ def process_bus_results(
     source_name: str = "",
     destination_name: str = "",
     filter_volvo: Optional[bool] = None,
+    filter_ac: Optional[bool] = None,
+    filter_seater: Optional[bool] = None,
+    filter_sleeper: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """
     Process bus search results from the new API.
@@ -572,6 +596,9 @@ def process_bus_results(
             source_name,
             destination_name,
             filter_volvo,
+            filter_ac,
+            filter_seater,
+            filter_sleeper,
         )
         if processed_bus:
             buses.append(processed_bus.model_dump())
@@ -597,6 +624,9 @@ async def search_buses(
     destination_id: Optional[str] = None,
     journey_date: str = "",
     is_volvo: Optional[bool] = None,
+    is_ac: Optional[bool] = None,
+    is_seater: Optional[bool] = None,
+    is_sleeper: Optional[bool] = None,
     source_name: Optional[str] = None,
     destination_name: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -719,6 +749,9 @@ async def search_buses(
         resolved_source_name,
         resolved_dest_name,
         is_volvo,
+        is_ac,
+        is_seater,
+        is_sleeper,
     )
     
     # Add metadata
