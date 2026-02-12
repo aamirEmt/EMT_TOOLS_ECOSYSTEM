@@ -94,9 +94,9 @@ class HotelSearchTool(BaseTool):
         total_hotel_count = len(all_hotels)
 
         # DEBUG: Print counts
-        print(f"DEBUG: Total hotels from API: {total_hotel_count}")
-        print(f"DEBUG: Page requested: {search_input.page}")
-        print(f"DEBUG: Limit: {limit}")
+        # print(f"DEBUG: Total hotels from API: {total_hotel_count}")
+        # print(f"DEBUG: Page requested: {search_input.page}")
+        # print(f"DEBUG: Limit: {limit}")
         
         # Pagination logic
         page = search_input.page
@@ -105,8 +105,8 @@ class HotelSearchTool(BaseTool):
         paginated_hotels = all_hotels[offset:end] if not has_error else []
 
         # DEBUG: Print pagination result
-        print(f"DEBUG: Offset: {offset}, End: {end}")
-        print(f"DEBUG: Paginated hotels count: {len(paginated_hotels)}")
+        # print(f"DEBUG: Offset: {offset}, End: {end}")
+        # print(f"DEBUG: Paginated hotels count: {len(paginated_hotels)}")
         
         # Create limited_results as a COPY with paginated hotels
         limited_results = results.copy()

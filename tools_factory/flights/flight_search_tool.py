@@ -125,11 +125,11 @@ class FlightSearchTool(BaseTool):
         total_combo_count = len(all_combos)
 
         # DEBUG
-        print(f"DEBUG: Total outbound flights: {total_outbound_count}")
-        print(f"DEBUG: Total return flights: {total_return_count}")
-        print(f"DEBUG: Total international combos: {total_combo_count}")
-        print(f"DEBUG: Page requested: {payload.page}")
-        print(f"DEBUG: Limit: {limit}")
+        # print(f"DEBUG: Total outbound flights: {total_outbound_count}")
+        # print(f"DEBUG: Total return flights: {total_return_count}")
+        # print(f"DEBUG: Total international combos: {total_combo_count}")
+        # print(f"DEBUG: Page requested: {payload.page}")
+        # print(f"DEBUG: Limit: {limit}")
 
         # --------------------------------------------------
         # Pagination logic
@@ -138,16 +138,16 @@ class FlightSearchTool(BaseTool):
         offset = (page - 1) * limit
         end = offset + limit
 
-        print(f"DEBUG: Offset: {offset}, End: {end}")
+        # print(f"DEBUG: Offset: {offset}, End: {end}")
 
         # Paginate each list
         paginated_outbound = all_outbound[offset:end] if not has_error else []
         paginated_return = all_return[offset:end] if not has_error else []
         paginated_combos = all_combos[offset:end] if not has_error else []
 
-        print(f"DEBUG: Paginated outbound count: {len(paginated_outbound)}")
-        print(f"DEBUG: Paginated return count: {len(paginated_return)}")
-        print(f"DEBUG: Paginated combos count: {len(paginated_combos)}")
+        # print(f"DEBUG: Paginated outbound count: {len(paginated_outbound)}")
+        # print(f"DEBUG: Paginated return count: {len(paginated_return)}")
+        # print(f"DEBUG: Paginated combos count: {len(paginated_combos)}")
 
         # --------------------------------------------------
         # Generate short links for PAGINATED flights
