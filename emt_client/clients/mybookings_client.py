@@ -1,4 +1,4 @@
-"""MyBookings API Client for Hotel Cancellation Flow"""
+"""MyBookings API Client for Cancellation Flow (Hotel, Train, etc.)"""
 import httpx
 from typing import Dict, Any
 import logging
@@ -11,10 +11,10 @@ MYBOOKINGS_BASE_URL = "https://mybookings.easemytrip.com"
 
 class MyBookingsApiClient:
     """
-    Client for mybookings.easemytrip.com hotel cancellation APIs.
+    Client for mybookings.easemytrip.com cancellation APIs (Hotel, Train, etc.).
 
     Uses a persistent HTTP client with cookie jar to maintain session state
-    across the 4-step cancellation flow. Remember to call close() when done,
+    across the multi-step cancellation flow. Remember to call close() when done,
     or use as async context manager.
     """
 
@@ -42,13 +42,13 @@ class MyBookingsApiClient:
         }
         return await self._post(url, payload)
 
-    async def verify_guest_login_otp(self, bid: str, otp: str) -> Dict[str, Any]:
+    async def verify_guest_login_otp(self, bid: str, otp: str, transaction_type: str = "Hotel") -> Dict[str, Any]:
         """Step 1b: POST /Mybooking/VerifyGuestLoginOtp"""
         url = f"{self.base_url}/Mybooking/VerifyGuestLoginOtp"
         payload = {
             "BetId": bid,
             "otp": otp,
-            "transactionType": "Hotel",
+            "transactionType": transaction_type,
         }
         return await self._post(url, payload)
 
@@ -96,6 +96,47 @@ class MyBookingsApiClient:
             "Bid": bid,
         }
         logger.info(f"Cancellation payload: {payload}")
+        return await self._post(url, payload)
+
+    # ==================================================================
+    # Train-specific API methods
+    # ==================================================================
+
+    async def fetch_train_booking_details(self, bid: str) -> Dict[str, Any]:
+        """POST /Train/BookingDetail/"""
+        url = f"{self.base_url}/Train/BookingDetail/"
+        payload = {"bid": bid}
+        return await self._post(url, payload)
+
+    async def send_train_cancellation_otp(self, screen_id: str) -> Dict[str, Any]:
+        """POST /Train/CancellationOtp/"""
+        url = f"{self.base_url}/Train/CancellationOtp/"
+        payload = {"EmtScreenID": screen_id}
+        logger.info(f"Train OTP request payload: {payload}")
+        return await self._post(url, payload)
+
+    async def cancel_train(
+        self,
+        bid: str,
+        otp: str,
+        reservation_id: str,
+        pax_ids: list,
+        total_passenger: int,
+        pnr_number: str,
+    ) -> Dict[str, Any]:
+        """POST /Train/CancelTrain"""
+        url = f"{self.base_url}/Train/CancelTrain"
+        payload = {
+            "ArycheckedValue": ["Y"] * total_passenger,
+            "id": "",
+            "_reservationId": reservation_id,
+            "_PaxID": pax_ids,
+            "totalPassenger": total_passenger,
+            "PnrNumber": pnr_number,
+            "OTP": otp,
+            "bid": bid,
+        }
+        logger.info(f"Train cancellation payload: {payload}")
         return await self._post(url, payload)
 
     async def close(self):
