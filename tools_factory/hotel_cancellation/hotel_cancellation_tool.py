@@ -10,6 +10,7 @@ from ..base import BaseTool, ToolMetadata
 from ..base_schema import ToolResponseFormat
 from .hotel_cancellation_schema import HotelCancellationInput
 from .hotel_cancellation_service import HotelCancellationService
+from emt_client.config import CHATBOT_API_BASE_URL
 from .hotel_cancellation_renderer import render_booking_details, render_cancellation_success
 
 logger = logging.getLogger(__name__)
@@ -185,7 +186,7 @@ class HotelCancellationTool(BaseTool):
         # Website mode: render interactive HTML
         if render_html:
             details_result["booking_id"] = input_data.booking_id
-            api_base_url = os.getenv("CHATBOT_API_BASE_URL", "http://localhost:8000")
+            api_base_url = CHATBOT_API_BASE_URL
             html = render_booking_details(
                 booking_details=details_result,
                 booking_id=input_data.booking_id,

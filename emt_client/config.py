@@ -110,6 +110,12 @@ FLIGHT_ATK_TOKEN = _get_config_value(
     required=True  # This will error if not provided via injection or env
 )
 
+CHATBOT_API_BASE_URL =  _get_config_value(
+    'CHATBOT_API_BASE_URL',
+    'CHATBOT_API_BASE_URL',
+    required=True  # This will error if not provided via injection or env
+)
+
 FLIGHT_DEEPLINK = _get_config_value(
     'FLIGHT_DEEPLINK',
     'FLIGHT_DEEPLINK',
