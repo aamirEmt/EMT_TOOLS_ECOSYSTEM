@@ -674,17 +674,19 @@ def _build_booking_link(
 def build_whatsapp_train_response(
     payload: TrainSearchInput,
     train_results: Dict[str, Any],
+    tatkal_note: str = "",
 ) -> WhatsappTrainFinalResponse:
     """Build WhatsApp-formatted response (routes to appropriate builder)."""
     if payload.travel_class:
-        return _build_whatsapp_response_with_class(payload, train_results)
+        return _build_whatsapp_response_with_class(payload, train_results, tatkal_note)
     else:
-        return _build_whatsapp_response_without_class(payload, train_results)
+        return _build_whatsapp_response_without_class(payload, train_results, tatkal_note)
 
 
 def _build_whatsapp_response_with_class(
     payload: TrainSearchInput,
     train_results: Dict[str, Any],
+    tatkal_note: str = "",
 ) -> WhatsappTrainFinalResponse:
     """
     Build WhatsApp response when class IS mentioned.
@@ -737,6 +739,8 @@ def _build_whatsapp_response_with_class(
     )
 
     response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class}."
+    if tatkal_note:
+        response_text += tatkal_note
 
     return WhatsappTrainFinalResponse(
         response_text=response_text,
@@ -747,6 +751,7 @@ def _build_whatsapp_response_with_class(
 def _build_whatsapp_response_without_class(
     payload: TrainSearchInput,
     train_results: Dict[str, Any],
+    tatkal_note: str = "",
 ) -> WhatsappTrainFinalResponse:
     """
     Build WhatsApp response when class NOT mentioned.
@@ -796,6 +801,8 @@ def _build_whatsapp_response_without_class(
     )
 
     response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date}."
+    if tatkal_note:
+        response_text += tatkal_note
 
     return WhatsappTrainFinalResponse(
         response_text=response_text,

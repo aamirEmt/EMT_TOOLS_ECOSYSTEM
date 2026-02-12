@@ -1,5 +1,6 @@
 from tools_factory.base import BaseTool, ToolMetadata
 from pydantic import ValidationError
+from datetime import datetime, timedelta
 
 import logging
 
@@ -44,13 +45,31 @@ class TrainSearchTool(BaseTool):
                 is_error=True,
             )
 
+        # Tatkal date check: if TQ but date is beyond tomorrow, fallback to GN
+        tatkal_note = ""
+        search_quota = payload.quota
+        if payload.quota == "TQ" and payload.journey_date:
+            try:
+                journey_dt = datetime.strptime(payload.journey_date, "%d-%m-%Y").date()
+                tomorrow = datetime.now().date() + timedelta(days=1)
+                if journey_dt > tomorrow:
+                    search_quota = "GN"
+                    tatkal_note = (
+                        f" Note: Tatkal booking for {payload.journey_date} opens on "
+                        f"{(journey_dt - timedelta(days=1)).strftime('%d-%m-%Y')} "
+                        f"(10 AM for AC, 11 AM for Non-AC). Showing General quota results."
+                    )
+                    logger.info(f"Tatkal requested but journey date {payload.journey_date} is beyond tomorrow. Falling back to GN.")
+            except ValueError:
+                pass
+
         # Search trains with time filters
         train_results = await search_trains(
             from_station=payload.from_station,
             to_station=payload.to_station,
             journey_date=payload.journey_date,
             travel_class=payload.travel_class,
-            quota=payload.quota,
+            quota=search_quota,
             departure_time_min=payload.departure_time_min,
             departure_time_max=payload.departure_time_max,
             arrival_time_min=payload.arrival_time_min,
@@ -67,7 +86,7 @@ class TrainSearchTool(BaseTool):
                     trains=train_results.get("trains", []),
                     travel_class=payload.travel_class,
                     journey_date=payload.journey_date,
-                    quota=payload.quota,
+                    quota=search_quota,
                     max_concurrent=5,  # Can be made configurable
                     max_trains=20,     # Can be made configurable
                 )
@@ -140,7 +159,7 @@ class TrainSearchTool(BaseTool):
 
         # Build WhatsApp response if needed
         whatsapp_response = (
-            build_whatsapp_train_response(payload, train_results)
+            build_whatsapp_train_response(payload, train_results, tatkal_note)
             if is_whatsapp and not has_error
             else None
         )
@@ -157,6 +176,9 @@ class TrainSearchTool(BaseTool):
                 text = f"Showing trains {showing_from}-{showing_to} of {total} from {payload.from_station} to {payload.to_station}{filter_text} (Page {current_page})"
             else:
                 text = f"Found {train_count} trains from {payload.from_station} to {payload.to_station}{filter_text}!"
+
+        if tatkal_note:
+            text += tatkal_note
 
         # Render HTML for website users only when trains are found
         html_content = None
