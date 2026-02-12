@@ -759,6 +759,7 @@ async def search_flights(
     children: int,
     infants: int,
     cabin: Optional[str] = None,
+    stops: Optional[int] = None,
 ) -> dict:
     """Call EaseMyTrip flight search API.
 
@@ -770,6 +771,7 @@ async def search_flights(
         adults: Number of adult passengers
         children: Number of child passengers
         infants: Number of infant passengers
+        stops: Number of preferred stops (0 = nonstop, 1 = one stop, etc.)
 
     Returns:
         Dict containing flight search results with outbound and return flights
@@ -826,6 +828,7 @@ async def search_flights(
         "passengers": passengers,
         "cabin": cabin_enum.value,
         "is_international": is_international,
+        "stops": stops,
     }
 
   
@@ -914,6 +917,14 @@ def process_flight_results(
     Returns:
         Dict containing processed outbound and return flights
     """
+    def _coerce_stops(value: Any) -> Optional[int]:
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    stops_filter = _coerce_stops(search_context.get("stops")) if search_context else None
+
     outbound_flights = []
     return_flights = []
 
@@ -975,6 +986,21 @@ def process_flight_results(
                 )
     else:
         combos=[]
+
+    if stops_filter is not None:
+        outbound_flights = [
+            flight for flight in outbound_flights
+            if _coerce_stops(flight.get("total_stops")) == stops_filter
+        ]
+        return_flights = [
+            flight for flight in return_flights
+            if _coerce_stops(flight.get("total_stops")) == stops_filter
+        ]
+        combos = [
+            combo for combo in combos
+            if _coerce_stops(combo.get("onward_flight", {}).get("total_stops")) == stops_filter
+            and _coerce_stops(combo.get("return_flight", {}).get("total_stops")) == stops_filter
+        ]
 
     view_all_link = _build_view_all_link(search_context)
 

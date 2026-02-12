@@ -101,6 +101,7 @@ BASE_FLIGHT_STYLES = """
   display: flex;
   flex-direction: column;
   background: #fff;
+  position: relative;
 }
 
 .flight-carousel .ntfchdr {
@@ -267,6 +268,21 @@ BASE_FLIGHT_STYLES = """
   background: #2093ef;
   color: #fff;
   border-color: #2093ef;
+}
+
+.flight-carousel .cheapest-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #1fa35b;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(31, 163, 91, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 /* View All Card Styles */
@@ -602,6 +618,9 @@ ONEWAY_FLIGHT_TEMPLATE = """
       <div class="rsltcvr">
         {% for flight in flights %}
         <div class="fltcard item">
+          {% if loop.first %}
+          <div class="cheapest-badge">Cheapest</div>
+          {% endif %}
           <div class="ntfchdr">
             <div class="ntflogo">
               <img src="{{ flight.airline_logo }}" alt="{{ flight.airline_name }}" />
@@ -721,6 +740,9 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
           </div>
 
           <div class="fltcard">
+            {% if loop.first %}
+            <div class="cheapest-badge">Cheapest</div>
+            {% endif %}
             <div class="ntfchdr">
               <div class="ntflogo">
                 <img src="{{ flight.airline_logo }}" alt="{{ flight.airline_name }}" />
@@ -798,13 +820,16 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
         {% for flight in return_flights %}
         <label class="selectable-flight" for="return-{{ unique_id }}-{{ loop.index0 }}" data-flight='{{ flight | tojson }}' data-leg="return">
 
-        <div class="selectable-flight__radio">
+          <div class="selectable-flight__radio">
           <input id="return-{{ unique_id }}-{{ loop.index0 }}" type="radio" name="return-flight-{{ unique_id }}" style="display: none;"/>
-          <span class="dtlchkmark" aria-hidden="true"></span>
-          <span class="selectable-flight__hint">Select Return</span>
-        </div>
+            <span class="dtlchkmark" aria-hidden="true"></span>
+            <span class="selectable-flight__hint">Select Return</span>
+          </div>
 
           <div class="fltcard">
+            {% if loop.first %}
+            <div class="cheapest-badge">Cheapest</div>
+            {% endif %}
             <div class="ntfchdr">
               <div class="ntflogo">
                 <img src="{{ flight.airline_logo }}" alt="{{ flight.airline_name }}" />

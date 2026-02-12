@@ -101,6 +101,7 @@ class FlightSearchTool(BaseTool):
             children=payload.children,
             infants=payload.infants,
             cabin=payload.cabin,
+            stops=payload.stops,
         )
         has_error = bool(flight_results.get("error")) 
         # --------------------------------------------------
