@@ -35,7 +35,7 @@ class FlightSearchInput(BaseModel):
     )
     fastest: Optional[bool] = Field(
         None,
-        description="If true (or 1), sort results by fastest journey time first"
+        description="If the user asks for fastest/shortest/quickest flights, set this to true, don't skip it otherwise"
     )
     departure_time_window: Optional[str] = Field(
         "00:00-24:00",
