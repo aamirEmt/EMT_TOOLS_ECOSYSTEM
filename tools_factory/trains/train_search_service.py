@@ -730,7 +730,7 @@ def _build_whatsapp_response_with_class(
             "destination": payload.to_station,
             "date": payload.journey_date,
             "class": travel_class,
-            "quota": payload.quota or "GN",
+            "quota": train_results.get("quota", "GN"),
             "currency": train_results.get("currency", "INR"),
             "search_id": search_id,
         },
@@ -738,7 +738,12 @@ def _build_whatsapp_response_with_class(
         view_all_trains_url=train_results.get("view_all_link", ""),
     )
 
-    response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class}."
+    # Build response text based on whether trains were found
+    if not trains:
+        response_text = f"No trains found with available seats from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class}."
+    else:
+        response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class}."
+
     if tatkal_note:
         response_text += tatkal_note
 
@@ -792,7 +797,7 @@ def _build_whatsapp_response_without_class(
             "destination": payload.to_station,
             "date": payload.journey_date,
             "class": None,
-            "quota": payload.quota or "GN",
+            "quota": train_results.get("quota", "GN"),
             "currency": train_results.get("currency", "INR"),
             "search_id": search_id,
         },
@@ -800,7 +805,12 @@ def _build_whatsapp_response_without_class(
         view_all_trains_url=train_results.get("view_all_link", ""),
     )
 
-    response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date}."
+    # Build response text based on whether trains were found
+    if not options:
+        response_text = f"No trains found from {payload.from_station} to {payload.to_station} on {payload.journey_date}."
+    else:
+        response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date}."
+
     if tatkal_note:
         response_text += tatkal_note
 
