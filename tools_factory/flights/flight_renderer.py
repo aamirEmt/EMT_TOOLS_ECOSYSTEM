@@ -102,6 +102,7 @@ BASE_FLIGHT_STYLES = """
   flex-direction: column;
   background: #fff;
   position: relative;
+  overflow: visible; /* allow badges to peek outside */
 }
 
 .flight-carousel .ntfchdr {
@@ -272,8 +273,8 @@ BASE_FLIGHT_STYLES = """
 
 .flight-carousel .cheapest-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: 0;
+  right: 0;
   background: #1fa35b;
   color: #fff;
   padding: 6px 10px;
@@ -283,6 +284,9 @@ BASE_FLIGHT_STYLES = """
   box-shadow: 0 4px 12px rgba(31, 163, 91, 0.35);
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  transform: translate(40%, -60%) rotate(-2deg); /* peek outside top-right */
+  z-index: 3;
+  pointer-events: none;
 }
 
 /* View All Card Styles */

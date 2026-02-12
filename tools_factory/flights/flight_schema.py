@@ -28,7 +28,7 @@ class FlightSearchInput(BaseModel):
         None,
         description="Cabin preference like economy, premium economy, business, or first"
     )
-    stops: int = Field(
+    stops: Optional[int] = Field(
         None,
         description="Flight stop preference only if specified: 0(for non-stop), 1(stop), or 2(stops)"
     )
