@@ -512,7 +512,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 .booking-details-carousel .hc-verify-card .hc-submit-btn {
   width: 100%;
   max-width: 240px;
-  padding: 0px 7px;
+  padding: 8px 7px;
 }
 
 .booking-details-carousel .hc-verify-footer {
@@ -2128,7 +2128,7 @@ TRAIN_BOOKING_TEMPLATE = """
 
 </style>
 
-<div class="train-cancel-carousel" data-instance-id="{{ instance_id }}">
+<div class="train-cancel-carousel round-trip-selector" data-instance-id="{{ instance_id }}">
   <main>
     <div class="hc-loading"><div class="hc-spinner"></div></div>
     <div class="hc-error-msg"></div>
