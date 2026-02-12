@@ -119,6 +119,39 @@ class HotelCancellationService:
                 "ids": None,
             }
 
+    async def verify_otp(self, otp: str) -> Dict[str, Any]:
+        """
+        Step 1b: Verify guest login OTP.
+
+        Uses stored bid from guest_login.
+        Returns dict with keys: success, message, error
+        """
+        if not self._bid:
+            return {
+                "success": False,
+                "message": "No active session. Please start the cancellation flow first.",
+                "error": "NO_SESSION",
+            }
+
+        try:
+            response = await self.client.verify_guest_login_otp(self._bid, otp)
+
+            is_verified = str(response.get("isVerify", "")).lower() == "true"
+            msg = response.get("Message") or response.get("Msg") or ""
+
+            return {
+                "success": is_verified,
+                "message": msg if msg else ("OTP verified successfully" if is_verified else "Invalid OTP"),
+                "error": None if is_verified else "OTP_INVALID",
+            }
+        except Exception as e:
+            logger.error(f"OTP verification failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "message": "OTP verification failed due to an unexpected error",
+                "error": str(e),
+            }
+
     async def fetch_booking_details(self, bid: str) -> Dict[str, Any]:
         """
         Step 2: Fetch room and booking details using the bid token.

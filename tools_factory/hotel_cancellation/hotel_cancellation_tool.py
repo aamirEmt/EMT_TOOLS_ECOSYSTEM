@@ -80,9 +80,10 @@ class HotelCancellationTool(BaseTool):
     Single tool for the entire hotel cancellation flow.
 
     Actions:
-      - "start"    : Login + fetch booking details → returns room list
-      - "send_otp" : Send cancellation OTP to user's email
-      - "confirm"  : Submit cancellation with OTP, room_id, transaction_id
+      - "start"      : Login + fetch booking details (login OTP auto-sent)
+      - "verify_otp" : Verify guest login OTP before proceeding
+      - "send_otp"   : Send cancellation OTP to user's email
+      - "confirm"    : Submit cancellation with cancellation OTP, room_id, transaction_id
     """
 
     def get_metadata(self) -> ToolMetadata:
@@ -90,7 +91,8 @@ class HotelCancellationTool(BaseTool):
             name="hotel_cancellation",
             description=(
                 "Hotel booking cancellation tool. "
-                "Use action='start' with booking_id and email to fetch booking details. "
+                "Use action='start' with booking_id and email to login and fetch booking details (login OTP is auto-sent). "
+                "Use action='verify_otp' with otp to verify the guest login OTP. "
                 "Use action='send_otp' to send cancellation OTP. "
                 "Use action='confirm' with otp, room_id, and transaction_id to complete cancellation."
             ),
@@ -119,13 +121,15 @@ class HotelCancellationTool(BaseTool):
 
         if action == "start":
             return await self._handle_start(input_data, user_type)
+        elif action == "verify_otp":
+            return await self._handle_verify_otp(input_data)
         elif action == "send_otp":
             return await self._handle_send_otp(input_data)
         elif action == "confirm":
             return await self._handle_confirm(input_data, user_type)
         else:
             return ToolResponseFormat(
-                response_text=f"Unknown action '{input_data.action}'. Use 'start', 'send_otp', or 'confirm'.",
+                response_text=f"Unknown action '{input_data.action}'. Use 'start', 'verify_otp', 'send_otp', or 'confirm'.",
                 is_error=True,
             )
 
@@ -265,19 +269,24 @@ class HotelCancellationTool(BaseTool):
                     if line.strip():
                         room_descriptions.append(f"   {line}")
 
+        otp_sent = login_result.get("ids", {}).get("is_otp_send")
+        otp_notice = ""
+        if otp_sent:
+            otp_notice = "\n\n📧 An OTP has been sent to your registered email/phone. Please provide it to verify your identity before proceeding."
+
         if len(rooms) == 1:
             text = (
                 f"I've pulled up your booking details for {hotel_name}.\n\n"
                 + "\n".join(booking_summary) + "\n"
-                + "\n".join(room_descriptions) + "\n\n"
-                f"Would you like to cancel this booking?"
+                + "\n".join(room_descriptions)
+                + otp_notice
             )
         else:
             text = (
                 f"I've pulled up your booking details for {hotel_name}.\n\n"
                 + "\n".join(booking_summary) + "\n"
-                + "\n".join(room_descriptions) + "\n\n"
-                f"Which room would you like to cancel?"
+                + "\n".join(room_descriptions)
+                + otp_notice
             )
 
         whatsapp_response = None
@@ -310,6 +319,44 @@ class HotelCancellationTool(BaseTool):
             whatsapp_response=(
                 whatsapp_response.model_dump() if whatsapp_response else None
             ),
+        )
+
+    # ----------------------------------------------------------
+    # action = "verify_otp" — verify guest login OTP
+    # ----------------------------------------------------------
+    async def _handle_verify_otp(self, input_data: HotelCancellationInput) -> ToolResponseFormat:
+        if not input_data.otp:
+            return ToolResponseFormat(
+                response_text="Please provide the OTP sent to your registered email/phone.",
+                is_error=True,
+            )
+
+        service = await get_user_service(input_data.booking_id, input_data.email)
+        try:
+            result = await service.verify_otp(otp=input_data.otp)
+        except Exception as exc:
+            logger.error(f"Service error during OTP verification: {exc}", exc_info=True)
+            return ToolResponseFormat(
+                response_text="Something went wrong while verifying OTP. Please try again.",
+                is_error=True,
+            )
+
+        if not result["success"]:
+            return ToolResponseFormat(
+                response_text=(
+                    f"❌ {result['message']}\n\n"
+                    f"Please check the OTP and try again."
+                ),
+                structured_content=result,
+                is_error=True,
+            )
+
+        return ToolResponseFormat(
+            response_text=(
+                f"✅ OTP verified successfully!\n\n"
+                f"Your identity has been confirmed. Would you like to proceed with the cancellation?"
+            ),
+            structured_content=result,
         )
 
     # ----------------------------------------------------------

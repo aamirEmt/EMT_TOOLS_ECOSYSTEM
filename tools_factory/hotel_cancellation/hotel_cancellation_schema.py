@@ -10,7 +10,7 @@ class HotelCancellationInput(BaseModel):
     """Unified input for hotel cancellation tool"""
     action: str = Field(
         ...,
-        description="Action to perform: 'start' (login + fetch details), 'send_otp', or 'confirm' (submit cancellation)",
+        description="Action to perform: 'start' (login + fetch details), 'verify_otp' (verify guest login OTP), 'send_otp' (send cancellation OTP), or 'confirm' (submit cancellation)",
     )
     booking_id: str = Field(
         ...,
@@ -23,7 +23,7 @@ class HotelCancellationInput(BaseModel):
     # Fields required only for action="confirm"
     otp: Optional[str] = Field(
         default=None,
-        description="OTP received by the user (required for 'confirm')",
+        description="OTP received by the user (required for 'verify_otp' and 'confirm')",
     )
     room_id: Optional[str] = Field(
         default=None,

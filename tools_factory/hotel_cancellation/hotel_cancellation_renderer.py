@@ -696,7 +696,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         Cancelling: <strong class="hc-selected-room-label"></strong>
       </div>
       <p class="hc-otp-hint">
-        An OTP has been sent to your registered email address. Please enter it below to confirm the cancellation.
+        An OTP has been sent to your registered email and phone number. Please enter it below to confirm the cancellation.
       </p>
       <div class="hc-form-group">
         <label>Enter OTP</label>
