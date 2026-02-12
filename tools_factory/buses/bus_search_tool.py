@@ -16,28 +16,28 @@ class BusSearchTool(BaseTool):
         return ToolMetadata(
             name="search_buses",
             description=(
-                "Search for buses on EaseMyTrip. Use this tool whenever user asks about buses, bus tickets, bus travel, seater buses, sleeper buses, AC buses, or any bus booking. "
-                "Use city NAMES like 'Delhi', 'Mumbai', 'Ranchi', 'Manali' - NOT city IDs. "
-                "The system automatically resolves city names to IDs. "
-                "Required: source_name (source city), destination_name (destination city), journey_date (dd-mm-yyyy format). "
-                "FILTER PARAMETERS - Use these when user requests specific bus types: "
-                "- isAC: true for AC buses, false for Non-AC buses "
-                "- isSleeper: true for sleeper/semi-sleeper buses (beds/berths) "
-                "- isSeater: true for seater buses (regular sitting seats, NOT sleeper) "
-                "- isVolvo: true for Volvo buses only "
-                "KEYWORD MATCHING: "
-                "- 'seater bus', 'seater', 'sitting bus', 'chair bus', 'regular seat' -> set isSeater=true "
-                "- 'sleeper bus', 'sleeper', 'sleeping bus', 'semi-sleeper', 'berth', 'bed bus' -> set isSleeper=true "
-                "- 'AC bus', 'air conditioned' -> set isAC=true "
-                "- 'Non-AC bus', 'non ac', 'without AC' -> set isAC=false "
-                "COMBINATIONS: "
-                "- 'AC seater' -> isAC=true AND isSeater=true "
-                "- 'Non-AC sleeper' -> isAC=false AND isSleeper=true "
-                "- 'AC sleeper' -> isAC=true AND isSleeper=true "
-                "ALWAYS make a fresh API call with filters - never filter from cached results."
-                "ALWAYS call this tool for any bus-related query"
-
-            ),
+            "MANDATORY: Use this tool for ANY query about buses including seater buses, sleeper buses, AC buses, bus tickets, bus travel. "
+            "TRIGGER WORDS: bus, buses, seater, sleeper, AC bus, non-AC bus, Volvo, bus ticket, bus booking. "
+            "Search for buses on EaseMyTrip. Use city NAMES like 'Delhi', 'Mumbai', 'Ranchi', 'Manali' - NOT city IDs. "
+            "The system automatically resolves city names to IDs. "
+            "Required: source_name (source city), destination_name (destination city), journey_date (dd-mm-yyyy format). "
+            "FILTER PARAMETERS - Use these when user requests specific bus types: "
+            "- isAC: true for AC buses, false for Non-AC buses "
+            "- isSleeper: true for sleeper/semi-sleeper buses (beds/berths) "
+            "- isSeater: true for seater buses (regular sitting seats, NOT sleeper) "
+            "- isVolvo: true for Volvo buses only "
+            "KEYWORD MATCHING: "
+            "- 'seater bus', 'seater', 'sitting bus', 'chair bus', 'regular seat' -> set isSeater=true "
+            "- 'sleeper bus', 'sleeper', 'sleeping bus', 'semi-sleeper', 'berth', 'bed bus' -> set isSleeper=true "
+            "- 'AC bus', 'air conditioned' -> set isAC=true "
+            "- 'Non-AC bus', 'non ac', 'without AC' -> set isAC=false "
+            "COMBINATIONS: "
+            "- 'AC seater' -> isAC=true AND isSeater=true "
+            "- 'Non-AC sleeper' -> isAC=false AND isSleeper=true "
+            "- 'AC sleeper' -> isAC=true AND isSleeper=true "
+            "ALWAYS make a fresh API call with filters - never filter from cached results. "
+            "ALWAYS call this tool for any bus-related query. Never show menu options for bus searches."
+        ),
             input_schema=BusSearchInput.model_json_schema(),
             output_template="ui://widget/bus-carousel.html",
             category="travel",
