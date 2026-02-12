@@ -274,18 +274,23 @@ BASE_FLIGHT_STYLES = """
 .flight-carousel .cheapest-badge {
   position: absolute;
   top: 6px;
-  right: 6px;
+  right: 60px; /* keep clear of fare box */
   background: #1fa35b;
   color: #fff;
-  padding: 4px 8px;
+  padding: 4px 7px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
   box-shadow: 0 4px 12px rgba(31, 163, 91, 0.35);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   z-index: 3;
   pointer-events: none;
+}
+
+.flight-carousel .cheapest-badge.fastest {
+  background: #f57c00;
+  box-shadow: 0 4px 12px rgba(245, 124, 0, 0.35);
 }
 
 /* View All Card Styles */
@@ -622,7 +627,7 @@ ONEWAY_FLIGHT_TEMPLATE = """
         {% for flight in flights %}
         <div class="fltcard item">
           {% if loop.first %}
-          <div class="cheapest-badge">Cheapest</div>
+          <div class="cheapest-badge{% if fastest %} fastest{% endif %}">{{ 'Fastest' if fastest else 'Cheapest' }}</div>
           {% endif %}
           <div class="ntfchdr">
             <div class="ntflogo">
@@ -744,7 +749,7 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
 
           <div class="fltcard">
             {% if loop.first %}
-            <div class="cheapest-badge">Cheapest</div>
+            <div class="cheapest-badge{% if fastest %} fastest{% endif %}">{{ 'Fastest' if fastest else 'Cheapest' }}</div>
             {% endif %}
             <div class="ntfchdr">
               <div class="ntflogo">
@@ -831,7 +836,7 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
 
           <div class="fltcard">
             {% if loop.first %}
-            <div class="cheapest-badge">Cheapest</div>
+            <div class="cheapest-badge{% if fastest %} fastest{% endif %}">{{ 'Fastest' if fastest else 'Cheapest' }}</div>
             {% endif %}
             <div class="ntfchdr">
               <div class="ntflogo">
@@ -1747,6 +1752,7 @@ def render_oneway_flights(flight_results: Dict[str, Any]) -> str:
         departure_date=departure_date,
         cabin=flight_results.get('cabin', 'Economy'),
         view_all_link=flight_results.get('viewAll'),
+        fastest=flight_results.get('fastest', False),
     )
 
 
@@ -1822,6 +1828,7 @@ def render_domestic_roundtrip_flights(flight_results: Dict[str, Any], unique_id:
         language='ln-hi',
         currency='INR',
         pos_country='IN',
+        fastest=flight_results.get('fastest', False),
     )
 
 def render_international_roundtrip_flights(flight_results: Dict[str, Any]) -> str:

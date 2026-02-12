@@ -33,6 +33,10 @@ class FlightSearchInput(BaseModel):
         None,
         description="Flight stop preference only if specified: 0(for non-stop), 1(stop), or 2(stops)"
     )
+    fastest: Optional[bool] = Field(
+        None,
+        description="If true (or 1), sort results by fastest journey time first"
+    )
     departure_time_window: Optional[str] = Field(
         "00:00-24:00",
         alias="departureTimeWindow",
@@ -79,6 +83,23 @@ class FlightSearchInput(BaseModel):
         except ValueError:
             raise ValueError("Date must be in YYYY-MM-DD format")
         return v
+    
+    @field_validator("fastest", mode="before")
+    @classmethod
+    def coerce_fastest(cls, v):
+        if v is None:
+            return v
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, (int, float)):
+            return bool(int(v))
+        if isinstance(v, str):
+            text = v.strip().lower()
+            if text in {"1", "true", "yes", "y"}:
+                return True
+            if text in {"0", "false", "no", "n"}:
+                return False
+        raise ValueError("fastest must be a boolean-like value (true/false or 1/0)")
     
     @staticmethod
     def _normalize_time_str(raw: str) -> Optional[tuple[int, int]]:

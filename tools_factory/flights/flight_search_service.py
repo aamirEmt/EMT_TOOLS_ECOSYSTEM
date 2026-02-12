@@ -100,6 +100,74 @@ def _clean_time(raw_time: str) -> str:
     return "".join(ch for ch in str(raw_time) if ch.isdigit())
 
 
+def _duration_to_minutes(value: Any) -> Optional[int]:
+    """Parse duration strings like '09h 50m', '4h05m', '09:50' into minutes."""
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+
+    text = str(value).strip().lower()
+    if not text:
+        return None
+
+    # Pattern with hours and minutes
+    match = re.search(r"(?:(\d+)\s*h)?\s*(\d+)\s*m", text)
+    if match:
+        hours = int(match.group(1) or 0)
+        minutes = int(match.group(2))
+        return hours * 60 + minutes
+
+    # Pattern like 4h05m (no space)
+    match = re.search(r"(\d+)h(\d+)", text)
+    if match:
+        hours = int(match.group(1))
+        minutes = int(match.group(2))
+        return hours * 60 + minutes
+
+    # Pattern HH:MM
+    if ":" in text:
+        parts = text.split(":")
+        if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
+            hours = int(parts[0])
+            minutes = int(parts[1][:2])
+            return hours * 60 + minutes
+
+    # Fallback digits: treat as HHMM if length>2 else hours
+    digits = "".join(ch for ch in text if ch.isdigit())
+    if digits:
+        if len(digits) > 2:
+            hours = int(digits[:-2])
+            minutes = int(digits[-2:])
+            return hours * 60 + minutes
+        return int(digits) * 60
+
+    return None
+
+
+def _sum_leg_durations(legs: List[Dict[str, Any]]) -> Optional[int]:
+    total = 0
+    found = False
+    for leg in legs or []:
+        minutes = _duration_to_minutes(leg.get("duration"))
+        if minutes is not None:
+            total += minutes
+            found = True
+    return total if found else None
+
+
+def _flight_duration_minutes(flight: Dict[str, Any]) -> int:
+    """Compute duration in minutes for sorting; inf if unknown."""
+    if not flight:
+        return float("inf")
+    minutes = _duration_to_minutes(flight.get("journey_time"))
+    if minutes is None:
+        minutes = _sum_leg_durations(flight.get("legs", []))
+    if minutes is None:
+        return float("inf")
+    return minutes
+
+
 def _build_segment_strings(
     legs: List[Dict[str, Any]],
     default_departure: Optional[str],
@@ -760,6 +828,7 @@ async def search_flights(
     infants: int,
     cabin: Optional[str] = None,
     stops: Optional[int] = None,
+    fastest: Optional[bool] = None,
     departure_time_window: Optional[str] = None,
     arrival_time_window: Optional[str] = None,
 ) -> dict:
@@ -774,6 +843,7 @@ async def search_flights(
         children: Number of child passengers
         infants: Number of infant passengers
         stops: Number of preferred stops (0 = nonstop, 1 = one stop, etc.)
+        fastest: If true, sort results by shortest journey time
         departure_time_window: Time-of-day window for departure (e.g., '06:00-12:00')
         arrival_time_window: Time-of-day window for arrival (e.g., '18:00-23:00')
 
@@ -833,6 +903,7 @@ async def search_flights(
         "cabin": cabin_enum.value,
         "is_international": is_international,
         "stops": stops,
+        "fastest": fastest,
         "departure_time_window": departure_time_window,
         "arrival_time_window": arrival_time_window,
     }
@@ -1032,6 +1103,7 @@ def process_flight_results(
         return _is_within_window(dep_time, departure_window) and _is_within_window(arr_time, arrival_window)
 
     stops_filter = _coerce_stops(search_context.get("stops")) if search_context else None
+    fastest_flag = bool(search_context.get("fastest")) if search_context else False
 
     outbound_flights = []
     return_flights = []
@@ -1115,6 +1187,15 @@ def process_flight_results(
             if _coerce_stops(combo.get("onward_flight", {}).get("total_stops")) == stops_filter
             and _coerce_stops(combo.get("return_flight", {}).get("total_stops")) == stops_filter
         ]
+
+    if fastest_flag:
+        outbound_flights = sorted(outbound_flights, key=_flight_duration_minutes)
+        return_flights = sorted(return_flights, key=_flight_duration_minutes)
+        combos = sorted(
+            combos,
+            key=lambda c: _flight_duration_minutes(c.get("onward_flight", {}))
+            + _flight_duration_minutes(c.get("return_flight", {}))
+        )
 
     view_all_link = _build_view_all_link(search_context)
 

@@ -102,6 +102,7 @@ class FlightSearchTool(BaseTool):
             infants=payload.infants,
             cabin=payload.cabin,
             stops=payload.stops,
+            fastest=payload.fastest,
             departure_time_window=payload.departure_time_window,
             arrival_time_window=payload.arrival_time_window,
         )
@@ -114,6 +115,7 @@ class FlightSearchTool(BaseTool):
             "children": payload.children,
             "infants": payload.infants,
         }
+        flight_results["fastest"] = payload.fastest
         is_roundtrip = flight_results.get("is_roundtrip")
         is_international = flight_results.get("is_international")
         if is_whatsapp and not is_international:
