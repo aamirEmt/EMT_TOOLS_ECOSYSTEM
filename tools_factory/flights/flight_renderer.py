@@ -93,7 +93,7 @@ BASE_FLIGHT_STYLES = """
 }
 
 .flight-carousel .fltcard {
-  padding: 10px;
+  padding: 16px 14px 12px 10px; /* a bit more top/right room for the badge */
   border-radius: 12px;
   border: 1px solid #e0e0e0;
   min-width: 250px;
@@ -273,18 +273,17 @@ BASE_FLIGHT_STYLES = """
 
 .flight-carousel .cheapest-badge {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 6px;
+  right: 6px;
   background: #1fa35b;
   color: #fff;
-  padding: 6px 10px;
+  padding: 4px 8px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   box-shadow: 0 4px 12px rgba(31, 163, 91, 0.35);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  transform: translate(40%, -60%) rotate(-2deg); /* peek outside top-right */
   z-index: 3;
   pointer-events: none;
 }

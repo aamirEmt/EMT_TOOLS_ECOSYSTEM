@@ -760,6 +760,8 @@ async def search_flights(
     infants: int,
     cabin: Optional[str] = None,
     stops: Optional[int] = None,
+    departure_time_window: Optional[str] = None,
+    arrival_time_window: Optional[str] = None,
 ) -> dict:
     """Call EaseMyTrip flight search API.
 
@@ -772,6 +774,8 @@ async def search_flights(
         children: Number of child passengers
         infants: Number of infant passengers
         stops: Number of preferred stops (0 = nonstop, 1 = one stop, etc.)
+        departure_time_window: Time-of-day window for departure (e.g., '06:00-12:00')
+        arrival_time_window: Time-of-day window for arrival (e.g., '18:00-23:00')
 
     Returns:
         Dict containing flight search results with outbound and return flights
@@ -829,6 +833,8 @@ async def search_flights(
         "cabin": cabin_enum.value,
         "is_international": is_international,
         "stops": stops,
+        "departure_time_window": departure_time_window,
+        "arrival_time_window": arrival_time_window,
     }
 
   
@@ -923,6 +929,108 @@ def process_flight_results(
         except (TypeError, ValueError):
             return None
 
+    def _parse_single_time(value: Any) -> Optional[int]:
+        """Parse 'HH:MM' or 'HHMM' (24h)."""
+        if value is None:
+            return None
+        raw = str(value).strip()
+        if not raw:
+            return None
+
+        raw = raw.replace(" ", "")
+        if ":" in raw:
+            parts = raw.split(":", 1)
+            if len(parts) != 2 or not parts[0].isdigit() or not parts[1].isdigit():
+                return None
+            hour = int(parts[0])
+            minute = int(parts[1])
+        else:
+            digits = re.sub(r"\D", "", raw)
+            if len(digits) not in (3, 4):
+                return None
+            hour = int(digits[:-2])
+            minute = int(digits[-2:])
+
+        if hour > 24 or minute > 59:
+            return None
+        if hour == 24 and minute > 0:
+            return None
+
+        return hour * 60 + minute
+
+    def _parse_time_window(window_value: Optional[Any]) -> tuple[int, int, bool]:
+        default_window = (0, 1440, False)
+        if window_value is None:
+            return default_window
+
+        text = str(window_value).strip()
+        if not text:
+            return default_window
+
+        if "-" not in text and "to" not in text:
+            return default_window
+
+        sep = "-" if "-" in text else "to"
+        parts = [p.strip() for p in text.split(sep, 1)]
+        if len(parts) != 2:
+            return default_window
+
+        start = _parse_single_time(parts[0])
+        end = _parse_single_time(parts[1])
+
+        if start is None or end is None:
+            return default_window
+
+        wrap = end < start
+        return (start, end, wrap)
+
+    def _time_to_minutes(raw_time: Any) -> Optional[int]:
+        if raw_time is None:
+            return None
+
+        digits = re.sub(r"\D", "", str(raw_time))
+        if not digits:
+            return None
+
+        if len(digits) == 3:
+            hour = int(digits[0])
+            minute = int(digits[1:])
+        else:
+            hour = int(digits[:2])
+            minute = int(digits[2:4]) if len(digits) >= 4 else 0
+
+        if hour > 24 or minute > 59:
+            return None
+
+        if hour == 24 and minute > 0:
+            hour, minute = 23, 59
+
+        return hour * 60 + minute
+
+    def _is_within_window(raw_time: Any, window: tuple[int, int, bool]) -> bool:
+        if not window:
+            return True
+        start, end, wrap = window
+        if start == 0 and end == 1440 and not wrap:
+            return True
+        minutes = _time_to_minutes(raw_time)
+        if minutes is None:
+            return False
+        if wrap:
+            return minutes >= start or minutes <= end
+        return start <= minutes <= end
+
+    departure_window = _parse_time_window(search_context.get("departure_time_window") if search_context else None)
+    arrival_window = _parse_time_window(search_context.get("arrival_time_window") if search_context else None)
+
+    def _matches_time_filters(flight: Dict[str, Any]) -> bool:
+        legs = flight.get("legs") or []
+        if not legs:
+            return True
+        dep_time = legs[0].get("departure_time")
+        arr_time = legs[-1].get("arrival_time")
+        return _is_within_window(dep_time, departure_window) and _is_within_window(arr_time, arrival_window)
+
     stops_filter = _coerce_stops(search_context.get("stops")) if search_context else None
 
     outbound_flights = []
@@ -962,7 +1070,7 @@ def process_flight_results(
                 
             )
 
-            if processed_flight:
+            if processed_flight and _matches_time_filters(processed_flight):
                 if journey_index == 0:
                     outbound_flights.append(processed_flight)
                 elif journey_index == 1 and is_roundtrip:
@@ -984,6 +1092,12 @@ def process_flight_results(
                 return_flight=combo["return_flight"],
                 passengers=passengers,
                 )
+        if combos:
+            combos = [
+                combo for combo in combos
+                if _matches_time_filters(combo.get("onward_flight", {}))
+                and _matches_time_filters(combo.get("return_flight", {}))
+            ]
     else:
         combos=[]
 
