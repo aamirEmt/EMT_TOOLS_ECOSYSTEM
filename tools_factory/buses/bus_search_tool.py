@@ -19,7 +19,14 @@ class BusSearchTool(BaseTool):
                 "Search for buses on EaseMyTrip. "
                 "Use city NAMES like 'Delhi', 'Mumbai', 'Ranchi', 'Manali' - NOT city IDs. "
                 "The system automatically resolves city names to IDs. "
-                "Required: source_name (source city), destination_name (destination city), journey_date (YYYY-MM-DD format)."
+                "Required: source_name (source city), destination_name (destination city), journey_date (dd-mm-yyyy format). "
+                "IMPORTANT: When user asks for filtered results (AC buses, Non-AC buses, sleeper buses, seater buses), "
+                "you MUST call this tool again with the appropriate filter parameters: "
+                "- For AC buses: set isAC=true "
+                "- For Non-AC buses: set isAC=false "
+                "- For sleeper buses: set isSleeper=true "
+                "- For seater buses: set isSeater=true "
+                "NEVER filter from previous results - ALWAYS make a new API call with filters."
             ),
             input_schema=BusSearchInput.model_json_schema(),
             output_template="ui://widget/bus-carousel.html",
@@ -65,6 +72,7 @@ class BusSearchTool(BaseTool):
                 is_error=True,
             )
 
+        print(f"DEBUG: Bus search filters - is_ac={payload.is_ac}, is_seater={payload.is_seater}, is_sleeper={payload.is_sleeper}, is_volvo={payload.is_volvo}")
 
         bus_results = await search_buses(
             source_id=payload.source_id,
