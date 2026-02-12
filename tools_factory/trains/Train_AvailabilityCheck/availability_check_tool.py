@@ -51,12 +51,14 @@ class TrainAvailabilityCheckTool(BaseTool):
                 is_error=True,
             )
 
-        # Check availability across multiple classes (route is fetched automatically)
+        # Check availability across multiple classes (route is fetched if not provided)
         result = await self.service.check_availability_multiple_classes(
             train_no=payload.train_no,
             classes=payload.classes,
             journey_date=payload.journey_date,
             quota=payload.quota,
+            from_station_code=payload.from_station_code,
+            to_station_code=payload.to_station_code,
         )
 
         has_error = not result.get("success")

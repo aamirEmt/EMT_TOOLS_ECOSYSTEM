@@ -62,6 +62,8 @@ class AvailabilityCheckService:
         classes: List[str],
         journey_date: str,
         quota: str = "GN",
+        from_station_code: Optional[str] = None,
+        to_station_code: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Check availability for multiple classes in parallel.
@@ -71,25 +73,37 @@ class AvailabilityCheckService:
             classes: List of class codes to check (e.g., ["3A", "2A", "1A"])
             journey_date: Journey date in DD-MM-YYYY format
             quota: Quota code (GN, TQ, etc.)
+            from_station_code: Origin station code (optional, fetched if not provided)
+            to_station_code: Destination station code (optional, fetched if not provided)
 
         Returns:
             Dictionary with success, train_info, and classes list
         """
-        # Fetch train details to get route information
-        train_details = await fetch_train_details(train_no)
+        train_name = None
+        from_station_name = None
+        to_station_name = None
 
-        if not train_details:
-            return {
-                "success": False,
-                "error": f"Could not fetch details for train {train_no}. Please verify the train number.",
-                "train_info": None,
-                "classes": [],
-            }
+        # Only fetch train details if station codes are not provided
+        if not from_station_code or not to_station_code:
+            train_details = await fetch_train_details(train_no)
 
-        from_station_code = train_details["from_station_code"]
-        to_station_code = train_details["to_station_code"]
-        from_station_display = train_details.get("from_station_name", from_station_code)
-        to_station_display = train_details.get("to_station_name", to_station_code)
+            if not train_details:
+                return {
+                    "success": False,
+                    "error": f"Could not fetch details for train {train_no}. Please verify the train number.",
+                    "train_info": None,
+                    "classes": [],
+                }
+
+            from_station_code = train_details["from_station_code"]
+            to_station_code = train_details["to_station_code"]
+            from_station_name = train_details.get("from_station_name", "")
+            to_station_name = train_details.get("to_station_name", "")
+            train_name = train_details.get("train_name")
+
+        # Use station names for display, fallback to codes if not available
+        from_station_display = from_station_name if from_station_name else from_station_code
+        to_station_display = to_station_name if to_station_name else to_station_code
 
         # Convert date format: DD-MM-YYYY -> DD/MM/YYYY for API
         api_date = journey_date.replace("-", "/")
@@ -139,11 +153,11 @@ class AvailabilityCheckService:
                 if train_info is None and result.get("train_info"):
                     train_info = result["train_info"]
 
-        # If no train info was extracted from API, use fetched train details
+        # If no train info was extracted from API, use fetched train name or default
         if train_info is None:
             train_info = {
                 "train_no": train_no,
-                "train_name": train_details.get("train_name", f"Train {train_no}"),
+                "train_name": train_name if train_name else f"Train {train_no}",
             }
 
         return {

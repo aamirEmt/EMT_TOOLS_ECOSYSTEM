@@ -10,7 +10,7 @@ class AvailabilityCheckInput(BaseModel):
     train_no: str = Field(
         ...,
         alias="trainNo",
-        description="Train number (e.g., '12963', '12816'). Route will be automatically fetched.",
+        description="Train number (e.g., '12963', '12816').",
     )
 
     journey_date: str = Field(
@@ -27,6 +27,18 @@ class AvailabilityCheckInput(BaseModel):
     quota: str = Field(
         default="GN",
         description="Booking quota (GN=General, TQ=Tatkal, SS=Senior Citizen, LD=Ladies)",
+    )
+
+    from_station_code: Optional[str] = Field(
+        default=None,
+        alias="fromStationCode",
+        description="Origin station code (e.g., 'NDLS', 'BCT'). If not provided, will be fetched from train route.",
+    )
+
+    to_station_code: Optional[str] = Field(
+        default=None,
+        alias="toStationCode",
+        description="Destination station code (e.g., 'HWH', 'PUNE'). If not provided, will be fetched from train route.",
     )
 
     model_config = ConfigDict(
