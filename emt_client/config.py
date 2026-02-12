@@ -141,6 +141,7 @@ TRAIN_API_URL = f"{TRAIN_BASE_URL}/Train/_TrainBtwnStationList"
 TRAIN_LIST_INFO_URL = f"{TRAIN_BASE_URL}/TrainListInfo"
 TRAIN_BOOKING_URL = f"{TRAIN_BASE_URL}/TrainInfo"
 PNR_STATUS_URL = f"{TRAIN_BASE_URL}/Train/PnrchkStatus"
+TRAIN_NAME_API_URL = "https://autosuggest.easemytrip.com/api/auto/train_name?useby=popularu&key=jNUYK0Yj5ibO6ZVIkfTiFA=="
 
 # 🔐 PNR ENCRYPTION CONFIGURATION
 # AES-128 CBC encryption constants for PNR number encryption
@@ -513,6 +514,7 @@ __all__ = [
     "TRAIN_LIST_INFO_URL",
     "TRAIN_BOOKING_URL",
     "PNR_STATUS_URL",
+    "TRAIN_NAME_API_URL",
     "TRAIN_AUTOSUGGEST_URL",
     "PNR_ENCRYPTION_KEY",
     "PNR_ENCRYPTION_IV",
