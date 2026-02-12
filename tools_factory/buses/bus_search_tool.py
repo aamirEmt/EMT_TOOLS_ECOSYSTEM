@@ -20,13 +20,16 @@ class BusSearchTool(BaseTool):
                 "Use city NAMES like 'Delhi', 'Mumbai', 'Ranchi', 'Manali' - NOT city IDs. "
                 "The system automatically resolves city names to IDs. "
                 "Required: source_name (source city), destination_name (destination city), journey_date (dd-mm-yyyy format). "
-                "IMPORTANT: When user asks for filtered results (AC buses, Non-AC buses, sleeper buses, seater buses), "
-                "you MUST call this tool again with the appropriate filter parameters: "
-                "- For AC buses: set isAC=true "
-                "- For Non-AC buses: set isAC=false "
-                "- For sleeper buses: set isSleeper=true "
-                "- For seater buses: set isSeater=true "
-                "NEVER filter from previous results - ALWAYS make a new API call with filters."
+                "FILTER PARAMETERS - Use these when user requests specific bus types: "
+                "- isAC: true for AC buses, false for Non-AC buses "
+                "- isSleeper: true for sleeper/semi-sleeper buses (beds/berths) "
+                "- isSeater: true for seater buses (regular seats) "
+                "- isVolvo: true for Volvo buses only "
+                "CRITICAL: When user says 'sleeper bus', 'sleeping bus', 'semi-sleeper', 'bus with beds' -> set isSleeper=true. "
+                "When user says 'seater bus', 'sitting bus', 'regular seats' -> set isSeater=true. "
+                "When user says 'AC sleeper' -> set BOTH isAC=true AND isSleeper=true. "
+                "When user says 'Non-AC sleeper' -> set isAC=false AND isSleeper=true. "
+                "ALWAYS make a fresh API call with filters - never filter from cached results."
             ),
             input_schema=BusSearchInput.model_json_schema(),
             output_template="ui://widget/bus-carousel.html",
