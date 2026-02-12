@@ -191,12 +191,14 @@ class HotelCancellationTool(BaseTool):
         if render_html:
             details_result["booking_id"] = input_data.booking_id
             api_base_url = CHATBOT_API_BASE_URL
+            is_otp_send = login_result.get("ids", {}).get("is_otp_send", False)
             html = render_booking_details(
                 booking_details=details_result,
                 booking_id=input_data.booking_id,
                 email=input_data.email,
                 bid=bid,
                 api_base_url=api_base_url,
+                is_otp_send=is_otp_send,
             )
             return ToolResponseFormat(
                 response_text=f"Booking details for {input_data.booking_id}",

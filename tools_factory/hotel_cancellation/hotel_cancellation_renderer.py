@@ -289,6 +289,31 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   opacity: 0.85;
 }
 
+.booking-details-carousel .hc-pay-now-btn {
+  display: inline-block;
+  padding: 4px 14px;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: poppins, sans-serif;
+  transition: opacity 0.2s;
+}
+
+.booking-details-carousel .hc-pay-now-btn:hover {
+  opacity: 0.85;
+}
+
+.booking-details-carousel .hc-pay-pending {
+  color: #f57c00;
+  font-weight: 600;
+  font-size: 12px;
+}
+
 .booking-details-carousel .hc-form-group {
   margin-bottom: 16px;
 }
@@ -579,6 +604,10 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 .booking-details-carousel.dark .hc-refund-label {
   color: #bcbcbc;
 }
+
+.booking-details-carousel.dark .hc-pay-pending {
+  color: #ffb74d;
+}
 </style>
 
 <div class="booking-details-carousel round-trip-selector" data-instance-id="{{ instance_id }}">
@@ -618,8 +647,24 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     </div>
     {% endif %}
 
+    <!-- STEP 0: Login OTP verification -->
+    {% if is_otp_send %}
+    <div class="hc-step active" data-step="verify-otp">
+      <p class="hc-otp-hint">
+        📧 An OTP has been sent to your registered email/phone. Please enter it below to verify your identity before proceeding.
+      </p>
+      <div class="hc-form-group">
+        <label>Enter Login OTP</label>
+        <input type="text" class="hc-login-otp-input" maxlength="10" placeholder="e.g., 123456" autocomplete="one-time-code" />
+      </div>
+      <div class="hc-btn-row">
+        <button type="button" class="hc-submit-btn hc-verify-otp-btn">Verify OTP</button>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- STEP 1: Room details + cancel buttons -->
-    <div class="hc-step active" data-step="details">
+    <div class="hc-step {{ 'active' if not is_otp_send else '' }}" data-step="details">
       <div class="rooms-title">Select a room to cancel</div>
       <div class="slider-shell">
         <div class="rsltcvr">
@@ -645,7 +690,15 @@ INTERACTIVE_BOOKING_TEMPLATE = """
                 {% if room.is_pay_at_hotel is not none %}
                 <div class="detail-row">
                   <span class="detail-label">Payment</span>
-                  <span class="detail-value">{% if room.is_pay_at_hotel %}Pay at Hotel{% else %}Prepaid{% endif %}</span>
+                  <span class="detail-value">
+                    {% if room.is_pay_at_hotel and payment_url %}
+                    <a href="{{ payment_url }}" target="_blank" rel="noopener" class="hc-pay-now-btn">Pay Now</a>
+                    {% elif room.is_pay_at_hotel %}
+                    <span class="hc-pay-pending">Payment Pending</span>
+                    {% else %}
+                    Prepaid
+                    {% endif %}
+                  </span>
                 </div>
                 {% endif %}
                 {% if room.cancellation_policy %}
@@ -727,6 +780,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   container.setAttribute('data-initialized', 'true');
 
   var API_BASE = '{{ api_base_url }}';
+  var VERIFY_OTP_URL = API_BASE + '/api/hotel-cancel/verify-otp';
   var OTP_URL = API_BASE + '/api/hotel-cancel/send-otp';
   var CANCEL_URL = API_BASE + '/api/hotel-cancel/confirm';
   var BID = '{{ bid }}';
@@ -772,7 +826,34 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     }
   }
 
-  /* ---- API helpers (direct EaseMyTrip calls) ---- */
+  /* ---- API helpers ---- */
+  function verifyLoginOtp(otp) {
+    showLoading(true);
+    errorBanner.style.display = 'none';
+    return fetch(VERIFY_OTP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL, otp: otp })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      showLoading(false);
+      if (!data.success) {
+        showError(data.message || 'Invalid OTP. Please try again.');
+        return null;
+      }
+      return data;
+    })
+    .catch(function(err) {
+      showLoading(false);
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
+      return null;
+    });
+  }
+
   function sendOtp() {
     showLoading(true);
     errorBanner.style.display = 'none';
@@ -842,6 +923,22 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
+    });
+  }
+
+  /* ---- Step 0: Verify login OTP ---- */
+  var verifyOtpBtn = container.querySelector('.hc-verify-otp-btn');
+  if (verifyOtpBtn) {
+    verifyOtpBtn.addEventListener('click', function() {
+      var otpInput = container.querySelector('.hc-login-otp-input');
+      var otp = otpInput ? otpInput.value.trim() : '';
+      if (!otp || otp.length < 4) {
+        showError('Please enter a valid OTP.');
+        return;
+      }
+      verifyLoginOtp(otp).then(function(result) {
+        if (result) showStep('details');
+      });
     });
   }
 
@@ -991,6 +1088,7 @@ def render_booking_details(
     email: str = "",
     bid: str = "",
     api_base_url: str = "",
+    is_otp_send: bool = False,
 ) -> str:
     """
     Render booking details as interactive HTML with cancellation flow.
@@ -1004,6 +1102,7 @@ def render_booking_details(
         email: User email (used for API calls)
         bid: Encrypted booking ID from guest login (used as EmtScreenID/Bid in API calls)
         api_base_url: Base URL of the chatbot API (e.g. 'http://localhost:8000')
+        is_otp_send: Whether a login OTP was auto-sent (shows verify OTP step first)
 
     Returns:
         HTML string with rendered interactive booking details
@@ -1110,6 +1209,7 @@ def render_booking_details(
         email=email,
         rooms_json=rooms_json,
         api_base_url=api_base_url,
+        is_otp_send=is_otp_send,
     )
 
 
