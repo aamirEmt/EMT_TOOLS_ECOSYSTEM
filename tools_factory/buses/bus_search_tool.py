@@ -16,28 +16,40 @@ class BusSearchTool(BaseTool):
         return ToolMetadata(
             name="search_buses",
             description=(
-            "MANDATORY: Use this tool for ANY query about buses including seater buses, sleeper buses, AC buses, bus tickets, bus travel. "
-            "TRIGGER WORDS: bus, buses, seater, sleeper, AC bus, non-AC bus, Volvo, bus ticket, bus booking. "
-            "Search for buses on EaseMyTrip. Use city NAMES like 'Delhi', 'Mumbai', 'Ranchi', 'Manali' - NOT city IDs. "
-            "The system automatically resolves city names to IDs. "
-            "Required: source_name (source city), destination_name (destination city), journey_date (dd-mm-yyyy format). "
-            "FILTER PARAMETERS - Use these when user requests specific bus types: "
-            "- isAC: true for AC buses, false for Non-AC buses "
-            "- isSleeper: true for sleeper/semi-sleeper buses (beds/berths) "
-            "- isSeater: true for seater buses (regular sitting seats, NOT sleeper) "
-            "- isVolvo: true for Volvo buses only "
-            "KEYWORD MATCHING: "
-            "- 'seater bus', 'seater', 'sitting bus', 'chair bus', 'regular seat' -> set isSeater=true "
-            "- 'sleeper bus', 'sleeper', 'sleeping bus', 'semi-sleeper', 'berth', 'bed bus' -> set isSleeper=true "
-            "- 'AC bus', 'air conditioned' -> set isAC=true "
-            "- 'Non-AC bus', 'non ac', 'without AC' -> set isAC=false "
-            "COMBINATIONS: "
-            "- 'AC seater' -> isAC=true AND isSeater=true "
-            "- 'Non-AC sleeper' -> isAC=false AND isSleeper=true "
-            "- 'AC sleeper' -> isAC=true AND isSleeper=true "
-            "ALWAYS make a fresh API call with filters - never filter from cached results. "
-            "ALWAYS call this tool for any bus-related query. Never show menu options for bus searches."
-        ),
+                "MANDATORY: Use this tool for ANY query about buses including seater buses, sleeper buses, AC buses, bus tickets, bus travel. "
+                "TRIGGER WORDS: bus, buses, seater, sleeper, AC bus, non-AC bus, Volvo, bus ticket, bus booking, morning bus, evening bus, night bus. "
+                "Search for buses on EaseMyTrip. Use city NAMES like 'Delhi', 'Mumbai', 'Ranchi', 'Manali' - NOT city IDs. "
+                "The system automatically resolves city names to IDs. "
+                "Required: source_name (source city), destination_name (destination city), journey_date (dd-mm-yyyy format). "
+                "FILTER PARAMETERS - Use these when user requests specific bus types: "
+                "- isAC: true for AC buses, false for Non-AC buses "
+                "- isSleeper: true for sleeper/semi-sleeper buses (beds/berths) "
+                "- isSeater: true for seater buses (regular sitting seats, NOT sleeper) "
+                "- isVolvo: true for Volvo buses only "
+                "DEPARTURE TIME FILTERS (use 24-hour HH:MM format): "
+                "- departureTimeFrom: buses departing AFTER this time (e.g., '06:00' for after 6 AM) "
+                "- departureTimeTo: buses departing BEFORE this time (e.g., '18:00' for before 6 PM) "
+                "DEPARTURE TIME KEYWORD MATCHING: "
+                "- 'early morning', 'before 6 AM', 'night bus' -> departureTimeTo='06:00' "
+                "- 'morning bus', '6 AM to 12 PM' -> departureTimeFrom='06:00' AND departureTimeTo='12:00' "
+                "- 'afternoon bus', '12 PM to 6 PM' -> departureTimeFrom='12:00' AND departureTimeTo='18:00' "
+                "- 'evening bus', 'after 6 PM', 'night departure' -> departureTimeFrom='18:00' "
+                "- 'after 10 AM' -> departureTimeFrom='10:00' "
+                "- 'before 11 PM' -> departureTimeTo='23:00' "
+                "- 'between 8 AM and 2 PM' -> departureTimeFrom='08:00' AND departureTimeTo='14:00' "
+                "KEYWORD MATCHING (existing): "
+                "- 'seater bus', 'seater', 'sitting bus', 'chair bus', 'regular seat' -> set isSeater=true "
+                "- 'sleeper bus', 'sleeper', 'sleeping bus', 'semi-sleeper', 'berth', 'bed bus' -> set isSleeper=true "
+                "- 'AC bus', 'air conditioned' -> set isAC=true "
+                "- 'Non-AC bus', 'non ac', 'without AC' -> set isAC=false "
+                "COMBINATIONS: "
+                "- 'AC seater' -> isAC=true AND isSeater=true "
+                "- 'Non-AC sleeper' -> isAC=false AND isSleeper=true "
+                "- 'morning AC bus' -> isAC=true AND departureTimeFrom='06:00' AND departureTimeTo='12:00' "
+                "- 'evening sleeper' -> isSleeper=true AND departureTimeFrom='18:00' "
+                "ALWAYS make a fresh API call with filters - never filter from cached results. "
+                "ALWAYS call this tool for any bus-related query. Never show menu options for bus searches."
+            ),
             input_schema=BusSearchInput.model_json_schema(),
             output_template="ui://widget/bus-carousel.html",
             category="travel",
@@ -82,7 +94,7 @@ class BusSearchTool(BaseTool):
                 is_error=True,
             )
 
-        print(f"DEBUG: Bus search filters - is_ac={payload.is_ac}, is_seater={payload.is_seater}, is_sleeper={payload.is_sleeper}, is_volvo={payload.is_volvo}")
+        print(f"DEBUG: Bus search filters - is_ac={payload.is_ac}, is_seater={payload.is_seater}, is_sleeper={payload.is_sleeper}, is_volvo={payload.is_volvo}, departure_from={payload.departure_time_from}, departure_to={payload.departure_time_to}")
 
         bus_results = await search_buses(
             source_id=payload.source_id,
@@ -94,6 +106,8 @@ class BusSearchTool(BaseTool):
             is_sleeper=payload.is_sleeper,
             source_name=payload.source_name,
             destination_name=payload.destination_name,
+            departure_time_from=payload.departure_time_from,
+            departure_time_to=payload.departure_time_to,
         )
 
         has_error = bool(bus_results.get("error"))

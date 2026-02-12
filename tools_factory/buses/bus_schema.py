@@ -51,6 +51,16 @@ class BusSearchInput(BaseModel):
         alias="isSleeper",
         description="Filter for Sleeper buses only. Set True for Sleeper, False for Seater, None for all.",
     )
+    departure_time_from: Optional[str] = Field(
+        None,
+        alias="departureTimeFrom",
+        description="Filter buses departing after this time (HH:MM format, 24-hour). E.g., '06:00' for 6 AM, '18:00' for 6 PM.",
+    )
+    departure_time_to: Optional[str] = Field(
+        None,
+        alias="departureTimeTo",
+        description="Filter buses departing before this time (HH:MM format, 24-hour). E.g., '12:00' for 12 PM, '18:00' for 6 PM.",
+    )
     page: int = Field(
         default=1,
         ge=1,
