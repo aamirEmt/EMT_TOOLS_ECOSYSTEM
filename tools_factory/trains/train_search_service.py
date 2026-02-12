@@ -6,6 +6,8 @@ This module handles all train search operations including:
 - Extracting class-wise availability and fares
 """
 
+import asyncio
+import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from emt_client.clients.train_client import TrainApiClient
@@ -389,11 +391,250 @@ def extract_train_summary(train: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+# Configuration for availability checking
+MAX_CONCURRENT_AVAILABILITY_CHECKS = 5   # Balance speed vs API load
+MAX_TRAINS_TO_CHECK = 20                 # Prevent timeout on large results
+
+logger = logging.getLogger(__name__)
+
+
+async def check_and_filter_trains_by_availability(
+    trains: List[Dict[str, Any]],
+    travel_class: str,
+    journey_date: str,
+    quota: str = "GN",
+    max_concurrent: int = MAX_CONCURRENT_AVAILABILITY_CHECKS,
+    max_trains: int = MAX_TRAINS_TO_CHECK,
+) -> List[Dict[str, Any]]:
+    """
+    Check real-time availability for each train in the specified class.
+    Filter to only trains with RAC/AVAILABLE/WAITLIST status.
+    Enrich results with status and booking_link.
+
+    Args:
+        trains: List of processed train dictionaries from search
+        travel_class: Class code to check (e.g., "3A", "SL")
+        journey_date: Journey date in DD-MM-YYYY format
+        quota: Booking quota (default: "GN")
+        max_concurrent: Max parallel availability checks (default: 5)
+        max_trains: Max trains to check (default: 20)
+
+    Returns:
+        Filtered list of trains with availability_status and booking_link added
+    """
+    from .Train_AvailabilityCheck.availability_check_service import AvailabilityCheckService
+
+    # Limit trains to check (performance)
+    trains_to_check = trains[:max_trains]
+
+    # Create availability check service
+    avail_service = AvailabilityCheckService()
+
+    # Semaphore for concurrency control
+    semaphore = asyncio.Semaphore(max_concurrent)
+
+    async def check_single_train(train: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Check availability for a single train and return enriched data."""
+        async with semaphore:
+            try:
+                # Get train route info
+                train_no = train.get("train_number")
+                from_code = train.get("from_station_code")
+                to_code = train.get("to_station_code")
+
+                # Call availability check service
+                result = await avail_service.check_availability_multiple_classes(
+                    train_no=train_no,
+                    classes=[travel_class],  # Check only the requested class
+                    journey_date=journey_date,
+                    quota=quota,
+                )
+
+                if not result.get("success"):
+                    logger.warning(f"Availability check failed for train {train_no}: {result.get('error')}")
+                    return None
+
+                # Extract class info
+                classes = result.get("classes", [])
+                if not classes:
+                    logger.info(f"No availability data for train {train_no} class {travel_class}")
+                    return None
+
+                class_info = classes[0]  # We only checked one class
+                status = class_info.get("status", "")
+
+                # Filter by status (only RAC/AVAILABLE/WAITLIST)
+                status_upper = status.upper()
+                is_bookable = (
+                    "AVAILABLE" in status_upper or
+                    "WL" in status_upper or
+                    "WAITLIST" in status_upper or
+                    "RAC" in status_upper
+                )
+
+                if not is_bookable:
+                    logger.info(f"Train {train_no} class {travel_class} not bookable: {status}")
+                    return None
+
+                # Build booking link
+                route_info = result.get("route_info", {})
+                booking_link = _build_booking_link(
+                    train_no=train_no,
+                    class_code=travel_class,
+                    from_code=route_info.get("from_station_code", from_code),
+                    to_code=route_info.get("to_station_code", to_code),
+                    quota=quota,
+                    journey_date=journey_date,
+                    from_display=train.get("from_station_name", ""),
+                    to_display=train.get("to_station_name", ""),
+                )
+
+                # Enrich train data
+                enriched_train = {**train}  # Copy
+                enriched_train["availability_status"] = status
+                enriched_train["booking_link"] = booking_link
+                enriched_train["fare"] = class_info.get("fare")
+
+                return enriched_train
+
+            except Exception as e:
+                logger.error(f"Error checking availability for train {train.get('train_number')}: {e}")
+                return None
+
+    # Check all trains in parallel
+    tasks = [check_single_train(train) for train in trains_to_check]
+    results = await asyncio.gather(*tasks)
+
+    # Filter out None results (failed checks or non-bookable)
+    filtered_trains = [r for r in results if r is not None]
+
+    logger.info(f"Availability check: {len(trains_to_check)} trains checked, {len(filtered_trains)} bookable")
+
+    return filtered_trains
+
+
+def _build_booking_link(
+    train_no: str,
+    class_code: str,
+    from_code: str,
+    to_code: str,
+    quota: str,
+    journey_date: str,
+    from_display: str,
+    to_display: str,
+) -> str:
+    """
+    Build booking URL for EaseMyTrip railways.
+
+    Reuses pattern from availability_check_renderer.py lines 358-392.
+
+    Args:
+        train_no: Train number
+        class_code: Class code
+        from_code: Origin station code
+        to_code: Destination station code
+        quota: Quota code
+        journey_date: Journey date in DD-MM-YYYY format
+        from_display: Full from station display
+        to_display: Full to station display
+
+    Returns:
+        Booking URL
+    """
+    # Convert date format: DD-MM-YYYY -> DD/MM/YYYY -> D-M-YYYY
+    date_with_slashes = journey_date.replace("-", "/")
+    date_parts = date_with_slashes.split("/")
+    date_formatted = f"{int(date_parts[0])}-{int(date_parts[1])}-{date_parts[2]}"
+
+    # Extract station names and convert to URL format
+    from_name = from_display.split("(")[0].strip().replace(" ", "-") if "(" in from_display else from_code
+    to_name = to_display.split("(")[0].strip().replace(" ", "-") if "(" in to_display else to_code
+
+    return f"https://railways.easemytrip.com/TrainInfo/{from_name}-to-{to_name}/{class_code}/{train_no}/{from_code}/{to_code}/{quota}/{date_formatted}"
+
+
 def build_whatsapp_train_response(
     payload: TrainSearchInput,
     train_results: Dict[str, Any],
 ) -> WhatsappTrainFinalResponse:
-    """Build WhatsApp-formatted response for train search results."""
+    """Build WhatsApp-formatted response (routes to appropriate builder)."""
+    if payload.travel_class:
+        return _build_whatsapp_response_with_class(payload, train_results)
+    else:
+        return _build_whatsapp_response_without_class(payload, train_results)
+
+
+def _build_whatsapp_response_with_class(
+    payload: TrainSearchInput,
+    train_results: Dict[str, Any],
+) -> WhatsappTrainFinalResponse:
+    """
+    Build WhatsApp response when class IS mentioned.
+    Assumes trains have been filtered by availability and enriched with status/links.
+    """
+    import time
+
+    trains = []
+    travel_class = payload.travel_class
+
+    for idx, train in enumerate(train_results.get("trains", []), start=1):
+        # Extract class-specific info (should exist after availability check)
+        class_info = next(
+            (cls for cls in train.get("classes", []) if cls.get("class_code") == travel_class),
+            {}
+        )
+
+        trains.append({
+            "option_id": idx,
+            "train_no": train.get("train_number"),
+            "train_name": train.get("train_name"),
+            "departure_time": train.get("departure_time"),
+            "arrival_time": train.get("arrival_time"),
+            "duration": train.get("duration"),
+            "classes": [{
+                "class": travel_class,
+                "status": train.get("availability_status", "N/A"),
+                "fare": train.get("fare") or class_info.get("fare"),
+            }],
+            "booking_link": train.get("booking_link", ""),
+        })
+
+    # Generate search_id (simple timestamp-based)
+    search_id = f"SRCH_{int(time.time() * 1000)}"
+
+    whatsapp_json = WhatsappTrainFormat(
+        is_class_mentioned=True,
+        trains=trains,
+        search_context={
+            "source": payload.from_station,
+            "destination": payload.to_station,
+            "date": payload.journey_date,
+            "class": travel_class,
+            "currency": train_results.get("currency", "INR"),
+            "search_id": search_id,
+        },
+        currency=train_results.get("currency", "INR"),
+        view_all_trains_url=train_results.get("view_all_link", ""),
+    )
+
+    response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class}."
+
+    return WhatsappTrainFinalResponse(
+        response_text=response_text,
+        whatsapp_json=whatsapp_json,
+    )
+
+
+def _build_whatsapp_response_without_class(
+    payload: TrainSearchInput,
+    train_results: Dict[str, Any],
+) -> WhatsappTrainFinalResponse:
+    """
+    Build WhatsApp response when class NOT mentioned.
+    Shows all trains with all available classes (existing logic).
+    """
+    import time
+
     options = []
 
     for idx, train in enumerate(train_results.get("trains", []), start=1):
@@ -402,32 +643,41 @@ def build_whatsapp_train_response(
 
         for cls in train.get("classes", []):
             classes_info.append({
-                "class_code": cls.get("class_code"),
-                "class_name": cls.get("class_name"),
+                "class": cls.get("class_code"),
                 "fare": cls.get("fare"),
-                "availability": cls.get("availability_status"),
             })
 
         options.append({
             "option_id": idx,
-            "train_number": summary["train_number"],
+            "train_no": summary["train_number"],
             "train_name": summary["train_name"],
-            "from_station": summary["from_station"],
-            "to_station": summary["to_station"],
             "departure_time": summary["departure_time"],
             "arrival_time": summary["arrival_time"],
             "duration": summary["duration"],
-            "date": payload.journey_date,
             "classes": classes_info,
-            "cheapest_fare": summary["cheapest_fare"],
         })
 
+    # Generate search_id
+    search_id = f"SRCH_{int(time.time() * 1000)}"
+
     whatsapp_json = WhatsappTrainFormat(
+        is_class_mentioned=False,
         options=options,
+        search_context={
+            "source": payload.from_station,
+            "destination": payload.to_station,
+            "date": payload.journey_date,
+            "class": None,
+            "currency": train_results.get("currency", "INR"),
+            "search_id": search_id,
+        },
         currency=train_results.get("currency", "INR"),
+        view_all_trains_url=train_results.get("view_all_link", ""),
     )
 
+    response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date}."
+
     return WhatsappTrainFinalResponse(
-        response_text=f"Here are the best train options from {payload.from_station} to {payload.to_station}",
+        response_text=response_text,
         whatsapp_json=whatsapp_json,
     )

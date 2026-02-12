@@ -1,10 +1,14 @@
 from tools_factory.base import BaseTool, ToolMetadata
 from pydantic import ValidationError
 
+import logging
+
 from .train_schema import TrainSearchInput
-from .train_search_service import search_trains, build_whatsapp_train_response
+from .train_search_service import search_trains, build_whatsapp_train_response, check_and_filter_trains_by_availability
 from .train_renderer import render_train_results
 from tools_factory.base_schema import ToolResponseFormat
+
+logger = logging.getLogger(__name__)
 
 
 class TrainSearchTool(BaseTool):
@@ -50,6 +54,28 @@ class TrainSearchTool(BaseTool):
         )
 
         has_error = bool(train_results.get("error"))
+
+        # NEW: Check availability and filter if class mentioned + WhatsApp user
+        if not has_error and payload.travel_class and is_whatsapp:
+            try:
+                # Check availability for all trains in the specified class
+                train_results["trains"] = await check_and_filter_trains_by_availability(
+                    trains=train_results.get("trains", []),
+                    travel_class=payload.travel_class,
+                    journey_date=payload.journey_date,
+                    quota="GN",
+                    max_concurrent=5,  # Can be made configurable
+                    max_trains=20,     # Can be made configurable
+                )
+
+                # Update total count
+                train_results["total_count"] = len(train_results["trains"])
+
+                logger.info(f"Availability check complete: {len(train_results['trains'])} bookable trains found")
+
+            except Exception as e:
+                logger.error(f"Error during availability check: {e}")
+                # Continue with original results if availability check fails
 
         # Store original total count BEFORE pagination
         total_trains = len(train_results.get("trains", []))
