@@ -1,6 +1,7 @@
 """Hotel Cancellation Tool - Unified tool with action-based dispatch"""
 from typing import Dict, Tuple
 import asyncio
+import os
 import time
 import logging
 from pydantic import ValidationError
@@ -184,11 +185,13 @@ class HotelCancellationTool(BaseTool):
         # Website mode: render interactive HTML
         if render_html:
             details_result["booking_id"] = input_data.booking_id
+            api_base_url = os.getenv("CHATBOT_API_BASE_URL", "http://localhost:8000")
             html = render_booking_details(
                 booking_details=details_result,
                 booking_id=input_data.booking_id,
                 email=input_data.email,
                 bid=bid,
+                api_base_url=api_base_url,
             )
             return ToolResponseFormat(
                 response_text=f"Booking details for {input_data.booking_id}",

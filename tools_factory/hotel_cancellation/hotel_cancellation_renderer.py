@@ -726,8 +726,9 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   if (container.hasAttribute('data-initialized')) return;
   container.setAttribute('data-initialized', 'true');
 
-  var OTP_URL = 'https://mybookings.easemytrip.com/Hotels/CancellationOtp';
-  var CANCEL_URL = 'https://mybookings.easemytrip.com/Hotels/RequestCancellation';
+  var API_BASE = '{{ api_base_url }}';
+  var OTP_URL = API_BASE + '/api/hotel-cancel/send-otp';
+  var CANCEL_URL = API_BASE + '/api/hotel-cancel/confirm';
   var BID = '{{ bid }}';
   var BOOKING_ID = '{{ booking_id }}';
   var EMAIL = '{{ email }}';
@@ -778,7 +779,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     return fetch(OTP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ EmtScreenID: BID })
+      body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL })
     })
     .then(function(resp) { return resp.json(); })
     .then(function(data) {
@@ -806,15 +807,15 @@ INTERACTIVE_BOOKING_TEMPLATE = """
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        Remark: remark || '',
-        Reason: reason || 'Change of plans',
-        OTP: otp,
-        RoomId: 'undefined',
-        TransactionId: selectedRoom ? String(selectedRoom.transaction_id) : '',
-        IsPayHotel: selectedRoom ? String(!!selectedRoom.is_pay_at_hotel) : 'false',
-        PaymentUrl: PAYMENT_URL || '',
-        ApplicationType: 'false',
-        Bid: BID
+        booking_id: BOOKING_ID,
+        email: EMAIL,
+        otp: otp,
+        reason: reason || 'Change of plans',
+        remark: remark || '',
+        room_id: selectedRoom ? String(selectedRoom.room_id) : '',
+        transaction_id: selectedRoom ? String(selectedRoom.transaction_id) : '',
+        is_pay_at_hotel: selectedRoom ? !!selectedRoom.is_pay_at_hotel : false,
+        payment_url: PAYMENT_URL || ''
       })
     })
     .then(function(resp) { return resp.json(); })
@@ -989,18 +990,20 @@ def render_booking_details(
     booking_id: str = "",
     email: str = "",
     bid: str = "",
+    api_base_url: str = "",
 ) -> str:
     """
     Render booking details as interactive HTML with cancellation flow.
 
-    Renders an interactive template with embedded JS that calls EaseMyTrip
-    APIs directly for OTP and cancellation.
+    Renders an interactive template with embedded JS that calls backend
+    endpoints for OTP and cancellation (server-side session with cookies).
 
     Args:
         booking_details: Booking details from API including hotel info, guest info, and rooms
         booking_id: Booking ID (used for API calls)
         email: User email (used for API calls)
         bid: Encrypted booking ID from guest login (used as EmtScreenID/Bid in API calls)
+        api_base_url: Base URL of the chatbot API (e.g. 'http://localhost:8000')
 
     Returns:
         HTML string with rendered interactive booking details
@@ -1106,6 +1109,7 @@ def render_booking_details(
         booking_id=booking_id,
         email=email,
         rooms_json=rooms_json,
+        api_base_url=api_base_url,
     )
 
 
