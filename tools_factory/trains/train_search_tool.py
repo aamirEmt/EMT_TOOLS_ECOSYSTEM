@@ -44,13 +44,17 @@ class TrainSearchTool(BaseTool):
                 is_error=True,
             )
 
-        # Search trains
+        # Search trains with time filters
         train_results = await search_trains(
             from_station=payload.from_station,
             to_station=payload.to_station,
             journey_date=payload.journey_date,
             travel_class=payload.travel_class,
-            quota= "GN",
+            quota="GN",
+            departure_time_min=payload.departure_time_min,
+            departure_time_max=payload.departure_time_max,
+            arrival_time_min=payload.arrival_time_min,
+            arrival_time_max=payload.arrival_time_max,
         )
 
         has_error = bool(train_results.get("error"))
@@ -102,6 +106,27 @@ class TrainSearchTool(BaseTool):
         trains = train_results.get("trains", [])
         train_count = len(trains)
 
+        # Build filter description
+        filter_parts = []
+        if payload.travel_class:
+            filter_parts.append(f"class {payload.travel_class}")
+        if payload.departure_time_min or payload.departure_time_max:
+            if payload.departure_time_min and payload.departure_time_max:
+                filter_parts.append(f"departure {payload.departure_time_min}-{payload.departure_time_max}")
+            elif payload.departure_time_min:
+                filter_parts.append(f"departure after {payload.departure_time_min}")
+            else:
+                filter_parts.append(f"departure before {payload.departure_time_max}")
+        if payload.arrival_time_min or payload.arrival_time_max:
+            if payload.arrival_time_min and payload.arrival_time_max:
+                filter_parts.append(f"arrival {payload.arrival_time_min}-{payload.arrival_time_max}")
+            elif payload.arrival_time_min:
+                filter_parts.append(f"arrival after {payload.arrival_time_min}")
+            else:
+                filter_parts.append(f"arrival before {payload.arrival_time_max}")
+
+        filter_text = f" ({', '.join(filter_parts)})" if filter_parts else ""
+
         # Build WhatsApp response if needed
         whatsapp_response = (
             build_whatsapp_train_response(payload, train_results)
@@ -118,9 +143,9 @@ class TrainSearchTool(BaseTool):
                 current_page = pagination.get("current_page", 1)
                 showing_from = pagination.get("showing_from", 1)
                 showing_to = pagination.get("showing_to", train_count)
-                text = f"Showing trains {showing_from}-{showing_to} of {total} from {payload.from_station} to {payload.to_station} (Page {current_page})"
+                text = f"Showing trains {showing_from}-{showing_to} of {total} from {payload.from_station} to {payload.to_station}{filter_text} (Page {current_page})"
             else:
-                text = f"Found {train_count} trains from {payload.from_station} to {payload.to_station}!"
+                text = f"Found {train_count} trains from {payload.from_station} to {payload.to_station}{filter_text}!"
 
         # Render HTML for website users only when trains are found
         html_content = None

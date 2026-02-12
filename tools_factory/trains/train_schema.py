@@ -1,5 +1,6 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+import re
 from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
 
 
@@ -30,6 +31,26 @@ class TrainSearchInput(BaseModel):
         None,
         alias="travelClass",
         description="Preferred travel class. MUST use exact codes only: '1A' (First AC), '2A' (AC 2 Tier), '3A' (Third AC), 'SL' (Sleeper Class), '2S' (Second Seating), 'CC' (AC Chair Car), 'EC' (Executive Class), '3E' (AC 3 Tier Economy), 'FC' (First Class), 'EV' (Vistadome AC), 'VS' (Vistadome Non-AC), 'EA' (Anubhuti Class), 'VC' (Vistadome Chair Car). Do not use full names like 'Chair Car' or variations like '3AC' - use only the exact codes.",
+    )
+    departure_time_min: Optional[str] = Field(
+        None,
+        alias="departureTimeMin",
+        description="Filter trains departing at or after this time. Format: HH:MM in 24-hour format (e.g., '14:30' for 2:30 PM, '09:00' for 9:00 AM). Optional.",
+    )
+    departure_time_max: Optional[str] = Field(
+        None,
+        alias="departureTimeMax",
+        description="Filter trains departing at or before this time. Format: HH:MM in 24-hour format (e.g., '18:00' for 6:00 PM, '23:30' for 11:30 PM). Optional.",
+    )
+    arrival_time_min: Optional[str] = Field(
+        None,
+        alias="arrivalTimeMin",
+        description="Filter trains arriving at or after this time. Format: HH:MM in 24-hour format (e.g., '08:00' for 8:00 AM). Optional.",
+    )
+    arrival_time_max: Optional[str] = Field(
+        None,
+        alias="arrivalTimeMax",
+        description="Filter trains arriving at or before this time. Format: HH:MM in 24-hour format (e.g., '22:00' for 10:00 PM). Optional.",
     )
     # quota: Optional[str] = Field(
     #     "GN",
@@ -152,6 +173,49 @@ class TrainSearchInput(BaseModel):
             return None
 
         return matched_code
+
+    @field_validator("departure_time_min", "departure_time_max", "arrival_time_min", "arrival_time_max")
+    @classmethod
+    def validate_time_format(cls, v: Optional[str]) -> Optional[str]:
+        """Validate time is in HH:MM 24-hour format."""
+        if v is None:
+            return v
+
+        v = v.strip()
+
+        # Validate format: HH:MM (00-23:00-59)
+        if not re.match(r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$', v):
+            raise ValueError(
+                "Time must be in HH:MM 24-hour format (e.g., '14:30', '09:00'). "
+                "Hours: 00-23, Minutes: 00-59."
+            )
+
+        return v
+
+    @model_validator(mode='after')
+    def validate_time_ranges(self) -> 'TrainSearchInput':
+        """Validate that min times are before or equal to max times."""
+        # Validate departure time range
+        if self.departure_time_min and self.departure_time_max:
+            min_time = datetime.strptime(self.departure_time_min, "%H:%M").time()
+            max_time = datetime.strptime(self.departure_time_max, "%H:%M").time()
+            if min_time > max_time:
+                raise ValueError(
+                    f"departureTimeMin ({self.departure_time_min}) must be before or equal to "
+                    f"departureTimeMax ({self.departure_time_max})"
+                )
+
+        # Validate arrival time range
+        if self.arrival_time_min and self.arrival_time_max:
+            min_time = datetime.strptime(self.arrival_time_min, "%H:%M").time()
+            max_time = datetime.strptime(self.arrival_time_max, "%H:%M").time()
+            if min_time > max_time:
+                raise ValueError(
+                    f"arrivalTimeMin ({self.arrival_time_min}) must be before or equal to "
+                    f"arrivalTimeMax ({self.arrival_time_max})"
+                )
+
+        return self
 
     # @field_validator("quota")
     # @classmethod
