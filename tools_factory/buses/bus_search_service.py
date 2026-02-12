@@ -521,16 +521,26 @@ def _process_single_bus(
     bus_departure_minutes = _parse_time_to_minutes(bus_departure_time)
     
     if bus_departure_minutes is not None:
-        # Filter: departure_time_from (buses departing AFTER this time)
-        if filter_departure_from:
-            from_minutes = _parse_time_to_minutes(filter_departure_from)
-            if from_minutes is not None and bus_departure_minutes < from_minutes:
-                return None
+        from_minutes = _parse_time_to_minutes(filter_departure_from) if filter_departure_from else None
+        to_minutes = _parse_time_to_minutes(filter_departure_to) if filter_departure_to else None
         
-        # Filter: departure_time_to (buses departing BEFORE this time)
-        if filter_departure_to:
-            to_minutes = _parse_time_to_minutes(filter_departure_to)
-            if to_minutes is not None and bus_departure_minutes >= to_minutes:
+        # Handle overnight time ranges (e.g., 21:00 to 06:00)
+        if from_minutes is not None and to_minutes is not None:
+            if from_minutes > to_minutes:
+                # Overnight range: bus must depart >= from_minutes OR < to_minutes
+                if not (bus_departure_minutes >= from_minutes or bus_departure_minutes < to_minutes):
+                    return None
+            else:
+                # Normal range: bus must depart >= from_minutes AND < to_minutes
+                if bus_departure_minutes < from_minutes or bus_departure_minutes >= to_minutes:
+                    return None
+        elif from_minutes is not None:
+            # Only from filter: bus must depart >= from_minutes
+            if bus_departure_minutes < from_minutes:
+                return None
+        elif to_minutes is not None:
+            # Only to filter: bus must depart < to_minutes
+            if bus_departure_minutes >= to_minutes:
                 return None
 
     bus_id = str(bus.get("id", ""))
