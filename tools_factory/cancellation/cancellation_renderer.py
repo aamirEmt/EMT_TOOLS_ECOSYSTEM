@@ -207,7 +207,6 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 
 .booking-details-carousel .amount-highlight {
   font-size: 16px;
-  font-family: inter, sans-serif;
   color: #ef6614;
 }
 
@@ -510,7 +509,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 }
 
 .booking-details-carousel .hc-verify-card .hc-submit-btn {
-  width: 100%;
+  width: 80%;
   max-width: 240px;
   padding: 8px 7px;
 }
@@ -556,7 +555,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   border: 2px solid #e0e0e0;
   border-radius: 12px;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 500;
   text-align: center;
   letter-spacing: 4px;
   font-family: inter, sans-serif;
