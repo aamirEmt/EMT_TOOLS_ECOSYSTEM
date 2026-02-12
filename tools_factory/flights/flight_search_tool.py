@@ -3,7 +3,7 @@ from tools_factory.base import BaseTool, ToolMetadata
 from pydantic import ValidationError
 
 from emt_client.utils import generate_short_link
-from .flight_scehma import FlightSearchInput,WhatsappFlightFinalResponse,WhatsappFlightFormat
+from .flight_schema import FlightSearchInput,WhatsappFlightFinalResponse,WhatsappFlightFormat
 from .flight_search_service import search_flights,build_whatsapp_flight_response,filter_domestic_roundtrip_flights
 from .flight_renderer import render_flight_results
 from tools_factory.base_schema import ToolResponseFormat 

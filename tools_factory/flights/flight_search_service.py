@@ -5,7 +5,7 @@ This module handles all flight search operations including:
 - Processing flight results
 - Processing individual flight segments
 """
-from .flight_scehma import FlightSearchInput,WhatsappFlightFinalResponse,WhatsappFlightFormat
+from .flight_schema import FlightSearchInput,WhatsappFlightFinalResponse,WhatsappFlightFormat
 from datetime import datetime
 from typing import Any, Dict, List, Optional,Set
 from urllib.parse import quote, urlencode
