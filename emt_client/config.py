@@ -110,11 +110,11 @@ FLIGHT_ATK_TOKEN = _get_config_value(
     required=True  # This will error if not provided via injection or env
 )
 
-CHATBOT_API_BASE_URL =  _get_config_value(
-    'CHATBOT_API_BASE_URL',
-    'CHATBOT_API_BASE_URL',
-    required=True  # This will error if not provided via injection or env
-)
+# CHATBOT_API_BASE_URL =  _get_config_value(
+#     'CHATBOT_API_BASE_URL',
+#     'CHATBOT_API_BASE_URL',
+#     required=True  # This will error if not provided via injection or env
+# )
 
 FLIGHT_DEEPLINK = _get_config_value(
     'FLIGHT_DEEPLINK',
@@ -131,7 +131,7 @@ FLIGHT_AMENITIES_URL = f"{FLIGHT_BASE_URL}/FlightStatus/FlightAmentiesByListing"
 # Load environment variables (only used if config not injected)
 if _injected_config is None:
     load_dotenv()
-
+CHATBOT_API_BASE_URL="https://bookish-waddle-pj55pjxp499gc7wxw-8000.app.github.dev"
 # 🏨 HOTEL SERVICE BASE URL
 BASE_URL = "https://hotelservice.easemytrip.com/api"
 HOTEL_DEEPLINK = "https://www.easemytrip.com/hotel-new/details?"
