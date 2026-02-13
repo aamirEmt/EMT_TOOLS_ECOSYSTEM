@@ -848,7 +848,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     {% endif %}
 
     <!-- STEP 1: Room details + cancel buttons -->
-    <div class="hc-step {{ 'active' if not is_otp_send else '' }}" data-step="details">
+    <div class="hc-step {{ 'active' if not is_otp_send and not all_cancelled else '' }}" data-step="details">
       <div class="rooms-title">Select a room to cancel</div>
       <div class="slider-shell">
         <div class="rsltcvr">
@@ -965,6 +965,22 @@ INTERACTIVE_BOOKING_TEMPLATE = """
       <div class="hc-result-content"></div>
     </div>
 
+    <!-- STEP: Already Cancelled -->
+    <div class="hc-step {{ 'active' if not is_otp_send and all_cancelled else '' }}" data-step="cancelled">
+      <div style="text-align:center;padding:30px 20px;">
+        <div style="width:56px;height:56px;margin:0 auto 14px;background:#ffebee;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#c62828" style="width:28px;height:28px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </div>
+        <h3 style="font-size:17px;font-weight:700;color:#1a1a2e;margin:0 0 8px;">Booking Already Cancelled</h3>
+        <p style="font-size:13px;color:#646d74;margin:0 0 14px;">All rooms in this booking have already been cancelled.</p>
+        <div style="background:#f8f9fa;border-radius:8px;padding:10px 14px;display:inline-block;">
+          <span style="font-size:12px;color:#646d74;">No further action is needed. If you have questions about your refund, please contact support.</span>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -988,6 +1004,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   var EMAIL = '{{ email }}';
   var ROOMS = {{ rooms_json | tojson }};
   var PAYMENT_URL = '{{ payment_url }}';
+  var ALL_CANCELLED = {{ 'true' if all_cancelled else 'false' }};
 
   var selectedRoom = null;
 
@@ -1159,7 +1176,10 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         return;
       }
       verifyLoginOtp(otp).then(function(result) {
-        if (result) showStep('details');
+        if (result) {
+          if (ALL_CANCELLED) { showStep('cancelled'); }
+          else { showStep('details'); }
+        }
       });
     });
   }
@@ -1464,6 +1484,8 @@ def render_booking_details(
         for r in rooms_ui
     ]
 
+    all_cancelled = booking_details.get("all_cancelled", False)
+
     template = _jinja_env.from_string(INTERACTIVE_BOOKING_TEMPLATE)
     return template.render(
         title=title,
@@ -1478,6 +1500,7 @@ def render_booking_details(
         rooms_json=rooms_json,
         api_base_url=api_base_url,
         is_otp_send=is_otp_send,
+        all_cancelled=all_cancelled,
     )
 
 
@@ -2284,7 +2307,7 @@ TRAIN_BOOKING_TEMPLATE = """
     {% endif %}
 
     <!-- STEP 1: Passenger selection -->
-    <div class="hc-step {{ 'active' if not is_otp_send else '' }}" data-step="details">
+    <div class="hc-step {{ 'active' if not is_otp_send and not all_cancelled else '' }}" data-step="details">
       <div class="tc-pax-section">
         <div class="tc-pax-title">Select passengers to cancel</div>
         <label class="tc-select-all">
@@ -2386,6 +2409,22 @@ TRAIN_BOOKING_TEMPLATE = """
       <div class="hc-result-content"></div>
     </div>
 
+    <!-- STEP: Already Cancelled -->
+    <div class="hc-step {{ 'active' if not is_otp_send and all_cancelled else '' }}" data-step="cancelled">
+      <div style="text-align:center;padding:30px 20px;">
+        <div style="width:56px;height:56px;margin:0 auto 14px;background:#ffebee;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#c62828" style="width:28px;height:28px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </div>
+        <h3 style="font-size:17px;font-weight:700;color:#1a1a2e;margin:0 0 8px;">Booking Already Cancelled</h3>
+        <p style="font-size:13px;color:#646d74;margin:0 0 14px;">All passengers in this booking have already been cancelled.</p>
+        <div style="background:#f8f9fa;border-radius:8px;padding:10px 14px;display:inline-block;">
+          <span style="font-size:12px;color:#646d74;">No further action is needed. If you have questions about your refund, please contact support.</span>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -2411,6 +2450,7 @@ TRAIN_BOOKING_TEMPLATE = """
   var RESERVATION_ID = '{{ reservation_id }}';
   var PNR_NUMBER = '{{ pnr_number }}';
   var EMT_SCREEN_ID = '{{ emt_screen_id }}';
+  var ALL_CANCELLED = {{ 'true' if all_cancelled else 'false' }};
 
   var selectedPaxIds = [];
 
@@ -2566,7 +2606,12 @@ TRAIN_BOOKING_TEMPLATE = """
       var otpInput = container.querySelector('.hc-login-otp-input');
       var otp = otpInput ? otpInput.value.trim() : '';
       if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
-      verifyLoginOtp(otp).then(function(result) { if (result) showStep('details'); });
+      verifyLoginOtp(otp).then(function(result) {
+        if (result) {
+          if (ALL_CANCELLED) { showStep('cancelled'); }
+          else { showStep('details'); }
+        }
+      });
     });
   }
 
@@ -2746,6 +2791,8 @@ def render_train_booking_details(
         for p in passengers
     ]
 
+    all_cancelled = booking_details.get("all_cancelled", False)
+
     template = _jinja_env.from_string(TRAIN_BOOKING_TEMPLATE)
     return template.render(
         title=title,
@@ -2763,6 +2810,7 @@ def render_train_booking_details(
         passengers_json=passengers_json,
         api_base_url=api_base_url,
         is_otp_send=is_otp_send,
+        all_cancelled=all_cancelled,
     )
 
 

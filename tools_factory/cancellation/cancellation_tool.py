@@ -13,7 +13,7 @@ from .cancellation_service import CancellationService
 from emt_client.config import CHATBOT_API_BASE_URL
 from .cancellation_renderer import (
     render_booking_details, render_cancellation_success,
-    render_train_booking_details, render_already_cancelled,
+    render_train_booking_details,
 )
 
 logger = logging.getLogger(__name__)
@@ -207,22 +207,6 @@ class CancellationTool(BaseTool):
                 is_error=True,
             )
 
-        # Check if all rooms are already cancelled
-        if details_result.get("all_cancelled"):
-            if render_html:
-                html = render_already_cancelled(
-                    booking_id=input_data.booking_id,
-                    transaction_type="Hotel",
-                    details=details_result,
-                )
-                return ToolResponseFormat(
-                    response_text=f"Booking {input_data.booking_id} has already been cancelled.",
-                    html=html,
-                )
-            return ToolResponseFormat(
-                response_text=f"Booking {input_data.booking_id} has already been cancelled. No further action is needed.",
-            )
-
         # Website mode: render interactive HTML
         if render_html:
             details_result["booking_id"] = input_data.booking_id
@@ -380,22 +364,6 @@ class CancellationTool(BaseTool):
                 response_text=f"Login succeeded but failed to fetch train details: {details_result.get('error')}",
                 structured_content=combined,
                 is_error=True,
-            )
-
-        # Check if all passengers are already cancelled
-        if details_result.get("all_cancelled"):
-            if render_html:
-                html = render_already_cancelled(
-                    booking_id=input_data.booking_id,
-                    transaction_type="Train",
-                    details=details_result,
-                )
-                return ToolResponseFormat(
-                    response_text=f"Train booking {input_data.booking_id} has already been cancelled.",
-                    html=html,
-                )
-            return ToolResponseFormat(
-                response_text=f"Train booking {input_data.booking_id} has already been cancelled. No further action is needed.",
             )
 
         # Website mode: render interactive HTML

@@ -497,7 +497,7 @@ class CancellationService:
 
             # Parse passengers
             passengers = []
-            cancelled_statuses = {"cancelled", "can"}
+            cancelled_statuses = {"cancelled", "can", "refunded"}
             for pax in pax_list:
                 current_status = pax.get("TicketCurrentStatus") or ""
                 is_cancelled = current_status.strip().lower() in cancelled_statuses
