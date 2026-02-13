@@ -260,7 +260,7 @@ def _process_single_train(
     """
     train_class_wise_fare = train.get("TrainClassWiseFare", [])
 
-    # Extract train context for deeplink generation
+    # API returns correct boarding/alighting station codes for the user's search route
     from_station_name = train.get("fromStnName", "")
     to_station_name = train.get("toStnName", "")
     train_number = train.get("trainNumber", "")
@@ -310,10 +310,10 @@ def _process_single_train(
     return TrainInfo(
         train_number=train.get("trainNumber", ""),
         train_name=train.get("trainName", ""),
-        from_station_code=train.get("fromStnCode", ""),
-        from_station_name=train.get("fromStnName", ""),
-        to_station_code=train.get("toStnCode", ""),
-        to_station_name=train.get("toStnName", ""),
+        from_station_code=from_station_code,
+        from_station_name=from_station_name,
+        to_station_code=to_station_code,
+        to_station_name=to_station_name,
         departure_time=departure_time,
         arrival_time=arrival_time,
         duration=train.get("duration", ""),
@@ -555,10 +555,10 @@ async def check_and_filter_trains_by_availability(
         """Check availability for a single train and return enriched data."""
         async with semaphore:
             try:
-                # Get train route info
                 train_no = train.get("train_number")
-                from_code = train.get("from_station_code")
-                to_code = train.get("to_station_code")
+                # Use station codes from search API (already correct boarding/alighting stations)
+                from_code = train.get("from_station_code", "")
+                to_code = train.get("to_station_code", "")
 
                 # Call availability check service
                 result = await avail_service.check_availability_multiple_classes(
@@ -594,13 +594,12 @@ async def check_and_filter_trains_by_availability(
                     logger.info(f"Train {train_no} class {travel_class} not bookable: {status}")
                     return None
 
-                # Build booking link
-                route_info = result.get("route_info", {})
+                # Build booking link using station codes from search API
                 booking_link = _build_booking_link(
                     train_no=train_no,
                     class_code=travel_class,
-                    from_code=route_info.get("from_station_code", from_code),
-                    to_code=route_info.get("to_station_code", to_code),
+                    from_code=from_code,
+                    to_code=to_code,
                     quota=quota,
                     journey_date=journey_date,
                     from_display=train.get("from_station_name", ""),
@@ -696,6 +695,8 @@ def _build_whatsapp_response_with_class(
 
     trains = []
     travel_class = payload.travel_class
+    resolved_from = train_results.get("from_station", payload.from_station)
+    resolved_to = train_results.get("to_station", payload.to_station)
 
     for idx, train in enumerate(train_results.get("trains", []), start=1):
         # Extract class-specific info (should exist after availability check)
@@ -708,6 +709,8 @@ def _build_whatsapp_response_with_class(
             "option_id": idx,
             "train_no": train.get("train_number"),
             "train_name": train.get("train_name"),
+            "from_station": resolved_from,
+            "to_station": resolved_to,
             "departure_time": train.get("departure_time"),
             "arrival_time": train.get("arrival_time"),
             "duration": train.get("duration"),
@@ -767,6 +770,8 @@ def _build_whatsapp_response_without_class(
     import time
 
     options = []
+    resolved_from = train_results.get("from_station", payload.from_station)
+    resolved_to = train_results.get("to_station", payload.to_station)
 
     for idx, train in enumerate(train_results.get("trains", []), start=1):
         summary = extract_train_summary(train)
@@ -782,6 +787,8 @@ def _build_whatsapp_response_without_class(
             "option_id": idx,
             "train_no": summary["train_number"],
             "train_name": summary["train_name"],
+            "from_station": resolved_from,
+            "to_station": resolved_to,
             "departure_time": summary["departure_time"],
             "arrival_time": summary["arrival_time"],
             "duration": summary["duration"],

@@ -362,6 +362,8 @@ def build_whatsapp_availability_response(
                 "train": {
                     "train_no": train_info["train_no"],
                     "train_name": train_info["train_name"],
+                    "from_station": from_station_display,
+                    "to_station": to_station_display,
                 },
                 "classes": [],
             },
@@ -376,6 +378,8 @@ def build_whatsapp_availability_response(
             "train": {
                 "train_no": train_info["train_no"],
                 "train_name": train_info["train_name"],
+                "from_station": from_station_display,
+                "to_station": to_station_display,
             },
             "classes": whatsapp_classes,
         },

@@ -247,6 +247,52 @@ async def test_whatsapp_ladies_quota_delhi_jaipur_3ac():
     print(f"   Response saved to: test_whatsapp_ladies_quota.json")
 
 
+@pytest.mark.asyncio
+async def test_whatsapp_delhi_chandigarh_3a_booking_links():
+    """Test WhatsApp response Delhi to Chandigarh 3AC - print booking links."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_trains")
+
+    journey_date = (datetime.now() + timedelta(days=3)).strftime("%d-%m-%Y")
+
+    result = await tool.execute(
+        fromStation="Delhi",
+        toStation="Chandigarh",
+        journeyDate=journey_date,
+        travelClass="3A",
+        _user_type="whatsapp"
+    )
+
+    assert not result.is_error, f"Should not error. Got: {result.response_text}"
+    assert result.whatsapp_response is not None, "Should have WhatsApp response"
+
+    wa_response = result.whatsapp_response
+    wa_json = wa_response.get("whatsapp_json", {})
+
+    assert wa_json.get("is_class_mentioned") is True
+    trains = wa_json.get("trains", [])
+
+    print(f"\n[TEST] Delhi → Chandigarh | 3A | {journey_date}")
+    print(f"  Response: {wa_response.get('response_text', '')}")
+    print(f"  Total trains: {len(trains)}")
+    print(f"  {'─' * 60}")
+
+    for train in trains:
+        class_info = train.get("classes", [{}])[0]
+        print(f"  {train['train_name']} ({train['train_no']})")
+        print(f"    Dep: {train['departure_time']} → Arr: {train['arrival_time']} | {train['duration']}")
+        print(f"    Status: {class_info.get('status', 'N/A')} | Fare: Rs.{class_info.get('fare', 'N/A')}")
+        print(f"    Booking: {train.get('booking_link', 'N/A')}")
+        print()
+
+    if not trains:
+        print(f"  No bookable trains found.")
+
+    with open("test_whatsapp_delhi_chandigarh.json", "w", encoding="utf-8") as f:
+        json.dump(result.whatsapp_response, f, indent=2, ensure_ascii=False)
+    print(f"  Response saved to: test_whatsapp_delhi_chandigarh.json")
+
+
 if __name__ == "__main__":
     import asyncio
 
