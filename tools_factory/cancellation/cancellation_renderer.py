@@ -854,9 +854,9 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         <div class="rsltcvr">
           <div class="embla__container">
             {% for room in rooms %}
-            <div class="room-card">
+            <div class="room-card"{% if room.is_cancelled %} style="opacity: 0.5; pointer-events: none;"{% endif %}>
               <div class="room-header">
-                <div class="room-type">{{ room.room_type }}</div>
+                <div class="room-type">{{ room.room_type }}{% if room.is_cancelled %} <span style="background:#ffebee;color:#c62828;font-size:11px;padding:2px 8px;border-radius:4px;margin-left:8px;">Cancelled</span>{% endif %}</div>
               </div>
               <div class="room-details">
                 {% if room.amount %}
@@ -894,7 +894,11 @@ INTERACTIVE_BOOKING_TEMPLATE = """
                 <div class="non-refundable">Non-Refundable</div>
                 {% endif %}
               </div>
+              {% if room.is_cancelled %}
+              <button type="button" class="hc-cancel-btn" disabled style="background:#ccc;cursor:not-allowed;">Already Cancelled</button>
+              {% else %}
               <button type="button" class="hc-cancel-btn" data-room-id="{{ room.room_id }}">Cancel This Room</button>
+              {% endif %}
             </div>
             {% endfor %}
           </div>
@@ -1423,6 +1427,7 @@ def render_booking_details(
             "is_refundable": room.get("is_refundable"),
             "total_adults": room.get("total_adults"),
             "meal_type": room.get("meal_type"),
+            "is_cancelled": room.get("is_cancelled", False),
         })
 
     # Build title and subtitle
@@ -1454,6 +1459,7 @@ def render_booking_details(
             "transaction_id": r.get("transaction_id"),
             "is_pay_at_hotel": r.get("is_pay_at_hotel"),
             "amount": r.get("amount"),
+            "is_cancelled": r.get("is_cancelled", False),
         }
         for r in rooms_ui
     ]
@@ -2296,8 +2302,8 @@ TRAIN_BOOKING_TEMPLATE = """
           </thead>
           <tbody>
             {% for pax in passengers %}
-            <tr>
-              <td><input type="checkbox" class="tc-pax-cb" data-pax-id="{{ pax.pax_id }}" /></td>
+            <tr{% if pax.is_cancelled %} style="opacity: 0.5;"{% endif %}>
+              <td><input type="checkbox" class="tc-pax-cb" data-pax-id="{{ pax.pax_id }}"{% if pax.is_cancelled %} disabled{% endif %} /></td>
               <td>{{ pax.title }} {{ pax.name }}</td>
               <td>{{ pax.pax_type }}</td>
               <td>
@@ -2308,9 +2314,13 @@ TRAIN_BOOKING_TEMPLATE = """
                 {% endif %}
               </td>
               <td>
+                {% if pax.is_cancelled %}
+                <span class="tc-status-badge" style="background:#ffebee;color:#c62828;">Cancelled</span>
+                {% else %}
                 <span class="tc-status-badge {{ 'tc-status-cnf' if pax.booking_status == 'CNF' else 'tc-status-other' }}">
                   {{ pax.booking_status }}
                 </span>
+                {% endif %}
               </td>
             </tr>
             {% endfor %}
@@ -2426,7 +2436,7 @@ TRAIN_BOOKING_TEMPLATE = """
 
   function updateProceedBtn() {
     var btn = container.querySelector('.tc-proceed-btn');
-    var cbs = container.querySelectorAll('.tc-pax-cb:checked');
+    var cbs = container.querySelectorAll('.tc-pax-cb:not(:disabled):checked');
     selectedPaxIds = [];
     for (var i = 0; i < cbs.length; i++) selectedPaxIds.push(cbs[i].getAttribute('data-pax-id'));
     btn.disabled = selectedPaxIds.length === 0;
@@ -2435,18 +2445,19 @@ TRAIN_BOOKING_TEMPLATE = """
   /* Checkbox handlers */
   var selectAllCb = container.querySelector('.tc-select-all-cb');
   var paxCbs = container.querySelectorAll('.tc-pax-cb');
+  var activePaxCbs = container.querySelectorAll('.tc-pax-cb:not(:disabled)');
 
   if (selectAllCb) {
     selectAllCb.addEventListener('change', function() {
-      for (var i = 0; i < paxCbs.length; i++) paxCbs[i].checked = this.checked;
+      for (var i = 0; i < activePaxCbs.length; i++) activePaxCbs[i].checked = this.checked;
       updateProceedBtn();
     });
   }
-  for (var i = 0; i < paxCbs.length; i++) {
-    paxCbs[i].addEventListener('change', function() {
+  for (var i = 0; i < activePaxCbs.length; i++) {
+    activePaxCbs[i].addEventListener('change', function() {
       updateProceedBtn();
       if (selectAllCb) {
-        var allChecked = container.querySelectorAll('.tc-pax-cb:checked').length === paxCbs.length;
+        var allChecked = container.querySelectorAll('.tc-pax-cb:not(:disabled):checked').length === activePaxCbs.length;
         selectAllCb.checked = allChecked;
       }
     });
@@ -2729,6 +2740,8 @@ def render_train_booking_details(
             "seat_no": p.get("seat_no"),
             "coach_number": p.get("coach_number"),
             "booking_status": p.get("booking_status"),
+            "current_status": p.get("current_status", ""),
+            "is_cancelled": p.get("is_cancelled", False),
         }
         for p in passengers
     ]
@@ -2787,4 +2800,70 @@ def render_cancellation_success(cancellation_result: Dict[str, Any]) -> str:
         room_type=cancellation_result.get("room_type"),
         cancellation_date=cancellation_date,
         refund_info=refund_data,
+    )
+
+
+ALREADY_CANCELLED_TEMPLATE = """
+<div class="round-trip-selector booking-details-carousel" style="max-width:700px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <main style="padding:20px;">
+    <div style="text-align:center;padding:40px 20px;">
+      <div style="width:64px;height:64px;margin:0 auto 16px;background:#ffebee;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#c62828" style="width:32px;height:32px;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </div>
+      <h3 style="font-size:18px;font-weight:700;color:#1a1a2e;margin:0 0 8px;">Booking Already Cancelled</h3>
+      <p style="font-size:14px;color:#646d74;margin:0 0 16px;">
+        {{ type_label }} booking <strong>{{ booking_id }}</strong> has already been cancelled.
+      </p>
+      {% if info_line %}
+      <p style="font-size:13px;color:#888;margin:0 0 16px;">{{ info_line }}</p>
+      {% endif %}
+      <div style="background:#f8f9fa;border-radius:8px;padding:12px 16px;display:inline-block;">
+        <span style="font-size:13px;color:#646d74;">No further action is needed. If you have questions about your refund, please contact support.</span>
+      </div>
+    </div>
+  </main>
+</div>
+"""
+
+
+def render_already_cancelled(
+    booking_id: str,
+    transaction_type: str = "Hotel",
+    details: Dict[str, Any] = None,
+) -> str:
+    """
+    Render an 'Already Cancelled' card when all rooms/passengers are cancelled.
+
+    Args:
+        booking_id: The booking ID
+        transaction_type: "Hotel" or "Train"
+        details: Booking details dict (for extracting info like hotel name, train name)
+
+    Returns:
+        HTML string with already-cancelled message
+    """
+    details = details or {}
+    type_label = transaction_type
+
+    info_line = ""
+    if transaction_type == "Hotel":
+        hotel_info = details.get("hotel_info", {})
+        if hotel_info.get("hotel_name"):
+            info_line = hotel_info["hotel_name"]
+    elif transaction_type == "Train":
+        train_info = details.get("train_info", {})
+        parts = []
+        if train_info.get("train_name"):
+            parts.append(train_info["train_name"])
+        if train_info.get("from_station_name") and train_info.get("to_station_name"):
+            parts.append(f"{train_info['from_station_name']} → {train_info['to_station_name']}")
+        info_line = " • ".join(parts)
+
+    template = _jinja_env.from_string(ALREADY_CANCELLED_TEMPLATE)
+    return template.render(
+        booking_id=booking_id,
+        type_label=type_label,
+        info_line=info_line,
     )

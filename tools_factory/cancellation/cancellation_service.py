@@ -171,6 +171,20 @@ class CancellationService:
             if not isinstance(rooms_raw, list):
                 rooms_raw = [rooms_raw] if rooms_raw else []
 
+            # Check cancellation status from PaymentDetails
+            payment_details = response.get("PaymentDetails") or []
+            if not isinstance(payment_details, list):
+                payment_details = [payment_details] if payment_details else []
+
+            # Build a map of room_id -> cancelled status
+            cancelled_room_ids = set()
+            for pd in payment_details:
+                status = (pd.get("Status") or "").strip()
+                if status.lower() == "cancelled":
+                    room_id = pd.get("RoomID") or pd.get("RoomId") or pd.get("ID") or pd.get("Id")
+                    if room_id:
+                        cancelled_room_ids.add(str(room_id))
+
             # Extract hotel-level info from first room (same for all rooms)
             hotel_info = {}
             if rooms_raw:
@@ -226,6 +240,8 @@ class CancellationService:
                 if cancellation_policy:
                     cancellation_policy = _strip_html_tags(cancellation_policy)
 
+                is_cancelled = str(room_id) in cancelled_room_ids if room_id else False
+
                 rooms.append({
                     "room_id": room_id,
                     "room_type": r.get("RoomType"),
@@ -242,10 +258,14 @@ class CancellationService:
                     "confirmation_no": r.get("ConfirmationNo"),
                     "payment_due_date": r.get("PaymentDueDate"),
                     "payment_remaining_days": r.get("PaymentRemainingDays"),
+                    "is_cancelled": is_cancelled,
                 })
 
             links = response.get("Links") or {}
             payment_url = links.get("PaymentURL") or links.get("PaymentUrl") or ""
+
+            # Check if all rooms are cancelled
+            all_cancelled = bool(rooms) and all(r.get("is_cancelled") for r in rooms)
 
             return {
                 "success": True,
@@ -253,6 +273,7 @@ class CancellationService:
                 "hotel_info": hotel_info,
                 "guest_info": guest_info,
                 "payment_url": payment_url,
+                "all_cancelled": all_cancelled,
                 "error": None,
                 "raw_response": response,
             }
@@ -476,7 +497,10 @@ class CancellationService:
 
             # Parse passengers
             passengers = []
+            cancelled_statuses = {"cancelled", "can"}
             for pax in pax_list:
+                current_status = pax.get("TicketCurrentStatus") or ""
+                is_cancelled = current_status.strip().lower() in cancelled_statuses
                 passengers.append({
                     "pax_id": pax.get("PaxId"),
                     "title": pax.get("PaxTitle"),
@@ -488,7 +512,8 @@ class CancellationService:
                     "seat_type": pax.get("SeatType"),
                     "coach_number": pax.get("CoachNumber"),
                     "booking_status": pax.get("BookingStatus"),
-                    "current_status": pax.get("TicketCurrentStatus"),
+                    "current_status": current_status,
+                    "is_cancelled": is_cancelled,
                     "pnr_number": pax.get("PnrNumber"),
                     "transaction_id": pax.get("TransactionId"),
                     "cancel_request": pax.get("CancelRequest"),
@@ -547,6 +572,9 @@ class CancellationService:
             pnr_number = pax_list[0].get("PnrNumber") if pax_list else None
             reservation_id = train_details.get("ReservationId")
 
+            # Check if all passengers are cancelled
+            all_cancelled = bool(passengers) and all(p.get("is_cancelled") for p in passengers)
+
             return {
                 "success": True,
                 "passengers": passengers,
@@ -557,6 +585,7 @@ class CancellationService:
                 "pnr_number": pnr_number,
                 "emt_screen_id": emt_screen_id,
                 "bet_id": response.get("BetId"),
+                "all_cancelled": all_cancelled,
                 "error": None,
                 "raw_response": response,
             }
