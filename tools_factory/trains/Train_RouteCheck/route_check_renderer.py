@@ -355,7 +355,7 @@ ROUTE_CHECK_TEMPLATE = """
 
     {% if hidden_stops|length > 0 %}
     <div class="show-more-wrapper">
-      <button class="show-more-btn" id="show-more-btn-{{ instance_id }}" onclick="toggleStops_{{ instance_id }}()">
+      <button class="show-more-btn" onclick="var h=document.getElementById('hidden-stops-{{ instance_id }}');if(h.classList.contains('visible')){h.classList.remove('visible');this.textContent='Show All {{ total_stops }} Stops';}else{h.classList.add('visible');this.textContent='Show Less';}">
         Show All {{ total_stops }} Stops
       </button>
     </div>
@@ -369,26 +369,6 @@ ROUTE_CHECK_TEMPLATE = """
     </div>
   </div>
 </div>
-
-<script>
-(function() {
-  var expanded = false;
-  window['toggleStops_{{ instance_id }}'] = function() {
-    var hiddenEl = document.getElementById('hidden-stops-{{ instance_id }}');
-    var btnEl = document.getElementById('show-more-btn-{{ instance_id }}');
-    if (!hiddenEl || !btnEl) return;
-
-    expanded = !expanded;
-    if (expanded) {
-      hiddenEl.classList.add('visible');
-      btnEl.textContent = 'Show Less';
-    } else {
-      hiddenEl.classList.remove('visible');
-      btnEl.textContent = 'Show All {{ total_stops }} Stops';
-    }
-  };
-})();
-</script>
 """
 
 
