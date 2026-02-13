@@ -1,5 +1,5 @@
 from .client import EMTClient
-from emt_client.config import PNR_STATUS_URL
+from emt_client.config import PNR_STATUS_URL, TRAIN_ROUTE_API_URL
 
 AVAILABILITY_CHECK_URL = "https://railways.easemytrip.com/Train/AvailToCheck"
 
@@ -137,6 +137,31 @@ class TrainApiClient:
             "IPAdress": ""
         }
         return await self.client.post(AVAILABILITY_CHECK_URL, payload)
+
+    async def check_route(
+        self,
+        train_no: str,
+        from_station_code: str,
+        to_station_code: str,
+    ) -> dict:
+        """
+        Check train route/schedule via EaseMyTrip Railways API.
+
+        Args:
+            train_no: Train number (e.g., "12302")
+            from_station_code: Origin station code (e.g., "NDLS")
+            to_station_code: Destination station code (e.g., "HWH")
+
+        Returns:
+            API response with stationList containing route details
+        """
+        payload = {
+            "TrainNo": train_no,
+            "fromStnCode": from_station_code,
+            "toStnCode": to_station_code,
+            "fromdate": "11/11/1111",
+        }
+        return await self.client.post(TRAIN_ROUTE_API_URL, payload)
 
     async def check_pnr_status(self, encrypted_pnr: str) -> dict:
         """
