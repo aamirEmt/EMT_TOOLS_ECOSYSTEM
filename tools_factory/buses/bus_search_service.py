@@ -324,6 +324,35 @@ def _normalize_rating(rating_value: Any) -> Optional[str]:
     except (ValueError, TypeError):
         return None
 
+def _parse_time_to_minutes(time_str: str) -> Optional[int]:
+    """
+    Convert time string (HH:MM) to minutes since midnight.
+    
+    Args:
+        time_str: Time in HH:MM format (e.g., "04:20", "17:25")
+        
+    Returns:
+        Minutes since midnight or None if parsing fails
+    """
+    if not time_str:
+        return None
+    try:
+        time_str = str(time_str).strip()
+        if ":" in time_str:
+            parts = time_str.split(":")
+            hours = int(parts[0])
+            minutes = int(parts[1]) if len(parts) > 1 else 0
+            return hours * 60 + minutes
+        # Handle numeric-only (e.g., "0420" -> 4:20)
+        digits = ''.join(filter(str.isdigit, time_str))
+        if len(digits) >= 3:
+            hours = int(digits[:-2])
+            minutes = int(digits[-2:])
+            return hours * 60 + minutes
+        return None
+    except (ValueError, TypeError):
+        return None
+
 # def _convert_date_to_api_format(date_str: str) -> str:
 #     """
 #     Convert date from YYYY-MM-DD to dd-MM-yyyy format for API.
@@ -454,6 +483,11 @@ def _process_single_bus(
     source_name: str = "",
     destination_name: str = "",
     filter_volvo: Optional[bool] = None,
+    filter_ac: Optional[bool] = None,
+    filter_seater: Optional[bool] = None,
+    filter_sleeper: Optional[bool] = None,
+    filter_departure_from: Optional[str] = None,
+    filter_departure_to: Optional[str] = None,
 ) -> Optional[BusInfo]:
     """
     Process a single bus from API response.
@@ -463,6 +497,51 @@ def _process_single_bus(
     is_volvo = bus.get("isVolvo", False)
     if filter_volvo is True and not is_volvo:
         return None
+
+    # AC filter: True = only AC, False = only Non-AC, None = all
+    bus_is_ac = bus.get("AC", False)
+    bus_is_non_ac = bus.get("nonAC", False)
+    if filter_ac is True and not bus_is_ac:
+        return None
+    if filter_ac is False and not bus_is_non_ac:
+        return None
+
+    # Seater filter: True = only Seater, None = all
+    bus_is_seater = bus.get("seater", False)
+    if filter_seater is True and not bus_is_seater:
+        return None
+
+    # Sleeper filter: True = only Sleeper, None = all
+    bus_is_sleeper = bus.get("sleeper", False)
+    if filter_sleeper is True and not bus_is_sleeper:
+        return None
+    
+    # Departure time filter
+    bus_departure_time = bus.get("departureTime", "") or bus.get("DepartureTime", "")
+    bus_departure_minutes = _parse_time_to_minutes(bus_departure_time)
+    
+    if bus_departure_minutes is not None:
+        from_minutes = _parse_time_to_minutes(filter_departure_from) if filter_departure_from else None
+        to_minutes = _parse_time_to_minutes(filter_departure_to) if filter_departure_to else None
+        
+        # Handle overnight time ranges (e.g., 21:00 to 06:00)
+        if from_minutes is not None and to_minutes is not None:
+            if from_minutes > to_minutes:
+                # Overnight range: bus must depart >= from_minutes OR < to_minutes
+                if not (bus_departure_minutes >= from_minutes or bus_departure_minutes < to_minutes):
+                    return None
+            else:
+                # Normal range: bus must depart >= from_minutes AND < to_minutes
+                if bus_departure_minutes < from_minutes or bus_departure_minutes >= to_minutes:
+                    return None
+        elif from_minutes is not None:
+            # Only from filter: bus must depart >= from_minutes
+            if bus_departure_minutes < from_minutes:
+                return None
+        elif to_minutes is not None:
+            # Only to filter: bus must depart < to_minutes
+            if bus_departure_minutes >= to_minutes:
+                return None
 
     bus_id = str(bus.get("id", ""))
     
@@ -537,6 +616,11 @@ def process_bus_results(
     source_name: str = "",
     destination_name: str = "",
     filter_volvo: Optional[bool] = None,
+    filter_ac: Optional[bool] = None,
+    filter_seater: Optional[bool] = None,
+    filter_sleeper: Optional[bool] = None,
+    filter_departure_from: Optional[str] = None,
+    filter_departure_to: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Process bus search results from the new API.
@@ -572,6 +656,11 @@ def process_bus_results(
             source_name,
             destination_name,
             filter_volvo,
+            filter_ac,
+            filter_seater,
+            filter_sleeper,
+            filter_departure_from,
+            filter_departure_to,
         )
         if processed_bus:
             buses.append(processed_bus.model_dump())
@@ -597,8 +686,13 @@ async def search_buses(
     destination_id: Optional[str] = None,
     journey_date: str = "",
     is_volvo: Optional[bool] = None,
+    is_ac: Optional[bool] = None,
+    is_seater: Optional[bool] = None,
+    is_sleeper: Optional[bool] = None,
     source_name: Optional[str] = None,
     destination_name: Optional[str] = None,
+    departure_time_from: Optional[str] = None,
+    departure_time_to: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Search for buses using the new EaseMyTrip API.
@@ -719,6 +813,11 @@ async def search_buses(
         resolved_source_name,
         resolved_dest_name,
         is_volvo,
+        is_ac,
+        is_seater,
+        is_sleeper,
+        departure_time_from,
+        departure_time_to,
     )
     
     # Add metadata
