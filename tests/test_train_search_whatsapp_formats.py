@@ -280,6 +280,7 @@ async def test_whatsapp_delhi_chandigarh_3a_booking_links():
     for train in trains:
         class_info = train.get("classes", [{}])[0]
         print(f"  {train['train_name']} ({train['train_no']})")
+        print(f"    From: {train.get('from_station', 'N/A')} → To: {train.get('to_station', 'N/A')}")
         print(f"    Dep: {train['departure_time']} → Arr: {train['arrival_time']} | {train['duration']}")
         print(f"    Status: {class_info.get('status', 'N/A')} | Fare: Rs.{class_info.get('fare', 'N/A')}")
         print(f"    Booking: {train.get('booking_link', 'N/A')}")

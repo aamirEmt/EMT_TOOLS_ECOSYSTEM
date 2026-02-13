@@ -695,8 +695,6 @@ def _build_whatsapp_response_with_class(
 
     trains = []
     travel_class = payload.travel_class
-    resolved_from = train_results.get("from_station", payload.from_station)
-    resolved_to = train_results.get("to_station", payload.to_station)
 
     for idx, train in enumerate(train_results.get("trains", []), start=1):
         # Extract class-specific info (should exist after availability check)
@@ -709,8 +707,8 @@ def _build_whatsapp_response_with_class(
             "option_id": idx,
             "train_no": train.get("train_number"),
             "train_name": train.get("train_name"),
-            "from_station": resolved_from,
-            "to_station": resolved_to,
+            "from_station": f"{train.get('from_station_name', '')} ({train.get('from_station_code', '')})",
+            "to_station": f"{train.get('to_station_name', '')} ({train.get('to_station_code', '')})",
             "departure_time": train.get("departure_time"),
             "arrival_time": train.get("arrival_time"),
             "duration": train.get("duration"),
@@ -770,8 +768,6 @@ def _build_whatsapp_response_without_class(
     import time
 
     options = []
-    resolved_from = train_results.get("from_station", payload.from_station)
-    resolved_to = train_results.get("to_station", payload.to_station)
 
     for idx, train in enumerate(train_results.get("trains", []), start=1):
         summary = extract_train_summary(train)
@@ -787,8 +783,8 @@ def _build_whatsapp_response_without_class(
             "option_id": idx,
             "train_no": summary["train_number"],
             "train_name": summary["train_name"],
-            "from_station": resolved_from,
-            "to_station": resolved_to,
+            "from_station": f"{train.get('from_station_name', '')} ({train.get('from_station_code', '')})",
+            "to_station": f"{train.get('to_station_name', '')} ({train.get('to_station_code', '')})",
             "departure_time": summary["departure_time"],
             "arrival_time": summary["arrival_time"],
             "duration": summary["duration"],
