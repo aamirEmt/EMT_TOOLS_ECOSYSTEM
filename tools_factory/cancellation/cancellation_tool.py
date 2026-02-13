@@ -13,7 +13,7 @@ from .cancellation_service import CancellationService
 from emt_client.config import CHATBOT_API_BASE_URL
 from .cancellation_renderer import (
     render_booking_details, render_cancellation_success,
-    render_train_booking_details,
+    render_train_booking_details, render_bus_booking_details,
 )
 
 logger = logging.getLogger(__name__)
@@ -171,6 +171,11 @@ class CancellationTool(BaseTool):
         # Step 2: Fetch booking details (route based on TransactionType)
         if transaction_type == "Train":
             return await self._handle_start_train(
+                input_data, login_result, bid, user_type, render_html, is_whatsapp, service
+            )
+
+        if transaction_type == "Bus":
+            return await self._handle_start_bus(
                 input_data, login_result, bid, user_type, render_html, is_whatsapp, service
             )
 
@@ -537,11 +542,16 @@ class CancellationTool(BaseTool):
         service = await get_user_service(input_data.booking_id, input_data.email)
 
         # Route based on transaction type
-        is_train = service._transaction_type == "Train"
+        tx_type = service._transaction_type
 
         try:
-            if is_train:
+            if tx_type == "Train":
                 result = await service.send_train_cancellation_otp(
+                    booking_id=input_data.booking_id,
+                    email=input_data.email,
+                )
+            elif tx_type == "Bus":
+                result = await service.send_bus_cancellation_otp(
                     booking_id=input_data.booking_id,
                     email=input_data.email,
                 )
@@ -580,10 +590,12 @@ class CancellationTool(BaseTool):
     async def _handle_confirm(self, input_data: CancellationInput, user_type: str) -> ToolResponseFormat:
         render_html = user_type.lower() == "website"
         service = await get_user_service(input_data.booking_id, input_data.email)
-        is_train = service._transaction_type == "Train"
+        tx_type = service._transaction_type
 
-        if is_train:
+        if tx_type == "Train":
             return await self._handle_confirm_train(input_data, render_html, service)
+        if tx_type == "Bus":
+            return await self._handle_confirm_bus(input_data, render_html, service)
         return await self._handle_confirm_hotel(input_data, render_html, service)
 
     # ----------------------------------------------------------
@@ -710,6 +722,189 @@ class CancellationTool(BaseTool):
             success_text = (
                 f" Your train booking has been successfully cancelled!\n\n"
                 f" You will receive a cancellation confirmation email shortly.\n\n"
+                f"Thank you for using EaseMyTrip. We hope to serve you again!"
+            )
+
+        html = None
+        if render_html:
+            result["booking_id"] = input_data.booking_id
+            html = render_cancellation_success(result)
+
+        return ToolResponseFormat(
+            response_text=success_text,
+            structured_content=result,
+            html=html,
+        )
+
+    # ----------------------------------------------------------
+    # _handle_start — Bus branch
+    # ----------------------------------------------------------
+    async def _handle_start_bus(
+        self, input_data, login_result, bid, user_type, render_html, is_whatsapp, service
+    ) -> ToolResponseFormat:
+        try:
+            details_result = await service.fetch_bus_booking_details(bid=bid)
+        except Exception as exc:
+            logger.error(f"Service error during fetch bus details: {exc}", exc_info=True)
+            return ToolResponseFormat(
+                response_text="Something went wrong while fetching bus booking details. Please try again.",
+                is_error=True,
+            )
+
+        combined = {
+            "login": login_result,
+            "booking_details": details_result,
+            "bid": bid,
+            "transaction_type": "Bus",
+        }
+
+        if not details_result["success"]:
+            return ToolResponseFormat(
+                response_text=f"Login succeeded but failed to fetch bus details: {details_result.get('error')}",
+                structured_content=combined,
+                is_error=True,
+            )
+
+        # Website mode: render interactive HTML
+        if render_html:
+            api_base_url = CHATBOT_API_BASE_URL
+            is_otp_send = login_result.get("ids", {}).get("is_otp_send", False)
+            html = render_bus_booking_details(
+                booking_details=details_result,
+                booking_id=input_data.booking_id,
+                email=input_data.email,
+                bid=bid,
+                api_base_url=api_base_url,
+                is_otp_send=is_otp_send,
+            )
+            return ToolResponseFormat(
+                response_text=f"Bus booking details for {input_data.booking_id}",
+                structured_content={
+                    "booking_details": details_result,
+                    "bid": bid,
+                    "transaction_type": "Bus",
+                },
+                html=html,
+            )
+
+        # Chatbot / WhatsApp mode: build friendly text
+        bus_info = details_result.get("bus_info", {})
+        passengers = details_result.get("passengers", [])
+
+        source = bus_info.get("source", "")
+        destination = bus_info.get("destination", "")
+        journey_date = bus_info.get("date_of_journey", "")
+        departure_time = bus_info.get("departure_time", "")
+        bus_type = bus_info.get("bus_type", "")
+        operator = bus_info.get("travels_operator", "")
+        ticket_no = bus_info.get("ticket_no", "")
+        total_fare = bus_info.get("total_fare", "")
+
+        booking_summary = []
+        if operator:
+            booking_summary.append(f"🚌 {operator}")
+        if source and destination:
+            booking_summary.append(f"📍 {source} → {destination}")
+        if journey_date and departure_time:
+            booking_summary.append(f"📅 {journey_date} at {departure_time}")
+        if bus_type:
+            booking_summary.append(f"🎫 {bus_type.strip()}")
+        if ticket_no:
+            booking_summary.append(f"🔢 Ticket: {ticket_no}")
+        if total_fare:
+            booking_summary.append(f"💰 Total Fare: ₹{total_fare}")
+
+        pax_descriptions = []
+        for idx, pax in enumerate(passengers, 1):
+            name = f"{pax.get('title', '')} {pax.get('first_name', '')} {pax.get('last_name', '')}".strip()
+            seat = pax.get('seat_no', '')
+            fare = pax.get('fare', '')
+            status = pax.get('status', '')
+
+            desc = f"\n{idx}. {name}"
+            if seat:
+                desc += f" - Seat {seat}"
+            if fare:
+                desc += f" (₹{fare})"
+            if status:
+                desc += f" - {status}"
+            pax_descriptions.append(desc)
+
+        otp_sent = login_result.get("ids", {}).get("is_otp_send")
+        otp_notice = ""
+        if otp_sent:
+            otp_notice = "\n\n🔐 An OTP has been sent to your registered email/phone. Please verify to proceed."
+
+        friendly_text = (
+            f"Here are the details for your bus booking **{input_data.booking_id}**:\n\n"
+            + "\n".join(booking_summary)
+            + "\n\n👥 **Passengers:**"
+            + "".join(pax_descriptions)
+            + otp_notice
+            + "\n\nWould you like to proceed with the cancellation?"
+        )
+
+        return ToolResponseFormat(
+            response_text=friendly_text,
+            structured_content=combined,
+        )
+
+    # ----------------------------------------------------------
+    # _handle_confirm — Bus branch
+    # ----------------------------------------------------------
+    async def _handle_confirm_bus(self, input_data, render_html, service) -> ToolResponseFormat:
+        if not input_data.otp or not input_data.seats:
+            return ToolResponseFormat(
+                response_text="Missing required fields for bus confirm: otp, seats",
+                is_error=True,
+            )
+
+        try:
+            result = await service.request_bus_cancellation(
+                booking_id=input_data.booking_id,
+                email=input_data.email,
+                otp=input_data.otp,
+                seats=input_data.seats,
+                transaction_id=input_data.transaction_id or "",
+                reason=input_data.reason or "",
+                remark=input_data.remark or "",
+            )
+        except Exception as exc:
+            logger.error(f"Service error during bus cancellation: {exc}", exc_info=True)
+            return ToolResponseFormat(
+                response_text="Something went wrong while submitting bus cancellation. Please try again.",
+                is_error=True,
+            )
+
+        if not result["success"]:
+            return ToolResponseFormat(
+                response_text=f"Bus cancellation failed: {result['message']}\n\nPlease try again or contact customer support.",
+                structured_content=result,
+                is_error=True,
+            )
+
+        refund_info = result.get("refund_info")
+        if refund_info:
+            refund_amount = refund_info.get('refund_amount', 'N/A')
+            cancellation_charges = refund_info.get('cancellation_charges', 'N/A')
+            remarks = refund_info.get('remarks', '')
+            success_text = (
+                f"Your bus booking has been successfully cancelled!\n\n"
+                f"Refund Details:\n"
+                f"   • Refund Amount: ₹{refund_amount}\n"
+                f"   • Cancellation Charges: ₹{cancellation_charges}\n"
+            )
+            if remarks:
+                success_text += f"   • {remarks}\n"
+            success_text += (
+                f"\nYou will receive a cancellation confirmation email shortly.\n"
+                f"The refund will be processed within 5-7 business days.\n\n"
+                f"Thank you for using EaseMyTrip. We hope to serve you again!"
+            )
+        else:
+            success_text = (
+                f"Your bus booking has been successfully cancelled!\n\n"
+                f"You will receive a cancellation confirmation email shortly.\n\n"
                 f"Thank you for using EaseMyTrip. We hope to serve you again!"
             )
 

@@ -66,6 +66,11 @@ class CancellationInput(BaseModel):
         default=None,
         description="Total passengers to cancel (required for train 'confirm')",
     )
+    # Bus-specific fields for action="confirm"
+    seats: Optional[str] = Field(
+        default=None,
+        description="Comma-separated seat numbers to cancel (required for bus 'confirm'), e.g. '2,5'",
+    )
 
 
 # ============================================================

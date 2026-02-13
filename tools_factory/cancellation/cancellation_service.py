@@ -741,6 +741,228 @@ class CancellationService:
                 "raw_response": {},
             }
 
+    # ==================================================================
+    # Bus-specific methods
+    # ==================================================================
+
+    async def fetch_bus_booking_details(self, bid: str) -> Dict[str, Any]:
+        """
+        Fetch bus booking details using the bid token.
+
+        Returns dict with keys: success, passengers, bus_info, price_info,
+        ticket_no, all_cancelled, error, raw_response
+        """
+        try:
+            response = await self.client.fetch_bus_booking_details(bid)
+
+            bus_detail = response.get("BusbookingDetail") or {}
+            pax_list = response.get("BuspaxDetail") or []
+
+            # Parse passengers with cancellation status
+            passengers = []
+            cancelled_statuses = {"cancelled", "cancel"}
+            for pax in pax_list:
+                status = pax.get("Status") or ""
+                is_cancelled = status.strip().lower() in cancelled_statuses
+                passengers.append({
+                    "title": pax.get("Title"),
+                    "first_name": pax.get("FirstName"),
+                    "last_name": pax.get("LastName"),
+                    "gender": pax.get("Gender"),
+                    "age": pax.get("Age"),
+                    "seat_no": pax.get("SeatNo"),
+                    "fare": pax.get("Fare"),
+                    "status": status,
+                    "is_cancelled": is_cancelled,
+                    "is_cancel_req": pax.get("IsCancelReq", False),
+                    "journey_status": pax.get("JourneyStatus"),
+                    "refund_amount": pax.get("RefundAmount"),
+                    "cancellation_charge": pax.get("CancellationCharge"),
+                    "total_fare": pax.get("Totalfare"),
+                    "base_fare": pax.get("BaseFare"),
+                })
+
+            # Parse bus info
+            cancellation_policy = bus_detail.get("BusCancellationPolicy", "")
+            if cancellation_policy:
+                cancellation_policy = _strip_html_tags(cancellation_policy)
+
+            bus_info = {
+                "transaction_id": bus_detail.get("TransactionId"),
+                "ticket_no": bus_detail.get("TicketNo"),
+                "ticket_status": bus_detail.get("TicketStatus"),
+                "source": bus_detail.get("Source"),
+                "destination": bus_detail.get("Destination"),
+                "departure_time": bus_detail.get("DepartureTime"),
+                "date_of_journey": bus_detail.get("DateOfJourney"),
+                "bus_type": bus_detail.get("BusType"),
+                "num_passengers": bus_detail.get("NoOfPassenger"),
+                "travels_operator": bus_detail.get("TravelsOperator"),
+                "bp_location": bus_detail.get("BPLocation"),
+                "bp_time": bus_detail.get("BPTime"),
+                "bus_duration": bus_detail.get("BusDuration"),
+                "arrival_time": bus_detail.get("ArrivalTime"),
+                "arrival_date": bus_detail.get("ArrivalDate"),
+                "total_fare": bus_detail.get("TotalFare"),
+                "total_base_fare": bus_detail.get("TotalBaseFare"),
+                "total_tax": bus_detail.get("TotalTax"),
+                "refund_amount": bus_detail.get("RefundAmount"),
+                "cancellation_charge": bus_detail.get("CancellationCharge"),
+                "cancellation_policy": cancellation_policy,
+                "booking_date": bus_detail.get("Bookingdate"),
+            }
+
+            # Price info
+            price_info = {
+                "total_fare": bus_detail.get("TotalFare"),
+                "base_fare": bus_detail.get("TotalBaseFare"),
+                "tax": bus_detail.get("TotalTax"),
+                "refund_amount": bus_detail.get("RefundAmount"),
+                "card_discount": bus_detail.get("CardDiscount"),
+            }
+
+            # Check if all passengers are cancelled
+            all_cancelled = bool(passengers) and all(p.get("is_cancelled") for p in passengers)
+
+            return {
+                "success": True,
+                "passengers": passengers,
+                "bus_info": bus_info,
+                "price_info": price_info,
+                "ticket_no": bus_detail.get("TicketNo"),
+                "all_cancelled": all_cancelled,
+                "error": None,
+                "raw_response": response,
+            }
+        except Exception as e:
+            logger.error(f"Fetch bus booking details failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "passengers": [],
+                "bus_info": {},
+                "price_info": {},
+                "ticket_no": None,
+                "all_cancelled": False,
+                "error": str(e),
+                "raw_response": {},
+            }
+
+    async def send_bus_cancellation_otp(
+        self,
+        booking_id: str,
+        email: str,
+    ) -> Dict[str, Any]:
+        """
+        Send cancellation OTP for bus booking.
+        Bus uses bid as EmtScreenID (same as hotel).
+        """
+        try:
+            bid = self._bid
+            if not bid:
+                return {
+                    "success": False,
+                    "message": "No bid found. Please login first.",
+                    "error": "NO_BID",
+                    "raw_response": {},
+                }
+
+            response = await self.client.send_bus_cancellation_otp(bid)
+            logger.info(f"Bus OTP Response: {response}")
+
+            is_status = response.get("isStatus", False)
+            msg = response.get("Msg") or response.get("Message") or ""
+
+            return {
+                "success": bool(is_status),
+                "message": msg,
+                "error": None if is_status else "OTP_FAILED",
+                "raw_response": response,
+            }
+        except Exception as e:
+            logger.error(f"Bus OTP send failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "message": "Failed to send bus cancellation OTP",
+                "error": str(e),
+                "raw_response": {},
+            }
+
+    async def request_bus_cancellation(
+        self,
+        booking_id: str,
+        email: str,
+        otp: str,
+        seats: str,
+        transaction_id: str = "",
+        reason: str = "",
+        remark: str = "",
+    ) -> Dict[str, Any]:
+        """
+        Submit bus cancellation request.
+
+        Returns dict with keys: success, message, refund_info, error, raw_response
+        """
+        try:
+            bid = self._bid
+            if not bid:
+                return {
+                    "success": False,
+                    "message": "No bid found. Please login first.",
+                    "refund_info": None,
+                    "error": "NO_BID",
+                    "raw_response": {},
+                }
+
+            response = await self.client.cancel_bus(
+                bid=bid,
+                otp=otp,
+                seats=seats,
+                transaction_id=transaction_id,
+                reason=reason,
+                remark=remark,
+            )
+
+            logger.info(f"Bus Cancellation Response: {response}")
+
+            # Handle string response (API sometimes returns double-encoded JSON)
+            if isinstance(response, str):
+                is_success = "success" in response.lower() or "cancel" in response.lower()
+                msg = response
+                refund_info = None
+            else:
+                is_success = response.get("Status", False) or response.get("isStatus", False)
+                msg = response.get("Message") or response.get("Msg") or ""
+
+                data = response.get("Data", {})
+                refund_info = None
+                if data and isinstance(data, dict):
+                    refund_info = {
+                        "refund_amount": data.get("refundAmount"),
+                        "cancellation_charges": data.get("cancellationCharges"),
+                        "cancel_status": data.get("cancelStatus"),
+                        "is_refunded": data.get("isRefunded"),
+                        "pnr_no": data.get("PNRNo"),
+                        "cancel_seat_no": data.get("cancelSeatNo"),
+                        "remarks": data.get("Remarks"),
+                    }
+
+            return {
+                "success": bool(is_success),
+                "message": msg if is_success else (msg or "Bus cancellation request failed"),
+                "refund_info": refund_info,
+                "error": None if is_success else "CANCELLATION_FAILED",
+                "raw_response": response,
+            }
+        except Exception as e:
+            logger.error(f"Bus cancellation failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "message": "Bus cancellation request failed",
+                "refund_info": None,
+                "error": str(e),
+                "raw_response": {},
+            }
+
     async def close(self):
         """Close the underlying HTTP client. Call this when done using the service."""
         await self.client.close()

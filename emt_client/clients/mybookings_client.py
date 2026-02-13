@@ -139,6 +139,45 @@ class MyBookingsApiClient:
         logger.info(f"Train cancellation payload: {payload}")
         return await self._post(url, payload)
 
+    # ==================================================================
+    # Bus-specific API methods
+    # ==================================================================
+
+    async def fetch_bus_booking_details(self, bid: str) -> Dict[str, Any]:
+        """POST /Bus/BookingDetails/"""
+        url = f"{self.base_url}/Bus/BookingDetails/"
+        payload = {"bid": bid}
+        return await self._post(url, payload)
+
+    async def send_bus_cancellation_otp(self, screen_id: str) -> Dict[str, Any]:
+        """POST /Bus/CancellationOtp/"""
+        url = f"{self.base_url}/Bus/CancellationOtp/"
+        payload = {"EmtScreenID": screen_id}
+        logger.info(f"Bus OTP request payload: {payload}")
+        return await self._post(url, payload)
+
+    async def cancel_bus(
+        self,
+        bid: str,
+        otp: str,
+        seats: str,
+        transaction_id: str = "",
+        reason: str = "",
+        remark: str = "",
+    ) -> Dict[str, Any]:
+        """POST /bus/RequestCancellation/"""
+        url = f"{self.base_url}/bus/RequestCancellation/"
+        payload = {
+            "Remark": remark or "",
+            "Reason": reason or "",
+            "OTP": otp,
+            "Seats": seats,
+            "TransactionId": transaction_id or "",
+            "Bid": bid,
+        }
+        logger.info(f"Bus cancellation payload: {payload}")
+        return await self._post(url, payload)
+
     async def close(self):
         """Close the persistent HTTP client. Call this when done using the client."""
         await self.client.aclose()

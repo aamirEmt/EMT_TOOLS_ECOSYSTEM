@@ -2814,6 +2814,770 @@ def render_train_booking_details(
     )
 
 
+# =====================================================================
+# 🚌 BUS INTERACTIVE BOOKING TEMPLATE (WITH JS FOR CANCEL FLOW)
+# =====================================================================
+BUS_BOOKING_TEMPLATE = """
+<style>
+
+.bus-cancel-carousel {
+  font-family: poppins, sans-serif;
+  color: #202020;
+  background: rgba(255, 255, 255, 0.92);
+  position: relative;
+}
+
+.bus-cancel-carousel * {
+  font-family: inherit;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.bus-cancel-carousel main {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px 0 30px;
+  position: relative;
+}
+
+.bus-cancel-carousel .hc-loading {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,.85);
+  z-index: 50;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.bus-cancel-carousel .hc-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #2196f3;
+  border-radius: 50%;
+  animation: hcSpin .8s linear infinite;
+}
+@keyframes hcSpin { to { transform: rotate(360deg); } }
+
+.bus-cancel-carousel .hc-error-msg {
+  display: none;
+  background: #fff3f3;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.bus-cancel-carousel .bc-header {
+  margin-bottom: 18px;
+}
+.bus-cancel-carousel .bc-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+.bus-cancel-carousel .bc-subtitle {
+  font-size: 12px;
+  color: #646d74;
+  margin-top: 4px;
+}
+
+.bus-cancel-carousel .bc-bus-info {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.bus-cancel-carousel .bc-route {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+.bus-cancel-carousel .bc-route-arrow {
+  color: #2196f3;
+  margin: 0 6px;
+}
+.bus-cancel-carousel .bc-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+}
+.bus-cancel-carousel .bc-info-item {
+  font-size: 12px;
+  color: #646d74;
+}
+.bus-cancel-carousel .bc-info-item strong {
+  color: #1a1a2e;
+  font-weight: 600;
+}
+
+.bus-cancel-carousel .bc-pax-section {
+  margin-bottom: 16px;
+}
+.bus-cancel-carousel .bc-pax-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.bus-cancel-carousel .bc-select-all {
+  font-size: 12px;
+  color: #646d74;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.bus-cancel-carousel .bc-select-all input[type="checkbox"] {
+  width: 16px; height: 16px; cursor: pointer;
+}
+.bus-cancel-carousel .bc-pax-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.bus-cancel-carousel .bc-pax-table th {
+  text-align: left;
+  font-weight: 600;
+  color: #646d74;
+  padding: 6px 8px;
+  border-bottom: 1px solid #e8e8e8;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.bus-cancel-carousel .bc-pax-table td {
+  padding: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.bus-cancel-carousel .bc-pax-table input[type="checkbox"] {
+  width: 16px; height: 16px; cursor: pointer;
+}
+
+.bus-cancel-carousel .bc-status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.bus-cancel-carousel .bc-status-confirm {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.bus-cancel-carousel .bc-status-other {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.bus-cancel-carousel .bc-proceed-btn {
+  width: 100%;
+  padding: 12px;
+  background: #2196f3;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+}
+.bus-cancel-carousel .bc-proceed-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.bus-cancel-carousel .hc-step { display: none; }
+.bus-cancel-carousel .hc-step.active { display: block; }
+
+.bus-cancel-carousel .hc-verify-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+}
+.bus-cancel-carousel .hc-verify-icon { color: #2196f3; margin-bottom: 12px; }
+.bus-cancel-carousel .hc-verify-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.bus-cancel-carousel .hc-verify-desc { font-size: 13px; color: #646d74; margin-bottom: 16px; }
+.bus-cancel-carousel .hc-otp-field { margin-bottom: 14px; }
+.bus-cancel-carousel .hc-login-otp-input,
+.bus-cancel-carousel .hc-otp-input {
+  width: 100%;
+  max-width: 220px;
+  padding: 10px 14px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 18px;
+  text-align: center;
+  letter-spacing: 4px;
+  outline: none;
+}
+.bus-cancel-carousel .hc-login-otp-input:focus,
+.bus-cancel-carousel .hc-otp-input:focus { border-color: #2196f3; }
+.bus-cancel-carousel .hc-submit-btn {
+  padding: 10px 28px;
+  background: #2196f3;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.bus-cancel-carousel .hc-verify-footer {
+  font-size: 12px;
+  color: #999;
+  margin-top: 12px;
+}
+.bus-cancel-carousel .hc-back-btn {
+  padding: 10px 20px;
+  background: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.bus-cancel-carousel .hc-btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.bus-cancel-carousel .hc-selected-room-badge {
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.bus-cancel-carousel .hc-resend-otp-btn {
+  background: none; border: none; color: #2196f3; font-size: 12px; font-weight: 600;
+  cursor: pointer; padding: 0; margin-top: 8px; text-decoration: none; display: inline-block;
+}
+.bus-cancel-carousel .hc-resend-otp-btn:hover { text-decoration: underline; color: #1565c0; }
+.bus-cancel-carousel .hc-resend-otp-btn:disabled { color: #999; cursor: not-allowed; text-decoration: none; }
+
+.bus-cancel-carousel .hc-success-box { text-align: center; padding: 20px; }
+.bus-cancel-carousel .hc-success-icon {
+  width: 56px; height: 56px; margin: 0 auto 12px;
+  background: #e8f5e9; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; color: #2e7d32;
+}
+.bus-cancel-carousel .hc-success-icon svg { width: 28px; height: 28px; }
+.bus-cancel-carousel .hc-success-title { font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+.bus-cancel-carousel .hc-refund-box {
+  background: #f8f9fa; border-radius: 8px; padding: 14px; margin: 14px 0; text-align: left;
+}
+.bus-cancel-carousel .hc-refund-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.bus-cancel-carousel .hc-refund-amount { font-size: 22px; font-weight: 700; color: #2e7d32; margin-bottom: 6px; }
+.bus-cancel-carousel .hc-refund-row { display: flex; justify-content: space-between; font-size: 12px; color: #646d74; padding: 3px 0; }
+.bus-cancel-carousel .hc-footer-note { font-size: 12px; color: #999; margin-top: 14px; }
+
+</style>
+
+<div class="round-trip-selector bus-cancel-carousel" data-instance-id="{{ instance_id }}">
+  <main>
+    <div class="hc-loading"><div class="hc-spinner"></div></div>
+    <div class="hc-error-msg"></div>
+
+    <div class="bc-header">
+      <div class="bc-title">{{ title }}</div>
+      <div class="bc-subtitle">{{ subtitle }}</div>
+    </div>
+
+    {% if bus_info %}
+    <div class="bc-bus-info">
+      <div class="bc-route">
+        {{ bus_info.source }}<span class="bc-route-arrow"> → </span>{{ bus_info.destination }}
+      </div>
+      <div class="bc-info-grid">
+        {% if bus_info.travels_operator %}<div class="bc-info-item"><strong>Operator:</strong> {{ bus_info.travels_operator }}</div>{% endif %}
+        {% if bus_info.bus_type %}<div class="bc-info-item"><strong>Type:</strong> {{ bus_info.bus_type }}</div>{% endif %}
+        {% if bus_info.date_of_journey %}<div class="bc-info-item"><strong>Journey:</strong> {{ bus_info.date_of_journey }}</div>{% endif %}
+        {% if bus_info.departure_time %}<div class="bc-info-item"><strong>Departure:</strong> {{ bus_info.departure_time }}</div>{% endif %}
+        {% if bus_info.arrival_time %}<div class="bc-info-item"><strong>Arrival:</strong> {{ bus_info.arrival_time }}</div>{% endif %}
+        {% if bus_info.bus_duration %}<div class="bc-info-item"><strong>Duration:</strong> {{ bus_info.bus_duration }}</div>{% endif %}
+        {% if bus_info.bp_location %}<div class="bc-info-item"><strong>Boarding:</strong> {{ bus_info.bp_location }}</div>{% endif %}
+        {% if bus_info.ticket_no %}<div class="bc-info-item"><strong>Ticket:</strong> {{ bus_info.ticket_no }}</div>{% endif %}
+        {% if bus_info.total_fare %}<div class="bc-info-item"><strong>Total Fare:</strong> ₹{{ bus_info.total_fare }}</div>{% endif %}
+      </div>
+      {% if bus_info.cancellation_policy %}
+      <div style="margin-top:10px;font-size:11px;color:#888;">{{ bus_info.cancellation_policy }}</div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- STEP 0: Login OTP verification -->
+    {% if is_otp_send %}
+    <div class="hc-step active" data-step="verify-otp">
+      <div class="hc-verify-card">
+        <div class="hc-verify-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+          </svg>
+        </div>
+        <div class="hc-verify-title">Verify Your Identity</div>
+        <p class="hc-verify-desc">We've sent a One-Time Password to your registered email &amp; phone number. Enter it below to continue.</p>
+        <div class="hc-otp-field">
+          <input type="text" class="hc-login-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
+        </div>
+        <button type="button" class="hc-submit-btn hc-verify-otp-btn">Verify &amp; Continue</button>
+        <p class="hc-verify-footer">Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-login-otp">Resend OTP</button></p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- STEP 1: Passenger selection -->
+    <div class="hc-step {{ 'active' if not is_otp_send and not all_cancelled else '' }}" data-step="details">
+      <div class="bc-pax-section">
+        <div class="bc-pax-title">Select passengers to cancel</div>
+        <label class="bc-select-all">
+          <input type="checkbox" class="bc-select-all-cb" /> Select All Passengers
+        </label>
+        <table class="bc-pax-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Passenger</th>
+              <th>Seat</th>
+              <th>Fare</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pax in passengers %}
+            <tr{% if pax.is_cancelled %} style="opacity: 0.5;"{% endif %}>
+              <td><input type="checkbox" class="bc-pax-cb" data-seat-no="{{ pax.seat_no }}"{% if pax.is_cancelled %} disabled{% endif %} /></td>
+              <td>{{ pax.title }} {{ pax.first_name }} {{ pax.last_name }}</td>
+              <td>{{ pax.seat_no }}</td>
+              <td>₹{{ pax.fare }}</td>
+              <td>
+                {% if pax.is_cancelled %}
+                <span class="bc-status-badge" style="background:#ffebee;color:#c62828;">Cancelled</span>
+                {% else %}
+                <span class="bc-status-badge {{ 'bc-status-confirm' if pax.status == 'Confirm' else 'bc-status-other' }}">
+                  {{ pax.status }}
+                </span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="hc-selected-room-badge" style="display:none;">
+        Cancelling: <strong class="bc-selected-label"></strong>
+      </div>
+      <button type="button" class="bc-proceed-btn" disabled>Proceed to Cancel</button>
+    </div>
+
+    <!-- STEP 2: OTP confirmation -->
+    <div class="hc-step" data-step="otp">
+      <div class="hc-verify-card">
+        <div class="hc-verify-icon" style="color:#ff9800;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+        </div>
+        <div class="hc-verify-title">Confirm Cancellation</div>
+        <p class="hc-verify-desc">Enter the OTP sent to your registered email/phone to confirm the cancellation.</p>
+        <div class="hc-otp-field">
+          <input type="text" class="hc-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
+        </div>
+        <div class="hc-btn-row" style="justify-content: center;">
+          <button type="button" class="hc-back-btn" data-back-to="details">Back</button>
+          <button type="button" class="hc-submit-btn bc-confirm-btn">Confirm Cancellation</button>
+        </div>
+        <p class="hc-verify-footer">
+          This action cannot be undone. Refund will be processed as per cancellation policy.<br>
+          Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-cancel-otp">Resend OTP</button>
+        </p>
+      </div>
+    </div>
+
+    <!-- STEP 3: Result -->
+    <div class="hc-step" data-step="result">
+      <div class="hc-result-content"></div>
+    </div>
+
+    <!-- STEP: Already Cancelled -->
+    <div class="hc-step {{ 'active' if not is_otp_send and all_cancelled else '' }}" data-step="cancelled">
+      <div style="text-align:center;padding:30px 20px;">
+        <div style="width:56px;height:56px;margin:0 auto 14px;background:#ffebee;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#c62828" style="width:28px;height:28px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </div>
+        <h3 style="font-size:17px;font-weight:700;color:#1a1a2e;margin:0 0 8px;">Booking Already Cancelled</h3>
+        <p style="font-size:13px;color:#646d74;margin:0 0 14px;">All passengers in this booking have already been cancelled.</p>
+        <div style="background:#f8f9fa;border-radius:8px;padding:10px 14px;display:inline-block;">
+          <span style="font-size:12px;color:#646d74;">No further action is needed. If you have questions about your refund, please contact support.</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var instanceId = '{{ instance_id }}';
+  var container = document.querySelector('[data-instance-id="' + instanceId + '"]');
+  if (!container) return;
+  if (container.hasAttribute('data-initialized')) return;
+  container.setAttribute('data-initialized', 'true');
+
+  var API_BASE = '{{ api_base_url }}';
+  var VERIFY_OTP_URL = API_BASE + '/api/hotel-cancel/verify-otp';
+  var OTP_URL = API_BASE + '/api/hotel-cancel/send-otp';
+  var CANCEL_URL = API_BASE + '/api/hotel-cancel/confirm';
+  var RESEND_LOGIN_OTP_URL = API_BASE + '/api/hotel-cancel/resend-login-otp';
+  var BID = '{{ bid }}';
+  var BOOKING_ID = '{{ booking_id }}';
+  var EMAIL = '{{ email }}';
+  var PASSENGERS = {{ passengers_json | tojson }};
+  var ALL_CANCELLED = {{ 'true' if all_cancelled else 'false' }};
+
+  var selectedSeats = [];
+
+  var loadingOverlay = container.querySelector('.hc-loading');
+  var errorBanner = container.querySelector('.hc-error-msg');
+
+  function showStep(stepName) {
+    var steps = container.querySelectorAll('.hc-step');
+    for (var i = 0; i < steps.length; i++) steps[i].classList.remove('active');
+    var target = container.querySelector('[data-step="' + stepName + '"]');
+    if (target) target.classList.add('active');
+    errorBanner.style.display = 'none';
+  }
+
+  function showLoading(show) { loadingOverlay.style.display = show ? 'flex' : 'none'; }
+  function showError(msg) { errorBanner.textContent = msg; errorBanner.style.display = 'block'; }
+
+  /* Back buttons */
+  var backBtns = container.querySelectorAll('.hc-back-btn');
+  for (var i = 0; i < backBtns.length; i++) {
+    backBtns[i].addEventListener('click', function() { showStep(this.getAttribute('data-back-to')); });
+  }
+
+  function updateSelectedLabel() {
+    var labels = container.querySelectorAll('.bc-selected-label');
+    var badge = container.querySelector('.hc-selected-room-badge');
+    var text = selectedSeats.length + ' seat(s): ' + selectedSeats.join(', ');
+    for (var i = 0; i < labels.length; i++) labels[i].textContent = text;
+    if (badge) badge.style.display = selectedSeats.length > 0 ? 'block' : 'none';
+  }
+
+  function updateProceedBtn() {
+    var btn = container.querySelector('.bc-proceed-btn');
+    var cbs = container.querySelectorAll('.bc-pax-cb:not(:disabled):checked');
+    selectedSeats = [];
+    for (var i = 0; i < cbs.length; i++) selectedSeats.push(cbs[i].getAttribute('data-seat-no'));
+    btn.disabled = selectedSeats.length === 0;
+  }
+
+  /* Checkbox handlers */
+  var selectAllCb = container.querySelector('.bc-select-all-cb');
+  var activePaxCbs = container.querySelectorAll('.bc-pax-cb:not(:disabled)');
+
+  if (selectAllCb) {
+    selectAllCb.addEventListener('change', function() {
+      for (var i = 0; i < activePaxCbs.length; i++) activePaxCbs[i].checked = this.checked;
+      updateProceedBtn();
+    });
+  }
+  for (var i = 0; i < activePaxCbs.length; i++) {
+    activePaxCbs[i].addEventListener('change', function() {
+      updateProceedBtn();
+      if (selectAllCb) {
+        var allChecked = container.querySelectorAll('.bc-pax-cb:not(:disabled):checked').length === activePaxCbs.length;
+        selectAllCb.checked = allChecked;
+      }
+    });
+  }
+
+  /* API helpers */
+  function verifyLoginOtp(otp) {
+    showLoading(true);
+    errorBanner.style.display = 'none';
+    return fetch(VERIFY_OTP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL, otp: otp })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      showLoading(false);
+      if (data.error || !data.success) { showError(data.detail || data.message || 'Invalid OTP.'); return null; }
+      return data;
+    })
+    .catch(function(err) {
+      showLoading(false);
+      showError('Network error. Please try again.');
+      return null;
+    });
+  }
+
+  function sendOtp() {
+    showLoading(true);
+    errorBanner.style.display = 'none';
+    return fetch(OTP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL })
+    })
+    .then(function(data) { return data.json(); })
+    .then(function(data) {
+      showLoading(false);
+      if (!data.isStatus) { showError(data.Msg || data.Message || 'Failed to send OTP.'); return null; }
+      return data;
+    })
+    .catch(function(err) {
+      showLoading(false);
+      showError('Network error. Please try again.');
+      return null;
+    });
+  }
+
+  function confirmCancellation(otp) {
+    showLoading(true);
+    errorBanner.style.display = 'none';
+    return fetch(CANCEL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        booking_id: BOOKING_ID,
+        email: EMAIL,
+        otp: otp,
+        seats: selectedSeats.join(','),
+        transaction_type: 'Bus'
+      })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      showLoading(false);
+      if (typeof data === 'string') {
+        var success = data.toLowerCase().indexOf('success') !== -1 || data.toLowerCase().indexOf('cancel') !== -1;
+        if (!success) { showError(data || 'Cancellation failed.'); return null; }
+        return { Status: true, message: data };
+      }
+      if (!data.Status && !data.isStatus) {
+        showError(data.Message || data.Msg || data.LogMessage || 'Cancellation failed.');
+        return null;
+      }
+      return data;
+    })
+    .catch(function(err) {
+      showLoading(false);
+      showError('Network error. Please try again.');
+      return null;
+    });
+  }
+
+  /* Step 0: Verify login OTP */
+  var verifyOtpBtn = container.querySelector('.hc-verify-otp-btn');
+  if (verifyOtpBtn) {
+    verifyOtpBtn.addEventListener('click', function() {
+      var otpInput = container.querySelector('.hc-login-otp-input');
+      var otp = otpInput ? otpInput.value.trim() : '';
+      if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
+      verifyLoginOtp(otp).then(function(result) {
+        if (result) {
+          if (ALL_CANCELLED) { showStep('cancelled'); }
+          else { showStep('details'); }
+        }
+      });
+    });
+  }
+
+  /* Resend login OTP */
+  var resendLoginOtpBtn = container.querySelector('.hc-resend-login-otp');
+  if (resendLoginOtpBtn) {
+    resendLoginOtpBtn.addEventListener('click', function() {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      fetch(RESEND_LOGIN_OTP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL })
+      })
+      .then(function(resp) { return resp.json(); })
+      .then(function() {
+        btn.textContent = 'OTP Sent!';
+        setTimeout(function() { btn.textContent = 'Resend OTP'; btn.disabled = false; }, 3000);
+      })
+      .catch(function() {
+        showError('Failed to resend OTP. Please try again.');
+        btn.textContent = 'Resend OTP';
+        btn.disabled = false;
+      });
+    });
+  }
+
+  /* Step 1: Proceed with selected passengers */
+  var proceedBtn = container.querySelector('.bc-proceed-btn');
+  if (proceedBtn) {
+    proceedBtn.addEventListener('click', function() {
+      if (selectedSeats.length === 0) return;
+      updateSelectedLabel();
+      sendOtp().then(function(result) { if (result) showStep('otp'); });
+    });
+  }
+
+  /* Step 2: Confirm cancellation */
+  var confirmBtn = container.querySelector('.bc-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', function() {
+      var otpInput = container.querySelector('.hc-otp-input');
+      var otp = otpInput ? otpInput.value.trim() : '';
+      if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
+      confirmCancellation(otp).then(function(result) {
+        if (result) { renderResult(result); showStep('result'); }
+      });
+    });
+  }
+
+  /* Resend cancellation OTP */
+  var resendCancelOtpBtn = container.querySelector('.hc-resend-cancel-otp');
+  if (resendCancelOtpBtn) {
+    resendCancelOtpBtn.addEventListener('click', function() {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      sendOtp().then(function(result) {
+        if (result) { btn.textContent = 'OTP Sent!'; }
+        else { btn.textContent = 'Resend OTP'; }
+        btn.disabled = false;
+        setTimeout(function() { btn.textContent = 'Resend OTP'; }, 3000);
+      });
+    });
+  }
+
+  /* Step 3: Render result */
+  function renderResult(data) {
+    var resultContainer = container.querySelector('.hc-result-content');
+    var html = '<div class="hc-success-box">';
+    html += '<div class="hc-success-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>';
+    html += '<div class="hc-success-title">Cancellation Confirmed!</div>';
+
+    var refundData = data.Data || {};
+    var refundAmount = refundData.refundAmount;
+    var cancellationCharges = refundData.cancellationCharges;
+    var remarks = refundData.Remarks;
+    var pnrNo = refundData.PNRNo;
+
+    if (refundAmount !== undefined || cancellationCharges !== undefined) {
+      html += '<div class="hc-refund-box"><div class="hc-refund-title">Refund Information</div>';
+      if (refundAmount !== undefined) html += '<div class="hc-refund-amount">₹' + refundAmount + '</div>';
+      if (cancellationCharges !== undefined) html += '<div class="hc-refund-row"><span>Cancellation Charges</span><span>₹' + cancellationCharges + '</span></div>';
+      if (pnrNo) html += '<div class="hc-refund-row"><span>Ticket No</span><span>' + pnrNo + '</span></div>';
+      if (remarks) html += '<div class="hc-refund-row"><span>Status</span><span>' + remarks + '</span></div>';
+      html += '</div>';
+    }
+
+    html += '<div class="hc-footer-note">You will receive a confirmation email shortly. Refund will be processed as per cancellation policy.</div>';
+    html += '</div>';
+    resultContainer.innerHTML = html;
+  }
+
+})();
+</script>
+"""
+
+
+def render_bus_booking_details(
+    booking_details: Dict[str, Any],
+    booking_id: str = "",
+    email: str = "",
+    bid: str = "",
+    api_base_url: str = "",
+    is_otp_send: bool = False,
+) -> str:
+    """
+    Render bus booking details as interactive HTML with cancellation flow.
+
+    Args:
+        booking_details: Bus booking details from API
+        booking_id: Booking ID
+        email: User email
+        bid: Encrypted booking ID from guest login
+        api_base_url: Base URL of the chatbot API
+        is_otp_send: Whether a login OTP was auto-sent
+
+    Returns:
+        HTML string with rendered interactive bus booking details
+    """
+    bus_info = booking_details.get("bus_info", {})
+    passengers = booking_details.get("passengers", [])
+    price_info = booking_details.get("price_info", {})
+    ticket_no = booking_details.get("ticket_no", "")
+
+    if not passengers:
+        return """
+        <div class="bus-cancel-carousel">
+          <main style="max-width: 700px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; color: #646d74; padding: 40px 20px;">
+              <p style="font-size: 14px;">No passengers found in this booking.</p>
+            </div>
+          </main>
+        </div>
+        """
+
+    # Build title and subtitle
+    title = f"Bus Booking - {booking_id}" if booking_id else "Bus Booking Details"
+    subtitle_parts = []
+    if bus_info.get("travels_operator"):
+        subtitle_parts.append(bus_info["travels_operator"])
+    if bus_info.get("source") and bus_info.get("destination"):
+        subtitle_parts.append(f"{bus_info['source']} → {bus_info['destination']}")
+    subtitle_parts.append(f"{len(passengers)} passenger(s)")
+    if ticket_no:
+        subtitle_parts.append(f"Ticket: {ticket_no}")
+    subtitle = " • ".join(subtitle_parts)
+
+    import uuid
+    instance_id = str(uuid.uuid4())[:8]
+
+    # Prepare passenger data for JS
+    passengers_json = [
+        {
+            "seat_no": p.get("seat_no"),
+            "name": f"{p.get('title', '')} {p.get('first_name', '')} {p.get('last_name', '')}".strip(),
+            "fare": p.get("fare"),
+            "status": p.get("status", ""),
+            "is_cancelled": p.get("is_cancelled", False),
+        }
+        for p in passengers
+    ]
+
+    all_cancelled = booking_details.get("all_cancelled", False)
+
+    template = _jinja_env.from_string(BUS_BOOKING_TEMPLATE)
+    return template.render(
+        title=title,
+        subtitle=subtitle,
+        bus_info=bus_info,
+        passengers=passengers,
+        price_info=price_info,
+        instance_id=instance_id,
+        bid=bid,
+        booking_id=booking_id,
+        email=email,
+        passengers_json=passengers_json,
+        api_base_url=api_base_url,
+        is_otp_send=is_otp_send,
+        all_cancelled=all_cancelled,
+    )
+
+
 def render_cancellation_success(cancellation_result: Dict[str, Any]) -> str:
     """
     Render beautiful cancellation success confirmation UI.
