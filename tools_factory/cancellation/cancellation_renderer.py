@@ -372,13 +372,12 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 
 .booking-details-carousel .hc-error-msg {
   display: none;
-  background: #ffebee;
   color: #d32f2f;
-  padding: 10px 14px;
+  padding: 4px 14px;
   border-radius: 8px;
-  font-size: 13px;
-  margin-bottom: 12px;
-  border-left: 3px solid #d32f2f;
+  font-size: 12px;
+  margin-bottom: 4px;
+  margin-top: -4px;
 }
 
 .booking-details-carousel .hc-back-btn {
@@ -2046,13 +2045,12 @@ TRAIN_BOOKING_TEMPLATE = """
 
 .train-cancel-carousel .hc-error-msg {
   display: none;
-  background: #ffebee;
   color: #d32f2f;
-  padding: 10px 14px;
+  padding: 4px 14px;
   border-radius: 8px;
-  font-size: 13px;
-  margin-bottom: 12px;
-  border-left: 3px solid #d32f2f;
+  font-size: 12px;
+  margin-bottom: 4px;
+  margin-top: -4px;
 }
 
 .train-cancel-carousel .hc-verify-card {
@@ -2887,13 +2885,12 @@ BUS_BOOKING_TEMPLATE = """
 
 .bus-cancel-carousel .hc-error-msg {
   display: none;
-  background: #ffebee;
   color: #d32f2f;
-  padding: 10px 14px;
+  padding: 4px 14px;
   border-radius: 8px;
-  font-size: 13px;
-  margin-bottom: 12px;
-  border-left: 3px solid #d32f2f;
+  font-size: 12px;
+  margin-bottom: 4px;
+  margin-top: -4px;
 }
 
 .bus-cancel-carousel .bc-header {
