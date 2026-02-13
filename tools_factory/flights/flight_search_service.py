@@ -791,6 +791,8 @@ def _build_view_all_link(search_context: Optional[Dict[str, Any]]) -> str:
     children = _safe_int(passengers.get("children", 0), 0)
     infants = _safe_int(passengers.get("infants", 0), 0)
 
+    fare_type=search_context.get("fare_type", 0)
+
     query_params = {
         "srch": srch_value,
         "px": f"{adults}-{children}-{infants}",
@@ -803,6 +805,7 @@ def _build_view_all_link(search_context: Optional[Dict[str, Any]]) -> str:
         "CCODE": "IN",
         "curr": "INR",
         "apptype": "B2C",
+        "fn":fare_type
     }
 
     base_url = "https://www.easemytrip.com/flight-search/listing"

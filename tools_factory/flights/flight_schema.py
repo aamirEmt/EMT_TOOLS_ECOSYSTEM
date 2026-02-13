@@ -61,8 +61,8 @@ class FlightSearchInput(BaseModel):
         ge=0,
         le=4,
         description=(
-            "Fare type code: 0=standard (default), 1=defence/armed forces, "
-            "2=student, 3=senior citizen, 4=doctor/nurse."
+            "Take this necessary field for fare type selection if user has specified any preference- defence, student, senior citizen, doctor/nurse. "
+            "Fare type code: 0 is standard (default), 1 is for <defence/armed forces (army people)>, 2 is for student traveller, 3 is for senior citizen (people above 60 year old), 4=doctor/nurse (basically healtcare professionals). "
         ),
     )
     
