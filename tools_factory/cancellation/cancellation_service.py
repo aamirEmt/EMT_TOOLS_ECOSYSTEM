@@ -783,9 +783,10 @@ class CancellationService:
                 })
 
             # Parse bus info
-            cancellation_policy = bus_detail.get("BusCancellationPolicy", "")
-            if cancellation_policy:
-                cancellation_policy = _strip_html_tags(cancellation_policy)
+            cancellation_policy_raw = bus_detail.get("BusCancellationPolicy", "")
+            cancellation_policy = ""
+            if cancellation_policy_raw:
+                cancellation_policy = _strip_html_tags(cancellation_policy_raw)
 
             bus_info = {
                 "transaction_id": bus_detail.get("TransactionId"),
@@ -809,6 +810,7 @@ class CancellationService:
                 "refund_amount": bus_detail.get("RefundAmount"),
                 "cancellation_charge": bus_detail.get("CancellationCharge"),
                 "cancellation_policy": cancellation_policy,
+                "cancellation_policy_html": cancellation_policy_raw,
                 "booking_date": bus_detail.get("Bookingdate"),
             }
 

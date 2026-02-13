@@ -3166,6 +3166,121 @@ BUS_BOOKING_TEMPLATE = """
 .bus-cancel-carousel .hc-refund-row { display: flex; justify-content: space-between; font-size: 13px; color: #646d74; padding: 4px 0; }
 .bus-cancel-carousel .hc-footer-note { font-size: 12px; color: #999; margin-top: 16px; }
 
+/* Cancellation policy table */
+.bus-cancel-carousel .bc-policy-section {
+  margin-top: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.bus-cancel-carousel .bc-policy-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: #202020;
+  padding: 10px 14px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+}
+.bus-cancel-carousel .bc-policy-body {
+  max-height: 200px;
+  overflow-y: auto;
+}
+.bus-cancel-carousel .bc-policy-body::-webkit-scrollbar {
+  width: 4px;
+}
+.bus-cancel-carousel .bc-policy-body::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+.bus-cancel-carousel .bc-policy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.bus-cancel-carousel .bc-policy-table th {
+  background: #f8f9fa;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #646d74;
+  font-size: 11px;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.bus-cancel-carousel .bc-policy-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #202020;
+}
+.bus-cancel-carousel .bc-policy-table tr:last-child td {
+  border-bottom: none;
+}
+.bus-cancel-carousel .bc-policy-table tr:hover {
+  background: #fef6f0;
+}
+.bus-cancel-carousel .bc-policy-charge {
+  font-weight: 600;
+  white-space: nowrap;
+}
+/* Style any raw HTML tables from API inside the policy */
+.bus-cancel-carousel .bc-policy-raw {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0;
+}
+.bus-cancel-carousel .bc-policy-raw::-webkit-scrollbar {
+  width: 4px;
+}
+.bus-cancel-carousel .bc-policy-raw::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+.bus-cancel-carousel .bc-policy-raw table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.bus-cancel-carousel .bc-policy-raw table th,
+.bus-cancel-carousel .bc-policy-raw table td {
+  padding: 9px 12px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+.bus-cancel-carousel .bc-policy-raw table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #646d74;
+  font-size: 11px;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.bus-cancel-carousel .bc-policy-raw table tr:hover {
+  background: #fef6f0;
+}
+.bus-cancel-carousel .bc-policy-raw table tr:last-child td {
+  border-bottom: none;
+}
+.bus-cancel-carousel .bc-policy-raw ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.bus-cancel-carousel .bc-policy-raw li {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 12px;
+  color: #202020;
+}
+.bus-cancel-carousel .bc-policy-raw li:last-child {
+  border-bottom: none;
+}
+
 </style>
 
 <div class="round-trip-selector bus-cancel-carousel" data-instance-id="{{ instance_id }}">
@@ -3194,8 +3309,29 @@ BUS_BOOKING_TEMPLATE = """
         {% if bus_info.ticket_no %}<div class="bc-info-item"><strong>Ticket:</strong> {{ bus_info.ticket_no }}</div>{% endif %}
         {% if bus_info.total_fare %}<div class="bc-info-item"><strong>Total Fare:</strong> ₹{{ bus_info.total_fare }}</div>{% endif %}
       </div>
-      {% if bus_info.cancellation_policy %}
-      <div style="font-size:11px;color:#646d74;background:#fff8e1;padding:8px;border-radius:6px;border-left:3px solid #ffc107;margin-top:8px;line-height:1.4;white-space:pre-line;">{{ bus_info.cancellation_policy }}</div>
+      {% if bus_info.cancellation_policy_html or bus_info.cancellation_policy %}
+      <div class="bc-policy-section">
+        <div class="bc-policy-header">Cancellation Policy</div>
+        {% if bus_info.cancellation_policy_html %}
+        <div class="bc-policy-raw bc-policy-body">{{ bus_info.cancellation_policy_html | safe }}</div>
+        {% else %}
+        <div class="bc-policy-body">
+          <table class="bc-policy-table">
+            <thead><tr><th>Cancellation Time</th><th>Cancellation Charges</th></tr></thead>
+            <tbody>
+              {% for line in bus_info.cancellation_policy.split('\n') %}
+              {% if line.strip() %}
+              <tr>
+                <td>{{ line.strip().lstrip('• ') }}</td>
+                <td></td>
+              </tr>
+              {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      </div>
       {% endif %}
     </div>
     {% endif %}
