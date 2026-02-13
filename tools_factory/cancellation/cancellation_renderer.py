@@ -2843,41 +2843,42 @@ BUS_BOOKING_TEMPLATE = """
 .bus-cancel-carousel .hc-loading {
   display: none;
   position: absolute;
-  inset: 0;
-  background: rgba(255,255,255,.85);
-  z-index: 50;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.85);
   align-items: center;
   justify-content: center;
+  z-index: 10;
   border-radius: 12px;
 }
 
 .bus-cancel-carousel .hc-spinner {
   width: 36px; height: 36px;
   border: 3px solid #e0e0e0;
-  border-top-color: #2196f3;
+  border-top-color: #ef6614;
   border-radius: 50%;
-  animation: hcSpin .8s linear infinite;
+  animation: bcSpin 0.8s linear infinite;
 }
-@keyframes hcSpin { to { transform: rotate(360deg); } }
+@keyframes bcSpin { to { transform: rotate(360deg); } }
 
 .bus-cancel-carousel .hc-error-msg {
   display: none;
-  background: #fff3f3;
-  color: #c62828;
-  border: 1px solid #ffcdd2;
-  border-radius: 8px;
+  background: #ffebee;
+  color: #d32f2f;
   padding: 10px 14px;
+  border-radius: 8px;
   font-size: 13px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  border-left: 3px solid #d32f2f;
 }
 
 .bus-cancel-carousel .bc-header {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 .bus-cancel-carousel .bc-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1a1a2e;
+  font-size: 18px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 4px;
 }
 .bus-cancel-carousel .bc-subtitle {
   font-size: 12px;
@@ -2887,31 +2888,36 @@ BUS_BOOKING_TEMPLATE = """
 
 .bus-cancel-carousel .bc-bus-info {
   background: #f8f9fa;
-  border-radius: 10px;
-  padding: 14px 16px;
+  border-radius: 12px;
+  padding: 14px;
   margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
 }
 .bus-cancel-carousel .bc-route {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: #202020;
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .bus-cancel-carousel .bc-route-arrow {
-  color: #2196f3;
-  margin: 0 6px;
+  color: #ef6614;
+  font-weight: 600;
 }
 .bus-cancel-carousel .bc-info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px 16px;
+  margin-top: 8px;
 }
 .bus-cancel-carousel .bc-info-item {
   font-size: 12px;
   color: #646d74;
 }
 .bus-cancel-carousel .bc-info-item strong {
-  color: #1a1a2e;
+  color: #202020;
   font-weight: 600;
 }
 
@@ -2921,40 +2927,48 @@ BUS_BOOKING_TEMPLATE = """
 .bus-cancel-carousel .bc-pax-title {
   font-size: 14px;
   font-weight: 600;
-  margin-bottom: 8px;
+  color: #202020;
+  margin-bottom: 12px;
 }
 .bus-cancel-carousel .bc-select-all {
-  font-size: 12px;
-  color: #646d74;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #646d74;
+  cursor: pointer;
 }
 .bus-cancel-carousel .bc-select-all input[type="checkbox"] {
-  width: 16px; height: 16px; cursor: pointer;
+  accent-color: #ef6614;
+  width: 16px; height: 16px;
 }
 .bus-cancel-carousel .bc-pax-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 12px;
 }
 .bus-cancel-carousel .bc-pax-table th {
+  background: #f8f9fa;
+  padding: 8px 10px;
   text-align: left;
   font-weight: 600;
   color: #646d74;
-  padding: 6px 8px;
-  border-bottom: 1px solid #e8e8e8;
   font-size: 11px;
   text-transform: uppercase;
+  border-bottom: 2px solid #e0e0e0;
 }
 .bus-cancel-carousel .bc-pax-table td {
-  padding: 8px;
+  padding: 10px;
   border-bottom: 1px solid #f0f0f0;
+  color: #202020;
+}
+.bus-cancel-carousel .bc-pax-table tr:hover {
+  background: #fef6f0;
 }
 .bus-cancel-carousel .bc-pax-table input[type="checkbox"] {
-  width: 16px; height: 16px; cursor: pointer;
+  accent-color: #ef6614;
+  width: 16px; height: 16px;
 }
 
 .bus-cancel-carousel .bc-status-badge {
@@ -2974,19 +2988,23 @@ BUS_BOOKING_TEMPLATE = """
 }
 
 .bus-cancel-carousel .bc-proceed-btn {
+  display: block;
   width: 100%;
-  padding: 12px;
-  background: #2196f3;
+  margin-top: 12px;
+  padding: 10px;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
   color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 12px;
+  font-family: poppins, sans-serif;
+  transition: opacity 0.2s;
 }
+.bus-cancel-carousel .bc-proceed-btn:hover { opacity: 0.85; }
 .bus-cancel-carousel .bc-proceed-btn:disabled {
-  background: #ccc;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -2994,65 +3012,117 @@ BUS_BOOKING_TEMPLATE = """
 .bus-cancel-carousel .hc-step.active { display: block; }
 
 .bus-cancel-carousel .hc-verify-card {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 28px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 5px 12px;
   text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
 }
-.bus-cancel-carousel .hc-verify-icon { color: #2196f3; margin-bottom: 12px; }
-.bus-cancel-carousel .hc-verify-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-.bus-cancel-carousel .hc-verify-desc { font-size: 13px; color: #646d74; margin-bottom: 16px; }
-.bus-cancel-carousel .hc-otp-field { margin-bottom: 14px; }
-.bus-cancel-carousel .hc-login-otp-input,
-.bus-cancel-carousel .hc-otp-input {
-  width: 100%;
-  max-width: 220px;
-  padding: 10px 14px;
-  border: 1.5px solid #ddd;
-  border-radius: 8px;
-  font-size: 18px;
-  text-align: center;
-  letter-spacing: 4px;
-  outline: none;
-}
-.bus-cancel-carousel .hc-login-otp-input:focus,
-.bus-cancel-carousel .hc-otp-input:focus { border-color: #2196f3; }
-.bus-cancel-carousel .hc-submit-btn {
-  padding: 10px 28px;
-  background: #2196f3;
+
+.bus-cancel-carousel .hc-verify-icon {
+  width: 50px; height: 50px;
+  margin: 0 auto 4px;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
   color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(239, 102, 20, 0.25);
 }
+
+.bus-cancel-carousel .hc-verify-title {
+  font-size: 18px; font-weight: 700; color: #202020; margin-bottom: 8px;
+}
+
+.bus-cancel-carousel .hc-verify-desc {
+  font-size: 13px; color: #646d74; line-height: 1.5; margin-bottom: 9px;
+}
+
+.bus-cancel-carousel .hc-otp-field { margin-bottom: 16px; }
+
+.bus-cancel-carousel .hc-login-otp-input {
+  width: 100%; max-width: 240px;
+  padding: 10px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 14px; font-weight: 600;
+  text-align: center; letter-spacing: 4px;
+  font-family: inter, sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff; color: #202020;
+}
+.bus-cancel-carousel .hc-login-otp-input:focus {
+  border-color: #ef6614;
+  box-shadow: 0 0 0 3px rgba(239, 102, 20, 0.1);
+}
+.bus-cancel-carousel .hc-login-otp-input::placeholder {
+  font-size: 14px; letter-spacing: 0; font-weight: 400; color: #bbb;
+}
+
+.bus-cancel-carousel .hc-otp-input {
+  width: 100%; max-width: 240px;
+  padding: 8px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 18px; font-weight: 500;
+  text-align: center; letter-spacing: 4px;
+  font-family: inter, sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff; color: #202020;
+}
+.bus-cancel-carousel .hc-otp-input:focus {
+  border-color: #ef6614;
+  box-shadow: 0 0 0 3px rgba(239, 102, 20, 0.1);
+}
+.bus-cancel-carousel .hc-otp-input::placeholder {
+  font-size: 14px; letter-spacing: 0; font-weight: 400; color: #bbb;
+}
+
+.bus-cancel-carousel .hc-submit-btn {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  color: #fff; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: poppins, sans-serif;
+  transition: opacity 0.2s;
+}
+.bus-cancel-carousel .hc-submit-btn:hover { opacity: 0.85; }
+
+.bus-cancel-carousel .hc-verify-card .hc-submit-btn {
+  width: 80%; max-width: 240px; padding: 8px 7px;
+}
+
 .bus-cancel-carousel .hc-verify-footer {
-  font-size: 12px;
-  color: #999;
-  margin-top: 12px;
+  font-size: 11px; color: #999; margin-top: 16px; line-height: 1.4;
 }
+
 .bus-cancel-carousel .hc-back-btn {
-  padding: 10px 20px;
-  background: #f5f5f5;
-  color: #333;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
+  background: none;
+  border: 1px solid #e0e0e0;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 12px; cursor: pointer;
+  color: #646d74; font-family: poppins, sans-serif;
+  transition: border-color 0.2s;
 }
+.bus-cancel-carousel .hc-back-btn:hover { border-color: #ef6614; color: #ef6614; }
+
 .bus-cancel-carousel .hc-btn-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
+  display: flex; gap: 8px; margin-top: 16px;
 }
+
+.bus-cancel-carousel .hc-verify-icon--cancel {
+  background: linear-gradient(135deg, #d32f2f 0%, #ef5350 100%);
+  box-shadow: 0 4px 16px rgba(211, 47, 47, 0.25);
+}
+
 .bus-cancel-carousel .hc-selected-room-badge {
-  background: #e3f2fd;
-  color: #1565c0;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  margin-bottom: 14px;
+  background: #f5f5f5;
+  padding: 10px 14px; border-radius: 8px;
+  font-size: 13px; margin-bottom: 16px;
+  border-left: 3px solid #ef6614;
 }
 
 .bus-cancel-carousel .hc-resend-otp-btn {
@@ -3062,21 +3132,39 @@ BUS_BOOKING_TEMPLATE = """
 .bus-cancel-carousel .hc-resend-otp-btn:hover { text-decoration: underline; color: #1565c0; }
 .bus-cancel-carousel .hc-resend-otp-btn:disabled { color: #999; cursor: not-allowed; text-decoration: none; }
 
-.bus-cancel-carousel .hc-success-box { text-align: center; padding: 20px; }
+/* Success result */
+.bus-cancel-carousel .hc-success-box {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+  border: 2px solid #4caf50; border-radius: 16px;
+  padding: 32px 24px; text-align: center;
+}
 .bus-cancel-carousel .hc-success-icon {
-  width: 56px; height: 56px; margin: 0 auto 12px;
-  background: #e8f5e9; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; color: #2e7d32;
+  width: 64px; height: 64px;
+  margin: 0 auto 16px;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+  animation: bcSuccessPop 0.6s ease-out;
 }
-.bus-cancel-carousel .hc-success-icon svg { width: 28px; height: 28px; }
-.bus-cancel-carousel .hc-success-title { font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+@keyframes bcSuccessPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.bus-cancel-carousel .hc-success-icon svg { width: 36px; height: 36px; color: #fff; }
+.bus-cancel-carousel .hc-success-title {
+  font-size: 20px; font-weight: 700; color: #2e7d32; margin-bottom: 16px;
+}
 .bus-cancel-carousel .hc-refund-box {
-  background: #f8f9fa; border-radius: 8px; padding: 14px; margin: 14px 0; text-align: left;
+  background: linear-gradient(135deg, #fff8e1 0%, #fffbea 100%);
+  border: 2px solid #ffc107; border-radius: 12px;
+  padding: 16px; margin-top: 16px; text-align: left;
 }
-.bus-cancel-carousel .hc-refund-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
-.bus-cancel-carousel .hc-refund-amount { font-size: 22px; font-weight: 700; color: #2e7d32; margin-bottom: 6px; }
-.bus-cancel-carousel .hc-refund-row { display: flex; justify-content: space-between; font-size: 12px; color: #646d74; padding: 3px 0; }
-.bus-cancel-carousel .hc-footer-note { font-size: 12px; color: #999; margin-top: 14px; }
+.bus-cancel-carousel .hc-refund-title { font-size: 14px; font-weight: 700; color: #f57f17; margin-bottom: 12px; }
+.bus-cancel-carousel .hc-refund-amount { font-size: 28px; font-weight: 700; color: #2e7d32; margin-bottom: 8px; }
+.bus-cancel-carousel .hc-refund-row { display: flex; justify-content: space-between; font-size: 13px; color: #646d74; padding: 4px 0; }
+.bus-cancel-carousel .hc-footer-note { font-size: 12px; color: #999; margin-top: 16px; }
 
 </style>
 
@@ -3107,7 +3195,7 @@ BUS_BOOKING_TEMPLATE = """
         {% if bus_info.total_fare %}<div class="bc-info-item"><strong>Total Fare:</strong> ₹{{ bus_info.total_fare }}</div>{% endif %}
       </div>
       {% if bus_info.cancellation_policy %}
-      <div style="margin-top:10px;font-size:11px;color:#888;">{{ bus_info.cancellation_policy }}</div>
+      <div style="font-size:11px;color:#646d74;background:#fff8e1;padding:8px;border-radius:6px;border-left:3px solid #ffc107;margin-top:8px;line-height:1.4;white-space:pre-line;">{{ bus_info.cancellation_policy }}</div>
       {% endif %}
     </div>
     {% endif %}
@@ -3179,8 +3267,8 @@ BUS_BOOKING_TEMPLATE = """
     <!-- STEP 2: OTP confirmation -->
     <div class="hc-step" data-step="otp">
       <div class="hc-verify-card">
-        <div class="hc-verify-icon" style="color:#ff9800;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <div class="hc-verify-icon hc-verify-icon--cancel">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
           </svg>
         </div>
