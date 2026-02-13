@@ -1056,7 +1056,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   /* ---- API helpers ---- */
   function verifyLoginOtp(otp) {
     showLoading(true);
-    errorBanner.style.display = 'none';
+    hideAllErrors();
     return fetch(VERIFY_OTP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1105,7 +1105,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 
   function sendOtp() {
     showLoading(true);
-    errorBanner.style.display = 'none';
+    hideAllErrors();
     return fetch(OTP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1132,7 +1132,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 
   function confirmCancellation(otp, reason, remark) {
     showLoading(true);
-    errorBanner.style.display = 'none';
+    hideAllErrors();
     return fetch(CANCEL_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
