@@ -93,15 +93,19 @@ class CancellationTool(BaseTool):
         return ToolMetadata(
             name="cancellation",
             description=(
-                "Booking cancellation tool. "
+                "Booking cancellation tool for Hotel, Train, and Bus bookings. "
+                "Supports all EaseMyTrip booking types — the system auto-detects the module from the booking ID. "
                 "Use action='start' with booking_id and email to login and fetch booking details (login OTP is auto-sent). "
                 "Use action='verify_otp' with otp to verify the guest login OTP. "
                 "Use action='send_otp' to send cancellation OTP. "
-                "Use action='confirm' with otp, room_id, and transaction_id to complete cancellation."
+                "Use action='confirm' with otp to complete cancellation. "
+                "For hotel: also pass room_id and transaction_id. "
+                "For train: also pass pax_ids, reservation_id, pnr_number. "
+                "For bus: also pass seats (comma-separated seat numbers)."
             ),
             input_schema=CancellationInput.model_json_schema(),
             category="cancellation",
-            tags=["cancellation", "flow"],
+            tags=["cancellation", "hotel", "train", "bus", "flow"],
         )
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
