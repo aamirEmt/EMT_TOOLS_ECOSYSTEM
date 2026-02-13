@@ -997,7 +997,7 @@ def _get_availability_class(status: str) -> str:
     if not status:
         return "unavailable"
     status_upper = status.upper()
-    if "AVAILABLE" in status_upper:
+    if "AVAILABLE" in status_upper and "NOT AVAILABLE" not in status_upper:
         return "available"
     if "WL" in status_upper or "WAITLIST" in status_upper:
         return "waitlist"

@@ -309,7 +309,7 @@ def build_whatsapp_availability_response(
         status_upper = status.upper()
         # Include AVAILABLE, RAC, and any waitlist types (RLWL, GNWL, PQWL, etc.)
         return (
-            "AVAILABLE" in status_upper
+            ("AVAILABLE" in status_upper and "NOT AVAILABLE" not in status_upper)
             or "RAC" in status_upper
             or "WL" in status_upper
         )

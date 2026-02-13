@@ -584,7 +584,7 @@ async def check_and_filter_trains_by_availability(
                 # Filter by status (only RAC/AVAILABLE/WAITLIST)
                 status_upper = status.upper()
                 is_bookable = (
-                    "AVAILABLE" in status_upper or
+                    ("AVAILABLE" in status_upper and "NOT AVAILABLE" not in status_upper) or
                     "WL" in status_upper or
                     "WAITLIST" in status_upper or
                     "RAC" in status_upper
@@ -739,8 +739,10 @@ def _build_whatsapp_response_with_class(
     )
 
     # Build response text based on whether trains were found
+    quota = train_results.get("quota", "GN")
+    quota_display = {"GN": "General", "TQ": "Tatkal", "LD": "Ladies", "SS": "Senior Citizen"}.get(quota, quota)
     if not trains:
-        response_text = f"No trains found with available seats from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class}."
+        response_text = f"No trains found with available seats from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class} with {quota_display} quota."
     else:
         response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class}."
 

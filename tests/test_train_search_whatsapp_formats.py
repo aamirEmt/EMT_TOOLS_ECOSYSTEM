@@ -178,6 +178,75 @@ async def test_website_mode_unaffected():
     print(f"   Website mode unaffected by WhatsApp changes")
 
 
+@pytest.mark.asyncio
+async def test_whatsapp_ladies_quota_delhi_jaipur_3ac():
+    """Test WhatsApp response with Ladies quota, Delhi to Jaipur, 3AC."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_trains")
+
+    journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    result = await tool.execute(
+        fromStation="Delhi",
+        toStation="Jaipur",
+        journeyDate=journey_date,
+        travelClass="3A",
+        quota="LD",
+        _user_type="whatsapp"
+    )
+
+    assert not result.is_error, f"Should not error. Got: {result.response_text}"
+    assert result.whatsapp_response is not None, "Should have WhatsApp response"
+
+    wa_response = result.whatsapp_response
+    wa_json = wa_response.get("whatsapp_json", {})
+
+    # Verify class-mentioned format
+    assert wa_json.get("is_class_mentioned") is True, "is_class_mentioned should be True"
+    assert wa_json.get("trains") is not None, "Should have 'trains' key"
+    assert wa_json.get("options") is None, "Should NOT have 'options' key"
+
+    # Verify search_context has Ladies quota
+    search_context = wa_json.get("search_context", {})
+    assert search_context.get("class") == "3A", "Class should be 3A"
+    assert search_context.get("quota") == "LD", "Quota should be LD (Ladies)"
+
+    trains = wa_json.get("trains", [])
+
+    if len(trains) > 0:
+        # Trains found with available seats
+        train = trains[0]
+        assert "booking_link" in train, "Should have booking_link"
+        assert "classes" in train, "Should have classes"
+
+        class_info = train["classes"][0]
+        assert class_info.get("class") == "3A"
+        assert "status" in class_info
+
+        # Booking link should contain LD quota
+        assert "/LD/" in train["booking_link"], "Booking link should use Ladies quota"
+
+        print(f"\n[PASS] Ladies Quota Delhi-Jaipur 3AC")
+        print(f"   Found {len(trains)} bookable trains")
+        print(f"   Sample: {train['train_name']} ({train['train_no']})")
+        print(f"   Status: {class_info['status']}, Fare: Rs.{class_info.get('fare', 'N/A')}")
+        print(f"   Booking: {train['booking_link'][:70]}...")
+    else:
+        # No seats available - verify response text
+        response_text = wa_response.get("response_text", "")
+        assert "No trains found" in response_text, \
+            f"Should say 'No trains found' when empty. Got: {response_text}"
+        assert "3A" in response_text, "Should mention class 3A in no-seats message"
+
+        print(f"\n[PASS] Ladies Quota Delhi-Jaipur 3AC - No seats available")
+        print(f"   Response: {response_text}")
+
+    # Save response
+    with open("test_whatsapp_ladies_quota.json", "w", encoding="utf-8") as f:
+        json.dump(result.whatsapp_response, f, indent=2, ensure_ascii=False)
+    print(f"   Response saved to: test_whatsapp_ladies_quota.json")
+
+
 if __name__ == "__main__":
     import asyncio
 
@@ -194,6 +263,9 @@ if __name__ == "__main__":
 
         print("\n3. Testing website mode unaffected...")
         await test_website_mode_unaffected()
+
+        print("\n4. Testing Ladies quota Delhi-Jaipur 3AC...")
+        await test_whatsapp_ladies_quota_delhi_jaipur_3ac()
 
         print("\n" + "=" * 70)
         print("ALL TESTS COMPLETED!")
