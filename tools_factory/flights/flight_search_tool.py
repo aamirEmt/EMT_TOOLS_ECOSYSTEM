@@ -103,6 +103,7 @@ class FlightSearchTool(BaseTool):
             cabin=payload.cabin,
             stops=payload.stops,
             fastest=payload.fastest,
+            fare_type=payload.fare_type,
             departure_time_window=payload.departure_time_window,
             arrival_time_window=payload.arrival_time_window,
         )

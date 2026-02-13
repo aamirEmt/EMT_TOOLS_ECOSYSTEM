@@ -594,7 +594,7 @@ def build_deep_link(
         ("Adult", str(passengers.get("adults", 1))),
         ("Child", str(passengers.get("children", 0))),
         ("Infant", str(passengers.get("infants", 0))),
-        ("ReferralId", "UserID"),
+        ("ReferralId", "EMTAI"),
         ("UserLanguage", "en"),
         ("DisplayedPriceCurrency", "INR"),
         ("UserCurrency", "INR"),
@@ -642,7 +642,7 @@ def build_roundtrip_combo_deep_link(
     onward_flight: Dict[str, Any],
     return_flight: Dict[str, Any],
     passengers: Dict[str, int],
-    referral_id: str = "UserID",
+    referral_id: str = "EMTAI",
     language: str = "en",
     currency: str = "INR",
     pos_country: str = "IN",
@@ -829,6 +829,7 @@ async def search_flights(
     cabin: Optional[str] = None,
     stops: Optional[int] = None,
     fastest: Optional[bool] = None,
+    fare_type: Optional[int] = 0,
     departure_time_window: Optional[str] = None,
     arrival_time_window: Optional[str] = None,
 ) -> dict:
@@ -844,6 +845,7 @@ async def search_flights(
         infants: Number of infant passengers
         stops: Number of preferred stops (0 = nonstop, 1 = one stop, etc.)
         fastest: If true, sort results by shortest journey time
+        fare_type: Fare type code (0=standard, 1=defence, 2=student, 3=senior, 4=doctor/nurse)
         departure_time_window: Time-of-day window for departure (e.g., '06:00-12:00')
         arrival_time_window: Time-of-day window for arrival (e.g., '18:00-23:00')
 
@@ -886,6 +888,13 @@ async def search_flights(
         "children": children,
         "infants": infants,
     }
+    try:
+        fare_type_code = int(fare_type or 0)
+    except (TypeError, ValueError):
+        fare_type_code = 0
+
+    is_fare_family = fare_type_code != 1
+    is_armed_force = fare_type_code == 1
 
     search_context = {
         "origin": origin_code,
@@ -903,6 +912,7 @@ async def search_flights(
         "cabin": cabin_enum.value,
         "is_international": is_international,
         "stops": stops,
+        "fare_type": fare_type,
         "fastest": fastest,
         "departure_time_window": departure_time_window,
         "arrival_time_window": arrival_time_window,
@@ -920,9 +930,10 @@ async def search_flights(
         "queryname": trace_id,
         "deptDT": outbound_date,
         "arrDT": return_date if is_roundtrip else None,
+        "FareTypeUI": fare_type_code,
         "userid": "",
         "IsDoubelSeat": False,
-        "isDomestic": f"{not is_international}",
+        "isDomestic": not is_international,
         "isOneway": not is_roundtrip,
         "airline": "undefined",
         "VIP_CODE": "",
@@ -934,10 +945,10 @@ async def search_flights(
         "ResType": 0 if is_international else 2,
         "IsNBA": True,
         "CouponCode": "",
-        "IsArmedForce": False,
+        "IsArmedForce": is_armed_force,
         "AgentCode": "",
         "IsWLAPP": False,
-        "IsFareFamily": False,
+        "IsFareFamily": is_fare_family,
         "serviceid": "EMTSERVICE",
         "serviceDepatment": "",
         "IpAddress": "",

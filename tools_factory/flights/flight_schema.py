@@ -55,6 +55,16 @@ class FlightSearchInput(BaseModel):
             "Defaults to '00:00-24:00' (no restriction)."
         ),
     )
+    fare_type: Optional[int] = Field(
+        0,
+        alias="fareType",
+        ge=0,
+        le=4,
+        description=(
+            "Fare type code: 0=standard (default), 1=defence/armed forces, "
+            "2=student, 3=senior citizen, 4=doctor/nurse."
+        ),
+    )
     
     adults: int = Field(1, ge=1, le=9, description="Number of adults (1-9). Cannot be null or None, defaults to 1.")
     children: int = Field(0, ge=0, le=8, description="Number of children (0-8). Cannot be null or None, defaults to 0.")
