@@ -1,10 +1,14 @@
 from tools_factory.base import BaseTool, ToolMetadata
 from pydantic import ValidationError
 
+import logging
+
 from .train_schema import TrainSearchInput
-from .train_search_service import search_trains, build_whatsapp_train_response
+from .train_search_service import search_trains, build_whatsapp_train_response, check_and_filter_trains_by_availability
 from .train_renderer import render_train_results
 from tools_factory.base_schema import ToolResponseFormat
+
+logger = logging.getLogger(__name__)
 
 
 class TrainSearchTool(BaseTool):
@@ -24,7 +28,7 @@ class TrainSearchTool(BaseTool):
         """Execute train search with provided parameters."""
 
         # Extract runtime flags
-        limit = kwargs.pop("_limit", None)
+        limit = kwargs.pop("_limit", 15)  # Default limit: 15 trains per page
         user_type = kwargs.pop("_user_type", "website")
         is_whatsapp = user_type.lower() == "whatsapp"
 
@@ -51,9 +55,49 @@ class TrainSearchTool(BaseTool):
 
         has_error = bool(train_results.get("error"))
 
-        # Apply limit if specified
-        if limit is not None and "trains" in train_results:
-            train_results["trains"] = train_results["trains"][:limit]
+        # NEW: Check availability and filter if class mentioned + WhatsApp user
+        if not has_error and payload.travel_class and is_whatsapp:
+            try:
+                # Check availability for all trains in the specified class
+                train_results["trains"] = await check_and_filter_trains_by_availability(
+                    trains=train_results.get("trains", []),
+                    travel_class=payload.travel_class,
+                    journey_date=payload.journey_date,
+                    quota="GN",
+                    max_concurrent=5,  # Can be made configurable
+                    max_trains=20,     # Can be made configurable
+                )
+
+                # Update total count
+                train_results["total_count"] = len(train_results["trains"])
+
+                logger.info(f"Availability check complete: {len(train_results['trains'])} bookable trains found")
+
+            except Exception as e:
+                logger.error(f"Error during availability check: {e}")
+                # Continue with original results if availability check fails
+
+        # Store original total count BEFORE pagination
+        total_trains = len(train_results.get("trains", []))
+
+        # Apply pagination
+        if not has_error and "trains" in train_results:
+            page = payload.page  # Get page from validated payload
+            offset = (page - 1) * limit
+            end = offset + limit
+            train_results["trains"] = train_results["trains"][offset:end]
+
+            # Add pagination metadata
+            train_results["pagination"] = {
+                "current_page": page,
+                "per_page": limit,
+                "total_results": total_trains,
+                "total_pages": (total_trains + limit - 1) // limit if limit > 0 else 0,
+                "has_next_page": end < total_trains,
+                "has_previous_page": page > 1,
+                "showing_from": offset + 1 if train_results["trains"] else 0,
+                "showing_to": min(end, total_trains)
+            }
 
         trains = train_results.get("trains", [])
         train_count = len(trains)
@@ -68,7 +112,15 @@ class TrainSearchTool(BaseTool):
         if has_error:
             text = f"No trains found. {train_results.get('message', '')}"
         else:
-            text = f"Found {train_count} trains from {payload.from_station} to {payload.to_station}!"
+            pagination = train_results.get("pagination", {})
+            if pagination:
+                total = pagination.get("total_results", train_count)
+                current_page = pagination.get("current_page", 1)
+                showing_from = pagination.get("showing_from", 1)
+                showing_to = pagination.get("showing_to", train_count)
+                text = f"Showing trains {showing_from}-{showing_to} of {total} from {payload.from_station} to {payload.to_station} (Page {current_page})"
+            else:
+                text = f"Found {train_count} trains from {payload.from_station} to {payload.to_station}!"
 
         # Render HTML for website users only when trains are found
         html_content = None

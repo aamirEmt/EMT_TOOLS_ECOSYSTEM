@@ -484,7 +484,7 @@ def _process_international_combos(
     #     },
     # )
 
-    return combos[:20]
+    return combos
 
 
 
@@ -979,8 +979,8 @@ def process_flight_results(
     view_all_link = _build_view_all_link(search_context)
 
     return {
-        "outbound_flights": outbound_flights[:20],
-        "return_flights": return_flights[:20],
+        "outbound_flights": outbound_flights,
+        "return_flights": return_flights,
         "is_roundtrip": is_roundtrip,
         "is_international": is_international,
         "international_combos": combos,
@@ -1277,7 +1277,7 @@ def build_whatsapp_flight_response(
     )
 
     return WhatsappFlightFinalResponse(
-        response_text=f"Here are the best flight options from {payload.origin} to {payload.destination}",
+        response_text=f"Here are the best flights options from {payload.origin} to {payload.destination}",
         whatsapp_json=whatsapp_json,
     )
 

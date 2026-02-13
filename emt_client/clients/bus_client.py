@@ -25,7 +25,7 @@ class BusApiClient:
                 self.search_url,
                 json=payload,
                 headers={"Content-Type": "application/json"},
-                timeout=aiohttp.ClientTimeout(total=30),
+                timeout=aiohttp.ClientTimeout(total=60),
             ) as response:
                 if response.status != 200:
                     return {"error": f"API returned status {response.status}"}

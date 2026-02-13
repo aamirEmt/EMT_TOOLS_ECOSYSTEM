@@ -1,6 +1,6 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
 
 
 class TrainSearchInput(BaseModel):
@@ -20,6 +20,11 @@ class TrainSearchInput(BaseModel):
         ...,
         alias="journeyDate",
         description="Journey date in DD-MM-YYYY format",
+    )
+    page: int = Field(
+        default=1,
+        ge=1,
+        description="Page number for pagination. Default: 1",
     )
     travel_class: Optional[str] = Field(
         None,
@@ -165,6 +170,8 @@ class TrainClassAvailability(BaseModel):
     availability_status: str
     fare_updated: Optional[str] = None
     book_now: Optional[str] = None
+    quota: Optional[str] = None
+    quota_name: Optional[str] = None
 
 
 class TrainInfo(BaseModel):
@@ -186,11 +193,34 @@ class TrainInfo(BaseModel):
 
 
 class WhatsappTrainFormat(BaseModel):
+    """WhatsApp response format - supports both class-mentioned and general search."""
     type: str = "train_collection"
-    options: list
+    is_class_mentioned: bool = False
+    search_context: Dict[str, Any] = {}  # source, destination, date, class, currency, search_id
+
+    # Conditional fields (mutually exclusive based on is_class_mentioned)
+    options: Optional[List[Dict[str, Any]]] = None  # When class NOT mentioned
+    trains: Optional[List[Dict[str, Any]]] = None   # When class IS mentioned
+
+    # Common fields
     journey_type: str = "train"
     currency: str = "INR"
     view_all_trains_url: str = ""
+
+    @model_validator(mode='after')
+    def validate_conditional_fields(self) -> 'WhatsappTrainFormat':
+        """Ensure correct fields are populated based on is_class_mentioned."""
+        if self.is_class_mentioned:
+            if not self.trains:
+                raise ValueError("trains list required when is_class_mentioned=True")
+            if self.options:
+                raise ValueError("options should not be set when is_class_mentioned=True")
+        else:
+            if not self.options:
+                raise ValueError("options list required when is_class_mentioned=False")
+            if self.trains:
+                raise ValueError("trains should not be set when is_class_mentioned=False")
+        return self
 
 
 class WhatsappTrainFinalResponse(BaseModel):
