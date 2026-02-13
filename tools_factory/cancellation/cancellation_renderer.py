@@ -841,6 +841,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         <div class="hc-otp-field">
           <input type="text" class="hc-login-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
         </div>
+        <div class="hc-error-msg hc-step-error"></div>
         <button type="button" class="hc-submit-btn hc-verify-otp-btn">Verify &amp; Continue</button>
         <p class="hc-verify-footer">Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-login-otp">Resend OTP</button></p>
       </div>
@@ -949,6 +950,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         <div class="hc-otp-field">
           <input type="text" class="hc-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
         </div>
+        <div class="hc-error-msg hc-step-error"></div>
         <div class="hc-btn-row" style="justify-content: center;">
           <button type="button" class="hc-back-btn" data-back-to="reason">Back</button>
           <button type="button" class="hc-submit-btn hc-confirm-btn">Confirm Cancellation</button>
@@ -1010,9 +1012,14 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 
   /* ---- DOM references (scoped to container) ---- */
   var loadingOverlay = container.querySelector('.hc-loading');
-  var errorBanner = container.querySelector('.hc-error-msg');
+  var globalErrorBanner = container.querySelector('main > .hc-error-msg');
 
   /* ---- Utility functions ---- */
+  function hideAllErrors() {
+    var errs = container.querySelectorAll('.hc-error-msg');
+    for (var i = 0; i < errs.length; i++) errs[i].style.display = 'none';
+  }
+
   function showStep(stepName) {
     var steps = container.querySelectorAll('.hc-step');
     for (var i = 0; i < steps.length; i++) {
@@ -1020,7 +1027,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     }
     var target = container.querySelector('[data-step="' + stepName + '"]');
     if (target) target.classList.add('active');
-    errorBanner.style.display = 'none';
+    hideAllErrors();
   }
 
   function showLoading(show) {
@@ -1028,8 +1035,12 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   }
 
   function showError(message) {
-    errorBanner.textContent = message;
-    errorBanner.style.display = 'block';
+    hideAllErrors();
+    var activeStep = container.querySelector('.hc-step.active');
+    var inlineErr = activeStep ? activeStep.querySelector('.hc-step-error') : null;
+    var target = inlineErr || globalErrorBanner;
+    target.textContent = message;
+    target.style.display = 'block';
   }
 
   function updateRoomLabels() {
@@ -2300,6 +2311,7 @@ TRAIN_BOOKING_TEMPLATE = """
         <div class="hc-otp-field">
           <input type="text" class="hc-login-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
         </div>
+        <div class="hc-error-msg hc-step-error"></div>
         <button type="button" class="hc-submit-btn hc-verify-otp-btn">Verify &amp; Continue</button>
         <p class="hc-verify-footer">Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-login-otp">Resend OTP</button></p>
       </div>
@@ -2393,6 +2405,7 @@ TRAIN_BOOKING_TEMPLATE = """
         <div class="hc-otp-field">
           <input type="text" class="hc-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
         </div>
+        <div class="hc-error-msg hc-step-error"></div>
         <div class="hc-btn-row" style="justify-content: center;">
           <button type="button" class="hc-back-btn" data-back-to="details">Back</button>
           <button type="button" class="hc-submit-btn tc-confirm-btn">Confirm Cancellation</button>
@@ -2455,18 +2468,30 @@ TRAIN_BOOKING_TEMPLATE = """
   var selectedPaxIds = [];
 
   var loadingOverlay = container.querySelector('.hc-loading');
-  var errorBanner = container.querySelector('.hc-error-msg');
+  var globalErrorBanner = container.querySelector('main > .hc-error-msg');
+
+  function hideAllErrors() {
+    var errs = container.querySelectorAll('.hc-error-msg');
+    for (var i = 0; i < errs.length; i++) errs[i].style.display = 'none';
+  }
 
   function showStep(stepName) {
     var steps = container.querySelectorAll('.hc-step');
     for (var i = 0; i < steps.length; i++) steps[i].classList.remove('active');
     var target = container.querySelector('[data-step="' + stepName + '"]');
     if (target) target.classList.add('active');
-    errorBanner.style.display = 'none';
+    hideAllErrors();
   }
 
   function showLoading(show) { loadingOverlay.style.display = show ? 'flex' : 'none'; }
-  function showError(msg) { errorBanner.textContent = msg; errorBanner.style.display = 'block'; }
+  function showError(msg) {
+    hideAllErrors();
+    var activeStep = container.querySelector('.hc-step.active');
+    var inlineErr = activeStep ? activeStep.querySelector('.hc-step-error') : null;
+    var target = inlineErr || globalErrorBanner;
+    target.textContent = msg;
+    target.style.display = 'block';
+  }
 
   function updateSelectedLabel() {
     var labels = container.querySelectorAll('.tc-selected-pax-label');
@@ -2506,7 +2531,7 @@ TRAIN_BOOKING_TEMPLATE = """
   /* API helpers */
   function verifyLoginOtp(otp) {
     showLoading(true);
-    errorBanner.style.display = 'none';
+    hideAllErrors();
     return fetch(VERIFY_OTP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2541,7 +2566,7 @@ TRAIN_BOOKING_TEMPLATE = """
 
   function sendOtp() {
     showLoading(true);
-    errorBanner.style.display = 'none';
+    hideAllErrors();
     return fetch(OTP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2562,7 +2587,7 @@ TRAIN_BOOKING_TEMPLATE = """
 
   function confirmCancellation(otp) {
     showLoading(true);
-    errorBanner.style.display = 'none';
+    hideAllErrors();
     var paxIdPayload = selectedPaxIds.map(function(id) { return 'canidout(' + id + ')'; });
     return fetch(CANCEL_URL, {
       method: 'POST',
@@ -3311,7 +3336,6 @@ BUS_BOOKING_TEMPLATE = """
       </div>
       {% if bus_info.cancellation_policy_html or bus_info.cancellation_policy %}
       <div class="bc-policy-section">
-        <div class="bc-policy-header">Cancellation Policy</div>
         {% if bus_info.cancellation_policy_html %}
         <div class="bc-policy-raw bc-policy-body">{{ bus_info.cancellation_policy_html | safe }}</div>
         {% else %}
@@ -3350,6 +3374,7 @@ BUS_BOOKING_TEMPLATE = """
         <div class="hc-otp-field">
           <input type="text" class="hc-login-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
         </div>
+        <div class="hc-error-msg hc-step-error"></div>
         <button type="button" class="hc-submit-btn hc-verify-otp-btn">Verify &amp; Continue</button>
         <p class="hc-verify-footer">Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-login-otp">Resend OTP</button></p>
       </div>
@@ -3413,6 +3438,7 @@ BUS_BOOKING_TEMPLATE = """
         <div class="hc-otp-field">
           <input type="text" class="hc-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
         </div>
+        <div class="hc-error-msg hc-step-error"></div>
         <div class="hc-btn-row" style="justify-content: center;">
           <button type="button" class="hc-back-btn" data-back-to="details">Back</button>
           <button type="button" class="hc-submit-btn bc-confirm-btn">Confirm Cancellation</button>
@@ -3472,18 +3498,30 @@ BUS_BOOKING_TEMPLATE = """
   var selectedSeats = [];
 
   var loadingOverlay = container.querySelector('.hc-loading');
-  var errorBanner = container.querySelector('.hc-error-msg');
+  var globalErrorBanner = container.querySelector('main > .hc-error-msg');
+
+  function hideAllErrors() {
+    var errs = container.querySelectorAll('.hc-error-msg');
+    for (var i = 0; i < errs.length; i++) errs[i].style.display = 'none';
+  }
 
   function showStep(stepName) {
     var steps = container.querySelectorAll('.hc-step');
     for (var i = 0; i < steps.length; i++) steps[i].classList.remove('active');
     var target = container.querySelector('[data-step="' + stepName + '"]');
     if (target) target.classList.add('active');
-    errorBanner.style.display = 'none';
+    hideAllErrors();
   }
 
   function showLoading(show) { loadingOverlay.style.display = show ? 'flex' : 'none'; }
-  function showError(msg) { errorBanner.textContent = msg; errorBanner.style.display = 'block'; }
+  function showError(msg) {
+    hideAllErrors();
+    var activeStep = container.querySelector('.hc-step.active');
+    var inlineErr = activeStep ? activeStep.querySelector('.hc-step-error') : null;
+    var target = inlineErr || globalErrorBanner;
+    target.textContent = msg;
+    target.style.display = 'block';
+  }
 
   /* Back buttons */
   var backBtns = container.querySelectorAll('.hc-back-btn');
@@ -3530,7 +3568,7 @@ BUS_BOOKING_TEMPLATE = """
   /* API helpers */
   function verifyLoginOtp(otp) {
     showLoading(true);
-    errorBanner.style.display = 'none';
+    hideAllErrors();
     return fetch(VERIFY_OTP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -3551,7 +3589,7 @@ BUS_BOOKING_TEMPLATE = """
 
   function sendOtp() {
     showLoading(true);
-    errorBanner.style.display = 'none';
+    hideAllErrors();
     return fetch(OTP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -3572,7 +3610,7 @@ BUS_BOOKING_TEMPLATE = """
 
   function confirmCancellation(otp) {
     showLoading(true);
-    errorBanner.style.display = 'none';
+    hideAllErrors();
     return fetch(CANCEL_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
