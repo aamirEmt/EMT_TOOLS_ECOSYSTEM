@@ -18,7 +18,23 @@ class TrainSearchTool(BaseTool):
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
             name="search_trains",
-            description="Search for trains on EaseMyTrip with origin station, destination station, and journey date",
+            description=(
+                "Search for trains on EaseMyTrip using structured parameters. "
+                "You MUST extract all relevant constraints from the user query. "
+                "If the user mentions a travel class (e.g., '3rd AC', 'sleeper', 'chair car'), "
+                "you MUST set travelClass using the correct code (e.g., '3A', 'SL', 'CC'). "
+                "If the user mentions any time preference (e.g., 'before 10 am', 'after 6 pm', 'early', "
+                "'morning', 'evening', 'night'), you MUST set the appropriate time field: "
+                "departureTimeMin, departureTimeMax, arrivalTimeMin, or arrivalTimeMax. "
+                "Interpretation rules: "
+                "'before/by/early' -> departureTimeMax, "
+                "'after/later than' -> departureTimeMin, "
+                "'morning' -> 06:00 to 12:00, "
+                "'evening' -> 16:00 to 22:00, "
+                "'night' -> from 20:00. "
+                "Always use HH:MM 24-hour format. "
+                "Do not omit fields that are clearly implied by the user request."
+            ),
             input_schema=TrainSearchInput.model_json_schema(),
             output_template="ui://widget/train-carousel.html",
             category="travel",

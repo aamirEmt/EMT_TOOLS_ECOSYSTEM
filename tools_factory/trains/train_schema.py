@@ -30,27 +30,52 @@ class TrainSearchInput(BaseModel):
     travel_class: Optional[str] = Field(
         None,
         alias="travelClass",
-        description="Preferred travel class. MUST use exact codes only: '1A' (First AC), '2A' (AC 2 Tier), '3A' (Third AC), 'SL' (Sleeper Class), '2S' (Second Seating), 'CC' (AC Chair Car), 'EC' (Executive Class), '3E' (AC 3 Tier Economy), 'FC' (First Class), 'EV' (Vistadome AC), 'VS' (Vistadome Non-AC), 'EA' (Anubhuti Class), 'VC' (Vistadome Chair Car). Do not use full names like 'Chair Car' or variations like '3AC' - use only the exact codes.",
+        description=(
+            "Preferred travel class. MUST be set if the user mentions any class like "
+            "'3rd AC', 'third ac', 'sleeper', 'chair car', etc. "
+            "Use ONLY these exact codes: "
+            "'1A', '2A', '3A', 'SL', '2S', 'CC', 'EC', '3E', 'FC', 'EV', 'VS', 'EA', 'VC'. "
+            "Do NOT use full names or variants like '3AC'."
+        ),
     )
     departure_time_min: Optional[str] = Field(
         None,
         alias="departureTimeMin",
-        description="Earliest departure time in HH:MM 24-hour format. Set this when the user wants to LEAVE AFTER a certain time. Examples: 'leave after 2pm'/'depart after 2'/'trains after 2pm' → '14:00', 'morning trains' → '06:00', 'evening trains' → '16:00', 'night trains' → '20:00', 'leave after 9am'/'go after 9' → '09:00'.",
+        description=(
+            "Earliest departure time in HH:MM 24-hour format. "
+            "MUST be set if the user wants to LEAVE AFTER a certain time or later than a time. "
+            "Examples: 'leave after 2pm' -> '14:00', 'after 9' -> '09:00', "
+            "'evening trains' -> '16:00', 'night trains' -> '20:00'. "
+            "DO NOT set this if the user says 'before', 'by', or 'early'."
+        ),
     )
     departure_time_max: Optional[str] = Field(
         None,
         alias="departureTimeMax",
-        description="Latest departure time in HH:MM 24-hour format. Set this when the user wants to LEAVE BY/BEFORE a certain time. Examples: 'leave by 10am'/'want to go by 10'/'depart before 10' → '10:00', 'leave by 6pm'/'go before 6pm' → '18:00', 'morning trains' → '12:00', 'evening trains' → '22:00', 'early trains' → '10:00'. Keywords: 'by', 'before', 'no later than', 'within'.",
+        ddescription=(
+            "Latest departure time in HH:MM 24-hour format. "
+            "MUST be set if the user wants to LEAVE BY / BEFORE / NO LATER THAN a time, or says 'early'. "
+            "Examples: 'leave before 10am' -> '10:00', 'go by 6pm' -> '18:00', "
+            "'morning trains' -> '12:00', 'evening trains' -> '22:00', 'early trains' -> '10:00'. "
+            "DO NOT set this if the user says 'after'."
+        ),
     )
     arrival_time_min: Optional[str] = Field(
         None,
-        alias="arrivalTimeMin",
-        description="Earliest arrival time in HH:MM 24-hour format. Set this when the user wants to ARRIVE/REACH AFTER a certain time. Examples: 'arrive after 8am'/'reach after 8' → '08:00', 'don't want to arrive too early' → '06:00'.",
+        description=(
+            "Earliest arrival time in HH:MM 24-hour format. "
+            "MUST be set if the user wants to ARRIVE / REACH AFTER a certain time. "
+            "Examples: 'arrive after 8am' -> '08:00', 'don’t want to arrive too early' -> '06:00'."
+        ),
     )
     arrival_time_max: Optional[str] = Field(
         None,
         alias="arrivalTimeMax",
-        description="Latest arrival time in HH:MM 24-hour format. Set this when the user wants to REACH BY/BEFORE a certain time. Examples: 'reach by 10pm'/'arrive before 10pm'/'want to be there by 10' → '22:00', 'reach by noon'/'arrive before 12' → '12:00', 'reach by morning' → '09:00'. Keywords: 'reach by', 'arrive before', 'be there by'.",
+        description=(
+            "Latest arrival time in HH:MM 24-hour format. "
+            "MUST be set if the user wants to ARRIVE / REACH BY / BEFORE a certain time. "
+            "Examples: 'reach by 10pm' -> '22:00', 'arrive before 12' -> '12:00', 'reach by morning' -> '09:00'."
+        ),
     )
     quota: Optional[str] = Field(
         "GN",
