@@ -560,12 +560,14 @@ async def check_and_filter_trains_by_availability(
                 from_code = train.get("from_station_code", "")
                 to_code = train.get("to_station_code", "")
 
-                # Call availability check service
+                # Call availability check service with station codes from search API
                 result = await avail_service.check_availability_multiple_classes(
                     train_no=train_no,
                     classes=[travel_class],  # Check only the requested class
                     journey_date=journey_date,
                     quota=quota,
+                    from_station_code=from_code,
+                    to_station_code=to_code,
                 )
 
                 if not result.get("success"):
