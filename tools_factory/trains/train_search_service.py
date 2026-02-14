@@ -776,8 +776,11 @@ def _build_whatsapp_response_without_class(
         classes_info = []
 
         for cls in train.get("classes", []):
+            class_code = cls.get("class_code", "")
+            quota_name = cls.get("quota_name", "")
+            class_label = f"{class_code}({quota_name})" if quota_name else class_code
             classes_info.append({
-                "class": cls.get("class_code"),
+                "class": class_label,
                 "fare": cls.get("fare"),
             })
 
