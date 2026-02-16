@@ -3,7 +3,7 @@ import json
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-
+import re
 import aiohttp
 
 try:
@@ -323,6 +323,29 @@ def _normalize_rating(rating_value: Any) -> Optional[str]:
         
     except (ValueError, TypeError):
         return None
+
+def _clean_point_name(name: str) -> str:
+    """
+    Remove leading phone numbers from boarding/dropping point names.
+    
+    Examples:
+    - "8287009889 Kashmere Gate ISBT" -> "Kashmere Gate ISBT"
+    - "8287009889 Huda City Centre Metro Station (Pickup By Van)" -> "Huda City Centre Metro Station (Pickup By Van)"
+    - "Sindhi Camp" -> "Sindhi Camp" (no change)
+    
+    Args:
+        name: Raw point name from API
+        
+    Returns:
+        Cleaned point name without leading phone number
+    """
+    if not name:
+        return ""
+    # Remove leading digits (phone number) followed by space
+    # Pattern: starts with 10 digits followed by space
+    cleaned = re.sub(r'^\d{10}\s+', '', name.strip())
+    return cleaned
+
 
 def _parse_time_to_minutes(time_str: str) -> Optional[int]:
     """
@@ -913,20 +936,36 @@ def extract_bus_summary(bus: Dict[str, Any]) -> Dict[str, Any]:
     #             "time": dp_time,
     #         })
 
-    # Build comma-separated string of ALL boarding points
+    # # Build comma-separated string of ALL boarding points
+    # all_boarding_names = []
+    # for bp in boarding_points:
+    #     bp_name = bp.get("bd_long_name", "") or bp.get("bd_point", "")
+    #     if bp_name:
+    #         all_boarding_names.append(bp_name)
+    # boarding_point_str = ", ".join(all_boarding_names) if all_boarding_names else ""
+    
+    # # Build comma-separated string of ALL dropping points
+    # all_dropping_names = []
+    # for dp in dropping_points:
+    #     dp_name = dp.get("dp_name", "")
+    #     if dp_name:
+    #         all_dropping_names.append(dp_name)
+    # dropping_point_str = ", ".join(all_dropping_names) if all_dropping_names else ""
+
+    # Build comma-separated string of ALL boarding points (with phone numbers removed)
     all_boarding_names = []
     for bp in boarding_points:
         bp_name = bp.get("bd_long_name", "") or bp.get("bd_point", "")
         if bp_name:
-            all_boarding_names.append(bp_name)
+            all_boarding_names.append(_clean_point_name(bp_name))
     boarding_point_str = ", ".join(all_boarding_names) if all_boarding_names else ""
     
-    # Build comma-separated string of ALL dropping points
+    # Build comma-separated string of ALL dropping points (with phone numbers removed)
     all_dropping_names = []
     for dp in dropping_points:
         dp_name = dp.get("dp_name", "")
         if dp_name:
-            all_dropping_names.append(dp_name)
+            all_dropping_names.append(_clean_point_name(dp_name))
     dropping_point_str = ", ".join(all_dropping_names) if all_dropping_names else ""
 
     return {
