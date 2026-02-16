@@ -3945,7 +3945,213 @@ def render_already_cancelled(
 # =====================================================================
 FLIGHT_REDIRECT_TEMPLATE = """
 <style>
-/* Flight redirect card — only styles not already in .booking-details-carousel */
+
+.booking-details-carousel {
+  font-family: poppins, sans-serif;
+  color: #202020;
+  background: rgba(255, 255, 255, 0.92);
+  position: relative;
+}
+
+.booking-details-carousel * {
+  font-family: inherit;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.booking-details-carousel main {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px 0 30px;
+  position: relative;
+}
+
+.booking-details-carousel .bkhd {
+  margin-bottom: 16px;
+}
+
+.booking-details-carousel .bkttl {
+  font-size: 18px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 4px;
+}
+
+.booking-details-carousel .bksub {
+  font-size: 12px;
+  color: #646d74;
+  margin-top: 4px;
+}
+
+/* Step visibility */
+.booking-details-carousel .hc-step {
+  display: none;
+}
+
+.booking-details-carousel .hc-step.active {
+  display: block;
+}
+
+/* Loading overlay */
+.booking-details-carousel .hc-loading {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.85);
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 12px;
+}
+
+.booking-details-carousel .hc-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #ef6614;
+  border-radius: 50%;
+  animation: hcSpin 0.8s linear infinite;
+}
+
+@keyframes hcSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error message */
+.booking-details-carousel .hc-error-msg {
+  display: none;
+  color: #d32f2f;
+  padding: 4px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-bottom: 4px;
+  margin-top: -4px;
+}
+
+/* Verify OTP card */
+.booking-details-carousel .hc-verify-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 5px 12px;
+  text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.booking-details-carousel .hc-verify-icon {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 4px;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(239, 102, 20, 0.25);
+}
+
+.booking-details-carousel .hc-verify-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202020;
+  margin-bottom: 8px;
+}
+
+.booking-details-carousel .hc-verify-desc {
+  font-size: 13px;
+  color: #646d74;
+  line-height: 1.5;
+  margin-bottom: 9px;
+}
+
+.booking-details-carousel .hc-otp-field {
+  margin-bottom: 16px;
+}
+
+.booking-details-carousel .hc-otp-field .hc-login-otp-input {
+  width: 100%;
+  max-width: 240px;
+  padding: 10px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 4px;
+  font-family: inter, sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff;
+  color: #202020;
+}
+
+.booking-details-carousel .hc-otp-field .hc-login-otp-input:focus {
+  border-color: #ef6614;
+  box-shadow: 0 0 0 3px rgba(239, 102, 20, 0.1);
+}
+
+.booking-details-carousel .hc-otp-field .hc-login-otp-input::placeholder {
+  font-size: 14px;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: #bbb;
+}
+
+.booking-details-carousel .hc-submit-btn {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: poppins, sans-serif;
+  transition: opacity 0.2s;
+}
+
+.booking-details-carousel .hc-submit-btn:hover {
+  opacity: 0.85;
+}
+
+.booking-details-carousel .hc-verify-card .hc-submit-btn {
+  width: 80%;
+  max-width: 240px;
+  padding: 8px 7px;
+}
+
+.booking-details-carousel .hc-verify-footer {
+  font-size: 11px;
+  color: #999;
+  margin-top: 16px;
+  line-height: 1.4;
+}
+
+.booking-details-carousel .hc-resend-otp-btn {
+  background: none;
+  border: none;
+  color: #2196f3;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 8px;
+  text-decoration: none;
+  display: inline-block;
+}
+.booking-details-carousel .hc-resend-otp-btn:hover {
+  text-decoration: underline;
+  color: #1565c0;
+}
+.booking-details-carousel .hc-resend-otp-btn:disabled {
+  color: #999;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+/* Flight redirect card */
 .booking-details-carousel .flight-redirect-msg {
   background: #f0f7ff;
   border: 1px solid #cce0ff;
