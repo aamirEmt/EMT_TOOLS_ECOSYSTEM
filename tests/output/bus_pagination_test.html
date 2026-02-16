@@ -1,0 +1,5801 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Pagination Test</title>
+    <style>
+        body { background: #f5f5f5; padding: 20px; margin: 0; }
+        .test-section { margin-bottom: 40px; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .test-title { font-family: sans-serif; font-size: 16px; font-weight: 600; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #ef6614; }
+        .test-meta { font-family: sans-serif; font-size: 12px; color: #666; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="test-section" style="background: #e3f2fd;">
+        <div class="test-title">🔢 Pagination Test Summary</div>
+        <div class="test-meta">
+            <strong>Route:</strong> Delhi → Manali<br>
+            <strong>Date:</strong> 23-02-2026<br>
+            <strong>Pages Generated:</strong> 3
+        </div>
+    </div>
+    
+
+        <div class="test-section">
+            <div class="test-title">📄 Page 1 of 12</div>
+            <div class="test-meta">
+                <strong>Pagination Info:</strong><br>
+                Showing: <code>1-15</code> of <code>173</code> buses<br>
+                Per Page: <code>15</code> |
+                Has Previous: <code>False</code> |
+                Has Next: <code>True</code><br>
+                First Bus: <code>DM-288U</code> |
+                Last Bus: <code>Delhi to manali</code>
+            </div>
+            
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+.bus-carousel {
+  font-family: poppins, sans-serif;
+}
+
+.bus-carousel * {
+  font-family: poppins, sans-serif;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.bus-carousel main {
+  max-width: 700px;
+  margin: auto;
+  padding: 20px 0;
+}
+
+.bus-carousel .rslt-heading {
+  margin-bottom: 12px;
+}
+
+.bus-carousel .rslttp {
+  padding: 0 0 8px;
+}
+
+.bus-carousel .busctl {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.bus-carousel .bussbt {
+  font-size: 11px;
+  color: #868686;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.bus-carousel .buscardbx {
+  width: 100%;
+  padding: 8px 6px;
+}
+
+.bus-carousel .rsltcvr {
+  width: 90%;
+  max-width: 100%;
+  overflow-x: auto;
+  display: flex;
+  gap: 16px;
+  cursor: grab;
+}
+
+.bus-carousel .rsltcvr::-webkit-scrollbar {
+  height: 7px;
+}
+
+.bus-carousel .rsltcvr::-webkit-scrollbar-track {
+  background: #fff;
+}
+
+.bus-carousel .rsltcvr::-webkit-scrollbar-thumb {
+  background: #373737;
+  border-radius: 5px;
+}
+
+.bus-carousel .rsltcvr:active {
+  cursor: grabbing;
+}
+
+.bus-carousel .buscard {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  min-width: 270px;
+  width: 270px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.bus-carousel .buschdr {
+  padding: 0 0 10px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.bus-carousel .businfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.bus-carousel .businfo-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bus-carousel .oprtname {
+  font-size: 13px;
+  font-weight: 600;
+  color: #202020;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+.bus-carousel .bustype {
+  font-size: 10px;
+  color: #868686;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+.bus-carousel .bustags {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.bus-carousel .bustag {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.bus-carousel .bustag.ac {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.bus-carousel .bustag.nonac {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.bus-carousel .bustag.sleeper {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.bus-carousel .bustag.seater {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.bus-carousel .bustag.volvo {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+.bus-carousel .busprcbx {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.bus-carousel .sbttl {
+  font-size: 9px;
+  color: #868686;
+}
+
+.bus-carousel .busprc {
+  font-size: 16px;
+  font-weight: 700;
+  color: #202020;
+}
+
+.bus-carousel .seatsleft {
+  font-size: 10px;
+  color: #d32f2f;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.bus-carousel .rtnvlu {
+  background: #00a664;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.bus-carousel .rtnvlu.low {
+  background: #ff9800;
+}
+
+.bus-carousel .rtnvlu.poor {
+  background: #f44336;
+}
+
+.bus-carousel .busbdy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.bus-carousel .bustme {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+}
+
+.bus-carousel .jrny {
+  text-align: center;
+}
+
+.bus-carousel .jrnttl {
+  font-size: 10px;
+  color: #868686;
+}
+
+.bus-carousel .j-br {
+  width: 50px;
+  border-bottom: 1px solid #9e9da1;
+  position: relative;
+  margin: 4px 0;
+}
+
+.bus-carousel .pointsrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.bus-carousel .pointbox {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.bus-carousel .pointlbl {
+  font-size: 9px;
+  color: #868686;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.bus-carousel .pointlbl .dropdown-arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #868686;
+  transition: transform 0.2s ease;
+}
+
+.bus-carousel .pointbox.open .pointlbl .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.bus-carousel .pointval {
+  font-size: 10px;
+  color: #4b4b4b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+.bus-carousel .points-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.bus-carousel .pointbox.open .points-dropdown {
+  display: block;
+}
+
+.bus-carousel .points-dropdown-item {
+  padding: 8px 10px;
+  font-size: 10px;
+  color: #4b4b4b;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.bus-carousel .points-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.bus-carousel .points-dropdown-item .point-name {
+  font-weight: 500;
+}
+
+.bus-carousel .points-dropdown-item .point-time {
+  color: #868686;
+  font-size: 9px;
+  margin-top: 2px;
+}
+
+.bus-carousel .details-section {
+  padding: 8px 0;
+}
+
+.bus-carousel .view-details-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #4b4b4b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.bus-carousel .view-details-btn:hover:not(.disabled) {
+  background: #e8e8e8;
+  border-color: #ccc;
+}
+
+.bus-carousel .view-details-btn.disabled {
+  color: #bdbdbd;
+  cursor: not-allowed;
+  background: #fafafa;
+}
+
+.bus-carousel .view-details-btn .details-arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid currentColor;
+  transition: transform 0.2s ease;
+}
+
+.bus-carousel .details-section.open .view-details-btn .details-arrow {
+  transform: rotate(180deg);
+}
+
+.bus-carousel .details-content {
+  display: none;
+  padding-top: 10px;
+}
+
+.bus-carousel .details-section.open .details-content {
+  display: block;
+}
+
+.bus-carousel .busamnts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  color: #4b4b4b;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.bus-carousel .busamnts li {
+  background: #f5f5f5;
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.bus-carousel .featuresrow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.bus-carousel .featuretag {
+  font-size: 10px;
+  color: #04a77a;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bus-carousel .featuretag::before {
+  content: '✓';
+  font-weight: bold;
+}
+
+.bus-carousel .busftr {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  margin-top: auto;
+}
+
+.bus-carousel .bkbtn {
+  border-radius: 40px;
+  background: #ef6614;
+  color: #fff;
+  text-align: center;
+  font-size: 12px;
+  padding: 10px 15px;
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.bus-carousel .bkbtn:hover {
+  background: #e75806;
+}
+
+.bus-carousel .cancelpolicy {
+  font-size: 10px;
+  color: #646d74;
+  text-align: center;
+}
+
+.bus-carousel .cancelpolicy.cancellable {
+  color: #04a77a;
+}
+
+.bus-carousel .emt-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: #646d74;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.bus-carousel .emt-inline-arrow {
+  width: 14px;
+  height: auto;
+  object-fit: contain;
+  vertical-align: baseline;
+}
+
+.bus-carousel .view-all-link {
+  margin-left: 12px;
+  padding: 6px 14px;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  color: #2093ef;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.bus-carousel .view-all-link:hover {
+  background: #2093ef;
+  color: #fff;
+  border-color: #2093ef;
+}
+
+.bus-carousel .view-all-card {
+  min-width: 270px;
+  width: 270px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  position: relative;
+  overflow: visible;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.bus-carousel .view-all-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #2093ef;
+}
+
+.bus-carousel .view-all-card::before,
+.bus-carousel .view-all-card::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #f0f1f3 0%, #d8dce0 100%);
+  z-index: -1;
+}
+
+.bus-carousel .view-all-card::before {
+  right: -3px;
+  height: 98%;
+  top: 1%;
+  opacity: 0.7;
+}
+
+.bus-carousel .view-all-card::after {
+  right: -6px;
+  height: 96%;
+  top: 2%;
+  opacity: 0.5;
+}
+
+.bus-carousel .view-all-card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2093ef 0%, #1976d2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(32, 147, 239, 0.3);
+}
+
+.bus-carousel .view-all-card-icon svg {
+  width: 28px;
+  height: 28px;
+  color: #fff;
+}
+
+.bus-carousel .view-all-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202020;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.bus-carousel .view-all-card-subtitle {
+  font-size: 13px;
+  color: #646d74;
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+</style>
+
+<div class="bus-carousel">
+  <main>
+    <div class="rslttp rslt-heading">
+      <div class="busctl">
+        <span>Delhi</span>
+        <img
+          class="emt-inline-arrow"
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+          alt="→"
+        />
+        <span>Manali</span>
+        
+        <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
+        
+      </div>
+      <div class="bussbt">
+        <span>23-02-2026</span> •
+        <span>173 buses found</span>
+        
+        
+      </div>
+    </div>
+
+    <div class="buscardbx">
+      <div class="rsltcvr">
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="DM-288U">DM-288U</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC, Video">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹464</div>
+              <div class="seatsleft">28 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">18:40</div>
+            <div class="jrny">
+              <div class="jrnttl">10h 55m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">05:35</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="ram dalal Travels ">ram dalal Travels </div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ram dalal Travels </div>
+                  <div class="point-time">17:55</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ISBT Kashmiri Gate</div>
+                  <div class="point-time">18:40</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal By paas</div>
+                  <div class="point-time">19:15</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Manali">Manali</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Emergency exit</li><li>Fire Extinguisher</li><li>Hammer</li><li>GPS</li><li>Reading Light</li><li>Snacks</li><li>Water Bottle</li><li>WiFi</li><li>CCTV</li><li>First Aid Box</li><li>Vomiting Bag</li>
+              </ul>
+              
+              
+              <div class="featuresrow">
+                <span class="featuretag">Live Tracking</span>
+                
+              </div>
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo B11R MultiAxle Semi Sleeper Auto Transmission, AC, Video">2+2, Volvo B11R MultiAxle Semi...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹530</div>
+              <div class="seatsleft">49 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">19:30</div>
+            <div class="jrny">
+              <div class="jrnttl">13h 35m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:05</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT Kashmiri Gate">ISBT Kashmiri Gate</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Volvo Bus Stand Near Beas River side Manali">Private Volvo Bus St...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹540</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">16:30</div>
+            <div class="jrny">
+              <div class="jrnttl">13h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">05:30</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT Kashmiri Gate">ISBT Kashmiri Gate</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Volvo Bus Stand Near Beas River Side Manali ">Private Volvo Bus St...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo B11R MultiAxle Semi Sleeper Auto Transmission, AC, Video">2+2, Volvo B11R MultiAxle Semi...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹540</div>
+              <div class="seatsleft">49 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">23:55</div>
+            <div class="jrny">
+              <div class="jrnttl">12h 25m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">12:20</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="ISBT">ISBT</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ISBT</div>
+                  <div class="point-time">23:55</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">majnu ka tila</div>
+                  <div class="point-time">00:15</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal Byepass on road CNG Pump </div>
+                  <div class="point-time">00:35</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kundli Border</div>
+                  <div class="point-time">00:45</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Volvo Bus Stand Near Beas River side Manali">Private Volvo Bus St...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹540</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">22:40</div>
+            <div class="jrny">
+              <div class="jrnttl">13h 25m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">12:05</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="ISBT">ISBT</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ISBT</div>
+                  <div class="point-time">22:40</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">majnu ka tila</div>
+                  <div class="point-time">23:00</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal Byepass on road CNG Pump </div>
+                  <div class="point-time">23:30</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kundli Border</div>
+                  <div class="point-time">23:39</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Patlikuhl">Patlikuhl</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Patlikuhl</div>
+                  <div class="point-time">11:45</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Private Volvo Bus Stand Near Beas River side Manali</div>
+                  <div class="point-time">12:05</div>
+                </div>
+                
+              </div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹540</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">22:00</div>
+            <div class="jrny">
+              <div class="jrnttl">14h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">12:00</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT">ISBT</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Patlikuhl Starting Point At New Flyover 24x7 Dhaba">Patlikuhl Starting P...</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Patlikuhl Starting Point At New Flyover 24x7 Dhaba</div>
+                  <div class="point-time">11:40</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Private Volvo Bus Stand Near Beas River Side Manali </div>
+                  <div class="point-time">12:00</div>
+                </div>
+                
+              </div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹548</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">21:25</div>
+            <div class="jrny">
+              <div class="jrnttl">14h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">11:25</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="ISBT">ISBT</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ISBT</div>
+                  <div class="point-time">21:25</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">majnu ka tila</div>
+                  <div class="point-time">21:55</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal Byepass Cng Pump On Road Himachal</div>
+                  <div class="point-time">22:10</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kundli Border</div>
+                  <div class="point-time">22:15</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Volvo Bus Stand Near Beas River Side Manali ">Private Volvo Bus St...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹548</div>
+              <div class="seatsleft">39 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">20:00</div>
+            <div class="jrny">
+              <div class="jrnttl">14h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">10:00</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="ISBT Kashmiri Gate">ISBT Kashmiri Gate</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ISBT Kashmiri Gate</div>
+                  <div class="point-time">20:00</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">majnu ka tila</div>
+                  <div class="point-time">20:30</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Patlikuhl Starting Point At New Flyover 24x7 Dhaba">Patlikuhl Starting P...</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Patlikuhl Starting Point At New Flyover 24x7 Dhaba</div>
+                  <div class="point-time">09:40</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Private Volvo Bus Stand Near Beas River Side Manali </div>
+                  <div class="point-time">10:00</div>
+                </div>
+                
+              </div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹548</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">15:30</div>
+            <div class="jrny">
+              <div class="jrnttl">14h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">05:30</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT Kashmiri Gate">ISBT Kashmiri Gate</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Patlikuhl Starting Point At New Flyover 24x7 Dhaba">Patlikuhl Starting P...</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Patlikuhl Starting Point At New Flyover 24x7 Dhaba</div>
+                  <div class="point-time">05:10</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Private Volvo Bus Stand Near Beas River Side Manali </div>
+                  <div class="point-time">05:30</div>
+                </div>
+                
+              </div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹548</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">21:00</div>
+            <div class="jrny">
+              <div class="jrnttl">13h 25m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">10:25</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="ISBT">ISBT</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ISBT</div>
+                  <div class="point-time">21:00</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">majnu ka tila</div>
+                  <div class="point-time">21:40</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal Byepass on road CNG Pump </div>
+                  <div class="point-time">21:55</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kundli Border</div>
+                  <div class="point-time">22:10</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Patlikuhl">Patlikuhl</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Patlikuhl</div>
+                  <div class="point-time">10:05</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Private Volvo Bus Stand Near Beas River side Manali</div>
+                  <div class="point-time">10:25</div>
+                </div>
+                
+              </div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹548</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">23:30</div>
+            <div class="jrny">
+              <div class="jrnttl">12h 20m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">11:50</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="ISBT">ISBT</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ISBT</div>
+                  <div class="point-time">23:30</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">majnu ka tila</div>
+                  <div class="point-time">00:05</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal Byepass on road CNG Pump </div>
+                  <div class="point-time">00:25</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kundli Border</div>
+                  <div class="point-time">00:50</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Patlikuhl Starting Point At New Flyover 24x7 Dhaba">Patlikuhl Starting P...</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Patlikuhl Starting Point At New Flyover 24x7 Dhaba</div>
+                  <div class="point-time">11:35</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Private Volvo Bus Stand Near Beas River Side Manali </div>
+                  <div class="point-time">11:50</div>
+                </div>
+                
+              </div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, VE Eicher A/C Semi Sleeper, AC">2+2, VE Eicher A/C Semi Sleepe...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹557</div>
+              <div class="seatsleft">43 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">18:00</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 30m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">05:30</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 7 AND 8">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Bedi Travels">Bedi Travels</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, VOLVO 9600 MULTI AXLE SEMI SLEEPER, AC">2+2, VOLVO 9600 MULTI AXLE SEM...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag seater">Seater</span>
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹566</div>
+              <div class="seatsleft">50 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">22:15</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:15</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Bedi Travels office Majnu Ka Tila Near New Shera Je House">Bedi Travels office ...</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Bedi Travels office Majnu Ka Tila Near New Shera Je House</div>
+                  <div class="point-time">21:35</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kashmiri Gate ISBT</div>
+                  <div class="point-time">22:15</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="PRIVATE BUS STAND MANALI">PRIVATE BUS STAND MA...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Travel HUB.">Travel HUB.</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹585</div>
+              <div class="seatsleft">45 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">20:00</div>
+            <div class="jrny">
+              <div class="jrnttl">09h 40m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">05:40</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Zingbus Lounge Majnu Ka Tila">Zingbus Lounge Majnu...</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Zingbus Lounge Majnu Ka Tila</div>
+                  <div class="point-time">19:15</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kashmir gate</div>
+                  <div class="point-time">20:00</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">majnu ka tila</div>
+                  <div class="point-time">20:15</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal CNG PUMP</div>
+                  <div class="point-time">20:30</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Manali">Manali</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Emergency exit</li><li>Fire Extinguisher</li><li>Hammer</li><li>Reading Light</li><li>Water Bottle</li><li>Welcome Note</li><li>Bus Host</li><li>First Aid Box</li><li>Vomiting Bag</li><li>M-TICKET</li><li>Staffs with Facemask</li><li>Disinfectant</li><li>Thermal Screening</li><li>Extra Leg Space</li><li>Staffs with Facemask</li><li>Vaccinated Passengers and Crew</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Delhi to manali">Delhi to manali</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Scania MultiAxle Semi Sleeper, AC">2+2, Scania MultiAxle Semi Sle...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹586</div>
+              <div class="seatsleft">49 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">21:30</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 30m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:00</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="kashmiri gate">kashmiri gate</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Manali">Manali</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Charging Point</li><li>Emergency exit</li><li>Fire Extinguisher</li><li>Hammer</li><li>GPS</li><li>Reading Light</li><li>Water Bottle</li><li>CCTV</li><li>Vomiting Bag</li><li>Staffs with Facemask</li>
+              </ul>
+              
+              
+              <div class="featuresrow">
+                <span class="featuretag">Live Tracking</span>
+                
+              </div>
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        
+        
+      </div>
+    </div>
+
+    
+  </main>
+</div>
+        </div>
+        
+
+        <div class="test-section">
+            <div class="test-title">📄 Page 2 of 12</div>
+            <div class="test-meta">
+                <strong>Pagination Info:</strong><br>
+                Showing: <code>16-30</code> of <code>173</code> buses<br>
+                Per Page: <code>15</code> |
+                Has Previous: <code>True</code> |
+                Has Next: <code>True</code><br>
+                First Bus: <code>Northern Travels</code> |
+                Last Bus: <code>Laxmi Holidays</code>
+            </div>
+            
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+.bus-carousel {
+  font-family: poppins, sans-serif;
+}
+
+.bus-carousel * {
+  font-family: poppins, sans-serif;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.bus-carousel main {
+  max-width: 700px;
+  margin: auto;
+  padding: 20px 0;
+}
+
+.bus-carousel .rslt-heading {
+  margin-bottom: 12px;
+}
+
+.bus-carousel .rslttp {
+  padding: 0 0 8px;
+}
+
+.bus-carousel .busctl {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.bus-carousel .bussbt {
+  font-size: 11px;
+  color: #868686;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.bus-carousel .buscardbx {
+  width: 100%;
+  padding: 8px 6px;
+}
+
+.bus-carousel .rsltcvr {
+  width: 90%;
+  max-width: 100%;
+  overflow-x: auto;
+  display: flex;
+  gap: 16px;
+  cursor: grab;
+}
+
+.bus-carousel .rsltcvr::-webkit-scrollbar {
+  height: 7px;
+}
+
+.bus-carousel .rsltcvr::-webkit-scrollbar-track {
+  background: #fff;
+}
+
+.bus-carousel .rsltcvr::-webkit-scrollbar-thumb {
+  background: #373737;
+  border-radius: 5px;
+}
+
+.bus-carousel .rsltcvr:active {
+  cursor: grabbing;
+}
+
+.bus-carousel .buscard {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  min-width: 270px;
+  width: 270px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.bus-carousel .buschdr {
+  padding: 0 0 10px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.bus-carousel .businfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.bus-carousel .businfo-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bus-carousel .oprtname {
+  font-size: 13px;
+  font-weight: 600;
+  color: #202020;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+.bus-carousel .bustype {
+  font-size: 10px;
+  color: #868686;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+.bus-carousel .bustags {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.bus-carousel .bustag {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.bus-carousel .bustag.ac {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.bus-carousel .bustag.nonac {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.bus-carousel .bustag.sleeper {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.bus-carousel .bustag.seater {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.bus-carousel .bustag.volvo {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+.bus-carousel .busprcbx {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.bus-carousel .sbttl {
+  font-size: 9px;
+  color: #868686;
+}
+
+.bus-carousel .busprc {
+  font-size: 16px;
+  font-weight: 700;
+  color: #202020;
+}
+
+.bus-carousel .seatsleft {
+  font-size: 10px;
+  color: #d32f2f;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.bus-carousel .rtnvlu {
+  background: #00a664;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.bus-carousel .rtnvlu.low {
+  background: #ff9800;
+}
+
+.bus-carousel .rtnvlu.poor {
+  background: #f44336;
+}
+
+.bus-carousel .busbdy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.bus-carousel .bustme {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+}
+
+.bus-carousel .jrny {
+  text-align: center;
+}
+
+.bus-carousel .jrnttl {
+  font-size: 10px;
+  color: #868686;
+}
+
+.bus-carousel .j-br {
+  width: 50px;
+  border-bottom: 1px solid #9e9da1;
+  position: relative;
+  margin: 4px 0;
+}
+
+.bus-carousel .pointsrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.bus-carousel .pointbox {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.bus-carousel .pointlbl {
+  font-size: 9px;
+  color: #868686;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.bus-carousel .pointlbl .dropdown-arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #868686;
+  transition: transform 0.2s ease;
+}
+
+.bus-carousel .pointbox.open .pointlbl .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.bus-carousel .pointval {
+  font-size: 10px;
+  color: #4b4b4b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+.bus-carousel .points-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.bus-carousel .pointbox.open .points-dropdown {
+  display: block;
+}
+
+.bus-carousel .points-dropdown-item {
+  padding: 8px 10px;
+  font-size: 10px;
+  color: #4b4b4b;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.bus-carousel .points-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.bus-carousel .points-dropdown-item .point-name {
+  font-weight: 500;
+}
+
+.bus-carousel .points-dropdown-item .point-time {
+  color: #868686;
+  font-size: 9px;
+  margin-top: 2px;
+}
+
+.bus-carousel .details-section {
+  padding: 8px 0;
+}
+
+.bus-carousel .view-details-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #4b4b4b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.bus-carousel .view-details-btn:hover:not(.disabled) {
+  background: #e8e8e8;
+  border-color: #ccc;
+}
+
+.bus-carousel .view-details-btn.disabled {
+  color: #bdbdbd;
+  cursor: not-allowed;
+  background: #fafafa;
+}
+
+.bus-carousel .view-details-btn .details-arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid currentColor;
+  transition: transform 0.2s ease;
+}
+
+.bus-carousel .details-section.open .view-details-btn .details-arrow {
+  transform: rotate(180deg);
+}
+
+.bus-carousel .details-content {
+  display: none;
+  padding-top: 10px;
+}
+
+.bus-carousel .details-section.open .details-content {
+  display: block;
+}
+
+.bus-carousel .busamnts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  color: #4b4b4b;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.bus-carousel .busamnts li {
+  background: #f5f5f5;
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.bus-carousel .featuresrow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.bus-carousel .featuretag {
+  font-size: 10px;
+  color: #04a77a;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bus-carousel .featuretag::before {
+  content: '✓';
+  font-weight: bold;
+}
+
+.bus-carousel .busftr {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  margin-top: auto;
+}
+
+.bus-carousel .bkbtn {
+  border-radius: 40px;
+  background: #ef6614;
+  color: #fff;
+  text-align: center;
+  font-size: 12px;
+  padding: 10px 15px;
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.bus-carousel .bkbtn:hover {
+  background: #e75806;
+}
+
+.bus-carousel .cancelpolicy {
+  font-size: 10px;
+  color: #646d74;
+  text-align: center;
+}
+
+.bus-carousel .cancelpolicy.cancellable {
+  color: #04a77a;
+}
+
+.bus-carousel .emt-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: #646d74;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.bus-carousel .emt-inline-arrow {
+  width: 14px;
+  height: auto;
+  object-fit: contain;
+  vertical-align: baseline;
+}
+
+.bus-carousel .view-all-link {
+  margin-left: 12px;
+  padding: 6px 14px;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  color: #2093ef;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.bus-carousel .view-all-link:hover {
+  background: #2093ef;
+  color: #fff;
+  border-color: #2093ef;
+}
+
+.bus-carousel .view-all-card {
+  min-width: 270px;
+  width: 270px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  position: relative;
+  overflow: visible;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.bus-carousel .view-all-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #2093ef;
+}
+
+.bus-carousel .view-all-card::before,
+.bus-carousel .view-all-card::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #f0f1f3 0%, #d8dce0 100%);
+  z-index: -1;
+}
+
+.bus-carousel .view-all-card::before {
+  right: -3px;
+  height: 98%;
+  top: 1%;
+  opacity: 0.7;
+}
+
+.bus-carousel .view-all-card::after {
+  right: -6px;
+  height: 96%;
+  top: 2%;
+  opacity: 0.5;
+}
+
+.bus-carousel .view-all-card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2093ef 0%, #1976d2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(32, 147, 239, 0.3);
+}
+
+.bus-carousel .view-all-card-icon svg {
+  width: 28px;
+  height: 28px;
+  color: #fff;
+}
+
+.bus-carousel .view-all-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202020;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.bus-carousel .view-all-card-subtitle {
+  font-size: 13px;
+  color: #646d74;
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+</style>
+
+<div class="bus-carousel">
+  <main>
+    <div class="rslttp rslt-heading">
+      <div class="busctl">
+        <span>Delhi</span>
+        <img
+          class="emt-inline-arrow"
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+          alt="→"
+        />
+        <span>Manali</span>
+        
+        <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
+        
+      </div>
+      <div class="bussbt">
+        <span>23-02-2026</span> •
+        <span>173 buses found</span>
+        
+        
+      </div>
+    </div>
+
+    <div class="buscardbx">
+      <div class="rsltcvr">
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Northern Travels">Northern Travels</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹599</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">23:30</div>
+            <div class="jrny">
+              <div class="jrnttl">12h 15m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">11:45</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="kashmiri gate">kashmiri gate</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Manali">Manali</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Northern Travels">Northern Travels</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Scania MultiAxle Semi Sleeper, AC">2+2, Scania MultiAxle Semi Sle...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹599</div>
+              <div class="seatsleft">49 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">20:20</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">07:20</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="kashmiri gate">kashmiri gate</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Manali">Manali</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo B11R MultiAxle Semi Sleeper Auto Transmission, AC, Video">2+2, Volvo B11R MultiAxle Semi...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹602</div>
+              <div class="seatsleft">43 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">20:30</div>
+            <div class="jrny">
+              <div class="jrnttl">12h 20m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">08:50</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT Kashmiri Gate">ISBT Kashmiri Gate</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Patlikuhl Starting Point At New Flyover 24x7 Dhaba">Patlikuhl Starting P...</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Patlikuhl Starting Point At New Flyover 24x7 Dhaba</div>
+                  <div class="point-time">08:35</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Private Volvo Bus Stand Near Beas River Side Manali </div>
+                  <div class="point-time">08:50</div>
+                </div>
+                
+              </div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Shri Ram Transport Company">Shri Ram Transport Com...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, VE Eicher A/C Semi Sleeper, AC">2+2, VE Eicher A/C Semi Sleepe...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹604</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">21:10</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 25m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">08:35</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT Kashmiri Gate">ISBT Kashmiri Gate</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking">Private Bus Parking</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="New Himalaya Travels.">New Himalaya Travels.</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC">2+2, Volvo Semi Sleeper, AC</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹604</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">19:00</div>
+            <div class="jrny">
+              <div class="jrnttl">13h 20m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">08:20</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="New Himalaya Travels">New Himalaya Travels</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">New Himalaya Travels</div>
+                  <div class="point-time">19:00</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kashmere Gate</div>
+                  <div class="point-time">20:00</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Majnu Ka Tila</div>
+                  <div class="point-time">20:15</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal Bypass </div>
+                  <div class="point-time">20:30</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Manali">Manali</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Deltin Travelss">Deltin Travelss</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Scania MultiAxle Semi Sleeper, AC, Non">2+2, Scania MultiAxle Semi Sle...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹613</div>
+              <div class="seatsleft">53 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">22:30</div>
+            <div class="jrny">
+              <div class="jrnttl">10h 50m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:20</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Kashmiri Gate">Kashmiri Gate</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kashmiri Gate</div>
+                  <div class="point-time">22:30</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">KARNAL BYPASS</div>
+                  <div class="point-time">22:49</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kundali Bordar</div>
+                  <div class="point-time">22:49</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking">Private Bus Parking</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Emergency exit</li><li>Fire Extinguisher</li><li>Hammer</li><li>GPS</li><li>Reading Light</li><li>Water Bottle</li><li>First Aid Box</li><li>M-TICKET</li><li>Extra Leg Space</li>
+              </ul>
+              
+              
+              <div class="featuresrow">
+                <span class="featuretag">Live Tracking</span>
+                
+              </div>
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Travel Hub">Travel Hub</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹623</div>
+              <div class="seatsleft">45 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">18:55</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 20m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">06:15</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Kashmir gate">Kashmir gate</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kashmir gate</div>
+                  <div class="point-time">18:40</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal CNG PUMP</div>
+                  <div class="point-time">18:55</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Zingbus Lounge Majnu Ka Tila</div>
+                  <div class="point-time">19:45</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Manali">Manali</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹650</div>
+              <div class="seatsleft">43 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">20:00</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">07:00</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 7 AND 8">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹650</div>
+              <div class="seatsleft">45 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">19:00</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 30m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">06:30</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 7 AND 8">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CHAUDHARY BUS SERVICE">CHAUDHARY BUS SERVICE</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Bharat Benz Seater Pushback, AC">2+2, Bharat Benz Seater Pushba...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag seater">Seater</span>
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹651</div>
+              <div class="seatsleft">49 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">22:30</div>
+            <div class="jrny">
+              <div class="jrnttl">10h 55m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:25</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="ISBT Kashmiri Gate">ISBT Kashmiri Gate</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ISBT Kashmiri Gate</div>
+                  <div class="point-time">22:30</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Majnu Ka Tilla</div>
+                  <div class="point-time">22:50</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Manali Private Volvo Bus Parking">Manali Private Volvo...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹669</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">21:00</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 30m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">08:30</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 7 AND 8">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Scania MultiAxle Semi Sleeper, AC">2+2, Scania MultiAxle Semi Sle...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹669</div>
+              <div class="seatsleft">53 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">20:30</div>
+            <div class="jrny">
+              <div class="jrnttl">10h 45m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">07:15</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 7 AND 8">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹669</div>
+              <div class="seatsleft">45 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">23:30</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 30m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">11:00</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 41 42 AND 43">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, VOLVO 9600 MULTI AXLE SEMI SLEEPER, AC">2+2, VOLVO 9600 MULTI AXLE SEM...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag seater">Seater</span>
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹669</div>
+              <div class="seatsleft">50 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">22:00</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 30m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:30</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 7 AND 8">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Multi Axle Volvo SemiSleeper, AC">2+2, Multi Axle Volvo SemiSlee...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹669</div>
+              <div class="seatsleft">49 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">19:30</div>
+            <div class="jrny">
+              <div class="jrnttl">12h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">07:30</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 7 AND 8">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        
+        
+      </div>
+    </div>
+
+    
+  </main>
+</div>
+        </div>
+        
+
+        <div class="test-section">
+            <div class="test-title">📄 Page 3 of 12</div>
+            <div class="test-meta">
+                <strong>Pagination Info:</strong><br>
+                Showing: <code>31-45</code> of <code>173</code> buses<br>
+                Per Page: <code>15</code> |
+                Has Previous: <code>True</code> |
+                Has Next: <code>True</code><br>
+                First Bus: <code>LAXMI HOLIDAYS (PREMIUM)</code> |
+                Last Bus: <code>DM-288U</code>
+            </div>
+            
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+.bus-carousel {
+  font-family: poppins, sans-serif;
+}
+
+.bus-carousel * {
+  font-family: poppins, sans-serif;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.bus-carousel main {
+  max-width: 700px;
+  margin: auto;
+  padding: 20px 0;
+}
+
+.bus-carousel .rslt-heading {
+  margin-bottom: 12px;
+}
+
+.bus-carousel .rslttp {
+  padding: 0 0 8px;
+}
+
+.bus-carousel .busctl {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.bus-carousel .bussbt {
+  font-size: 11px;
+  color: #868686;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.bus-carousel .buscardbx {
+  width: 100%;
+  padding: 8px 6px;
+}
+
+.bus-carousel .rsltcvr {
+  width: 90%;
+  max-width: 100%;
+  overflow-x: auto;
+  display: flex;
+  gap: 16px;
+  cursor: grab;
+}
+
+.bus-carousel .rsltcvr::-webkit-scrollbar {
+  height: 7px;
+}
+
+.bus-carousel .rsltcvr::-webkit-scrollbar-track {
+  background: #fff;
+}
+
+.bus-carousel .rsltcvr::-webkit-scrollbar-thumb {
+  background: #373737;
+  border-radius: 5px;
+}
+
+.bus-carousel .rsltcvr:active {
+  cursor: grabbing;
+}
+
+.bus-carousel .buscard {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  min-width: 270px;
+  width: 270px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.bus-carousel .buschdr {
+  padding: 0 0 10px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.bus-carousel .businfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.bus-carousel .businfo-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bus-carousel .oprtname {
+  font-size: 13px;
+  font-weight: 600;
+  color: #202020;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+.bus-carousel .bustype {
+  font-size: 10px;
+  color: #868686;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+.bus-carousel .bustags {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.bus-carousel .bustag {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.bus-carousel .bustag.ac {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.bus-carousel .bustag.nonac {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.bus-carousel .bustag.sleeper {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.bus-carousel .bustag.seater {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.bus-carousel .bustag.volvo {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+.bus-carousel .busprcbx {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.bus-carousel .sbttl {
+  font-size: 9px;
+  color: #868686;
+}
+
+.bus-carousel .busprc {
+  font-size: 16px;
+  font-weight: 700;
+  color: #202020;
+}
+
+.bus-carousel .seatsleft {
+  font-size: 10px;
+  color: #d32f2f;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.bus-carousel .rtnvlu {
+  background: #00a664;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.bus-carousel .rtnvlu.low {
+  background: #ff9800;
+}
+
+.bus-carousel .rtnvlu.poor {
+  background: #f44336;
+}
+
+.bus-carousel .busbdy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.bus-carousel .bustme {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+}
+
+.bus-carousel .jrny {
+  text-align: center;
+}
+
+.bus-carousel .jrnttl {
+  font-size: 10px;
+  color: #868686;
+}
+
+.bus-carousel .j-br {
+  width: 50px;
+  border-bottom: 1px solid #9e9da1;
+  position: relative;
+  margin: 4px 0;
+}
+
+.bus-carousel .pointsrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.bus-carousel .pointbox {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.bus-carousel .pointlbl {
+  font-size: 9px;
+  color: #868686;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.bus-carousel .pointlbl .dropdown-arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #868686;
+  transition: transform 0.2s ease;
+}
+
+.bus-carousel .pointbox.open .pointlbl .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.bus-carousel .pointval {
+  font-size: 10px;
+  color: #4b4b4b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+
+.bus-carousel .points-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.bus-carousel .pointbox.open .points-dropdown {
+  display: block;
+}
+
+.bus-carousel .points-dropdown-item {
+  padding: 8px 10px;
+  font-size: 10px;
+  color: #4b4b4b;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.bus-carousel .points-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.bus-carousel .points-dropdown-item .point-name {
+  font-weight: 500;
+}
+
+.bus-carousel .points-dropdown-item .point-time {
+  color: #868686;
+  font-size: 9px;
+  margin-top: 2px;
+}
+
+.bus-carousel .details-section {
+  padding: 8px 0;
+}
+
+.bus-carousel .view-details-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #4b4b4b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.bus-carousel .view-details-btn:hover:not(.disabled) {
+  background: #e8e8e8;
+  border-color: #ccc;
+}
+
+.bus-carousel .view-details-btn.disabled {
+  color: #bdbdbd;
+  cursor: not-allowed;
+  background: #fafafa;
+}
+
+.bus-carousel .view-details-btn .details-arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid currentColor;
+  transition: transform 0.2s ease;
+}
+
+.bus-carousel .details-section.open .view-details-btn .details-arrow {
+  transform: rotate(180deg);
+}
+
+.bus-carousel .details-content {
+  display: none;
+  padding-top: 10px;
+}
+
+.bus-carousel .details-section.open .details-content {
+  display: block;
+}
+
+.bus-carousel .busamnts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  color: #4b4b4b;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.bus-carousel .busamnts li {
+  background: #f5f5f5;
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.bus-carousel .featuresrow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.bus-carousel .featuretag {
+  font-size: 10px;
+  color: #04a77a;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bus-carousel .featuretag::before {
+  content: '✓';
+  font-weight: bold;
+}
+
+.bus-carousel .busftr {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  margin-top: auto;
+}
+
+.bus-carousel .bkbtn {
+  border-radius: 40px;
+  background: #ef6614;
+  color: #fff;
+  text-align: center;
+  font-size: 12px;
+  padding: 10px 15px;
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.bus-carousel .bkbtn:hover {
+  background: #e75806;
+}
+
+.bus-carousel .cancelpolicy {
+  font-size: 10px;
+  color: #646d74;
+  text-align: center;
+}
+
+.bus-carousel .cancelpolicy.cancellable {
+  color: #04a77a;
+}
+
+.bus-carousel .emt-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: #646d74;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.bus-carousel .emt-inline-arrow {
+  width: 14px;
+  height: auto;
+  object-fit: contain;
+  vertical-align: baseline;
+}
+
+.bus-carousel .view-all-link {
+  margin-left: 12px;
+  padding: 6px 14px;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  color: #2093ef;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.bus-carousel .view-all-link:hover {
+  background: #2093ef;
+  color: #fff;
+  border-color: #2093ef;
+}
+
+.bus-carousel .view-all-card {
+  min-width: 270px;
+  width: 270px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  position: relative;
+  overflow: visible;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.bus-carousel .view-all-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #2093ef;
+}
+
+.bus-carousel .view-all-card::before,
+.bus-carousel .view-all-card::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #f0f1f3 0%, #d8dce0 100%);
+  z-index: -1;
+}
+
+.bus-carousel .view-all-card::before {
+  right: -3px;
+  height: 98%;
+  top: 1%;
+  opacity: 0.7;
+}
+
+.bus-carousel .view-all-card::after {
+  right: -6px;
+  height: 96%;
+  top: 2%;
+  opacity: 0.5;
+}
+
+.bus-carousel .view-all-card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2093ef 0%, #1976d2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(32, 147, 239, 0.3);
+}
+
+.bus-carousel .view-all-card-icon svg {
+  width: 28px;
+  height: 28px;
+  color: #fff;
+}
+
+.bus-carousel .view-all-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202020;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.bus-carousel .view-all-card-subtitle {
+  font-size: 13px;
+  color: #646d74;
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+</style>
+
+<div class="bus-carousel">
+  <main>
+    <div class="rslttp rslt-heading">
+      <div class="busctl">
+        <span>Delhi</span>
+        <img
+          class="emt-inline-arrow"
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.728' height='8.101' viewBox='0 0 15.728 8.101'%3E%3Cpath d='M16.536,135.588h0l-3.414-3.4a.653.653,0,0,0-.922.926l2.292,2.281H1.653a.653.653,0,1,0,0,1.307H14.492L12.2,138.985a.653.653,0,0,0,.922.926l3.414-3.4h0A.654.654,0,0,0,16.536,135.588Z' transform='translate(-1 -132)' fill='%23202020'/%3E%3C/svg%3E"
+          alt="→"
+        />
+        <span>Manali</span>
+        
+        <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
+        
+      </div>
+      <div class="bussbt">
+        <span>23-02-2026</span> •
+        <span>173 buses found</span>
+        
+        
+      </div>
+    </div>
+
+    <div class="buscardbx">
+      <div class="rsltcvr">
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="LAXMI HOLIDAYS (PREMIUM)">LAXMI HOLIDAYS (PREMIU...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹669</div>
+              <div class="seatsleft">44 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">18:30</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 30m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">06:00</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 7 AND 8">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹670</div>
+              <div class="seatsleft">43 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">17:00</div>
+            <div class="jrny">
+              <div class="jrnttl">12h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">05:00</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 7 AND 8">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="DM-388U">DM-388U</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC, Video">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹670</div>
+              <div class="seatsleft">45 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">22:00</div>
+            <div class="jrny">
+              <div class="jrnttl">10h 20m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">08:20</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="ram dalal Travels ">ram dalal Travels </div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ram dalal Travels </div>
+                  <div class="point-time">21:30</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ISBT Kashmiri Gate</div>
+                  <div class="point-time">22:00</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal By paas</div>
+                  <div class="point-time">22:30</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Manali">Manali</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Charging Point</li><li>Fire Extinguisher</li><li>Hammer</li><li>Reading Light</li><li>Water Bottle</li><li>First Aid Box</li><li>Vomiting Bag</li><li>Blanket</li><li>Emergency exit</li><li>GPS</li><li>Snacks</li><li>WiFi</li><li>CCTV</li>
+              </ul>
+              
+              
+              <div class="featuresrow">
+                <span class="featuretag">Live Tracking</span>
+                
+              </div>
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Pal Travel Lines">Pal Travel Lines</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC">2+2, Volvo Semi Sleeper, AC</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹674</div>
+              <div class="seatsleft">24 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">20:15</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 50m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">08:05</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Kashmiri Gate">Kashmiri Gate</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kashmiri Gate</div>
+                  <div class="point-time">20:02</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Vidhan Sabha Metro station</div>
+                  <div class="point-time">20:15</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Majnu Ka Tilla</div>
+                  <div class="point-time">20:25</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal bypass Delhi</div>
+                  <div class="point-time">20:45</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">SINDHU BORDER</div>
+                  <div class="point-time">21:05</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="PRIVATE BUS STAND MANALI">PRIVATE BUS STAND MA...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Charging Point</li><li>Emergency exit</li><li>Fire Extinguisher</li><li>Hammer</li><li>GPS</li><li>Reading Light</li><li>Water Bottle</li><li>CCTV</li><li>Hand Sanitizer</li><li>First Aid Box</li><li>Vomiting Bag</li><li>M-TICKET</li><li>Staffs with Facemask</li><li>Extra Leg Space</li>
+              </ul>
+              
+              
+              <div class="featuresrow">
+                <span class="featuretag">Live Tracking</span>
+                
+              </div>
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Pal Travel Lines">Pal Travel Lines</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC">2+2, Volvo Semi Sleeper, AC</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹674</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">19:25</div>
+            <div class="jrny">
+              <div class="jrnttl">13h 10m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">08:35</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="Kashmiri Gate">Kashmiri Gate</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kashmiri Gate</div>
+                  <div class="point-time">18:55</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Vidhan Sabha Metro station</div>
+                  <div class="point-time">19:10</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Majnu Ka Tilla</div>
+                  <div class="point-time">19:25</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal bypass Delhi</div>
+                  <div class="point-time">19:55</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">SINDHU BORDER</div>
+                  <div class="point-time">20:10</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="PRIVATE BUS STAND MANALI">PRIVATE BUS STAND MA...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Charging Point</li><li>Emergency exit</li><li>Fire Extinguisher</li><li>Hammer</li><li>GPS</li><li>Reading Light</li><li>Water Bottle</li><li>CCTV</li><li>Hand Sanitizer</li><li>First Aid Box</li><li>Vomiting Bag</li><li>M-TICKET</li><li>Staffs with Facemask</li><li>Extra Leg Space</li>
+              </ul>
+              
+              
+              <div class="featuresrow">
+                <span class="featuretag">Live Tracking</span>
+                
+              </div>
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="CITY LAND TOURS & TRAVELS PRIVATE LIMITED">CITY LAND TOURS & TRAV...</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC, Video">2+2, Volvo Semi Sleeper, AC, V...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹692</div>
+              <div class="seatsleft">35 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">09:00</div>
+            <div class="jrny">
+              <div class="jrnttl">14h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">23:00</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT Kashmiri Gate">ISBT Kashmiri Gate</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Volvo Bus Stand Near Beas River Side Manali ">Private Volvo Bus St...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹697</div>
+              <div class="seatsleft">45 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">10:00</div>
+            <div class="jrny">
+              <div class="jrnttl">12h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">22:00</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 7 AND 8">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Pal Travel Lines">Pal Travel Lines</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo Semi Sleeper, AC">2+2, Volvo Semi Sleeper, AC</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹719</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">23:00</div>
+            <div class="jrny">
+              <div class="jrnttl">10h 05m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:05</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="kashmiri gate metro station 9871799805">kashmiri gate metro ...</div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">kashmiri gate metro station 9871799805</div>
+                  <div class="point-time">23:00</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Vidhan Sabha Metro station</div>
+                  <div class="point-time">23:10</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Majnu Ka Tilla Pal Travel Lines 9871799805</div>
+                  <div class="point-time">23:20</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Karnal bypass Delhi</div>
+                  <div class="point-time">23:50</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="PRIVATE BUS STAND MANALI">PRIVATE BUS STAND MA...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn disabled">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Deltin Travelss">Deltin Travelss</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC, Video">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹719</div>
+              <div class="seatsleft">45 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">23:00</div>
+            <div class="jrny">
+              <div class="jrnttl">10h 50m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:50</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="Kashmiri Gate">Kashmiri Gate</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking">Private Bus Parking</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Emergency exit</li><li>Fire Extinguisher</li><li>Hammer</li><li>GPS</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li><li>Extra Leg Space</li><li>First Aid Box</li>
+              </ul>
+              
+              
+              <div class="featuresrow">
+                <span class="featuretag">Live Tracking</span>
+                
+              </div>
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Scania MultiAxle Semi Sleeper, AC">2+2, Scania MultiAxle Semi Sle...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹729</div>
+              <div class="seatsleft">53 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">22:40</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 20m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">10:00</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 41 42 AND 43">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Multi Axle Volvo SemiSleeper, AC">2+2, Multi Axle Volvo SemiSlee...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹749</div>
+              <div class="seatsleft">53 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">21:30</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 40m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:10</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 7 AND 8">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Laxmi Holidays">Laxmi Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹749</div>
+              <div class="seatsleft">45 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">23:50</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 30m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">11:20</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="ISBT KASHMIRI GATE INSIDE ARRIVAL PLATFORM NEAR 41 42 AND 43">ISBT KASHMIRI GATE I...</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking Manali">Private Bus Parking ...</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Reading Light</li><li>Water Bottle</li><li>M-TICKET</li>
+              </ul>
+              
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Deltin Travels">Deltin Travels</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Scania MultiAxle Semi Sleeper, AC, Non">2+2, Scania MultiAxle Semi Sle...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹759</div>
+              <div class="seatsleft">44 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">21:30</div>
+            <div class="jrny">
+              <div class="jrnttl">11h 00m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">08:30</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                
+              </div>
+              <div class="pointval" title="Kashmiri Gate">Kashmiri Gate</div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Private Bus Parking">Private Bus Parking</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Emergency exit</li><li>Fire Extinguisher</li><li>GPS</li><li>Reading Light</li><li>Water Bottle</li><li>Vomiting Bag</li><li>M-TICKET</li><li>Extra Leg Space</li><li>First Aid Box</li><li>Hammer</li><li>WiFi</li><li>CCTV</li>
+              </ul>
+              
+              
+              <div class="featuresrow">
+                <span class="featuretag">Live Tracking</span>
+                
+              </div>
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="Ram Dalal Holidays">Ram Dalal Holidays</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, VOLVO 9600 MULTI AXLE SEMI SLEEPER, AC, LED">2+2, VOLVO 9600 MULTI AXLE SEM...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag seater">Seater</span>
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹760</div>
+              <div class="seatsleft">53 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">20:30</div>
+            <div class="jrny">
+              <div class="jrnttl">10h 50m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">07:20</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="ram dalal Travels ">ram dalal Travels </div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ram dalal Travels </div>
+                  <div class="point-time">20:00</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ISBT Kashmiri Gate</div>
+                  <div class="point-time">20:30</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">majnu ka tila</div>
+                  <div class="point-time">20:40</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kundali Bordar</div>
+                  <div class="point-time">21:00</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Manali">Manali</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Blanket</li><li>Charging Point</li><li>Emergency exit</li><li>Fire Extinguisher</li><li>Hammer</li><li>GPS</li><li>Reading Light</li><li>Snacks</li><li>Water Bottle</li><li>WiFi</li><li>CCTV</li><li>First Aid Box</li><li>Vomiting Bag</li>
+              </ul>
+              
+              
+              <div class="featuresrow">
+                <span class="featuretag">Live Tracking</span>
+                
+              </div>
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        <div class="buscard item">
+          <div class="buschdr">
+            <div class="businfo">
+              <div class="businfo-top">
+                <div class="oprtname" title="DM-288U">DM-288U</div>
+                
+                <span class="rtnvlu ">★ 4.5</span>
+                
+              </div>
+              <div class="bustype" title="2+2, Volvo 9600 Semi Sleeper, AC, Video">2+2, Volvo 9600 Semi Sleeper, ...</div>
+              <div class="bustags">
+                <span class="bustag ac">AC</span>
+                
+                
+                <span class="bustag sleeper">Sleeper</span>
+                
+              </div>
+            </div>
+            <div class="busprcbx">
+              <div class="sbttl">starts from</div>
+              <div class="busprc">₹780</div>
+              <div class="seatsleft">41 seats</div>
+            </div>
+          </div>
+
+          <div class="busbdy">
+            <div class="bustme">23:00</div>
+            <div class="jrny">
+              <div class="jrnttl">10h 55m</div>
+              <div class="j-br"></div>
+            </div>
+            <div class="bustme">09:55</div>
+          </div>
+
+          <div class="pointsrow">
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Boarding
+                <span class="dropdown-arrow"></span>
+              </div>
+              <div class="pointval" title="ram dalal Travels ">ram dalal Travels </div>
+              
+              <div class="points-dropdown">
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ram dalal Travels </div>
+                  <div class="point-time">21:45</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">ISBT Kashmiri Gate</div>
+                  <div class="point-time">23:00</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">majnu ka tila</div>
+                  <div class="point-time">23:15</div>
+                </div>
+                
+                <div class="points-dropdown-item">
+                  <div class="point-name">Kundali Bordar</div>
+                  <div class="point-time">23:50</div>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="pointbox" onclick="this.classList.toggle('open')">
+              <div class="pointlbl">
+                Dropping
+                
+              </div>
+              <div class="pointval" title="Manali">Manali</div>
+              
+            </div>
+          </div>
+
+          <div class="details-section" onclick="if(this.querySelector('.view-details-btn').classList.contains('disabled')) return; this.classList.toggle('open')">
+            <button type="button" class="view-details-btn ">
+              View Details
+              <span class="details-arrow"></span>
+            </button>
+            
+            <div class="details-content">
+              
+              <ul class="busamnts">
+                <li>Charging Point</li><li>Fire Extinguisher</li><li>Hammer</li><li>Reading Light</li><li>Water Bottle</li><li>First Aid Box</li><li>Vomiting Bag</li><li>Blanket</li><li>Emergency exit</li><li>GPS</li><li>Snacks</li><li>WiFi</li><li>CCTV</li>
+              </ul>
+              
+              
+              <div class="featuresrow">
+                <span class="featuretag">Live Tracking</span>
+                
+              </div>
+              
+            </div>
+            
+          </div>
+
+          <div class="busftr">
+            <a href="https://bus.easemytrip.com/home/list?org=Delhi&des=Manali&date=23-02-2026&searchid=733_757&CCode=IN&AppCode=Emt" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            
+            <div class="cancelpolicy">Non-refundable</div>
+            
+          </div>
+        </div>
+        
+        
+        
+      </div>
+    </div>
+
+    
+  </main>
+</div>
+        </div>
+        </body>
+</html>
