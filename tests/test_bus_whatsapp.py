@@ -14,6 +14,23 @@ Or run directly:
 
 import sys
 import os
+
+# ============================================================================
+# PATH SETUP - Required for direct python execution
+# ============================================================================
+# Add project root to Python path so 'tools_factory' can be imported
+# This handles running from tests/ directory or project root
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# If we're in tests/, go up one level; otherwise assume we're at project root
+if os.path.basename(current_dir) == 'tests':
+    project_root = os.path.dirname(current_dir)
+else:
+    project_root = current_dir
+
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+# ============================================================================
+
 import pytest
 import asyncio
 import json
@@ -468,7 +485,7 @@ async def test_bus_whatsapp_has_all_new_fields():
 
 
 # ============================================================================
-# MAIN EXECUTION - Run tests directly
+# MAIN EXECUTION - Run tests directly with python
 # ============================================================================
 
 async def run_all_tests():
