@@ -25,7 +25,7 @@ async def test_status_no_date_shows_date_picker():
     html = result.html
 
     # Date picker structure
-    assert 'class="train-dates-widget"' in html, "Should have date picker widget"
+    assert 'class="train-dates-widget ' in html, "Should have date picker widget"
     assert 'data-train-number="12302"' in html, "Widget should have train number data attr"
     assert "Select a date to check status" in html, "Should have subtitle"
 

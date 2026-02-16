@@ -6,7 +6,7 @@ Uses vertical timeline UI consistent with the route check renderer.
 
 from typing import Dict, Any
 from jinja2 import Environment, BaseLoader, select_autoescape
-
+import uuid
 
 _jinja_env = Environment(
     loader=BaseLoader(),
@@ -889,7 +889,7 @@ TRAIN_DATES_TEMPLATE = """
 }
 </style>
 
-<div class="train-dates-widget" data-train-number="{{ train_number }}">
+<div class="train-dates-widget round-trip-selector" data-train-number="{{ train_number }}" id="train-dates-{{ instance_id }}">
   <div class="tdt-header">
     <div class="tdt-title">Train {{ train_number }}</div>
     <div class="tdt-subtitle">Select a date to check status</div>
@@ -1428,7 +1428,7 @@ def render_train_status_results(status_result: Dict[str, Any]) -> str:
     Returns:
         HTML string with rendered train status
     """
-    import uuid
+    
 
     if status_result.get("error"):
         error_msg = status_result.get("message", "Unknown error")
@@ -1482,6 +1482,7 @@ def render_train_dates(dates_result: Dict[str, Any]) -> str:
           </div>
         </div>
         """
-
+    
+    instance_id = uuid.uuid4().hex[:8]
     template = _jinja_env.from_string(TRAIN_DATES_TEMPLATE)
-    return template.render(**dates_result)
+    return template.render( instance_id=instance_id,**dates_result)
