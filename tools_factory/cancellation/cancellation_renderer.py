@@ -1154,7 +1154,8 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         var success = data.toLowerCase().indexOf('success') !== -1;
         if (!success) {
           var isOtpError = data.toLowerCase().indexOf('otp') !== -1;
-          showError(data || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
+          var fallback = isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.';
+          showError(data || fallback);
           return null;
         }
         return { Status: true, message: data };
@@ -1162,7 +1163,8 @@ INTERACTIVE_BOOKING_TEMPLATE = """
       if (!data.Status && !data.isStatus) {
         var msg = data.LogMessage || data.Message || data.Msg || '';
         var isOtpError = msg.toLowerCase().indexOf('otp') !== -1;
-        showError(msg || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
+        var fallback = isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.';
+        showError(msg || fallback);
         return null;
       }
       return data;
@@ -2621,7 +2623,8 @@ TRAIN_BOOKING_TEMPLATE = """
         var success = data.toLowerCase().indexOf('success') !== -1;
         if (!success) {
           var isOtpError = data.toLowerCase().indexOf('otp') !== -1;
-          showError(data || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
+          var fallback = isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.';
+          showError(data || fallback);
           return null;
         }
         return { Status: true, message: data };
@@ -2629,7 +2632,8 @@ TRAIN_BOOKING_TEMPLATE = """
       if (!data.Status && !data.isStatus) {
         var msg = data.LogMessage || data.Message || data.Msg || '';
         var isOtpError = msg.toLowerCase().indexOf('otp') !== -1;
-        showError(msg || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
+        var fallback = isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.';
+        showError(msg || fallback);
         return null;
       }
       return data;
@@ -3673,7 +3677,8 @@ BUS_BOOKING_TEMPLATE = """
         var success = data.toLowerCase().indexOf('success') !== -1 || data.toLowerCase().indexOf('cancel') !== -1;
         if (!success) {
           var isOtpError = data.toLowerCase().indexOf('otp') !== -1;
-          showError(data || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
+          var fallback = isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.';
+          showError(data || fallback);
           return null;
         }
         return { Status: true, message: data };
@@ -3681,7 +3686,8 @@ BUS_BOOKING_TEMPLATE = """
       if (!data.Status && !data.isStatus) {
         var msg = data.LogMessage || data.Message || data.Msg || '';
         var isOtpError = msg.toLowerCase().indexOf('otp') !== -1;
-        showError(msg || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
+        var fallback = isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.';
+        showError(msg || fallback);
         return null;
       }
       return data;
@@ -4313,11 +4319,12 @@ FLIGHT_REDIRECT_TEMPLATE = """
       </div>
 
       <a href="{{ redirect_url }}" target="_blank" rel="noopener" class="flight-redirect-btn">
-        Go to Cancellation Page;
+        Go to Cancellation Page
       </a>
 
       <div class="flight-redirect-note">
         You will be redirected to EaseMyTrip's cancellation page in a new tab.
+        If the page asks you to log in, use your booking ID and registered email.
       </div>
     </div>
   </main>
