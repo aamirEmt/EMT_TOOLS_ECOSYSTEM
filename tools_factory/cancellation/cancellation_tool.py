@@ -129,9 +129,9 @@ class CancellationTool(BaseTool):
         if action == "start":
             return await self._handle_start(input_data, user_type)
         elif action == "verify_otp":
-            return await self._handle_verify_otp(input_data)
+            return await self._handle_verify_otp(input_data, user_type)
         elif action == "send_otp":
-            return await self._handle_send_otp(input_data)
+            return await self._handle_send_otp(input_data, user_type)
         elif action == "confirm":
             return await self._handle_confirm(input_data, user_type)
         else:
@@ -504,7 +504,9 @@ class CancellationTool(BaseTool):
     # ----------------------------------------------------------
     # action = "verify_otp" — verify guest login OTP
     # ----------------------------------------------------------
-    async def _handle_verify_otp(self, input_data: CancellationInput) -> ToolResponseFormat:
+    async def _handle_verify_otp(self, input_data: CancellationInput, user_type: str) -> ToolResponseFormat:
+        is_whatsapp = user_type.lower() == "whatsapp"
+
         if not input_data.otp:
             return ToolResponseFormat(
                 response_text="Please provide the OTP sent to your registered email/phone.",
@@ -522,27 +524,67 @@ class CancellationTool(BaseTool):
             )
 
         if not result["success"]:
+            error_text = (
+                f"❌ {result['message']}\n\n"
+                f"Please check the OTP and try again."
+            )
+            whatsapp_response = None
+            if is_whatsapp:
+                from .cancellation_schema import (
+                    WhatsappCancellationFormat,
+                    WhatsappCancellationFinalResponse,
+                )
+                whatsapp_response = WhatsappCancellationFinalResponse(
+                    response_text=error_text,
+                    whatsapp_json=WhatsappCancellationFormat(
+                        type="cancellation",
+                        status="error",
+                        message=error_text,
+                        booking_id=input_data.booking_id,
+                    ),
+                )
             return ToolResponseFormat(
-                response_text=(
-                    f"❌ {result['message']}\n\n"
-                    f"Please check the OTP and try again."
-                ),
+                response_text=error_text,
                 structured_content=result,
                 is_error=True,
+                whatsapp_response=(
+                    whatsapp_response.model_dump() if whatsapp_response else None
+                ),
+            )
+
+        success_text = (
+            f"✅ OTP verified successfully!\n\n"
+            f"Your identity has been confirmed. Would you like to proceed with the cancellation?"
+        )
+        whatsapp_response = None
+        if is_whatsapp:
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=success_text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="otp_verified",
+                    message=success_text,
+                    booking_id=input_data.booking_id,
+                ),
             )
 
         return ToolResponseFormat(
-            response_text=(
-                f"✅ OTP verified successfully!\n\n"
-                f"Your identity has been confirmed. Would you like to proceed with the cancellation?"
-            ),
+            response_text=success_text,
             structured_content=result,
+            whatsapp_response=(
+                whatsapp_response.model_dump() if whatsapp_response else None
+            ),
         )
 
     # ----------------------------------------------------------
     # action = "send_otp"
     # ----------------------------------------------------------
-    async def _handle_send_otp(self, input_data: CancellationInput) -> ToolResponseFormat:
+    async def _handle_send_otp(self, input_data: CancellationInput, user_type: str) -> ToolResponseFormat:
+        is_whatsapp = user_type.lower() == "whatsapp"
         service = await get_user_service(input_data.booking_id, input_data.email)
 
         # Route based on transaction type
@@ -578,14 +620,36 @@ class CancellationTool(BaseTool):
                 is_error=True,
             )
 
+        otp_text = (
+            f"📧 An OTP (One-Time Password) has been sent to your registered email/phone.\n\n"
+            f"🔐 Please check your email and provide the OTP to confirm the cancellation.\n\n"
+            f"⏱️ Note: The OTP is valid for 10 minutes only.\n\n"
+            f"Type the OTP like: \"123456\" or \"My OTP is ABC123\""
+        )
+
+        whatsapp_response = None
+        if is_whatsapp:
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=otp_text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="otp_sent",
+                    message=otp_text,
+                    booking_id=input_data.booking_id,
+                    transaction_type=tx_type,
+                ),
+            )
+
         return ToolResponseFormat(
-            response_text=(
-                f"📧 An OTP (One-Time Password) has been sent to your registered email/phone.\n\n"
-                f"🔐 Please check your email and provide the OTP to confirm the cancellation.\n\n"
-                f"⏱️ Note: The OTP is valid for 10 minutes only.\n\n"
-                f"Type the OTP like: \"123456\" or \"My OTP is ABC123\""
-            ),
+            response_text=otp_text,
             structured_content=result,
+            whatsapp_response=(
+                whatsapp_response.model_dump() if whatsapp_response else None
+            ),
         )
 
     # ----------------------------------------------------------
@@ -593,19 +657,20 @@ class CancellationTool(BaseTool):
     # ----------------------------------------------------------
     async def _handle_confirm(self, input_data: CancellationInput, user_type: str) -> ToolResponseFormat:
         render_html = user_type.lower() == "website"
+        is_whatsapp = user_type.lower() == "whatsapp"
         service = await get_user_service(input_data.booking_id, input_data.email)
         tx_type = service._transaction_type
 
         if tx_type == "Train":
-            return await self._handle_confirm_train(input_data, render_html, service)
+            return await self._handle_confirm_train(input_data, render_html, is_whatsapp, service)
         if tx_type == "Bus":
-            return await self._handle_confirm_bus(input_data, render_html, service)
-        return await self._handle_confirm_hotel(input_data, render_html, service)
+            return await self._handle_confirm_bus(input_data, render_html, is_whatsapp, service)
+        return await self._handle_confirm_hotel(input_data, render_html, is_whatsapp, service)
 
     # ----------------------------------------------------------
     # _handle_confirm — Hotel branch
     # ----------------------------------------------------------
-    async def _handle_confirm_hotel(self, input_data, render_html, service) -> ToolResponseFormat:
+    async def _handle_confirm_hotel(self, input_data, render_html, is_whatsapp, service) -> ToolResponseFormat:
         # Validate required fields
         if not input_data.otp or not input_data.room_id or not input_data.transaction_id:
             return ToolResponseFormat(
@@ -666,16 +731,37 @@ class CancellationTool(BaseTool):
             result["booking_id"] = input_data.booking_id
             html = render_cancellation_success(result)
 
+        whatsapp_response = None
+        if is_whatsapp:
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=success_text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="cancelled",
+                    message=success_text,
+                    booking_id=input_data.booking_id,
+                    transaction_type="Hotel",
+                    refund_info=result.get("refund_info"),
+                ),
+            )
+
         return ToolResponseFormat(
             response_text=success_text,
             structured_content=result,
             html=html,
+            whatsapp_response=(
+                whatsapp_response.model_dump() if whatsapp_response else None
+            ),
         )
 
     # ----------------------------------------------------------
     # _handle_confirm — Train branch
     # ----------------------------------------------------------
-    async def _handle_confirm_train(self, input_data, render_html, service) -> ToolResponseFormat:
+    async def _handle_confirm_train(self, input_data, render_html, is_whatsapp, service) -> ToolResponseFormat:
         # Validate required fields
         if not input_data.otp or not input_data.pax_ids or not input_data.reservation_id or not input_data.pnr_number:
             return ToolResponseFormat(
@@ -734,10 +820,31 @@ class CancellationTool(BaseTool):
             result["booking_id"] = input_data.booking_id
             html = render_cancellation_success(result)
 
+        whatsapp_response = None
+        if is_whatsapp:
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=success_text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="cancelled",
+                    message=success_text,
+                    booking_id=input_data.booking_id,
+                    transaction_type="Train",
+                    refund_info=result.get("refund_info"),
+                ),
+            )
+
         return ToolResponseFormat(
             response_text=success_text,
             structured_content=result,
             html=html,
+            whatsapp_response=(
+                whatsapp_response.model_dump() if whatsapp_response else None
+            ),
         )
 
     # ----------------------------------------------------------
@@ -848,15 +955,44 @@ class CancellationTool(BaseTool):
             + "\n\nWould you like to proceed with the cancellation?"
         )
 
+        whatsapp_response = None
+        if is_whatsapp:
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=friendly_text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="booking_details",
+                    message=friendly_text,
+                    booking_id=input_data.booking_id,
+                    transaction_type="Bus",
+                    seats=[
+                        {
+                            "seat_no": p.get("seat_no"),
+                            "name": f"{p.get('title', '')} {p.get('first_name', '')} {p.get('last_name', '')}".strip(),
+                            "fare": p.get("fare"),
+                            "status": p.get("status"),
+                        }
+                        for p in passengers
+                    ],
+                ),
+            )
+
         return ToolResponseFormat(
             response_text=friendly_text,
             structured_content=combined,
+            whatsapp_response=(
+                whatsapp_response.model_dump() if whatsapp_response else None
+            ),
         )
 
     # ----------------------------------------------------------
     # _handle_confirm — Bus branch
     # ----------------------------------------------------------
-    async def _handle_confirm_bus(self, input_data, render_html, service) -> ToolResponseFormat:
+    async def _handle_confirm_bus(self, input_data, render_html, is_whatsapp, service) -> ToolResponseFormat:
         if not input_data.otp or not input_data.seats:
             return ToolResponseFormat(
                 response_text="Missing required fields for bus confirm: otp, seats",
@@ -917,8 +1053,29 @@ class CancellationTool(BaseTool):
             result["booking_id"] = input_data.booking_id
             html = render_cancellation_success(result)
 
+        whatsapp_response = None
+        if is_whatsapp:
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=success_text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="cancelled",
+                    message=success_text,
+                    booking_id=input_data.booking_id,
+                    transaction_type="Bus",
+                    refund_info=result.get("refund_info"),
+                ),
+            )
+
         return ToolResponseFormat(
             response_text=success_text,
             structured_content=result,
             html=html,
+            whatsapp_response=(
+                whatsapp_response.model_dump() if whatsapp_response else None
+            ),
         )

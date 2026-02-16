@@ -20,7 +20,12 @@ class MyBookingsApiClient:
 
     def __init__(self):
         self.base_url = MYBOOKINGS_BASE_URL
-        self.timeout = 20.0
+        self.timeout = httpx.Timeout(
+        connect=10.0,   # connection should fail fast
+        read=60.0,      # wait longer for slow cancellation response
+        write=30.0,
+        pool=10.0,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",

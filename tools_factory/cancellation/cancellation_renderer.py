@@ -3628,7 +3628,7 @@ BUS_BOOKING_TEMPLATE = """
         return { Status: true, message: data };
       }
       if (!data.Status && !data.isStatus) {
-        showError(data.Message || data.Msg || data.LogMessage || 'Cancellation failed.');
+        showError(data.LogMessage || data.Message || data.Msg || 'Cancellation failed.');
         return null;
       }
       return data;
