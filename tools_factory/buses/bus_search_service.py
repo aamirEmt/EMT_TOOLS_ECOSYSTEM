@@ -849,22 +849,32 @@ async def search_buses(
 def extract_bus_summary(bus: Dict[str, Any]) -> Dict[str, Any]:
     """Extract summary information from a bus for WhatsApp response."""
     
-    fares = bus.get("fares", [])
+    # Use 'price' field first (this is the actual/discounted price shown on website)
+    # Fall back to minimum from 'fares' array only if price is not available
+    actual_price = None
     
-    cheapest_fare = None
-    for fare in fares:
-        try:
-            fare_val = float(fare)
-            if cheapest_fare is None or fare_val < cheapest_fare:
-                cheapest_fare = fare_val
-        except (ValueError, TypeError):
-            continue
-
-    if cheapest_fare is None:
-        try:
-            cheapest_fare = float(bus.get("price", 0))
-        except (ValueError, TypeError):
-            cheapest_fare = 0
+    # Try to get the price field first (actual price after discount)
+    try:
+        price_val = bus.get("price")
+        if price_val is not None and price_val != "" and price_val != "0":
+            actual_price = float(price_val)
+    except (ValueError, TypeError):
+        pass
+    
+    # If no price field, find minimum from fares array
+    if actual_price is None:
+        fares = bus.get("fares", [])
+        for fare in fares:
+            try:
+                fare_val = float(fare)
+                if actual_price is None or fare_val < actual_price:
+                    actual_price = fare_val
+            except (ValueError, TypeError):
+                continue
+    
+    # Final fallback
+    if actual_price is None:
+        actual_price = 0
 
     boarding_points = bus.get("boarding_points", [])
     dropping_points = bus.get("dropping_points", [])
@@ -885,8 +895,11 @@ def extract_bus_summary(bus: Dict[str, Any]) -> Dict[str, Any]:
         "arrival_time": bus.get("arrival_time"),
         "duration": bus.get("duration"),
         "available_seats": bus.get("available_seats"),
-        "cheapest_fare": cheapest_fare,
+        "cheapest_fare": actual_price,
         "is_ac": bus.get("is_ac"),
+        "is_non_ac": bus.get("is_non_ac"),
+        "is_seater": bus.get("is_seater"),
+        "is_sleeper": bus.get("is_sleeper"),
         "is_volvo": bus.get("is_volvo"),
         "rating": bus.get("rating"),
         "live_tracking": bus.get("live_tracking_available"),
@@ -921,6 +934,9 @@ def build_whatsapp_bus_response(
             "available_seats": summary["available_seats"],
             "fare": summary["cheapest_fare"],
             "is_ac": summary["is_ac"],
+            "is_non_ac": summary["is_non_ac"],
+            "is_seater": summary["is_seater"],
+            "is_sleeper": summary["is_sleeper"],
             "is_volvo": summary["is_volvo"],
             "rating": summary["rating"],
             "boarding_point": summary["first_boarding_point"],
