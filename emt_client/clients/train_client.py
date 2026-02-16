@@ -2,6 +2,9 @@ from .client import EMTClient
 from emt_client.config import PNR_STATUS_URL, TRAIN_ROUTE_API_URL
 
 AVAILABILITY_CHECK_URL = "https://railways.easemytrip.com/Train/AvailToCheck"
+TRAIN_GET_DATES_URL = "https://solr.easemytrip.com/v1/api/auto/Train_GetDates"
+TRAIN_LIVE_STATUS_URL = "https://railways.easemytrip.com/TrainService/TrainLiveStatus"
+TRAIN_AUTOSUGGEST_URL = "https://autosuggest.easemytrip.com/api/auto/train_name?useby=popularu&key=jNUYK0Yj5ibO6ZVIkfTiFA=="
 
 
 class TrainApiClient:
@@ -175,3 +178,58 @@ class TrainApiClient:
         """
         payload = {"pnrNumber": encrypted_pnr}
         return await self.client.post(PNR_STATUS_URL, payload)
+    async def get_train_dates(self, train_number: str) -> dict:
+        """
+        Fetch available trackable dates for a train.
+
+        Args:
+            train_number: Train number (e.g., "12618")
+
+        Returns:
+            API response with DateList containing available dates
+        """
+        url = f"{TRAIN_GET_DATES_URL}/{train_number}"
+        return await self.client.get(url)
+
+    async def get_train_live_status(
+        self,
+        train_number: str,
+        selected_date: str,
+        search_type: str = "",
+        from_station: str = "",
+        dest_station: str = "",
+    ) -> dict:
+        """
+        Get live train status with station-wise schedule.
+
+        Args:
+            train_number: Train number with name (e.g., "12306-Kolkata Rajdhni")
+            selected_date: Date in DD/MM/YYYY format
+            search_type: Search type (default empty)
+            from_station: Optional source station code
+            dest_station: Optional destination station code
+
+        Returns:
+            API response with train status and station list
+        """
+        payload = {
+            "TrainNo": train_number,
+            "selectedDate": selected_date,
+            "Srchtype": search_type,
+            "fromSrc": from_station,
+            "DestStnCode": dest_station,
+        }
+        return await self.client.post(TRAIN_LIVE_STATUS_URL, payload)
+
+    async def get_train_autosuggest(self, train_number: str) -> list:
+        """
+        Get train details from autosuggest API.
+
+        Args:
+            train_number: Train number (e.g., "12124")
+
+        Returns:
+            List of matching trains with details (TrainName, TrainNo, SrcStnCode, DestStnCode)
+        """
+        payload = {"request": train_number}
+        return await self.client.post(TRAIN_AUTOSUGGEST_URL, payload)
