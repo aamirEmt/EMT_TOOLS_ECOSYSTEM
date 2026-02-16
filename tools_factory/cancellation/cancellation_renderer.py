@@ -798,7 +798,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     <!-- Header -->
     <div class="bkhd">
       <div class="bkttl">{{ title }}</div>
-      <div class="bksub">{{ subtitle }}</div>
+      <div class="bksub"{% if is_otp_send %} style="display:none"{% endif %}>{{ subtitle }}</div>
     </div>
 
     <!-- STEP 0: Login OTP verification -->
@@ -1189,6 +1189,8 @@ INTERACTIVE_BOOKING_TEMPLATE = """
       }
       verifyLoginOtp(otp).then(function(result) {
         if (result) {
+          var sub = container.querySelector('.bksub');
+          if (sub) sub.style.display = '';
           if (ALL_CANCELLED) { showStep('cancelled'); }
           else { showStep('details'); }
         }
@@ -2251,7 +2253,7 @@ TRAIN_BOOKING_TEMPLATE = """
 
     <div class="tc-header">
       <div class="tc-title">{{ title }}</div>
-      <div class="tc-subtitle">{{ subtitle }}</div>
+      <div class="tc-subtitle"{% if is_otp_send %} style="display:none"{% endif %}>{{ subtitle }}</div>
     </div>
 
     <!-- STEP 0: Login OTP verification -->
@@ -2651,6 +2653,8 @@ TRAIN_BOOKING_TEMPLATE = """
       if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
       verifyLoginOtp(otp).then(function(result) {
         if (result) {
+          var sub = container.querySelector('.tc-subtitle');
+          if (sub) sub.style.display = '';
           if (ALL_CANCELLED) { showStep('cancelled'); }
           else { showStep('details'); }
         }
@@ -3332,7 +3336,7 @@ BUS_BOOKING_TEMPLATE = """
 
     <div class="bc-header">
       <div class="bc-title">{{ title }}</div>
-      <div class="bc-subtitle">{{ subtitle }}</div>
+      <div class="bc-subtitle"{% if is_otp_send %} style="display:none"{% endif %}>{{ subtitle }}</div>
     </div>
 
     <!-- STEP 0: Login OTP verification -->
@@ -3701,6 +3705,8 @@ BUS_BOOKING_TEMPLATE = """
       if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
       verifyLoginOtp(otp).then(function(result) {
         if (result) {
+          var sub = container.querySelector('.bc-subtitle');
+          if (sub) sub.style.display = '';
           if (ALL_CANCELLED) { showStep('cancelled'); }
           else { showStep('details'); }
         }
@@ -4269,7 +4275,7 @@ FLIGHT_REDIRECT_TEMPLATE = """
     <!-- Header -->
     <div class="bkhd">
       <div class="bkttl">Flight Cancellation</div>
-      <div class="bksub">Booking {{ booking_id }}</div>
+      <div class="bksub"{% if is_otp_send %} style="display:none"{% endif %}>Booking {{ booking_id }}</div>
     </div>
 
     <!-- STEP 0: Login OTP verification -->
@@ -4423,6 +4429,8 @@ FLIGHT_REDIRECT_TEMPLATE = """
       }
       verifyLoginOtp(otp).then(function(result) {
         if (result) {
+          var sub = container.querySelector('.bksub');
+          if (sub) sub.style.display = '';
           showStep('redirect');
         }
       });
