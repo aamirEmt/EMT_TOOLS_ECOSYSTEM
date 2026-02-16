@@ -1014,12 +1014,13 @@ def _parse_fare_updated(fare_updated: str) -> str:
     return fare_updated
 
 
-def _normalize_train_for_ui(train: Dict[str, Any]) -> Dict[str, Any]:
+def _normalize_train_for_ui(train: Dict[str, Any], search_quota: str = "GN") -> Dict[str, Any]:
     """
     Normalize train data for UI rendering.
 
     Args:
         train: Raw train data from search results
+        search_quota: The quota user searched with (GN, TQ, LD, SS)
 
     Returns:
         Normalized train data for template rendering
@@ -1028,6 +1029,10 @@ def _normalize_train_for_ui(train: Dict[str, Any]) -> Dict[str, Any]:
     tatkal_classes = []
     general_classes = []
     other_classes = []
+
+    # For non-GN/TQ quotas (LD, SS), only show General class cards
+    # since the API only returns GN and TQ entries
+    show_only_general = search_quota not in ("GN", "TQ")
 
     # First, separate classes by quota
     for cls in train.get("classes", []):
@@ -1042,7 +1047,11 @@ def _normalize_train_for_ui(train: Dict[str, Any]) -> Dict[str, Any]:
             "quota_name": cls.get("quota_name", ""),
         }
 
-        if quota == "TQ":
+        if show_only_general:
+            # For LD/SS searches, skip Tatkal cards - only show General
+            if quota == "GN":
+                general_classes.append(class_data)
+        elif quota == "TQ":
             tatkal_classes.append(class_data)
         elif quota == "GN":
             general_classes.append(class_data)
@@ -1146,7 +1155,7 @@ def render_train_results(train_results: Dict[str, Any]) -> str:
     subtitle = " • ".join(subtitle_parts)
 
     # Normalize trains for UI
-    trains_ui = [_normalize_train_for_ui(train) for train in trains]
+    trains_ui = [_normalize_train_for_ui(train, search_quota=quota) for train in trains]
 
     # Remove empty normalizations
     trains_ui = [t for t in trains_ui if t and t.get("train_number")]
