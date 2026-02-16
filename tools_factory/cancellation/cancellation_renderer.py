@@ -3945,508 +3945,261 @@ def render_already_cancelled(
 # =====================================================================
 FLIGHT_REDIRECT_TEMPLATE = """
 <style>
-.flight-cancel-redirect {
-  font-family: poppins, sans-serif;
-  color: #202020;
-  background: rgba(255, 255, 255, 0.92);
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 20px 0 30px;
-}
-
-.flight-cancel-redirect * {
-  font-family: inherit;
-  box-sizing: border-box;
-  margin: 0;
-}
-
-.flight-cancel-redirect .fr-step {
-  display: none;
-}
-
-.flight-cancel-redirect .fr-step.active {
-  display: block;
-}
-
-.flight-cancel-redirect .frhd {
-  margin-bottom: 16px;
-  text-align: center;
-}
-
-.flight-cancel-redirect .frhd h2 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a1a2e;
-  margin-bottom: 4px;
-}
-
-.flight-cancel-redirect .frhd .frsub {
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.flight-cancel-redirect .frcard {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-}
-
-.flight-cancel-redirect .frinfo {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.flight-cancel-redirect .frinfo-item {
-  flex: 1;
-  min-width: 140px;
-}
-
-.flight-cancel-redirect .frinfo-item .frlbl {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #9ca3af;
-  margin-bottom: 4px;
-}
-
-.flight-cancel-redirect .frinfo-item .frval {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a2e;
-  word-break: break-all;
-}
-
-/* ---- OTP verification card ---- */
-.flight-cancel-redirect .fr-verify-card {
-  text-align: center;
-  padding: 24px 20px;
-}
-
-.flight-cancel-redirect .fr-verify-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  background: #eff6ff;
-  border-radius: 50%;
-  margin-bottom: 16px;
-  color: #2563eb;
-}
-
-.flight-cancel-redirect .fr-verify-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1a1a2e;
-  margin-bottom: 8px;
-}
-
-.flight-cancel-redirect .fr-verify-desc {
-  font-size: 13px;
-  color: #6b7280;
-  line-height: 1.5;
-  margin-bottom: 20px;
-}
-
-.flight-cancel-redirect .fr-otp-field {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-
-.flight-cancel-redirect .fr-otp-input {
-  width: 200px;
-  padding: 12px 16px;
-  border: 2px solid #e5e7eb;
+/* Flight redirect card — only styles not already in .booking-details-carousel */
+.booking-details-carousel .flight-redirect-msg {
+  background: #f0f7ff;
+  border: 1px solid #cce0ff;
   border-radius: 10px;
-  font-size: 18px;
-  font-weight: 600;
-  text-align: center;
-  letter-spacing: 4px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.flight-cancel-redirect .fr-otp-input:focus {
-  border-color: #2563eb;
-}
-
-.flight-cancel-redirect .fr-otp-input::placeholder {
-  letter-spacing: 1px;
-  font-size: 14px;
-  font-weight: 400;
-  color: #9ca3af;
-}
-
-.flight-cancel-redirect .fr-error-msg {
-  color: #dc2626;
-  font-size: 13px;
-  margin-bottom: 12px;
-  min-height: 18px;
-  display: none;
-}
-
-.flight-cancel-redirect .fr-error-msg.visible {
-  display: block;
-}
-
-.flight-cancel-redirect .fr-submit-btn {
-  display: block;
-  width: 100%;
-  padding: 14px 24px;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  letter-spacing: 0.3px;
-}
-
-.flight-cancel-redirect .fr-submit-btn:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-}
-
-.flight-cancel-redirect .fr-submit-btn:active {
-  transform: translateY(0);
-}
-
-.flight-cancel-redirect .fr-submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.flight-cancel-redirect .fr-verify-footer {
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 14px;
-}
-
-.flight-cancel-redirect .fr-resend-btn {
-  background: none;
-  border: none;
-  color: #2563eb;
-  cursor: pointer;
-  font-size: 12px;
-  text-decoration: underline;
-  padding: 0;
-}
-
-.flight-cancel-redirect .fr-resend-btn:disabled {
-  color: #9ca3af;
-  cursor: not-allowed;
-  text-decoration: none;
-}
-
-/* ---- Redirect card ---- */
-.flight-cancel-redirect .frmsg {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
   padding: 14px 16px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   display: flex;
   align-items: flex-start;
   gap: 10px;
 }
 
-.flight-cancel-redirect .frmsg .fricon {
+.booking-details-carousel .flight-redirect-msg .fr-icon {
   font-size: 18px;
   line-height: 1.4;
   flex-shrink: 0;
 }
 
-.flight-cancel-redirect .frmsg .frmsg-text {
+.booking-details-carousel .flight-redirect-msg .fr-text {
   font-size: 13px;
-  color: #1e40af;
+  color: #1a56db;
   line-height: 1.5;
 }
 
-.flight-cancel-redirect .frbtn {
+.booking-details-carousel .flight-redirect-btn {
   display: block;
   width: 100%;
-  padding: 14px 24px;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  margin-top: 12px;
+  padding: 10px;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
   color: #fff;
   border: none;
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  font-family: poppins, sans-serif;
   text-align: center;
   text-decoration: none;
-  transition: all 0.2s;
-  letter-spacing: 0.3px;
+  transition: opacity 0.2s;
 }
 
-.flight-cancel-redirect .frbtn:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+.booking-details-carousel .flight-redirect-btn:hover {
+  opacity: 0.85;
 }
 
-.flight-cancel-redirect .frbtn:active {
-  transform: translateY(0);
-}
-
-.flight-cancel-redirect .frnote {
+.booking-details-carousel .flight-redirect-note {
   text-align: center;
   font-size: 11px;
-  color: #9ca3af;
-  margin-top: 12px;
+  color: #999;
+  margin-top: 10px;
   line-height: 1.4;
-}
-
-/* ---- Loading overlay ---- */
-.flight-cancel-redirect .fr-loading {
-  display: none;
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(255,255,255,0.8);
-  z-index: 10;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-}
-
-.flight-cancel-redirect .fr-loading.visible {
-  display: flex;
-}
-
-.flight-cancel-redirect .fr-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #2563eb;
-  border-radius: 50%;
-  animation: fr-spin 0.7s linear infinite;
-}
-
-@keyframes fr-spin {
-  to { transform: rotate(360deg); }
 }
 </style>
 
-<div class="flight-cancel-redirect" style="position:relative;">
-  <div class="fr-loading"><div class="fr-spinner"></div></div>
+<div class="booking-details-carousel round-trip-selector" data-instance-id="{{ instance_id }}">
+  <main>
+    <!-- Loading overlay -->
+    <div class="hc-loading"><div class="hc-spinner"></div></div>
 
-  <div class="frhd">
-    <h2>Flight Cancellation</h2>
-    <div class="frsub">Booking {{ booking_id }}</div>
-  </div>
+    <!-- Error banner -->
+    <div class="hc-error-msg"></div>
 
-  <!-- STEP 0: Login OTP Verification -->
-  {% if is_otp_send %}
-  <div class="fr-step active" data-step="verify-otp">
-    <div class="frcard">
-      <div class="fr-verify-card">
-        <div class="fr-verify-icon">
+    <!-- Header -->
+    <div class="bkhd">
+      <div class="bkttl">Flight Cancellation</div>
+      <div class="bksub">Booking {{ booking_id }}</div>
+    </div>
+
+    <!-- STEP 0: Login OTP verification -->
+    {% if is_otp_send %}
+    <div class="hc-step active" data-step="verify-otp">
+      <div class="hc-verify-card">
+        <div class="hc-verify-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
           </svg>
         </div>
-        <div class="fr-verify-title">Verify Your Identity</div>
-        <p class="fr-verify-desc">
+        <div class="hc-verify-title">Verify Your Identity</div>
+        <p class="hc-verify-desc">
           We've sent a One-Time Password to your registered email &amp; phone number. Enter it below to continue.
         </p>
-        <div class="frinfo" style="margin-bottom:16px;">
-          <div class="frinfo-item">
-            <div class="frlbl">Booking ID</div>
-            <div class="frval">{{ booking_id }}</div>
-          </div>
-          <div class="frinfo-item">
-            <div class="frlbl">Email</div>
-            <div class="frval">{{ email }}</div>
-          </div>
+        <div class="hc-otp-field">
+          <input type="text" class="hc-login-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
         </div>
-        <div class="fr-otp-field">
-          <input type="text" class="fr-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
-        </div>
-        <div class="fr-error-msg"></div>
-        <button type="button" class="fr-submit-btn fr-verify-otp-btn">Verify &amp; Continue</button>
-        <p class="fr-verify-footer">Didn't receive the OTP? <button type="button" class="fr-resend-btn fr-resend-login-otp">Resend OTP</button></p>
+        <div class="hc-error-msg hc-step-error"></div>
+        <button type="button" class="hc-submit-btn hc-verify-otp-btn">Verify &amp; Continue</button>
+        <p class="hc-verify-footer">Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-login-otp">Resend OTP</button></p>
       </div>
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
-  <!-- STEP 1: Redirect Card -->
-  <div class="fr-step {{ 'active' if not is_otp_send else '' }}" data-step="redirect">
-    <div class="frcard">
-      <div class="frinfo">
-        <div class="frinfo-item">
-          <div class="frlbl">Booking ID</div>
-          <div class="frval">{{ booking_id }}</div>
-        </div>
-        <div class="frinfo-item">
-          <div class="frlbl">Email</div>
-          <div class="frval">{{ email }}</div>
-        </div>
-      </div>
-
-      <div class="frmsg">
-        <span class="fricon">&#9993;</span>
-        <div class="frmsg-text">
+    <!-- STEP 1: Redirect Card -->
+    <div class="hc-step {{ 'active' if not is_otp_send else '' }}" data-step="redirect">
+      <div class="flight-redirect-msg">
+        <span class="fr-icon">&#9993;</span>
+        <div class="fr-text">
           Flight cancellations are processed on the EaseMyTrip website.
           Click the button below to go to the cancellation page where you can
           review your flight details and complete the cancellation.
         </div>
       </div>
 
-      <a href="{{ redirect_url }}" target="_blank" rel="noopener" class="frbtn">
+      <a href="{{ redirect_url }}" target="_blank" rel="noopener" class="flight-redirect-btn">
         Go to Cancellation Page &rarr;
       </a>
 
-      <div class="frnote">
+      <div class="flight-redirect-note">
         You will be redirected to EaseMyTrip's cancellation page in a new tab.
       </div>
     </div>
-  </div>
+  </main>
 </div>
 
 <script>
 (function() {
-  var container = document.currentScript.previousElementSibling;
-  while (container && !container.classList.contains('flight-cancel-redirect')) {
-    container = container.previousElementSibling;
-  }
-  if (!container) { container = document.querySelector('.flight-cancel-redirect'); }
+  'use strict';
+
+  var instanceId = '{{ instance_id }}';
+  var container = document.querySelector('[data-instance-id="' + instanceId + '"]');
   if (!container) return;
+  if (container.hasAttribute('data-initialized')) return;
+  container.setAttribute('data-initialized', 'true');
 
   var API_BASE = '{{ api_base_url }}';
-  var BOOKING_ID = '{{ booking_id }}';
-  var EMAIL = '{{ email }}';
   var VERIFY_OTP_URL = API_BASE + '/api/hotel-cancel/verify-otp';
   var RESEND_LOGIN_OTP_URL = API_BASE + '/api/hotel-cancel/resend-login-otp';
+  var BOOKING_ID = '{{ booking_id }}';
+  var EMAIL = '{{ email }}';
+
+  /* ---- DOM references (scoped to container) ---- */
+  var loadingOverlay = container.querySelector('.hc-loading');
+  var globalErrorBanner = container.querySelector('main > .hc-error-msg');
+
+  /* ---- Utility functions (same as hotel/train/bus) ---- */
+  function hideAllErrors() {
+    var errs = container.querySelectorAll('.hc-error-msg');
+    for (var i = 0; i < errs.length; i++) errs[i].style.display = 'none';
+  }
 
   function showStep(stepName) {
-    var steps = container.querySelectorAll('.fr-step');
+    var steps = container.querySelectorAll('.hc-step');
     for (var i = 0; i < steps.length; i++) {
       steps[i].classList.remove('active');
-      if (steps[i].getAttribute('data-step') === stepName) {
-        steps[i].classList.add('active');
-      }
     }
+    var target = container.querySelector('[data-step="' + stepName + '"]');
+    if (target) target.classList.add('active');
+    hideAllErrors();
   }
 
   function showLoading(show) {
-    var el = container.querySelector('.fr-loading');
-    if (el) { el.classList.toggle('visible', show); }
+    loadingOverlay.style.display = show ? 'flex' : 'none';
   }
 
-  function showError(msg) {
-    var el = container.querySelector('.fr-step.active .fr-error-msg');
-    if (el) { el.textContent = msg; el.classList.add('visible'); }
+  function showError(message) {
+    hideAllErrors();
+    var activeStep = container.querySelector('.hc-step.active');
+    var inlineErr = activeStep ? activeStep.querySelector('.hc-step-error') : null;
+    var target = inlineErr || globalErrorBanner;
+    target.textContent = message;
+    target.style.display = 'block';
   }
 
-  function hideError() {
-    var els = container.querySelectorAll('.fr-error-msg');
-    for (var i = 0; i < els.length; i++) {
-      els[i].textContent = '';
-      els[i].classList.remove('visible');
-    }
+  /* ---- API: Verify login OTP ---- */
+  function verifyLoginOtp(otp) {
+    showLoading(true);
+    hideAllErrors();
+    return fetch(VERIFY_OTP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL, otp: otp })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      showLoading(false);
+      var isVerified = false;
+      var msg = '';
+
+      if (data.structured_content) {
+        isVerified = !!data.structured_content.success;
+        msg = data.structured_content.message || data.response_text || '';
+      } else if (data.isVerify !== undefined) {
+        isVerified = String(data.isVerify).toLowerCase() === 'true';
+        msg = data.Message || data.Msg || '';
+      } else if (data.success !== undefined) {
+        isVerified = !!data.success;
+        msg = data.message || data.Message || '';
+      } else if (data.isStatus !== undefined) {
+        isVerified = !!data.isStatus;
+        msg = data.Msg || data.Message || '';
+      }
+
+      if (!isVerified) {
+        showError(msg || 'Invalid OTP. Please check and try again.');
+        return null;
+      }
+      return data;
+    })
+    .catch(function(err) {
+      showLoading(false);
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
+      return null;
+    });
   }
 
-  /* ---- Verify login OTP ---- */
-  var verifyBtn = container.querySelector('.fr-verify-otp-btn');
-  if (verifyBtn) {
-    verifyBtn.addEventListener('click', function() {
-      var otpInput = container.querySelector('.fr-otp-input');
+  /* ---- Step 0: Verify login OTP ---- */
+  var verifyOtpBtn = container.querySelector('.hc-verify-otp-btn');
+  if (verifyOtpBtn) {
+    verifyOtpBtn.addEventListener('click', function() {
+      var otpInput = container.querySelector('.hc-login-otp-input');
       var otp = otpInput ? otpInput.value.trim() : '';
       if (!otp || otp.length < 4) {
         showError('Please enter a valid OTP.');
         return;
       }
-      hideError();
-      showLoading(true);
-      verifyBtn.disabled = true;
-
-      fetch(VERIFY_OTP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL, otp: otp })
-      })
-      .then(function(resp) { return resp.json(); })
-      .then(function(data) {
-        showLoading(false);
-        verifyBtn.disabled = false;
-
-        var isVerified = false;
-        var msg = '';
-
-        if (data.structured_content) {
-          isVerified = !!data.structured_content.success;
-          msg = data.structured_content.message || data.response_text || '';
-        } else if (data.isVerify !== undefined) {
-          isVerified = String(data.isVerify).toLowerCase() === 'true';
-          msg = data.Message || data.Msg || '';
-        } else if (data.success !== undefined) {
-          isVerified = !!data.success;
-          msg = data.message || data.Message || '';
-        } else if (data.isStatus !== undefined) {
-          isVerified = !!data.isStatus;
-          msg = data.Msg || data.Message || '';
+      verifyLoginOtp(otp).then(function(result) {
+        if (result) {
+          showStep('redirect');
         }
-
-        if (!isVerified) {
-          showError(msg || 'Invalid OTP. Please check and try again.');
-          return;
-        }
-
-        /* OTP verified — show redirect card */
-        showStep('redirect');
-      })
-      .catch(function(err) {
-        showLoading(false);
-        verifyBtn.disabled = false;
-        var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-          ? 'Unable to reach the server. Please try again.'
-          : 'Network error. Please check your connection and try again.';
-        showError(msg);
       });
     });
-
-    /* Enter key to submit */
-    var otpInput = container.querySelector('.fr-otp-input');
-    if (otpInput) {
-      otpInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') { verifyBtn.click(); }
-      });
-    }
   }
 
   /* ---- Resend login OTP ---- */
-  var resendBtn = container.querySelector('.fr-resend-login-otp');
-  if (resendBtn) {
-    resendBtn.addEventListener('click', function() {
-      resendBtn.disabled = true;
-      resendBtn.textContent = 'Sending...';
-
+  var resendLoginOtpBtn = container.querySelector('.hc-resend-login-otp');
+  if (resendLoginOtpBtn) {
+    resendLoginOtpBtn.addEventListener('click', function() {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
       fetch(RESEND_LOGIN_OTP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL })
       })
       .then(function(resp) { return resp.json(); })
-      .then(function() {
-        resendBtn.textContent = 'OTP Sent!';
-        setTimeout(function() { resendBtn.textContent = 'Resend OTP'; resendBtn.disabled = false; }, 3000);
+      .then(function(data) {
+        btn.textContent = 'OTP Sent!';
+        setTimeout(function() { btn.textContent = 'Resend OTP'; btn.disabled = false; }, 3000);
       })
       .catch(function() {
-        resendBtn.textContent = 'Failed — Retry';
-        resendBtn.disabled = false;
+        btn.textContent = 'Failed — Retry';
+        btn.disabled = false;
       });
+    });
+  }
+
+  /* ---- Enter key on OTP input ---- */
+  var otpInput = container.querySelector('.hc-login-otp-input');
+  if (otpInput && verifyOtpBtn) {
+    otpInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { verifyOtpBtn.click(); }
     });
   }
 })();
@@ -4467,20 +4220,13 @@ def render_flight_redirect(
 
     When is_otp_send=True, shows OTP verification step first, then redirect card.
     When is_otp_send=False, shows redirect card directly.
-
-    Args:
-        booking_id: The booking reference ID
-        email: User's email address
-        redirect_url: Full URL to EaseMyTrip's flight cancellation page
-        bid: Internal bid from guest login
-        api_base_url: Base URL for API calls (OTP verify/resend)
-        is_otp_send: Whether login OTP was sent and needs verification
-
-    Returns:
-        HTML string with flight cancellation card
     """
+    import uuid
+    instance_id = str(uuid.uuid4())[:8]
+
     template = _jinja_env.from_string(FLIGHT_REDIRECT_TEMPLATE)
     return template.render(
+        instance_id=instance_id,
         booking_id=booking_id,
         email=email,
         redirect_url=redirect_url,
