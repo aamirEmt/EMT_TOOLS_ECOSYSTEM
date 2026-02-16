@@ -889,7 +889,7 @@ TRAIN_DATES_TEMPLATE = """
 }
 </style>
 
-<div class="train-dates-widget round-trip-selector" data-train-number="{{ train_number }}" id="train-dates-{{ instance_id }}">
+<div class="train-dates-widget round-trip-selector" data-train-number="{{ train_number }}" data-instance-id="train-dates-{{ instance_id }}">
   <div class="tdt-header">
     <div class="tdt-title">Train {{ train_number }}</div>
     <div class="tdt-subtitle">Select a date to check status</div>
