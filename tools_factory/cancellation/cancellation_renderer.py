@@ -801,29 +801,6 @@ INTERACTIVE_BOOKING_TEMPLATE = """
       <div class="bksub">{{ subtitle }}</div>
     </div>
 
-    {% if hotel_info %}
-    <div class="hotel-info">
-      <div class="hotel-name"><img src="https://mybookings.easemytrip.com/Content/assest/img/hotel-blic.svg" alt="">{{ hotel_info.name }}</div>
-      {% if hotel_info.address %}
-      <div class="hotel-address"><img src="https://mybookings.easemytrip.com/Content/assest/img/ico-map.svg" alt="">{{ hotel_info.address }}</div>
-      {% endif %}
-      <div class="hotel-dates">
-        {% if hotel_info.check_in %}
-        <div class="date-item">
-          <div class="date-label">Check-in</div>
-          <div class="date-value">{{ hotel_info.check_in }}</div>
-        </div>
-        {% endif %}
-        {% if hotel_info.check_out %}
-        <div class="date-item">
-          <div class="date-label">Check-out</div>
-          <div class="date-value">{{ hotel_info.check_out }}</div>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-    {% endif %}
-
     <!-- STEP 0: Login OTP verification -->
     {% if is_otp_send %}
     <div class="hc-step active" data-step="verify-otp">
@@ -849,6 +826,28 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 
     <!-- STEP 1: Room details + cancel buttons -->
     <div class="hc-step {{ 'active' if not is_otp_send and not all_cancelled else '' }}" data-step="details">
+      {% if hotel_info %}
+      <div class="hotel-info">
+        <div class="hotel-name"><img src="https://mybookings.easemytrip.com/Content/assest/img/hotel-blic.svg" alt="">{{ hotel_info.name }}</div>
+        {% if hotel_info.address %}
+        <div class="hotel-address"><img src="https://mybookings.easemytrip.com/Content/assest/img/ico-map.svg" alt="">{{ hotel_info.address }}</div>
+        {% endif %}
+        <div class="hotel-dates">
+          {% if hotel_info.check_in %}
+          <div class="date-item">
+            <div class="date-label">Check-in</div>
+            <div class="date-value">{{ hotel_info.check_in }}</div>
+          </div>
+          {% endif %}
+          {% if hotel_info.check_out %}
+          <div class="date-item">
+            <div class="date-label">Check-out</div>
+            <div class="date-value">{{ hotel_info.check_out }}</div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
       <div class="rooms-title">Select a room to cancel</div>
       <div class="slider-shell">
         <div class="rsltcvr">
@@ -1154,13 +1153,16 @@ INTERACTIVE_BOOKING_TEMPLATE = """
       if (typeof data === 'string') {
         var success = data.toLowerCase().indexOf('success') !== -1;
         if (!success) {
-          showError(data || 'Cancellation failed. Please try again.');
+          var isOtpError = data.toLowerCase().indexOf('otp') !== -1;
+          showError(data || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
           return null;
         }
         return { Status: true, message: data };
       }
       if (!data.Status && !data.isStatus) {
-        showError(data.LogMessage || data.Message || data.Msg || 'Cancellation failed. Please try again.');
+        var msg = data.LogMessage || data.Message || data.Msg || '';
+        var isOtpError = msg.toLowerCase().indexOf('otp') !== -1;
+        showError(msg || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
         return null;
       }
       return data;
@@ -2252,49 +2254,6 @@ TRAIN_BOOKING_TEMPLATE = """
       <div class="tc-subtitle">{{ subtitle }}</div>
     </div>
 
-    {% if train_info %}
-    <div class="tc-train-info">
-      <div class="tc-train-name">🚆 {{ train_info.train_name }} ({{ train_info.train_number }})</div>
-      <div class="tc-route">
-        <span>{{ train_info.from_station_name }}</span>
-        <span class="tc-route-arrow">→</span>
-        <span>{{ train_info.to_station_name }}</span>
-      </div>
-      <div class="tc-details-row">
-        {% if train_info.departure_date %}
-        <div class="tc-detail-item">
-          <div class="tc-detail-label">Departure</div>
-          <div class="tc-detail-value">{{ train_info.departure_date }} {{ train_info.departure_time }}</div>
-        </div>
-        {% endif %}
-        {% if train_info.arrival_date %}
-        <div class="tc-detail-item">
-          <div class="tc-detail-label">Arrival</div>
-          <div class="tc-detail-value">{{ train_info.arrival_date }} {{ train_info.arrival_time }}</div>
-        </div>
-        {% endif %}
-        {% if train_info.duration %}
-        <div class="tc-detail-item">
-          <div class="tc-detail-label">Duration</div>
-          <div class="tc-detail-value">{{ train_info.duration }}</div>
-        </div>
-        {% endif %}
-        {% if train_info.travel_class %}
-        <div class="tc-detail-item">
-          <div class="tc-detail-label">Class</div>
-          <div class="tc-detail-value">{{ train_info.travel_class }}</div>
-        </div>
-        {% endif %}
-        {% if pnr_number %}
-        <div class="tc-detail-item">
-          <div class="tc-detail-label">PNR</div>
-          <div class="tc-detail-value">{{ pnr_number }}</div>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-    {% endif %}
-
     <!-- STEP 0: Login OTP verification -->
     {% if is_otp_send %}
     <div class="hc-step active" data-step="verify-otp">
@@ -2318,6 +2277,48 @@ TRAIN_BOOKING_TEMPLATE = """
 
     <!-- STEP 1: Passenger selection -->
     <div class="hc-step {{ 'active' if not is_otp_send and not all_cancelled else '' }}" data-step="details">
+      {% if train_info %}
+      <div class="tc-train-info">
+        <div class="tc-train-name">🚆 {{ train_info.train_name }} ({{ train_info.train_number }})</div>
+        <div class="tc-route">
+          <span>{{ train_info.from_station_name }}</span>
+          <span class="tc-route-arrow">→</span>
+          <span>{{ train_info.to_station_name }}</span>
+        </div>
+        <div class="tc-details-row">
+          {% if train_info.departure_date %}
+          <div class="tc-detail-item">
+            <div class="tc-detail-label">Departure</div>
+            <div class="tc-detail-value">{{ train_info.departure_date }} {{ train_info.departure_time }}</div>
+          </div>
+          {% endif %}
+          {% if train_info.arrival_date %}
+          <div class="tc-detail-item">
+            <div class="tc-detail-label">Arrival</div>
+            <div class="tc-detail-value">{{ train_info.arrival_date }} {{ train_info.arrival_time }}</div>
+          </div>
+          {% endif %}
+          {% if train_info.duration %}
+          <div class="tc-detail-item">
+            <div class="tc-detail-label">Duration</div>
+            <div class="tc-detail-value">{{ train_info.duration }}</div>
+          </div>
+          {% endif %}
+          {% if train_info.travel_class %}
+          <div class="tc-detail-item">
+            <div class="tc-detail-label">Class</div>
+            <div class="tc-detail-value">{{ train_info.travel_class }}</div>
+          </div>
+          {% endif %}
+          {% if pnr_number %}
+          <div class="tc-detail-item">
+            <div class="tc-detail-label">PNR</div>
+            <div class="tc-detail-value">{{ pnr_number }}</div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
       <div class="tc-pax-section">
         <div class="tc-pax-title">Select passengers to cancel</div>
         <label class="tc-select-all">
@@ -2549,15 +2550,22 @@ TRAIN_BOOKING_TEMPLATE = """
       } else if (data.success !== undefined) {
         isVerified = !!data.success;
         msg = data.message || data.Message || '';
+      } else if (data.isStatus !== undefined) {
+        isVerified = !!data.isStatus;
+        msg = data.Msg || data.Message || '';
       }
-      if (!isVerified) { showError(msg || 'Invalid OTP.'); return null; }
+      if (!isVerified) {
+        showError(msg || 'Invalid OTP. Please check and try again.');
+        return null;
+      }
       return data;
     })
     .catch(function(err) {
       showLoading(false);
-      showError(err && err.message && err.message.indexOf('Failed to fetch') !== -1
-        ? 'Unable to reach the server.'
-        : 'Network error. Please try again.');
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
       return null;
     });
   }
@@ -2573,12 +2581,15 @@ TRAIN_BOOKING_TEMPLATE = """
     .then(function(resp) { return resp.json(); })
     .then(function(data) {
       showLoading(false);
-      if (!data.isStatus) { showError(data.Msg || data.Message || 'Failed to send OTP.'); return null; }
+      if (!data.isStatus) { showError(data.Msg || data.Message || 'Failed to send OTP. Please try again.'); return null; }
       return data;
     })
     .catch(function(err) {
       showLoading(false);
-      showError('Network error. Please try again.');
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
       return null;
     });
   }
@@ -2606,18 +2617,27 @@ TRAIN_BOOKING_TEMPLATE = """
       showLoading(false);
       if (typeof data === 'string') {
         var success = data.toLowerCase().indexOf('success') !== -1;
-        if (!success) { showError(data || 'Cancellation failed.'); return null; }
+        if (!success) {
+          var isOtpError = data.toLowerCase().indexOf('otp') !== -1;
+          showError(data || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
+          return null;
+        }
         return { Status: true, message: data };
       }
       if (!data.Status && !data.isStatus) {
-        showError(data.LogMessage || data.Message || data.Msg || 'Cancellation failed.');
+        var msg = data.LogMessage || data.Message || data.Msg || '';
+        var isOtpError = msg.toLowerCase().indexOf('otp') !== -1;
+        showError(msg || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
         return null;
       }
       return data;
     })
     .catch(function(err) {
       showLoading(false);
-      showError('Network error. Please try again.');
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
       return null;
     });
   }
@@ -3315,48 +3335,6 @@ BUS_BOOKING_TEMPLATE = """
       <div class="bc-subtitle">{{ subtitle }}</div>
     </div>
 
-    {% if bus_info %}
-    <div class="bc-bus-info">
-      <div class="bc-route">
-        {{ bus_info.source }}<span class="bc-route-arrow"> → </span>{{ bus_info.destination }}
-      </div>
-      <div class="bc-info-grid">
-        {% if bus_info.travels_operator %}<div class="bc-info-item"><strong>Operator:</strong> {{ bus_info.travels_operator }}</div>{% endif %}
-        {% if bus_info.bus_type %}<div class="bc-info-item"><strong>Type:</strong> {{ bus_info.bus_type }}</div>{% endif %}
-        {% if bus_info.date_of_journey %}<div class="bc-info-item"><strong>Journey:</strong> {{ bus_info.date_of_journey }}</div>{% endif %}
-        {% if bus_info.departure_time %}<div class="bc-info-item"><strong>Departure:</strong> {{ bus_info.departure_time }}</div>{% endif %}
-        {% if bus_info.arrival_time %}<div class="bc-info-item"><strong>Arrival:</strong> {{ bus_info.arrival_time }}</div>{% endif %}
-        {% if bus_info.bus_duration %}<div class="bc-info-item"><strong>Duration:</strong> {{ bus_info.bus_duration }}</div>{% endif %}
-        {% if bus_info.bp_location %}<div class="bc-info-item"><strong>Boarding:</strong> {{ bus_info.bp_location }}</div>{% endif %}
-        {% if bus_info.ticket_no %}<div class="bc-info-item"><strong>Ticket:</strong> {{ bus_info.ticket_no }}</div>{% endif %}
-        {% if bus_info.total_fare %}<div class="bc-info-item"><strong>Total Fare:</strong> ₹{{ bus_info.total_fare }}</div>{% endif %}
-      </div>
-      {% if bus_info.cancellation_policy_html or bus_info.cancellation_policy %}
-      <div class="bc-policy-section">
-        {% if bus_info.cancellation_policy_html %}
-        <div class="bc-policy-raw bc-policy-body">{{ bus_info.cancellation_policy_html | safe }}</div>
-        {% else %}
-        <div class="bc-policy-body">
-          <table class="bc-policy-table">
-            <thead><tr><th>Cancellation Time</th><th>Cancellation Charges</th></tr></thead>
-            <tbody>
-              {% for line in bus_info.cancellation_policy.split('\n') %}
-              {% if line.strip() %}
-              <tr>
-                <td>{{ line.strip().lstrip('• ') }}</td>
-                <td></td>
-              </tr>
-              {% endif %}
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% endif %}
-      </div>
-      {% endif %}
-    </div>
-    {% endif %}
-
     <!-- STEP 0: Login OTP verification -->
     {% if is_otp_send %}
     <div class="hc-step active" data-step="verify-otp">
@@ -3380,6 +3358,47 @@ BUS_BOOKING_TEMPLATE = """
 
     <!-- STEP 1: Passenger selection -->
     <div class="hc-step {{ 'active' if not is_otp_send and not all_cancelled else '' }}" data-step="details">
+      {% if bus_info %}
+      <div class="bc-bus-info">
+        <div class="bc-route">
+          {{ bus_info.source }}<span class="bc-route-arrow"> → </span>{{ bus_info.destination }}
+        </div>
+        <div class="bc-info-grid">
+          {% if bus_info.travels_operator %}<div class="bc-info-item"><strong>Operator:</strong> {{ bus_info.travels_operator }}</div>{% endif %}
+          {% if bus_info.bus_type %}<div class="bc-info-item"><strong>Type:</strong> {{ bus_info.bus_type }}</div>{% endif %}
+          {% if bus_info.date_of_journey %}<div class="bc-info-item"><strong>Journey:</strong> {{ bus_info.date_of_journey }}</div>{% endif %}
+          {% if bus_info.departure_time %}<div class="bc-info-item"><strong>Departure:</strong> {{ bus_info.departure_time }}</div>{% endif %}
+          {% if bus_info.arrival_time %}<div class="bc-info-item"><strong>Arrival:</strong> {{ bus_info.arrival_time }}</div>{% endif %}
+          {% if bus_info.bus_duration %}<div class="bc-info-item"><strong>Duration:</strong> {{ bus_info.bus_duration }}</div>{% endif %}
+          {% if bus_info.bp_location %}<div class="bc-info-item"><strong>Boarding:</strong> {{ bus_info.bp_location }}</div>{% endif %}
+          {% if bus_info.ticket_no %}<div class="bc-info-item"><strong>Ticket:</strong> {{ bus_info.ticket_no }}</div>{% endif %}
+          {% if bus_info.total_fare %}<div class="bc-info-item"><strong>Total Fare:</strong> ₹{{ bus_info.total_fare }}</div>{% endif %}
+        </div>
+        {% if bus_info.cancellation_policy_html or bus_info.cancellation_policy %}
+        <div class="bc-policy-section">
+          {% if bus_info.cancellation_policy_html %}
+          <div class="bc-policy-raw bc-policy-body">{{ bus_info.cancellation_policy_html | safe }}</div>
+          {% else %}
+          <div class="bc-policy-body">
+            <table class="bc-policy-table">
+              <thead><tr><th>Cancellation Time</th><th>Cancellation Charges</th></tr></thead>
+              <tbody>
+                {% for line in bus_info.cancellation_policy.split('\n') %}
+                {% if line.strip() %}
+                <tr>
+                  <td>{{ line.strip().lstrip('• ') }}</td>
+                  <td></td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
       <div class="bc-pax-section">
         <div class="bc-pax-title">Select passengers to cancel</div>
         <label class="bc-select-all">
@@ -3574,12 +3593,33 @@ BUS_BOOKING_TEMPLATE = """
     .then(function(resp) { return resp.json(); })
     .then(function(data) {
       showLoading(false);
-      if (data.error || !data.success) { showError(data.detail || data.message || 'Invalid OTP.'); return null; }
+      var isVerified = false;
+      var msg = '';
+      if (data.structured_content) {
+        isVerified = !!data.structured_content.success;
+        msg = data.structured_content.message || data.response_text || '';
+      } else if (data.isVerify !== undefined) {
+        isVerified = String(data.isVerify).toLowerCase() === 'true';
+        msg = data.Message || data.Msg || '';
+      } else if (data.success !== undefined) {
+        isVerified = !!data.success;
+        msg = data.message || data.Message || '';
+      } else if (data.isStatus !== undefined) {
+        isVerified = !!data.isStatus;
+        msg = data.Msg || data.Message || '';
+      }
+      if (!isVerified) {
+        showError(msg || 'Invalid OTP. Please check and try again.');
+        return null;
+      }
       return data;
     })
     .catch(function(err) {
       showLoading(false);
-      showError('Network error. Please try again.');
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
       return null;
     });
   }
@@ -3592,15 +3632,18 @@ BUS_BOOKING_TEMPLATE = """
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL })
     })
-    .then(function(data) { return data.json(); })
+    .then(function(resp) { return resp.json(); })
     .then(function(data) {
       showLoading(false);
-      if (!data.isStatus) { showError(data.Msg || data.Message || 'Failed to send OTP.'); return null; }
+      if (!data.isStatus) { showError(data.Msg || data.Message || 'Failed to send OTP. Please try again.'); return null; }
       return data;
     })
     .catch(function(err) {
       showLoading(false);
-      showError('Network error. Please try again.');
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
       return null;
     });
   }
@@ -3624,18 +3667,27 @@ BUS_BOOKING_TEMPLATE = """
       showLoading(false);
       if (typeof data === 'string') {
         var success = data.toLowerCase().indexOf('success') !== -1 || data.toLowerCase().indexOf('cancel') !== -1;
-        if (!success) { showError(data || 'Cancellation failed.'); return null; }
+        if (!success) {
+          var isOtpError = data.toLowerCase().indexOf('otp') !== -1;
+          showError(data || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
+          return null;
+        }
         return { Status: true, message: data };
       }
       if (!data.Status && !data.isStatus) {
-        showError(data.LogMessage || data.Message || data.Msg || 'Cancellation failed.');
+        var msg = data.LogMessage || data.Message || data.Msg || '';
+        var isOtpError = msg.toLowerCase().indexOf('otp') !== -1;
+        showError(msg || (isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.'));
         return null;
       }
       return data;
     })
     .catch(function(err) {
       showLoading(false);
-      showError('Network error. Please try again.');
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
       return null;
     });
   }
@@ -4255,7 +4307,7 @@ FLIGHT_REDIRECT_TEMPLATE = """
       </div>
 
       <a href="{{ redirect_url }}" target="_blank" rel="noopener" class="flight-redirect-btn">
-        Go to Cancellation Page &rarr;
+        Go to Cancellation Page;
       </a>
 
       <div class="flight-redirect-note">
@@ -4395,7 +4447,8 @@ FLIGHT_REDIRECT_TEMPLATE = """
         setTimeout(function() { btn.textContent = 'Resend OTP'; btn.disabled = false; }, 3000);
       })
       .catch(function() {
-        btn.textContent = 'Failed — Retry';
+        showError('Failed to resend OTP. Please try again.');
+        btn.textContent = 'Resend OTP';
         btn.disabled = false;
       });
     });
