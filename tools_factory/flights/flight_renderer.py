@@ -736,7 +736,7 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
                   <span>{{ flight.destination }}</span>
                 </div>
                 <div class="ntfsbt">
-                  <span>{{ flight.airline_name }} {{ flight.flight_number }}</span> • <span>Onward</span>
+                  <span>{{ flight.airline_name }} {{ flight.flight_number }}
                 </div>
               </div>
               <div class="fltprcbx">
@@ -820,7 +820,7 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
                   <span>{{ flight.destination }}</span>
                 </div>
                 <div class="ntfsbt">
-                  <span>{{ flight.airline_name }} {{ flight.flight_number }}</span> • <span>Return</span>
+                  <span>{{ flight.airline_name }} {{ flight.flight_number }}
                 </div>
               </div>
               <div class="fltprcbx">

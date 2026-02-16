@@ -268,6 +268,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 
 .train-carousel .class-card {
   min-width: 110px;
+  min-height: 140px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 8px;
@@ -305,7 +306,8 @@ TRAIN_CAROUSEL_TEMPLATE = """
 
 .train-carousel .class-availability {
   font-size: 9px;
-  margin-top: 4px;
+  margin-top: auto;
+  padding-top: 4px;
   font-weight: 500;
 }
 
@@ -378,6 +380,34 @@ TRAIN_CAROUSEL_TEMPLATE = """
 .train-carousel .class-refresh-btn:hover {
   background: #2093ef;
   color: #fff;
+}
+
+.train-carousel .class-check-quota-btn {
+  margin-top: auto;
+  padding: 8px 10px;
+  background: #2093ef;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.train-carousel .class-check-quota-btn:hover {
+  background: #1976d2;
+}
+
+.train-carousel .class-check-quota-btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
 }
 
 .train-carousel .class-refresh-btn.loading {
@@ -652,33 +682,58 @@ TRAIN_CAROUSEL_TEMPLATE = """
             <div class="class-carousel-wrapper">
               <div class="class-carousel">
                 {% for cls in train.classes %}
-                {% set is_bookable = 'AVAILABLE' in cls.availability_status or 'WL' in cls.availability_status or 'RAC' in cls.availability_status or cls.availability_status == 'Check Online' %}
+                {% set is_non_general_search = quota not in ('GN', 'TQ') %}
                 {% set is_regret = 'REGRET' in cls.availability_status or 'NOT AVAILABLE' in cls.availability_status or 'TRAIN CANCELLED' in cls.availability_status %}
+                {% set is_bookable = 'AVAILABLE' in cls.availability_status or 'WL' in cls.availability_status or 'RAC' in cls.availability_status or cls.availability_status == 'Check Online' %}
                 {% set needs_refresh = cls.availability_status in ['N/A', 'Tap To Refresh', 'Check Online', ''] or not cls.availability_status %}
                 <div class="class-card" data-train-no="{{ train.train_number }}" data-class-code="{{ cls.class_code }}" data-from-code="{{ train.from_station_code }}" data-to-code="{{ train.to_station_code }}" data-quota="{{ quota }}" data-journey-date="{{ journey_date_api }}" data-from-display="{{ from_display }}" data-to-display="{{ to_display }}">
+                  {% if not is_non_general_search %}
                   <button type="button" class="class-refresh-icon-btn" title="Refresh availability">
                     <img src="https://railways.easemytrip.com/img/refresh-icon.svg" alt="Refresh" />
                   </button>
+                  {% endif %}
+
+                  {# Always show class code #}
                   <div class="class-code">{{ cls.class_code }}</div>
-                  {% if cls.fare != "0" %}
-                  <div class="class-fare">₹{{ cls.fare }}</div>
-                  {% if cls.fare_updated %}
-                  <div class="class-fare-updated">{{ cls.fare_updated }}</div>
+
+                  {# Only show fare/availability for General quota searches #}
+                  {% if not is_non_general_search %}
+                    {% if cls.fare != "0" %}
+                    <div class="class-fare">₹{{ cls.fare }}</div>
+                    {% endif %}
+                    <div class="class-availability {% if is_regret %}unavailable{% elif 'WL' in cls.availability_status %}waitlist{% elif 'RAC' in cls.availability_status %}rac{% elif 'AVAILABLE' in cls.availability_status %}available{% elif cls.availability_status == 'Check Online' %}{% else %}unavailable{% endif %}">
+                      {% if needs_refresh and cls.quota == 'TQ' %}Tatkal{% else %}{{ cls.availability_status | truncate_text(15) }}{% endif %}
+                    </div>
+                    {% if cls.fare != "0" and cls.fare_updated %}
+                    <div class="class-fare-updated">{{ cls.fare_updated }}</div>
+                    {% endif %}
                   {% endif %}
+
+                  {# Button logic #}
+                  {% if is_non_general_search %}
+                    {# Show "Check [Quota]" button for non-general searches #}
+                    {% set quota_labels = {'TQ': 'Tatkal', 'SS': 'Senior Citizen', 'LD': 'Ladies Quota'} %}
+                    {% set quota_label = quota_labels.get(quota, quota) %}
+                    <button type="button" class="class-refresh-btn class-check-quota-btn">
+                      <svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Check {{ quota_label }}
+                    </button>
+                  {% else %}
+                    {# Standard refresh/book buttons for General quota #}
+                    {% if needs_refresh %}
+                    <button type="button" class="class-refresh-btn">
+                      <svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Tap To Refresh
+                    </button>
+                    {% elif cls.book_now %}
+                    <a href="{% if is_regret %}javascript:void(0){% else %}{{ cls.book_now }}{% endif %}" {% if not is_regret %}target="_blank" rel="noopener noreferrer"{% endif %} class="class-book-btn {% if is_regret %}disabled{% endif %}">{% if cls.quota == 'TQ' %}Book Tatkal{% else %}Book Now{% endif %}</a>
+                    {% endif %}
                   {% endif %}
-                  <div class="class-availability {% if 'AVAILABLE' in cls.availability_status %}available{% elif 'WL' in cls.availability_status %}waitlist{% elif 'RAC' in cls.availability_status %}rac{% elif cls.availability_status == 'Check Online' %}{% else %}unavailable{% endif %}">
-                    {{ cls.availability_status | truncate_text(15) }}
-                  </div>
-                  {% if needs_refresh %}
-                  <button type="button" class="class-refresh-btn">
-                    <svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Tap To Refresh
-                  </button>
-                  {% elif cls.book_now %}
-                  <a href="{% if is_regret %}javascript:void(0){% else %}{{ cls.book_now }}{% endif %}" {% if not is_regret %}target="_blank" rel="noopener noreferrer"{% endif %} class="class-book-btn {% if is_regret %}disabled{% endif %}">Book Now</a>
-                  {% endif %}
+
                 </div>
                 {% endfor %}
               </div>
@@ -837,20 +892,31 @@ async function refreshAvailability(btn) {
       fareEl.textContent = '₹' + totalFare;
     }
 
-    const availabilityEl = card.querySelector('.class-availability');
-    if (availabilityEl) {
-      availabilityEl.textContent = availability.length > 15 ? availability.substring(0, 15) + '...' : availability;
-
-      availabilityEl.classList.remove('available', 'waitlist', 'rac', 'unavailable');
-      if (availability.includes('AVAILABLE')) {
-        availabilityEl.classList.add('available');
-      } else if (availability.includes('WL')) {
-        availabilityEl.classList.add('waitlist');
-      } else if (availability.includes('RAC')) {
-        availabilityEl.classList.add('rac');
-      } else {
-        availabilityEl.classList.add('unavailable');
+    let availabilityEl = card.querySelector('.class-availability');
+    if (!availabilityEl) {
+      availabilityEl = document.createElement('div');
+      availabilityEl.className = 'class-availability';
+      const fareEl = card.querySelector('.class-fare');
+      const classCodeEl = card.querySelector('.class-code');
+      if (fareEl) {
+        fareEl.after(availabilityEl);
+      } else if (classCodeEl) {
+        classCodeEl.after(availabilityEl);
       }
+    }
+    availabilityEl.textContent = availability.length > 15 ? availability.substring(0, 15) + '...' : availability;
+
+    availabilityEl.classList.remove('available', 'waitlist', 'rac', 'unavailable');
+    if (availability.includes('REGRET') || availability.includes('NOT AVAILABLE') || availability.includes('CANCELLED')) {
+      availabilityEl.classList.add('unavailable');
+    } else if (availability.includes('WL')) {
+      availabilityEl.classList.add('waitlist');
+    } else if (availability.includes('RAC')) {
+      availabilityEl.classList.add('rac');
+    } else if (availability.includes('AVAILABLE')) {
+      availabilityEl.classList.add('available');
+    } else {
+      availabilityEl.classList.add('unavailable');
     }
 
     if (fareUpdated) {
@@ -858,14 +924,9 @@ async function refreshAvailability(btn) {
       if (!fareUpdatedEl) {
         fareUpdatedEl = document.createElement('div');
         fareUpdatedEl.className = 'class-fare-updated';
-        const fareEl = card.querySelector('.class-fare');
-        if (fareEl) {
-          fareEl.after(fareUpdatedEl);
-        } else {
-          const availabilityEl = card.querySelector('.class-availability');
-          if (availabilityEl) {
-            availabilityEl.before(fareUpdatedEl);
-          }
+        const availabilityEl = card.querySelector('.class-availability');
+        if (availabilityEl) {
+          availabilityEl.after(fareUpdatedEl);
         }
       }
       fareUpdatedEl.textContent = fareUpdated;
@@ -884,7 +945,8 @@ async function refreshAvailability(btn) {
     if (!bookBtn) {
       const newBookBtn = document.createElement('a');
       newBookBtn.className = 'class-book-btn';
-      newBookBtn.textContent = 'Book Now';
+      const quotaBookLabels = {'TQ': 'Book Tatkal', 'SS': 'Book Senior Citizen', 'LD': 'Book Ladies'};
+      newBookBtn.textContent = quotaBookLabels[quota] || 'Book Now';
       newBookBtn.target = '_blank';
       newBookBtn.rel = 'noopener noreferrer';
 
@@ -935,7 +997,7 @@ def _get_availability_class(status: str) -> str:
     if not status:
         return "unavailable"
     status_upper = status.upper()
-    if "AVAILABLE" in status_upper:
+    if "AVAILABLE" in status_upper and "NOT AVAILABLE" not in status_upper:
         return "available"
     if "WL" in status_upper or "WAITLIST" in status_upper:
         return "waitlist"
@@ -952,25 +1014,52 @@ def _parse_fare_updated(fare_updated: str) -> str:
     return fare_updated
 
 
-def _normalize_train_for_ui(train: Dict[str, Any]) -> Dict[str, Any]:
+def _normalize_train_for_ui(train: Dict[str, Any], search_quota: str = "GN") -> Dict[str, Any]:
     """
     Normalize train data for UI rendering.
 
     Args:
         train: Raw train data from search results
+        search_quota: The quota user searched with (GN, TQ, LD, SS)
 
     Returns:
         Normalized train data for template rendering
     """
     classes = []
+    tatkal_classes = []
+    general_classes = []
+    other_classes = []
+
+    # For non-GN/TQ quotas (LD, SS), only show General class cards
+    # since the API only returns GN and TQ entries
+    show_only_general = search_quota not in ("GN", "TQ")
+
+    # First, separate classes by quota
     for cls in train.get("classes", []):
-        classes.append({
+        quota = cls.get("quota", "GN")
+        class_data = {
             "class_code": cls.get("class_code", ""),
             "fare": cls.get("fare", "0"),
             "fare_updated": _parse_fare_updated(cls.get("fare_updated", "")),
             "availability_status": cls.get("availability_status", "N/A"),
             "book_now": cls.get("book_now", ""),
-        })
+            "quota": quota,
+            "quota_name": cls.get("quota_name", ""),
+        }
+
+        if show_only_general:
+            # For LD/SS searches, skip Tatkal cards - only show General
+            if quota == "GN":
+                general_classes.append(class_data)
+        elif quota == "TQ":
+            tatkal_classes.append(class_data)
+        elif quota == "GN":
+            general_classes.append(class_data)
+        else:
+            other_classes.append(class_data)
+
+    # Prioritize: Tatkal first, then general, then other quotas
+    classes = tatkal_classes + general_classes + other_classes
 
     return {
         "train_number": train.get("train_number", ""),
@@ -1055,13 +1144,18 @@ def render_train_results(train_results: Dict[str, Any]) -> str:
         "SS": "Senior Citizen",
         "LD": "Ladies",
     }
+
     if quota in quota_labels:
-        subtitle_parts.append(f"{quota_labels[quota]} Quota")
+        quota_text = f"{quota_labels[quota]} Quota"
+        # Add note for non-General quotas
+        if quota != "GN":
+            quota_text += ""
+        subtitle_parts.append(quota_text)
 
     subtitle = " • ".join(subtitle_parts)
 
     # Normalize trains for UI
-    trains_ui = [_normalize_train_for_ui(train) for train in trains]
+    trains_ui = [_normalize_train_for_ui(train, search_quota=quota) for train in trains]
 
     # Remove empty normalizations
     trains_ui = [t for t in trains_ui if t and t.get("train_number")]

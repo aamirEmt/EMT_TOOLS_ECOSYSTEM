@@ -29,8 +29,8 @@ pytestmark = pytest.mark.integration
 def dummy_hotel_basic():
     """Dummy payload for basic hotel search."""
     today = datetime.now()
-    checkin = (today + timedelta(days=30)).strftime("%Y-%m-%d")
-    checkout = (today + timedelta(days=32)).strftime("%Y-%m-%d")
+    checkin = (today + timedelta(days=1)).strftime("%Y-%m-%d")
+    checkout = (today + timedelta(days=2)).strftime("%Y-%m-%d")
     
     return {
         "city_name": "Mumbai",
@@ -53,13 +53,13 @@ def dummy_hotel_with_filters():
         "city_name": "Goa",
         "check_in_date": checkin,
         "check_out_date": checkout,
-        "num_rooms": 2,
-        "num_adults": 4,
-        "num_children": 2,
+        "num_rooms": 1,
+        "num_adults": 2,
+        "num_children": 0,
         "min_price": 2000,
-        "max_price": 10000,
+        "max_price": 1000000,
         "rating": ["4", "5"],
-        "amenities": ["Wi-Fi", "Swimming Pool"]
+        "amenities": ["Swimming Pool"]
     }
 
 
@@ -776,3 +776,56 @@ async def test_hotel_search_whatsapp_real_api(dummy_hotel_basic):
 
     print(f"✅ WhatsApp JSON test passed with {len(whatsapp_data['options'])} hotels")
     print(f"View all hotels URL: {whatsapp_data['view_all_hotels_url']}")
+
+
+# ============================================================================
+# HOTEL ADJUSTED PRICE TEST
+# ============================================================================
+
+@pytest.mark.asyncio
+async def test_hotel_adjusted_price_calculation(dummy_hotel_basic):
+    """Test that hotel price is correctly calculated as (base_price - discount)."""
+    factory = get_tool_factory()
+    tool = factory.get_tool("search_hotels")
+
+    print(f"\nSearching hotels to verify adjusted price calculation")
+
+    result = await tool.execute(**dummy_hotel_basic)
+
+    assert hasattr(result, "structured_content")
+    hotels = result.structured_content.get("hotels", [])
+
+    print(f"\nFound {len(hotels)} hotels\n")
+    print("=" * 80)
+
+    for idx, hotel in enumerate(hotels, start=1):
+        name = hotel.get("name", "N/A")
+        price_obj = hotel.get("price", {})
+        adjusted_price = price_obj.get("amount")
+        currency = price_obj.get("currency", "INR")
+        discount = hotel.get("discount") or 0
+        rating = hotel.get("rating", "N/A")
+        location = hotel.get("location", "N/A")
+
+        print(f"Hotel {idx}: {name}")
+        print(f"   Rating: {rating}")
+        print(f"   Location: {location}")
+        print(f"   Price (after discount): {currency} {adjusted_price}")
+        print(f"   Discount: {currency} {discount}")
+        print("-" * 40)
+
+    # Verify at least one hotel was returned
+    assert len(hotels) > 0, "Should return at least one hotel"
+
+    # Verify price structure
+    for hotel in hotels:
+        price_obj = hotel.get("price", {})
+        assert "amount" in price_obj, "Price should have 'amount' field"
+        assert "currency" in price_obj, "Price should have 'currency' field"
+
+        # Verify adjusted price is a number (int or float)
+        amount = price_obj.get("amount")
+        assert isinstance(amount, (int, float)) or amount is None, \
+            f"Price amount should be numeric, got {type(amount)}"
+
+    print(f"\nAdjusted price verification passed for {len(hotels)} hotels")

@@ -484,7 +484,7 @@ def _process_international_combos(
     #     },
     # )
 
-    return combos[:20]
+    return combos
 
 
 
@@ -979,8 +979,8 @@ def process_flight_results(
     view_all_link = _build_view_all_link(search_context)
 
     return {
-        "outbound_flights": outbound_flights[:20],
-        "return_flights": return_flights[:20],
+        "outbound_flights": outbound_flights,
+        "return_flights": return_flights,
         "is_roundtrip": is_roundtrip,
         "is_international": is_international,
         "international_combos": combos,
@@ -1152,7 +1152,7 @@ def extract_segment_summary(segment: dict) -> dict:
             "duration": segment.get("journey_time"),
             "stops": segment.get("total_stops", 0),
         }
-
+    stop_airports = [leg["destination"] for leg in legs[:-1]] if len(legs) > 1 else []
     first_leg = legs[0]
     last_leg = legs[-1]
 
@@ -1165,10 +1165,13 @@ def extract_segment_summary(segment: dict) -> dict:
         ),
         "departure_date": first_leg.get("departure_date"),
         "arrival_date": last_leg.get("arrival_date"),
+        "arrival_city": last_leg.get("destination"),
+        "departure_city": first_leg.get("origin"),
         "departure_time": first_leg.get("departure_time"),
         "arrival_time": last_leg.get("arrival_time"),
         "duration": segment.get("journey_time"),
         "stops": segment.get("total_stops", 0),
+        "stop_airports": stop_airports,
     }
 
 
@@ -1200,6 +1203,7 @@ def build_whatsapp_flight_response(
                     "arrival_time": summary["arrival_time"],
                     "duration": summary["duration"],
                     "stops": summary["stops"],
+                    "stop_airports": summary.get("stop_airports", []),
                     "date": payload.outbound_date,
                 },
                 "price": fare.get("total_fare"),
@@ -1273,7 +1277,7 @@ def build_whatsapp_flight_response(
     )
 
     return WhatsappFlightFinalResponse(
-        response_text=f"Here are the best flight options from {payload.origin} to {payload.destination}",
+        response_text=f"Here are the best flights options from {payload.origin} to {payload.destination}",
         whatsapp_json=whatsapp_json,
     )
 
