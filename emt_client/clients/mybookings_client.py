@@ -4,9 +4,9 @@ from typing import Dict, Any
 import logging
 import json
 
-logger = logging.getLogger(__name__)
+from emt_client.config import MYBOOKINGS_BASE_URL
 
-MYBOOKINGS_BASE_URL = "https://mybookings.easemytrip.com"
+logger = logging.getLogger(__name__)
 
 
 class MyBookingsApiClient:

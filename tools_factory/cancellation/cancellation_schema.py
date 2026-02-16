@@ -86,6 +86,7 @@ class WhatsappCancellationFormat(BaseModel):
     seats: Optional[list] = None        # Bus
     transaction_type: Optional[str] = None
     refund_info: Optional[dict] = None  # For confirm success
+    redirect_url: Optional[str] = None  # For flight cancellation redirect
 
 
 class WhatsappCancellationFinalResponse(BaseModel):
