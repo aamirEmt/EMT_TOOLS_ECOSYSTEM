@@ -303,8 +303,12 @@ def _convert_live_stations_to_schedule(
 
         # Only treat as actual times if they are valid HH:MM format
         # API can return delay strings like "11M Late" in actDep/actArr fields
-        valid_act_arr = act_arr if _is_valid_time(act_arr) else None
-        valid_act_dep = act_dep if _is_valid_time(act_dep) else None
+        # Also check arr/dep fields: "false" means train hasn't actually arrived/departed
+        # (API fills actArr/actDep with scheduled times even for upcoming stations)
+        arr_confirmed = station.get("arr") != "false"
+        dep_confirmed = station.get("dep") != "false"
+        valid_act_arr = act_arr if (_is_valid_time(act_arr) and arr_confirmed) else None
+        valid_act_dep = act_dep if (_is_valid_time(act_dep) and dep_confirmed) else None
 
         converted.append({
             "stationCode": station.get("stnCode", ""),
@@ -418,6 +422,14 @@ def _process_train_status_response(
     if current_station_idx is None and last_departed_idx is not None:
         current_station_idx = last_departed_idx
 
+    # Next station = first station with is_next_station that hasn't departed
+    # This is where the train is heading (gets train icon + glow in UI)
+    next_station_idx = None
+    for idx, s in enumerate(stations):
+        if s.is_next_station and not s.actual_departure:
+            next_station_idx = idx
+            break
+
     return {
         "train_number": final_train_number,
         "train_name": train_name,
@@ -441,6 +453,7 @@ def _process_train_status_response(
         "remain_distance": remain_distance,
         "distance_percentage": distance_percentage,
         "current_station_index": current_station_idx,
+        "next_station_index": next_station_idx,
     }
 
 

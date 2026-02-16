@@ -319,6 +319,11 @@ TRAIN_STATUS_TEMPLATE = """
   height: 12px;
 }
 
+.train-status .timeline-dot.origin img,
+.train-status .timeline-dot.passed img {
+  filter: brightness(0) invert(1);
+}
+
 .train-status .timeline-dot.origin {
   background: #2093ef;
   border-color: #2093ef;
@@ -337,7 +342,12 @@ TRAIN_STATUS_TEMPLATE = """
 .train-status .timeline-dot.current {
   background: #2093ef;
   border-color: #2093ef;
-  box-shadow: 0 0 0 3px rgba(32, 147, 239, 0.2);
+  animation: currentStationGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes currentStationGlow {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(32, 147, 239, 0.2); }
+  50% { box-shadow: 0 0 8px 6px rgba(32, 147, 239, 0.4); }
 }
 
 .train-status .timeline-dot.upcoming {
@@ -634,7 +644,8 @@ TRAIN_STATUS_TEMPLATE = """
     <div class="status-timeline">
       {% for station in visible_stops %}
       {% set is_passed = is_live and station.actual_departure %}
-      {% set is_current = station.is_current_station or (current_station_index is not none and loop.index0 == current_station_index_visible) %}
+      {% set is_next = next_station_index is not none and (loop.index0 == next_station_index_visible) %}
+      {% set is_current = is_next %}
       {% set is_last_visible = loop.last and hidden_stops|length == 0 %}
       <div class="timeline-stop">
         <div class="timeline-track">
@@ -700,7 +711,8 @@ TRAIN_STATUS_TEMPLATE = """
       <div class="hidden-stops" id="hidden-stops-{{ instance_id }}">
         {% for station in hidden_stops %}
         {% set is_passed = is_live and station.actual_departure %}
-        {% set is_current = station.is_current_station or (current_station_index is not none and (loop.index0 + visible_count) == current_station_index) %}
+        {% set is_next = next_station_index is not none and (loop.index0 + visible_count) == next_station_index %}
+        {% set is_current = is_next %}
         {% set is_last = loop.last %}
         <div class="timeline-stop">
           <div class="timeline-track">
@@ -969,6 +981,8 @@ TRAIN_DATES_TEMPLATE = """
       var actDep = s.actDep || '';
       var delayArr = s.delayArr || '';
       var delayDep = s.delayDep || '';
+      var arrConfirmed = s.arr !== 'false';
+      var depConfirmed = s.dep !== 'false';
       var isOrigin = i === 0;
       var isDest = i === total - 1;
       var arrTime = (isOrigin || schArr === 'Source' || schArr === '00:00') ? '--' : schArr;
@@ -985,8 +999,8 @@ TRAIN_DATES_TEMPLATE = """
         platform: s.pfNo || null,
         is_origin: isOrigin,
         is_destination: isDest,
-        actual_arrival: isValidTime(actArr) ? actArr : null,
-        actual_departure: isValidTime(actDep) ? actDep : null,
+        actual_arrival: (isValidTime(actArr) && arrConfirmed) ? actArr : null,
+        actual_departure: (isValidTime(actDep) && depConfirmed) ? actDep : null,
         delay_arrival: delayArr || null,
         delay_departure: delayDep || null,
         is_current_station: !!s.isCurrentStation,
@@ -1146,11 +1160,12 @@ TRAIN_DATES_TEMPLATE = """
       '</div>';
     }
 
+    var nextIdx = data.next_station_index;
     var timelineHtml = '';
     for (var j = 0; j < totalStations; j++) {
       var st = stations[j];
       var isPassed = isLive && !!st.actual_departure;
-      var isCurrent = st.is_current_station || (currentIdx !== null && currentIdx !== undefined && j === currentIdx);
+      var isCurrent = (nextIdx !== null && nextIdx !== undefined && j === nextIdx);
       var isLast = j === totalStations - 1;
       timelineHtml += buildStationHtml(st, isLive, isPassed, isCurrent, isLast);
     }
@@ -1206,10 +1221,12 @@ TRAIN_DATES_TEMPLATE = """
       '.train-status .timeline-track{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0}' +
       '.train-status .timeline-dot{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #e0e0e0;z-index:1;flex-shrink:0;display:flex;align-items:center;justify-content:center}' +
       '.train-status .timeline-dot img{width:12px;height:12px}' +
+      '.train-status .timeline-dot.origin img,.train-status .timeline-dot.passed img{filter:brightness(0) invert(1)}' +
       '.train-status .timeline-dot.origin{background:#2093ef;border-color:#2093ef}' +
       '.train-status .timeline-dot.destination{background:#d32f2f;border-color:#d32f2f}' +
       '.train-status .timeline-dot.passed{background:#2093ef;border-color:#2093ef}' +
-      '.train-status .timeline-dot.current{background:#2093ef;border-color:#2093ef;box-shadow:0 0 0 3px rgba(32,147,239,0.2)}' +
+      '.train-status .timeline-dot.current{background:#2093ef;border-color:#2093ef;animation:currentStationGlow 1.5s ease-in-out infinite}' +
+      '@keyframes currentStationGlow{0%,100%{box-shadow:0 0 0 3px rgba(32,147,239,0.2)}50%{box-shadow:0 0 8px 6px rgba(32,147,239,0.4)}}' +
       '.train-status .timeline-dot.upcoming{background:#fff;border:2px solid #e0e0e0}' +
       '.train-status .timeline-line{width:2px;flex:1;background:#e0e0e0;min-height:20px}' +
       '.train-status .timeline-line.passed{background:#2093ef}' +
@@ -1364,9 +1381,11 @@ TRAIN_DATES_TEMPLATE = """
 
       var currentIdx = null;
       var lastDepartedIdx = null;
+      var nextStationIdx = null;
       for (var k = 0; k < stations.length; k++) {
         if (stations[k].is_current_station) currentIdx = k;
         if (stations[k].actual_departure) lastDepartedIdx = k;
+        if (stations[k].is_next_station && !stations[k].actual_departure && nextStationIdx === null) nextStationIdx = k;
       }
       if (currentIdx === null && lastDepartedIdx !== null) currentIdx = lastDepartedIdx;
 
@@ -1383,7 +1402,8 @@ TRAIN_DATES_TEMPLATE = """
         stations: stations,
         is_live: isLive,
         distance_percentage: statusData.distancePercentage || '',
-        current_station_index: currentIdx
+        current_station_index: currentIdx,
+        next_station_index: nextStationIdx
       };
 
       widget.outerHTML = buildStatusHtml(data);
@@ -1449,6 +1469,7 @@ def render_train_status_results(status_result: Dict[str, Any]) -> str:
     hidden_stops = stations
 
     current_station_index_visible = None
+    next_station_index_visible = None
 
     template = _jinja_env.from_string(TRAIN_STATUS_TEMPLATE)
     return template.render(
@@ -1459,6 +1480,7 @@ def render_train_status_results(status_result: Dict[str, Any]) -> str:
         visible_count=len(visible_stops),
         total_stations=len(stations),
         current_station_index_visible=current_station_index_visible,
+        next_station_index_visible=next_station_index_visible,
         **status_result,
     )
 
