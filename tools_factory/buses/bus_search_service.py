@@ -886,6 +886,32 @@ def extract_bus_summary(bus: Dict[str, Any]) -> Dict[str, Any]:
     first_dropping = ""
     if dropping_points:
         first_dropping = dropping_points[0].get("dp_name", "")
+    
+    # Process all boarding points for WhatsApp response
+    all_boarding_points = []
+    for bp in boarding_points:
+        bp_name = bp.get("bd_long_name", "") or bp.get("bd_point", "")
+        bp_time = bp.get("time", "")
+        bp_id = bp.get("bd_id", "")
+        if bp_name:
+            all_boarding_points.append({
+                "id": bp_id,
+                "name": bp_name,
+                "time": bp_time,
+            })
+    
+    # Process all dropping points for WhatsApp response
+    all_dropping_points = []
+    for dp in dropping_points:
+        dp_name = dp.get("dp_name", "")
+        dp_time = dp.get("dp_time", "")
+        dp_id = dp.get("dp_id", "")
+        if dp_name:
+            all_dropping_points.append({
+                "id": dp_id,
+                "name": dp_name,
+                "time": dp_time,
+            })
 
     return {
         "bus_id": bus.get("bus_id"),
@@ -906,6 +932,8 @@ def extract_bus_summary(bus: Dict[str, Any]) -> Dict[str, Any]:
         "is_cancellable": bus.get("is_cancellable"),
         "first_boarding_point": first_boarding,
         "first_dropping_point": first_dropping,
+        "all_boarding_points": all_boarding_points,
+        "all_dropping_points": all_dropping_points,
         "amenities_count": len(bus.get("amenities", [])),
         "book_now": bus.get("book_now"),
     }
@@ -941,6 +969,8 @@ def build_whatsapp_bus_response(
             "rating": summary["rating"],
             "boarding_point": summary["first_boarding_point"],
             "dropping_point": summary["first_dropping_point"],
+            "all_boarding_points": summary["all_boarding_points"],
+            "all_dropping_points": summary["all_dropping_points"],
             "amenities_count": summary["amenities_count"],
             "book_now": summary["book_now"],
         })
