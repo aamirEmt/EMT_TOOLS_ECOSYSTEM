@@ -5,7 +5,7 @@ from tools_factory.trains.train_search_tool import TrainSearchTool
 from tools_factory.trains.Train_PnrStatus.pnr_status_tool import TrainPnrStatusTool
 from tools_factory.trains.Train_AvailabilityCheck.availability_check_tool import TrainAvailabilityCheckTool
 from tools_factory.trains.Train_RouteCheck.route_check_tool import TrainRouteCheckTool
-from tools_factory.trains.train_status_tool import TrainStatusTool
+from tools_factory.trains.Train_StatusCheck.train_status_tool import TrainStatusTool
 from tools_factory.login.login_tool import LoginTool
 # from tools_factory.buses.bus_search_tool import BusSearchTool, BusSeatLayoutTool
 from tools_factory.buses.bus_search_tool import BusSearchTool

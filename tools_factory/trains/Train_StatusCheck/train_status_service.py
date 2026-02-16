@@ -263,6 +263,20 @@ async def get_train_live_status(
         }
 
 
+def _is_valid_time(value: str) -> bool:
+    """Check if a string is a valid HH:MM time format (not a delay string like '11M Late')."""
+    if not value or ":" not in value:
+        return False
+    parts = value.split(":")
+    if len(parts) != 2:
+        return False
+    try:
+        h, m = int(parts[0]), int(parts[1])
+        return 0 <= h <= 23 and 0 <= m <= 59
+    except ValueError:
+        return False
+
+
 def _convert_live_stations_to_schedule(
     live_stations: List[Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
@@ -287,13 +301,22 @@ def _convert_live_stations_to_schedule(
         is_current = station.get("isCurrentStation", False)
         is_next = station.get("isNextStation", False)
 
+        # Only treat as actual times if they are valid HH:MM format
+        # API can return delay strings like "11M Late" in actDep/actArr fields
+        # Also check arr/dep fields: "false" means train hasn't actually arrived/departed
+        # (API fills actArr/actDep with scheduled times even for upcoming stations)
+        arr_confirmed = station.get("arr") != "false"
+        dep_confirmed = station.get("dep") != "false"
+        valid_act_arr = act_arr if (_is_valid_time(act_arr) and arr_confirmed) else None
+        valid_act_dep = act_dep if (_is_valid_time(act_dep) and dep_confirmed) else None
+
         converted.append({
             "stationCode": station.get("stnCode", ""),
             "stationName": station.get("StationName", ""),
             "arrivalTime": sch_arr if sch_arr != "Source" else "",
             "departureTime": sch_dep,
-            "actualArrival": act_arr if act_arr not in ["No Delay", ""] else None,
-            "actualDeparture": act_dep if act_dep else None,
+            "actualArrival": valid_act_arr,
+            "actualDeparture": valid_act_dep,
             "delayArrival": delay_arr,
             "delayDeparture": delay_dep,
             "haltTime": station.get("Halt", "--"),
@@ -399,6 +422,14 @@ def _process_train_status_response(
     if current_station_idx is None and last_departed_idx is not None:
         current_station_idx = last_departed_idx
 
+    # Next station = first station with is_next_station that hasn't departed
+    # This is where the train is heading (gets train icon + glow in UI)
+    next_station_idx = None
+    for idx, s in enumerate(stations):
+        if s.is_next_station and not s.actual_departure:
+            next_station_idx = idx
+            break
+
     return {
         "train_number": final_train_number,
         "train_name": train_name,
@@ -422,6 +453,7 @@ def _process_train_status_response(
         "remain_distance": remain_distance,
         "distance_percentage": distance_percentage,
         "current_station_index": current_station_idx,
+        "next_station_index": next_station_idx,
     }
 
 
