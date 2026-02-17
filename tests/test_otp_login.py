@@ -274,5 +274,109 @@ async def test_full_otp_flow():
     print(f"Auth token present: {session.get('auth') is not None}")
 
 
+# ============================================================================
+# END-TO-END: OTP LOGIN -> FETCH FLIGHT BOOKINGS
+# ============================================================================
+
+@pytest.mark.asyncio
+async def test_otp_login_then_flight_bookings():
+    """Full end-to-end: OTP login with email, then fetch flight bookings.
+
+    Run manually:
+        pytest tests/test_otp_login.py::test_otp_login_then_flight_bookings -v -s
+    """
+    factory = get_tool_factory()
+    otp_tool = factory.get_tool("otp_login")
+    bookings_tool = factory.get_tool("get_flight_bookings")
+
+    # Step 1: Ask for email or phone
+    print(f"\n{'='*60}")
+    print(f"Step 1: Enter your email or phone number")
+    print(f"{'='*60}")
+    identifier = input("Enter email or phone: ").strip()
+
+    # Step 2: Send OTP
+    print(f"\n{'='*60}")
+    print(f"Step 2: Sending OTP to {identifier}")
+    print(f"{'='*60}")
+    send_result = await otp_tool.execute(
+        action="send_otp",
+        phone_or_email=identifier
+    )
+
+    print(f"Response: {send_result.response_text}")
+    assert send_result.is_error is False, f"Send OTP failed: {send_result.response_text}"
+
+    session_id = send_result.structured_content["session_id"]
+    print(f"Session ID: {session_id}")
+
+    # Step 3: Get OTP from user
+    print(f"\n{'='*60}")
+    print(f"Step 3: Enter OTP received on your email/phone")
+    print(f"{'='*60}")
+    otp_code = input("Enter OTP: ").strip()
+
+    # Step 4: Verify OTP
+    print(f"\n{'='*60}")
+    print(f"Step 4: Verifying OTP '{otp_code}'")
+    print(f"{'='*60}")
+    verify_result = await otp_tool.execute(
+        action="verify_otp",
+        otp_code=otp_code,
+        session_id=session_id
+    )
+
+    print(f"Response: {verify_result.response_text}")
+    assert verify_result.is_error is False, f"Verify OTP failed: {verify_result.response_text}"
+
+    user = verify_result.structured_content.get("user", {})
+    print(f"\nLogged in as: {user.get('name')} ({user.get('email')})")
+
+    # Step 5: Fetch flight bookings using same session
+    print(f"\n{'='*60}")
+    print(f"Step 5: Fetching flight bookings with session {session_id}")
+    print(f"{'='*60}")
+    bookings_result = await bookings_tool.execute(
+        _session_id=session_id
+    )
+
+    print(f"Response: {bookings_result.response_text}")
+    print(f"Is error: {bookings_result.is_error}")
+
+    assert bookings_result.is_error is False, f"Bookings failed: {bookings_result.response_text}"
+
+    data = bookings_result.structured_content
+    bookings = data.get("bookings", [])
+    print(f"\nTotal bookings: {data.get('total', 0)}")
+
+    for b in bookings:
+        print(f"  {b.get('status')} | {b.get('booking_id')} | {b.get('source')} -> {b.get('destination')} | {b.get('departure')}")
+
+    # Step 6: Fetch bus bookings using same session
+    print(f"\n{'='*60}")
+    print(f"Step 6: Fetching bus bookings with session {session_id}")
+    print(f"{'='*60}")
+    bus_bookings_tool = factory.get_tool("get_bus_bookings")
+    bus_result = await bus_bookings_tool.execute(
+        _session_id=session_id
+    )
+
+    print(f"Response: {bus_result.response_text}")
+    print(f"Is error: {bus_result.is_error}")
+
+    assert bus_result.is_error is False, f"Bus bookings failed: {bus_result.response_text}"
+
+    bus_data = bus_result.structured_content
+    bus_bookings = bus_data.get("bookings", [])
+    print(f"\nTotal bus bookings: {bus_data.get('total', 0)}")
+
+    for b in bus_bookings:
+        print(f"  {b.get('status')} | {b.get('booking_id')} | {b.get('route')} | {b.get('operator')} | {b.get('departure')}")
+
+    print(f"\n{'='*60}")
+    print(f"End-to-end test PASSED!")
+    print(f"{'='*60}")
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "-s"])

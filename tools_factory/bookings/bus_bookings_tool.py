@@ -4,6 +4,7 @@ import logging
 
 from ..base import BaseTool, ToolMetadata
 from .bus_bookings_service import BusBookingsService
+from .bus_bookings_renderer import render_bus_bookings
 from .booking_schema import GetBookingsInput
 from tools_factory.base_schema import ToolResponseFormat
 from emt_client.auth.session_manager import SessionManager
@@ -118,13 +119,24 @@ class GetBusBookingsTool(BaseTool):
                 + "\n".join(lines)
             )
             
+            raw_response = result.get("raw_response", {})
+
+            # Render HTML for website
+            html_content = None
+            if render_html:
+                bus_data = raw_response.get("BusDetails") if raw_response else None
+                if bus_data:
+                    html_content = render_bus_bookings(bus_data)
+
             return ToolResponseFormat(
                 response_text=response_text,
                 structured_content={
                     "uid": uid,
                     "total": len(bookings),
-                    "bookings": bookings
+                    "bookings": bookings,
+                    "raw_response": raw_response,
                 },
+                html=html_content,
                 is_error=False
             )
         

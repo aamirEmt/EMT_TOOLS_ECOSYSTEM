@@ -4,6 +4,7 @@ import logging
 
 from ..base import BaseTool, ToolMetadata
 from .hotel_bookings_service import HotelBookingsService
+from .hotel_bookings_renderer import render_hotel_bookings
 from .booking_schema import GetBookingsInput
 from tools_factory.base_schema import ToolResponseFormat
 from emt_client.auth.session_manager import SessionManager
@@ -40,6 +41,7 @@ class GetHotelBookingsTool(BaseTool):
             session_id = kwargs.pop("_session_id", None)
             limit = kwargs.pop("_limit", None)
             user_type = kwargs.pop("_user_type", "website")
+            render_html = user_type.lower() == "website"
 
             # Validate session_id is provided
             if not session_id:
@@ -109,13 +111,24 @@ class GetHotelBookingsTool(BaseTool):
                 + "\n".join(lines)
             )
             
+            raw_response = result.get("raw_response", {})
+
+            # Render HTML for website
+            html_content = None
+            if render_html:
+                hotel_data = raw_response.get("HotelDetails") if raw_response else None
+                if hotel_data:
+                    html_content = render_hotel_bookings(hotel_data)
+
             return ToolResponseFormat(
                 response_text=response_text,
                 structured_content={
                     "uid": uid,
                     "total": len(bookings),
-                    "bookings": bookings
-                }
+                    "bookings": bookings,
+                    "raw_response": raw_response,
+                },
+                html=html_content,
             )
 
         except Exception as e:
