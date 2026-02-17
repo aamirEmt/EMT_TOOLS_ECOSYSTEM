@@ -170,6 +170,27 @@ def _coerce_refundable_flag(value: Any) -> Optional[bool]:
     return None
 
 
+def _effective_total_fare(raw_tf: Any, ttdis: Any, icps: Any) -> float:
+    """
+    Calculate the payable fare using ICPS + TTDIS rule:
+    - If ICPS is truthy and TTDIS is a valid positive number less than TF, use TTDIS.
+    - Otherwise, use TF.
+    """
+    def _to_float(val) -> Optional[float]:
+        try:
+            return float(val)
+        except (TypeError, ValueError):
+            return None
+
+    tf = _to_float(raw_tf) or 0.0
+    discount = _to_float(ttdis)
+
+    icps_flag = str(icps).strip().lower() in {"1", "true", "t", "yes", "y"} if icps is not None else False
+    if icps_flag and discount is not None and discount > 0 and discount < tf:
+        return discount
+    return tf
+
+
 def _sum_leg_durations(legs: List[Dict[str, Any]]) -> Optional[int]:
     total = 0
     found = False
@@ -288,12 +309,13 @@ def _derive_combo_fare(segment: Dict[str, Any]) -> float:
     fares = segment.get("lstFr") or []
     if fares and isinstance(fares, list):
         primary = fares[0] if fares else {}
-        try:
-            total = float(primary.get("TF") or primary.get("total_fare") or primary.get("total") or 0)
-            if total:
-                return total
-        except (TypeError, ValueError):
-            pass
+        total = _effective_total_fare(
+            primary.get("TF") or primary.get("total_fare") or primary.get("total") or 0,
+            segment.get("TTDIS"),
+            segment.get("ICPS"),
+        )
+        if total:
+            return total
         try:
             base = float(primary.get("BF") or primary.get("base_fare") or 0)
             return base or 0.0
@@ -307,6 +329,7 @@ def _build_fare_options_from_combo(segment: Dict[str, Any], per_leg_fare: float)
     primary = fares[0] if fares and isinstance(fares, list) else {}
     base_fare = per_leg_fare or primary.get("BF") or primary.get("base_fare") or 0
     total_fare = per_leg_fare or primary.get("TF") or primary.get("total_fare") or primary.get("total") or base_fare
+    total_fare = _effective_total_fare(total_fare, segment.get("TTDIS"), segment.get("ICPS"))
     try:
         base_fare = float(base_fare)
     except (TypeError, ValueError):
@@ -623,7 +646,7 @@ def build_deep_link(
         ("Adult", str(passengers.get("adults", 1))),
         ("Child", str(passengers.get("children", 0))),
         ("Infant", str(passengers.get("infants", 0))),
-        ("ReferralId", "EMTAI"),
+        ("ReferralId", ""),
         ("UserLanguage", "en"),
         ("DisplayedPriceCurrency", "INR"),
         ("UserCurrency", "INR"),
@@ -1387,8 +1410,9 @@ def process_segment(
     fare_options = []
     if is_international and  not is_roundtrip:
         fare=segment.get("TF", [])
+        effective_tf = _effective_total_fare(fare, segment.get("TTDIS"), segment.get("ICPS"))
         fare_option={ "base_fare":fare,
-                    "total_fare": fare,}
+                    "total_fare": effective_tf,}
         fare_options.append(fare_option)
     else:
         fares = segment.get("lstFr", [])
@@ -1398,11 +1422,16 @@ def process_segment(
                 if not isinstance(fare, dict):
                     continue
 
+                effective_tf = _effective_total_fare(
+                    fare.get("TF", 0),
+                    segment.get("TTDIS"),
+                    segment.get("ICPS"),
+                )
                 fare_option = {
                     "fare_id": fare.get("SID", ""),
                     "fare_name": fare.get("FN", ""),
                     "base_fare": fare.get("BF", 0),
-                    "total_fare": fare.get("TF", 0),
+                    "total_fare": effective_tf,
                     "total_tax": fare.get("TTXMP", 0),
                     "discount": fare.get("DA", 0)
                 }
