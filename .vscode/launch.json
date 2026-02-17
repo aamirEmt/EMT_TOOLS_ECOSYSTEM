@@ -8,7 +8,7 @@
   "module": "pytest",
   "python": "${workspaceFolder}/.venv/Scripts/python.exe",
   "args": [
-    "tests/test_trains.py::test_train_search_view_all_link_with_autoresolved_stations",
+    "tests/test_hotels.py::test_hotel_search_single_night",
     "-v",
     "-s"
   ],
