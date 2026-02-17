@@ -458,6 +458,7 @@ def _process_international_combos(
 
         for segment_idx, segment in enumerate(segments):
             total_segments += 1
+            segment_refundable = _coerce_refundable_flag(segment.get("RF"))
 
             lob_items = _get_combo_list(segment, "l_OB") or []
             lib_items = _get_combo_list(segment, "l_IB") or []
@@ -534,8 +535,8 @@ def _process_international_combos(
                 except (TypeError, ValueError):
                     combo_fare = 0.0
 
-            outbound_refundable = _coerce_refundable_flag(outbound_block.get("RF"))
-            inbound_refundable = _coerce_refundable_flag(inbound_block.get("RF"))
+            outbound_refundable = _coerce_refundable_flag(outbound_block.get("RF")) or segment_refundable
+            inbound_refundable = _coerce_refundable_flag(inbound_block.get("RF")) or segment_refundable
 
             combos.append(
                 {
@@ -1315,6 +1316,7 @@ def process_segment(
     """
     segment_id = segment.get("id")
     segment_key = segment.get("SK")
+    segment_refundable = _coerce_refundable_flag(segment.get("RF"))
     bonds=[]
     if is_international and  not is_roundtrip:
          bonds = segment.get("l_OB", [])
@@ -1327,6 +1329,8 @@ def process_segment(
 
     journey_time = bond.get("JyTm", "")
     refundable_flag = _coerce_refundable_flag(bond.get("RF"))
+    if refundable_flag is None:
+        refundable_flag = segment_refundable
     is_refundable = refundable_flag if refundable_flag is not None else False
     if is_international and  not is_roundtrip:
         stops = bond.get("STP", "0")
