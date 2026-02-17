@@ -79,21 +79,16 @@ class FlightSearchTool(BaseTool):
         Execute flight search with provided parameters.
         """
 
-        # --------------------------------------------------
-        # Runtime flags (internal)
-        # --------------------------------------------------
-        # limit = kwargs.pop("_limit", None)
-        # render_html = kwargs.pop("_html", False)
-        # is_coming_from_whatsapp = kwargs.pop("_is_coming_from_whatsapp", False)
-
         # --------------------------
-        # Extract runtime flags (with backward compatibility)
+        # Extract runtime flags
         # --------------------------
-        limit = kwargs.pop("_limit", None)
+        limit = kwargs.pop("_limit", 15)
         user_type = kwargs.pop("_user_type", "website")
         render_html = user_type.lower() == "website"
         is_whatsapp = user_type.lower() == "whatsapp"
 
+        if limit is None:
+            limit = 15
 
         try:
             payload = FlightSearchInput.model_validate(kwargs)
@@ -128,6 +123,7 @@ class FlightSearchTool(BaseTool):
             airline_names=payload.airline_names,
         )
         has_error = bool(flight_results.get("error")) 
+        
         # --------------------------------------------------
         # Passenger context (required for deeplinks)
         # --------------------------------------------------
@@ -139,67 +135,153 @@ class FlightSearchTool(BaseTool):
         flight_results["fastest"] = payload.fastest
         is_roundtrip = flight_results.get("is_roundtrip")
         is_international = flight_results.get("is_international")
+        
         if is_whatsapp and not is_international:
-           flight_results= filter_domestic_roundtrip_flights(flight_results)
+           flight_results = filter_domestic_roundtrip_flights(flight_results)
 
         # --------------------------------------------------
-        if limit is not None:
-            for key in ("outbound_flights", "return_flights", "international_combos"):
-                if key in flight_results:
-                    flight_results[key] = flight_results[key][:limit]
-
-
-        outbound_flights = flight_results.get("outbound_flights") or []
-        return_flights = flight_results.get("return_flights") or []
-        international_combos = flight_results.get("international_combos") or []
-
-        outbound_count = len(outbound_flights)
-        return_count = len(return_flights)
-        combo_count = len(international_combos)
-
+        # Store TOTAL counts BEFORE pagination
+        # --------------------------------------------------
+        all_outbound = flight_results.get("outbound_flights") or []
+        all_return = flight_results.get("return_flights") or []
+        all_combos = flight_results.get("international_combos") or []
         
+        total_outbound_count = len(all_outbound)
+        total_return_count = len(all_return)
+        total_combo_count = len(all_combos)
 
-        if is_international and international_combos:
-            flight_results["international_combos"] = generate_short_link(
-                international_combos,
+        # DEBUG
+        # print(f"DEBUG: Total outbound flights: {total_outbound_count}")
+        # print(f"DEBUG: Total return flights: {total_return_count}")
+        # print(f"DEBUG: Total international combos: {total_combo_count}")
+        # print(f"DEBUG: Page requested: {payload.page}")
+        # print(f"DEBUG: Limit: {limit}")
+
+        # --------------------------------------------------
+        # Pagination logic
+        # --------------------------------------------------
+        page = payload.page
+        offset = (page - 1) * limit
+        end = offset + limit
+
+        # print(f"DEBUG: Offset: {offset}, End: {end}")
+
+        # Paginate each list
+        paginated_outbound = all_outbound[offset:end] if not has_error else []
+        paginated_return = all_return[offset:end] if not has_error else []
+        paginated_combos = all_combos[offset:end] if not has_error else []
+
+        # print(f"DEBUG: Paginated outbound count: {len(paginated_outbound)}")
+        # print(f"DEBUG: Paginated return count: {len(paginated_return)}")
+        # print(f"DEBUG: Paginated combos count: {len(paginated_combos)}")
+
+        # --------------------------------------------------
+        # Generate short links for PAGINATED flights
+        # --------------------------------------------------
+        if is_international and paginated_combos:
+            paginated_combos = generate_short_link(
+                paginated_combos,
                 product_type="flight",
             )
-            flight_results["outbound_flights"] = []
-            flight_results["return_flights"] = []
+            paginated_outbound = []
+            paginated_return = []
         else:
-            flight_results["outbound_flights"] = generate_short_link(
-                outbound_flights,
+            paginated_outbound = generate_short_link(
+                paginated_outbound,
                 product_type="flight",
-            )
+            ) if paginated_outbound else []
 
-            if is_roundtrip:
-                flight_results["return_flights"] = generate_short_link(
-                    return_flights,
+            if is_roundtrip and paginated_return:
+                paginated_return = generate_short_link(
+                    paginated_return,
                     product_type="flight",
                 )
 
-       
+        # --------------------------------------------------
+        # Update flight_results with paginated data
+        # --------------------------------------------------
+        flight_results["outbound_flights"] = paginated_outbound
+        flight_results["return_flights"] = paginated_return
+        flight_results["international_combos"] = paginated_combos
+
+        # Add pagination info
+        if is_international and is_roundtrip:
+            total_count = total_combo_count
+            paginated_count = len(paginated_combos)
+        elif is_roundtrip:
+            total_count = min(total_outbound_count, total_return_count)
+            paginated_count = min(len(paginated_outbound), len(paginated_return))
+        else:
+            total_count = total_outbound_count
+            paginated_count = len(paginated_outbound)
+
+        flight_results["pagination"] = {
+            "current_page": page,
+            "per_page": limit,
+            "total_results": total_count,
+            "total_pages": (total_count + limit - 1) // limit if limit > 0 else 1,
+            "has_next_page": end < total_count,
+            "has_previous_page": page > 1,
+            "showing_from": offset + 1 if paginated_count > 0 else 0,
+            "showing_to": min(end, total_count),
+        }
+
+        # --------------------------------------------------
+        # WhatsApp response
+        # --------------------------------------------------
         whatsapp_response = (
             build_whatsapp_flight_response(payload, flight_results)
             if is_whatsapp and not has_error
             else None
         )
 
+        # --------------------------------------------------
+        # Response text
+        # --------------------------------------------------
         if has_error:
             text = f"No flights found. {flight_results.get('message', '')}"
-        elif is_international and is_roundtrip:
-            text = f"Found {combo_count} international round-trip combinations!"
-        elif is_roundtrip:
-            text = f"Found {outbound_count} outbound and {return_count} return flights!"
+        elif paginated_count == 0:
+            text = f"No more flights available. All {total_count} flights have been shown."
         else:
-            text = f"Found {outbound_count} flights!"
+            has_more = flight_results["pagination"]["has_next_page"]
+            if is_international and is_roundtrip:
+                if page > 1:
+                    if has_more:
+                        text = f"Here are {paginated_count} more international round-trip combinations (page {page}). More available."
+                    else:
+                        text = f"Here are the last {paginated_count} international round-trip combinations (page {page})."
+                else:
+                    if has_more:
+                        text = f"Found {paginated_count} international round-trip combinations. Say 'show more' for additional options."
+                    else:
+                        text = f"Found all {paginated_count} international round-trip combinations."
+            elif is_roundtrip:
+                if page > 1:
+                    if has_more:
+                        text = f"Here are {len(paginated_outbound)} more outbound and {len(paginated_return)} return flights (page {page}). More available."
+                    else:
+                        text = f"Here are the last {len(paginated_outbound)} outbound and {len(paginated_return)} return flights (page {page})."
+                else:
+                    if has_more:
+                        text = f"Found {len(paginated_outbound)} outbound and {len(paginated_return)} return flights. Say 'show more' for additional options."
+                    else:
+                        text = f"Found {len(paginated_outbound)} outbound and {len(paginated_return)} return flights."
+            else:
+                if page > 1:
+                    if has_more:
+                        text = f"Here are {paginated_count} more flights (page {page}). More available."
+                    else:
+                        text = f"Here are the last {paginated_count} flights (page {page})."
+                else:
+                    if has_more:
+                        text = f"Found {paginated_count} flights. Say 'show more' for additional options."
+                    else:
+                        text = f"Found all {paginated_count} flights."
 
-        # Check if any flights were found
-        has_flights = (
-            (is_international and is_roundtrip and combo_count > 0) or
-            (not is_international and is_roundtrip and outbound_count > 0 and return_count > 0) or
-            (not is_roundtrip and outbound_count > 0)
-        )
+        # --------------------------------------------------
+        # Check if any flights to render
+        # --------------------------------------------------
+        has_flights = paginated_count > 0
 
         return ToolResponseFormat(
             response_text=text,

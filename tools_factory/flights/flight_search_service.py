@@ -604,7 +604,7 @@ def _process_international_combos(
     #     },
     # )
 
-    return combos[:20]
+    return combos
 
 
 
@@ -1307,8 +1307,8 @@ def process_flight_results(
     view_all_link = _build_view_all_link(search_context)
 
     return {
-        "outbound_flights": outbound_flights[:20],
-        "return_flights": return_flights[:20],
+        "outbound_flights": outbound_flights,
+        "return_flights": return_flights,
         "is_roundtrip": is_roundtrip,
         "is_international": is_international,
         "international_combos": combos,

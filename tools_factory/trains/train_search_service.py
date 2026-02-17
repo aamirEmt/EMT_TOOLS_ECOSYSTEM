@@ -21,6 +21,72 @@ from .train_schema import (
     WhatsappTrainFinalResponse,
 )
 
+logger = logging.getLogger(__name__)
+
+
+def _parse_time_to_time_object(time_str: str) -> Optional[datetime.time]:
+    """
+    Parse 24-hour format time string (e.g., "14:30", "20:40") to datetime.time object.
+
+    Returns None if parsing fails (logs warning, doesn't crash).
+    """
+    if not time_str:
+        return None
+
+    try:
+        dt = datetime.strptime(time_str.strip(), "%H:%M")
+        return dt.time()
+    except ValueError:
+        logger.warning(f"Failed to parse 24-hour time: {time_str}")
+        return None
+
+
+def _matches_time_filter(
+    train_time_str: str,
+    min_time_str: Optional[str] = None,
+    max_time_str: Optional[str] = None,
+) -> bool:
+    """
+    Check if train time (24-hour from API) matches user time range (24-hour).
+
+    Args:
+        train_time_str: API time like "20:40", "15:00"
+        min_time_str: User input like "14:00" (optional)
+        max_time_str: User input like "18:00" (optional)
+
+    Returns:
+        True if matches filter (or no filter), False otherwise
+
+    Edge Cases:
+        - If train time can't be parsed, return True (don't filter out)
+        - If no filters specified, return True
+        - Ranges are inclusive (>= min AND <= max)
+    """
+    # No filter = always match
+    if not min_time_str and not max_time_str:
+        return True
+
+    # Parse train time (24-hour format from API)
+    train_time = _parse_time_to_time_object(train_time_str)
+
+    # Can't parse train time? Don't filter it out (graceful degradation)
+    if train_time is None:
+        return True
+
+    # Check minimum time constraint
+    if min_time_str:
+        min_time = _parse_time_to_time_object(min_time_str)
+        if min_time and train_time < min_time:
+            return False
+
+    # Check maximum time constraint
+    if max_time_str:
+        max_time = _parse_time_to_time_object(max_time_str)
+        if max_time and train_time > max_time:
+            return False
+
+    return True
+
 
 def generate_view_all_link(
     from_station: str,
@@ -182,17 +248,45 @@ def _process_single_train(
     train: Dict[str, Any],
     preferred_class: Optional[str] = None,
     quota: str = "GN",
+    departure_time_min: Optional[str] = None,
+    departure_time_max: Optional[str] = None,
+    arrival_time_min: Optional[str] = None,
+    arrival_time_max: Optional[str] = None,
 ) -> Optional[TrainInfo]:
-    """Process a single train entry from API response."""
+    """
+    Process a single train entry from API response, applying class and time filters.
+
+    Returns None if train doesn't match filters.
+    """
     train_class_wise_fare = train.get("TrainClassWiseFare", [])
 
-    # Extract train context for deeplink generation
+    # API returns correct boarding/alighting station codes for the user's search route
     from_station_name = train.get("fromStnName", "")
     to_station_name = train.get("toStnName", "")
     train_number = train.get("trainNumber", "")
     from_station_code = train.get("fromStnCode", "")
     to_station_code = train.get("toStnCode", "")
     departure_date = train.get("departuredate", "")
+
+    # Extract time fields
+    departure_time = train.get("departureTime", "")
+    arrival_time = train.get("arrivalTime", "")
+
+    # Apply departure time filter
+    if not _matches_time_filter(
+        departure_time,
+        min_time_str=departure_time_min,
+        max_time_str=departure_time_max,
+    ):
+        return None  # Exclude train
+
+    # Apply arrival time filter
+    if not _matches_time_filter(
+        arrival_time,
+        min_time_str=arrival_time_min,
+        max_time_str=arrival_time_max,
+    ):
+        return None  # Exclude train
 
     # Process class availability with deeplink context
     # Returns None if preferred_class is specified but train doesn't have it
@@ -216,12 +310,12 @@ def _process_single_train(
     return TrainInfo(
         train_number=train.get("trainNumber", ""),
         train_name=train.get("trainName", ""),
-        from_station_code=train.get("fromStnCode", ""),
-        from_station_name=train.get("fromStnName", ""),
-        to_station_code=train.get("toStnCode", ""),
-        to_station_name=train.get("toStnName", ""),
-        departure_time=train.get("departureTime", ""),
-        arrival_time=train.get("arrivalTime", ""),
+        from_station_code=from_station_code,
+        from_station_name=from_station_name,
+        to_station_code=to_station_code,
+        to_station_name=to_station_name,
+        departure_time=departure_time,
+        arrival_time=arrival_time,
         duration=train.get("duration", ""),
         distance=train.get("distance", ""),
         departure_date=train.get("departuredate", ""),
@@ -235,13 +329,21 @@ def process_train_results(
     search_response: Dict[str, Any],
     preferred_class: Optional[str] = None,
     quota: str = "GN",
+    departure_time_min: Optional[str] = None,
+    departure_time_max: Optional[str] = None,
+    arrival_time_min: Optional[str] = None,
+    arrival_time_max: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Process raw train search response.
+    """Process raw train search response with time filtering.
 
     Args:
         search_response: Raw API response from EaseMyTrip Railways
         preferred_class: Optional class filter (1A, 2A, 3A, SL, etc.)
         quota: Booking quota (GN, TQ, SS, LD)
+        departure_time_min: Filter trains departing at or after this time (HH:MM)
+        departure_time_max: Filter trains departing at or before this time (HH:MM)
+        arrival_time_min: Filter trains arriving at or after this time (HH:MM)
+        arrival_time_max: Filter trains arriving at or before this time (HH:MM)
 
     Returns:
         Dict containing processed train list and quota info
@@ -262,6 +364,10 @@ def process_train_results(
             train,
             preferred_class,
             quota,
+            departure_time_min=departure_time_min,
+            departure_time_max=departure_time_max,
+            arrival_time_min=arrival_time_min,
+            arrival_time_max=arrival_time_max,
         )
         if processed_train:
             trains.append(processed_train.model_dump())
@@ -284,8 +390,12 @@ async def search_trains(
     journey_date: str,
     travel_class: Optional[str] = None,
     quota: str = "GN",
+    departure_time_min: Optional[str] = None,
+    departure_time_max: Optional[str] = None,
+    arrival_time_min: Optional[str] = None,
+    arrival_time_max: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Call EaseMyTrip train search API.
+    """Call EaseMyTrip train search API with time filtering.
 
     Args:
         from_station: Origin station - can be just name ("Jammu") or with code ("Jammu Tawi (JAT)")
@@ -293,6 +403,10 @@ async def search_trains(
         journey_date: Journey date in DD-MM-YYYY format
         travel_class: Optional preferred class (1A, 2A, 3A, SL, etc.)
         quota: Booking quota (GN, TQ, SS, LD)
+        departure_time_min: Filter trains departing at or after this time (HH:MM)
+        departure_time_max: Filter trains departing at or before this time (HH:MM)
+        arrival_time_min: Filter trains arriving at or after this time (HH:MM)
+        arrival_time_max: Filter trains arriving at or before this time (HH:MM)
 
     Returns:
         Dict containing processed train search results
@@ -337,11 +451,15 @@ async def search_trains(
             "total_count": 0,
         }
 
-    # Process results (Tap To Refresh is handled client-side)
+    # Process results with time filters (Tap To Refresh is handled client-side)
     processed_data = process_train_results(
         data,
         travel_class,
         quota,
+        departure_time_min=departure_time_min,
+        departure_time_max=departure_time_max,
+        arrival_time_min=arrival_time_min,
+        arrival_time_max=arrival_time_max,
     )
     processed_data["from_station"] = from_station
     processed_data["to_station"] = to_station
@@ -437,17 +555,19 @@ async def check_and_filter_trains_by_availability(
         """Check availability for a single train and return enriched data."""
         async with semaphore:
             try:
-                # Get train route info
                 train_no = train.get("train_number")
-                from_code = train.get("from_station_code")
-                to_code = train.get("to_station_code")
+                # Use station codes from search API (already correct boarding/alighting stations)
+                from_code = train.get("from_station_code", "")
+                to_code = train.get("to_station_code", "")
 
-                # Call availability check service
+                # Call availability check service with station codes from search API
                 result = await avail_service.check_availability_multiple_classes(
                     train_no=train_no,
                     classes=[travel_class],  # Check only the requested class
                     journey_date=journey_date,
                     quota=quota,
+                    from_station_code=from_code,
+                    to_station_code=to_code,
                 )
 
                 if not result.get("success"):
@@ -466,7 +586,7 @@ async def check_and_filter_trains_by_availability(
                 # Filter by status (only RAC/AVAILABLE/WAITLIST)
                 status_upper = status.upper()
                 is_bookable = (
-                    "AVAILABLE" in status_upper or
+                    ("AVAILABLE" in status_upper and "NOT AVAILABLE" not in status_upper) or
                     "WL" in status_upper or
                     "WAITLIST" in status_upper or
                     "RAC" in status_upper
@@ -476,13 +596,12 @@ async def check_and_filter_trains_by_availability(
                     logger.info(f"Train {train_no} class {travel_class} not bookable: {status}")
                     return None
 
-                # Build booking link
-                route_info = result.get("route_info", {})
+                # Build booking link using station codes from search API
                 booking_link = _build_booking_link(
                     train_no=train_no,
                     class_code=travel_class,
-                    from_code=route_info.get("from_station_code", from_code),
-                    to_code=route_info.get("to_station_code", to_code),
+                    from_code=from_code,
+                    to_code=to_code,
                     quota=quota,
                     journey_date=journey_date,
                     from_display=train.get("from_station_name", ""),
@@ -556,17 +675,19 @@ def _build_booking_link(
 def build_whatsapp_train_response(
     payload: TrainSearchInput,
     train_results: Dict[str, Any],
+    tatkal_note: str = "",
 ) -> WhatsappTrainFinalResponse:
     """Build WhatsApp-formatted response (routes to appropriate builder)."""
     if payload.travel_class:
-        return _build_whatsapp_response_with_class(payload, train_results)
+        return _build_whatsapp_response_with_class(payload, train_results, tatkal_note)
     else:
-        return _build_whatsapp_response_without_class(payload, train_results)
+        return _build_whatsapp_response_without_class(payload, train_results, tatkal_note)
 
 
 def _build_whatsapp_response_with_class(
     payload: TrainSearchInput,
     train_results: Dict[str, Any],
+    tatkal_note: str = "",
 ) -> WhatsappTrainFinalResponse:
     """
     Build WhatsApp response when class IS mentioned.
@@ -588,6 +709,8 @@ def _build_whatsapp_response_with_class(
             "option_id": idx,
             "train_no": train.get("train_number"),
             "train_name": train.get("train_name"),
+            "from_station": f"{train.get('from_station_name', '')} ({train.get('from_station_code', '')})",
+            "to_station": f"{train.get('to_station_name', '')} ({train.get('to_station_code', '')})",
             "departure_time": train.get("departure_time"),
             "arrival_time": train.get("arrival_time"),
             "duration": train.get("duration"),
@@ -610,6 +733,7 @@ def _build_whatsapp_response_with_class(
             "destination": payload.to_station,
             "date": payload.journey_date,
             "class": travel_class,
+            "quota": train_results.get("quota", "GN"),
             "currency": train_results.get("currency", "INR"),
             "search_id": search_id,
         },
@@ -617,7 +741,16 @@ def _build_whatsapp_response_with_class(
         view_all_trains_url=train_results.get("view_all_link", ""),
     )
 
-    response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class}."
+    # Build response text based on whether trains were found
+    quota = train_results.get("quota", "GN")
+    quota_display = {"GN": "General", "TQ": "Tatkal", "LD": "Ladies", "SS": "Senior Citizen"}.get(quota, quota)
+    if not trains:
+        response_text = f"No trains found with available seats from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class} with {quota_display} quota."
+    else:
+        response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class}."
+
+    if tatkal_note:
+        response_text += tatkal_note
 
     return WhatsappTrainFinalResponse(
         response_text=response_text,
@@ -628,6 +761,7 @@ def _build_whatsapp_response_with_class(
 def _build_whatsapp_response_without_class(
     payload: TrainSearchInput,
     train_results: Dict[str, Any],
+    tatkal_note: str = "",
 ) -> WhatsappTrainFinalResponse:
     """
     Build WhatsApp response when class NOT mentioned.
@@ -642,8 +776,10 @@ def _build_whatsapp_response_without_class(
         classes_info = []
 
         for cls in train.get("classes", []):
+            class_code = cls.get("class_code", "")
+            class_label = f"{class_code}(Tatkal)" if cls.get("quota") == "TQ" else class_code
             classes_info.append({
-                "class": cls.get("class_code"),
+                "class": class_label,
                 "fare": cls.get("fare"),
             })
 
@@ -651,6 +787,8 @@ def _build_whatsapp_response_without_class(
             "option_id": idx,
             "train_no": summary["train_number"],
             "train_name": summary["train_name"],
+            "from_station": f"{train.get('from_station_name', '')} ({train.get('from_station_code', '')})",
+            "to_station": f"{train.get('to_station_name', '')} ({train.get('to_station_code', '')})",
             "departure_time": summary["departure_time"],
             "arrival_time": summary["arrival_time"],
             "duration": summary["duration"],
@@ -668,6 +806,7 @@ def _build_whatsapp_response_without_class(
             "destination": payload.to_station,
             "date": payload.journey_date,
             "class": None,
+            "quota": train_results.get("quota", "GN"),
             "currency": train_results.get("currency", "INR"),
             "search_id": search_id,
         },
@@ -675,7 +814,14 @@ def _build_whatsapp_response_without_class(
         view_all_trains_url=train_results.get("view_all_link", ""),
     )
 
-    response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date}."
+    # Build response text based on whether trains were found
+    if not options:
+        response_text = f"No trains found from {payload.from_station} to {payload.to_station} on {payload.journey_date}."
+    else:
+        response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date}."
+
+    if tatkal_note:
+        response_text += tatkal_note
 
     return WhatsappTrainFinalResponse(
         response_text=response_text,
