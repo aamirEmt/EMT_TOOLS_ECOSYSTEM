@@ -258,7 +258,7 @@ class MyBookingsApiClient:
         """POST for flight APIs (different base URLs, email header)."""
         extra_headers = {}
         if email:
-            extra_headers["EmailId"] = email
+            extra_headers["auth"] = email
         try:
             response = await self.client.post(url, json=payload, headers=extra_headers)
             response.raise_for_status()
