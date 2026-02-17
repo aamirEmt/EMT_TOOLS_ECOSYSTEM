@@ -183,6 +183,65 @@ class MyBookingsApiClient:
         logger.info(f"Bus cancellation payload: {payload}")
         return await self._post(url, payload)
 
+    # ==================================================================
+    # Flight-specific API methods
+    # ==================================================================
+
+    async def fetch_flight_booking_details(
+        self, bid: str, transaction_screen_id: str, email: str
+    ) -> Dict[str, Any]:
+        """POST to GetFlightDetails (emtservice-ln)"""
+        url = "https://emtservice-ln.easemytrip.com/api/Flight/GetFlightDetails"
+        payload = {
+            "emailId": email,
+            "authentication": {"userName": "EMT", "password": "123"},
+            "bid": bid,
+            "transactionScreenId": transaction_screen_id,
+        }
+        return await self._post_flight(url, payload, email)
+
+    async def send_flight_cancellation_otp(
+        self, transaction_id: str, transaction_screen_id: str, email: str
+    ) -> Dict[str, Any]:
+        """POST to SendOtpOnCancellation (emtservice)"""
+        url = "http://emtservice.easemytrip.com/emtapp.svc/SendOtpOnCancellation"
+        payload = {
+            "Authentication": {"Password": "123", "UserName": "emt"},
+            "TransctionId": transaction_id,
+            "TransctionScreenId": transaction_screen_id,
+            "EmailID": email,
+        }
+        return await self._post_flight(url, payload, email)
+
+    async def cancel_flight(
+        self,
+        transaction_screen_id: str,
+        email: str,
+        otp: str,
+        outbound_pax_ids: str = "",
+        inbound_pax_ids: str = "",
+        mode: str = "1",
+        is_partial_cancel: str = "false",
+    ) -> Dict[str, Any]:
+        """POST to FlightCancellation (emtservice-ln)"""
+        url = "https://emtservice-ln.easemytrip.com/api/Flight/FlightCancellation"
+        payload = {
+            "Authentication": {
+                "IpAddress": "::1",
+                "Password": "123",
+                "UserName": "EMT",
+            },
+            "TransactionScreenId": transaction_screen_id,
+            "mode": mode,
+            "EmailId": email,
+            "VerfyOTP": otp,
+            "inBoundPaxIds": inbound_pax_ids,
+            "isPartialCancel": is_partial_cancel,
+            "outBoundPaxIds": outbound_pax_ids,
+        }
+        logger.info(f"Flight cancellation payload: {payload}")
+        return await self._post_flight(url, payload, email)
+
     async def close(self):
         """Close the persistent HTTP client. Call this when done using the client."""
         await self.client.aclose()
@@ -194,6 +253,34 @@ class MyBookingsApiClient:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit - ensures client is closed"""
         await self.close()
+
+    async def _post_flight(self, url: str, payload: dict, email: str = "") -> Dict[str, Any]:
+        """POST for flight APIs (different base URLs, email header)."""
+        extra_headers = {}
+        if email:
+            extra_headers["EmailId"] = email
+        try:
+            response = await self.client.post(url, json=payload, headers=extra_headers)
+            response.raise_for_status()
+
+            if response.status_code == 204 or not response.text:
+                return {}
+
+            result = response.json()
+
+            if isinstance(result, str):
+                try:
+                    result = json.loads(result)
+                except json.JSONDecodeError:
+                    pass
+
+            return result
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error calling {url}: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Error calling {url}: {e}")
+            raise
 
     async def _post(self, url: str, payload: dict) -> Dict[str, Any]:
         """

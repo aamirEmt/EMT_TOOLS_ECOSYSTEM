@@ -4005,241 +4005,281 @@ def render_already_cancelled(
 
 
 # =====================================================================
-# ✈️ FLIGHT CANCELLATION REDIRECT TEMPLATE (with login OTP verification)
+# ✈️ FLIGHT INTERACTIVE BOOKING TEMPLATE (WITH JS FOR CANCEL FLOW)
 # =====================================================================
-FLIGHT_REDIRECT_TEMPLATE = """
+FLIGHT_BOOKING_TEMPLATE = """
 <style>
 
-.booking-details-carousel {
+.flight-cancel-carousel {
   font-family: poppins, sans-serif;
   color: #202020;
   background: rgba(255, 255, 255, 0.92);
   position: relative;
 }
 
-.booking-details-carousel * {
+.flight-cancel-carousel * {
   font-family: inherit;
   box-sizing: border-box;
   margin: 0;
 }
 
-.booking-details-carousel main {
+.flight-cancel-carousel main {
   max-width: 700px;
   margin: 0 auto;
   padding: 20px 0 30px;
   position: relative;
 }
 
-.booking-details-carousel .bkhd {
+.flight-cancel-carousel .fc-header {
   margin-bottom: 16px;
 }
 
-.booking-details-carousel .bkttl {
+.flight-cancel-carousel .fc-title {
   font-size: 18px;
   font-weight: 600;
   color: #202020;
   margin-bottom: 4px;
 }
 
-.booking-details-carousel .bksub {
+.flight-cancel-carousel .fc-subtitle {
   font-size: 12px;
   color: #646d74;
   margin-top: 4px;
 }
 
-/* Step visibility */
-.booking-details-carousel .hc-step {
-  display: none;
-}
-
-.booking-details-carousel .hc-step.active {
-  display: block;
-}
-
-/* Loading overlay */
-.booking-details-carousel .hc-loading {
-  display: none;
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(255,255,255,0.85);
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
+.flight-cancel-carousel .fc-segment-card {
+  background: #f8f9fa;
   border-radius: 12px;
-}
-
-.booking-details-carousel .hc-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid #e0e0e0;
-  border-top-color: #ef6614;
-  border-radius: 50%;
-  animation: hcSpin 0.8s linear infinite;
-}
-
-@keyframes hcSpin {
-  to { transform: rotate(360deg); }
-}
-
-/* Error message */
-.booking-details-carousel .hc-error-msg {
-  display: none;
-  color: #d32f2f;
-  padding: 4px 14px;
-  border-radius: 8px;
-  font-size: 12px;
-  margin-bottom: 4px;
-  margin-top: -4px;
-}
-
-/* Verify OTP card */
-.booking-details-carousel .hc-verify-card {
-  background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+  padding: 14px;
+  margin-bottom: 12px;
   border: 1px solid #e0e0e0;
-  border-radius: 16px;
-  padding: 5px 12px;
-  text-align: center;
-  max-width: 400px;
-  margin: 0 auto;
 }
 
-.booking-details-carousel .hc-verify-icon {
-  width: 50px;
-  height: 50px;
-  margin: 0 auto 4px;
-  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
-  border-radius: 50%;
+.flight-cancel-carousel .fc-segment-bound {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #ef6614;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.flight-cancel-carousel .fc-airline-row {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(239, 102, 20, 0.25);
+  gap: 6px;
 }
 
-.booking-details-carousel .hc-verify-title {
-  font-size: 18px;
-  font-weight: 700;
+.flight-cancel-carousel .fc-route {
+  font-size: 13px;
   color: #202020;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flight-cancel-carousel .fc-route-arrow {
+  color: #ef6614;
+  font-weight: 600;
+}
+
+.flight-cancel-carousel .fc-details-row {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #202020;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.flight-cancel-carousel .fc-detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.flight-cancel-carousel .fc-detail-label {
+  font-size: 10px;
+  color: #868686;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.flight-cancel-carousel .fc-detail-value {
+  font-weight: 600;
+}
+
+.flight-cancel-carousel .fc-pax-section {
+  margin-bottom: 16px;
+}
+
+.flight-cancel-carousel .fc-pax-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 12px;
+}
+
+.flight-cancel-carousel .fc-bound-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ef6614;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 12px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.flight-cancel-carousel .fc-select-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #646d74;
+  cursor: pointer;
+}
+
+.flight-cancel-carousel .fc-select-all input[type="checkbox"] {
+  accent-color: #ef6614;
+  width: 16px;
+  height: 16px;
+}
+
+.flight-cancel-carousel .fc-pax-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
   margin-bottom: 8px;
 }
 
-.booking-details-carousel .hc-verify-desc {
-  font-size: 13px;
-  color: #646d74;
-  line-height: 1.5;
-  margin-bottom: 9px;
-}
-
-.booking-details-carousel .hc-otp-field {
-  margin-bottom: 16px;
-}
-
-.booking-details-carousel .hc-otp-field .hc-login-otp-input {
-  width: 100%;
-  max-width: 240px;
-  padding: 10px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  font-size: 14px;
+.flight-cancel-carousel .fc-pax-table th {
+  background: #f8f9fa;
+  padding: 8px 10px;
+  text-align: left;
   font-weight: 600;
-  text-align: center;
-  letter-spacing: 4px;
-  font-family: inter, sans-serif;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  background: #fff;
+  color: #646d74;
+  font-size: 11px;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.flight-cancel-carousel .fc-pax-table td {
+  padding: 10px;
+  border-bottom: 1px solid #f0f0f0;
   color: #202020;
 }
 
-.booking-details-carousel .hc-otp-field .hc-login-otp-input:focus {
-  border-color: #ef6614;
-  box-shadow: 0 0 0 3px rgba(239, 102, 20, 0.1);
+.flight-cancel-carousel .fc-pax-table tr:hover {
+  background: #fef6f0;
 }
 
-.booking-details-carousel .hc-otp-field .hc-login-otp-input::placeholder {
-  font-size: 14px;
-  letter-spacing: 0;
-  font-weight: 400;
-  color: #bbb;
+.flight-cancel-carousel .fc-pax-table input[type="checkbox"] {
+  accent-color: #ef6614;
+  width: 16px;
+  height: 16px;
 }
 
-.booking-details-carousel .hc-submit-btn {
-  padding: 10px 24px;
-  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: poppins, sans-serif;
-  transition: opacity 0.2s;
-}
-
-.booking-details-carousel .hc-submit-btn:hover {
-  opacity: 0.85;
-}
-
-.booking-details-carousel .hc-verify-card .hc-submit-btn {
-  width: 80%;
-  max-width: 240px;
-  padding: 8px 7px;
-}
-
-.booking-details-carousel .hc-verify-footer {
-  font-size: 11px;
-  color: #999;
-  margin-top: 16px;
-  line-height: 1.4;
-}
-
-.booking-details-carousel .hc-resend-otp-btn {
-  background: none;
-  border: none;
-  color: #2196f3;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-  margin-top: 8px;
-  text-decoration: none;
+.flight-cancel-carousel .fc-status-badge {
   display: inline-block;
-}
-.booking-details-carousel .hc-resend-otp-btn:hover {
-  text-decoration: underline;
-  color: #1565c0;
-}
-.booking-details-carousel .hc-resend-otp-btn:disabled {
-  color: #999;
-  cursor: not-allowed;
-  text-decoration: none;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
 }
 
-/* Flight redirect card */
-.booking-details-carousel .flight-redirect-msg {
-  background: #f0f7ff;
-  border: 1px solid #cce0ff;
-  border-radius: 10px;
-  padding: 14px 16px;
+.flight-cancel-carousel .fc-status-confirmed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.flight-cancel-carousel .fc-status-cancelled {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.flight-cancel-carousel .fc-status-other {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.flight-cancel-carousel .fc-price-info {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 14px;
   margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.flight-cancel-carousel .fc-price-row {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.booking-details-carousel .flight-redirect-msg .fr-icon {
-  font-size: 18px;
-  line-height: 1.4;
-  flex-shrink: 0;
-}
-
-.booking-details-carousel .flight-redirect-msg .fr-text {
+  justify-content: space-between;
   font-size: 13px;
-  color: #1a56db;
-  line-height: 1.5;
+  padding: 4px 0;
 }
 
-.booking-details-carousel .flight-redirect-btn {
+.flight-cancel-carousel .fc-price-label {
+  color: #646d74;
+}
+
+.flight-cancel-carousel .fc-price-value {
+  font-weight: 600;
+  color: #202020;
+}
+
+.flight-cancel-carousel .fc-price-total {
+  font-size: 16px;
+  color: #ef6614;
+  font-family: inter, sans-serif;
+}
+
+.flight-cancel-carousel .fc-policy-section {
+  background: #fffbf0;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+  border: 1px solid #ffe0b2;
+}
+
+.flight-cancel-carousel .fc-policy-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e65100;
+  margin-bottom: 8px;
+}
+
+.flight-cancel-carousel .fc-policy-item {
+  font-size: 12px;
+  color: #646d74;
+  padding: 3px 0;
+}
+
+.flight-cancel-carousel .fc-pnr-info {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.flight-cancel-carousel .fc-pnr-item {
+  background: #e3f2fd;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #1565c0;
+  font-weight: 600;
+}
+
+/* Reuse common interactive styles */
+.flight-cancel-carousel .hc-step { display: none; }
+.flight-cancel-carousel .hc-step.active { display: block; }
+
+.flight-cancel-carousel .hc-cancel-btn {
   display: block;
   width: 100%;
   margin-top: 12px;
@@ -4252,36 +4292,243 @@ FLIGHT_REDIRECT_TEMPLATE = """
   font-weight: 600;
   cursor: pointer;
   font-family: poppins, sans-serif;
-  text-align: center;
-  text-decoration: none;
   transition: opacity 0.2s;
 }
-
-.booking-details-carousel .flight-redirect-btn:hover {
-  opacity: 0.85;
+.flight-cancel-carousel .hc-cancel-btn:hover { opacity: 0.85; }
+.flight-cancel-carousel .hc-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.booking-details-carousel .flight-redirect-note {
+.flight-cancel-carousel .hc-loading {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.85);
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 12px;
+}
+
+.flight-cancel-carousel .hc-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #ef6614;
+  border-radius: 50%;
+  animation: fcSpin 0.8s linear infinite;
+}
+@keyframes fcSpin { to { transform: rotate(360deg); } }
+
+.flight-cancel-carousel .hc-error-msg {
+  display: none;
+  color: #d32f2f;
+  padding: 4px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-bottom: 4px;
+  margin-top: -4px;
+}
+
+.flight-cancel-carousel .hc-verify-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 5px 12px;
   text-align: center;
-  font-size: 11px;
-  color: #999;
-  margin-top: 10px;
-  line-height: 1.4;
+  max-width: 400px;
+  margin: 0 auto;
 }
+
+.flight-cancel-carousel .hc-verify-icon {
+  width: 50px; height: 50px;
+  margin: 0 auto 4px;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(239, 102, 20, 0.25);
+}
+
+.flight-cancel-carousel .hc-verify-title {
+  font-size: 18px; font-weight: 700; color: #202020; margin-bottom: 8px;
+}
+
+.flight-cancel-carousel .hc-verify-desc {
+  font-size: 13px; color: #646d74; line-height: 1.5; margin-bottom: 9px;
+}
+
+.flight-cancel-carousel .hc-otp-field { margin-bottom: 16px; }
+
+.flight-cancel-carousel .hc-login-otp-input {
+  width: 100%; max-width: 240px;
+  padding: 10px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 14px; font-weight: 600;
+  text-align: center; letter-spacing: 4px;
+  font-family: inter, sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff; color: #202020;
+}
+.flight-cancel-carousel .hc-login-otp-input:focus {
+  border-color: #ef6614;
+  box-shadow: 0 0 0 3px rgba(239, 102, 20, 0.1);
+}
+.flight-cancel-carousel .hc-login-otp-input::placeholder {
+  font-size: 14px; letter-spacing: 0; font-weight: 400; color: #bbb;
+}
+
+.flight-cancel-carousel .hc-submit-btn {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  color: #fff; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: poppins, sans-serif;
+  transition: opacity 0.2s;
+}
+.flight-cancel-carousel .hc-submit-btn:hover { opacity: 0.85; }
+
+.flight-cancel-carousel .hc-back-btn {
+  background: none;
+  border: 1px solid #e0e0e0;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 12px; cursor: pointer;
+  color: #646d74; font-family: poppins, sans-serif;
+  transition: border-color 0.2s;
+}
+.flight-cancel-carousel .hc-back-btn:hover { border-color: #ef6614; color: #ef6614; }
+
+.flight-cancel-carousel .hc-btn-row {
+  display: flex; gap: 8px; margin-top: 16px;
+}
+
+.flight-cancel-carousel .hc-verify-icon--cancel {
+  background: linear-gradient(135deg, #d32f2f 0%, #ef5350 100%);
+  box-shadow: 0 4px 16px rgba(211, 47, 47, 0.25);
+}
+
+.flight-cancel-carousel .hc-otp-input {
+  width: 100%; max-width: 240px;
+  padding: 8px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 18px; font-weight: 600;
+  text-align: center; letter-spacing: 4px;
+  font-family: inter, sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff; color: #202020;
+}
+.flight-cancel-carousel .hc-otp-input:focus {
+  border-color: #ef6614;
+  box-shadow: 0 0 0 3px rgba(239, 102, 20, 0.1);
+}
+.flight-cancel-carousel .hc-otp-input::placeholder {
+  font-size: 14px; letter-spacing: 0; font-weight: 400; color: #bbb;
+}
+
+.flight-cancel-carousel .hc-verify-footer {
+  font-size: 11px; color: #999; margin-top: 16px; line-height: 1.4;
+}
+
+.flight-cancel-carousel .hc-selected-room-badge {
+  background: #f5f5f5;
+  padding: 10px 14px; border-radius: 8px;
+  font-size: 13px; margin-bottom: 16px;
+  border-left: 3px solid #ef6614;
+}
+
+.flight-cancel-carousel .hc-resend-otp-btn {
+  background: none; border: none; color: #2196f3; font-size: 12px; font-weight: 600;
+  cursor: pointer; padding: 0; margin-top: 8px; text-decoration: none; display: inline-block;
+}
+.flight-cancel-carousel .hc-resend-otp-btn:hover { text-decoration: underline; color: #1565c0; }
+.flight-cancel-carousel .hc-resend-otp-btn:disabled { color: #999; cursor: not-allowed; text-decoration: none; }
+
+/* Success result */
+.flight-cancel-carousel .hc-success-box {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+  border: 2px solid #4caf50; border-radius: 16px;
+  padding: 32px 24px; text-align: center;
+}
+.flight-cancel-carousel .hc-success-icon {
+  width: 64px; height: 64px;
+  margin: 0 auto 16px;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+  animation: fcSuccessPop 0.6s ease-out;
+}
+@keyframes fcSuccessPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.flight-cancel-carousel .hc-success-icon svg { width: 36px; height: 36px; color: #fff; }
+.flight-cancel-carousel .hc-success-title {
+  font-size: 20px; font-weight: 700; color: #2e7d32; margin-bottom: 16px;
+}
+.flight-cancel-carousel .hc-refund-box {
+  background: linear-gradient(135deg, #fff8e1 0%, #fffbea 100%);
+  border: 2px solid #ffc107; border-radius: 12px;
+  padding: 16px; margin-top: 16px; text-align: left;
+}
+.flight-cancel-carousel .hc-refund-title { font-size: 14px; font-weight: 600; color: #f57c00; margin-bottom: 10px; }
+.flight-cancel-carousel .hc-refund-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+.flight-cancel-carousel .hc-refund-label { color: #646d74; }
+.flight-cancel-carousel .hc-refund-value { font-weight: 600; color: #202020; }
+.flight-cancel-carousel .hc-refund-amount { font-size: 24px; font-weight: 700; color: #ef6614; font-family: inter, sans-serif; margin-bottom: 8px; }
+.flight-cancel-carousel .hc-footer-note { font-size: 12px; color: #868686; text-align: center; margin-top: 20px; }
+
+/* Dark mode */
+.flight-cancel-carousel.dark { background: #000; color: #fff; }
+.flight-cancel-carousel.dark .fc-segment-card,
+.flight-cancel-carousel.dark .fc-price-info { background: #000; border-color: #373737; }
+.flight-cancel-carousel.dark .fc-title,
+.flight-cancel-carousel.dark .fc-airline-row,
+.flight-cancel-carousel.dark .fc-detail-value,
+.flight-cancel-carousel.dark .fc-price-value,
+.flight-cancel-carousel.dark .fc-pax-table td { color: #fff; }
+.flight-cancel-carousel.dark .fc-subtitle,
+.flight-cancel-carousel.dark .fc-detail-label,
+.flight-cancel-carousel.dark .fc-price-label,
+.flight-cancel-carousel.dark .fc-pax-table th { color: #bcbcbc; }
+.flight-cancel-carousel.dark .fc-pax-table th { background: #111; border-color: #373737; }
+.flight-cancel-carousel.dark .fc-pax-table td { border-color: #222; }
+.flight-cancel-carousel.dark .fc-pax-table tr:hover { background: #1a1a1a; }
+.flight-cancel-carousel.dark .fc-policy-section { background: #1a1500; border-color: #5a4000; }
+.flight-cancel-carousel.dark .fc-pnr-item { background: #0a1929; color: #64b5f6; }
+.flight-cancel-carousel.dark .hc-loading { background: rgba(0,0,0,0.85); }
+.flight-cancel-carousel.dark .hc-error-msg { background: #3d0000; color: #ff8a80; }
+.flight-cancel-carousel.dark .hc-verify-card { background: linear-gradient(135deg, #1a1a1a 0%, #111 100%); border-color: #373737; }
+.flight-cancel-carousel.dark .hc-verify-title { color: #fff; }
+.flight-cancel-carousel.dark .hc-verify-desc { color: #bcbcbc; }
+.flight-cancel-carousel.dark .hc-login-otp-input,
+.flight-cancel-carousel.dark .hc-otp-input { background: #000; border-color: #373737; color: #fff; }
+.flight-cancel-carousel.dark .hc-login-otp-input:focus,
+.flight-cancel-carousel.dark .hc-otp-input:focus { border-color: #ef6614; box-shadow: 0 0 0 3px rgba(239, 102, 20, 0.2); }
+.flight-cancel-carousel.dark .hc-back-btn { border-color: #373737; color: #bcbcbc; }
+.flight-cancel-carousel.dark .hc-selected-room-badge { background: #1a1a1a; color: #fff; }
+.flight-cancel-carousel.dark .hc-success-box { background: linear-gradient(135deg, #1a3a1a 0%, #1f2d1f 100%); }
+.flight-cancel-carousel.dark .hc-success-title { color: #66bb6a; }
+.flight-cancel-carousel.dark .hc-refund-box { background: linear-gradient(135deg, #332a00 0%, #3d3200 100%); }
+.flight-cancel-carousel.dark .hc-refund-value { color: #fff; }
+.flight-cancel-carousel.dark .hc-refund-label { color: #bcbcbc; }
+.flight-cancel-carousel.dark .hc-verify-footer { color: #666; }
+
 </style>
 
-<div class="booking-details-carousel round-trip-selector" data-instance-id="{{ instance_id }}">
+<div class="flight-cancel-carousel round-trip-selector" data-instance-id="{{ instance_id }}">
   <main>
-    <!-- Loading overlay -->
     <div class="hc-loading"><div class="hc-spinner"></div></div>
-
-    <!-- Error banner -->
     <div class="hc-error-msg"></div>
 
-    <!-- Header -->
-    <div class="bkhd">
-      <div class="bkttl">Flight Cancellation</div>
-      <div class="bksub"{% if is_otp_send %} style="display:none"{% endif %}>Booking {{ booking_id }}</div>
+    <div class="fc-header">
+      <div class="fc-title">{{ title }}</div>
+      <div class="fc-subtitle"{% if is_otp_send %} style="display:none"{% endif %}>{{ subtitle }}</div>
     </div>
 
     <!-- STEP 0: Login OTP verification -->
@@ -4294,9 +4541,7 @@ FLIGHT_REDIRECT_TEMPLATE = """
           </svg>
         </div>
         <div class="hc-verify-title">Verify Your Identity</div>
-        <p class="hc-verify-desc">
-          We've sent a One-Time Password to your registered email &amp; phone number. Enter it below to continue.
-        </p>
+        <p class="hc-verify-desc">We've sent a One-Time Password to your registered email &amp; phone number. Enter it below to continue.</p>
         <div class="hc-otp-field">
           <input type="text" class="hc-login-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
         </div>
@@ -4307,26 +4552,241 @@ FLIGHT_REDIRECT_TEMPLATE = """
     </div>
     {% endif %}
 
-    <!-- STEP 1: Redirect Card -->
-    <div class="hc-step {{ 'active' if not is_otp_send else '' }}" data-step="redirect">
-      <div class="flight-redirect-msg">
-        <span class="fr-icon">&#9993;</span>
-        <div class="fr-text">
-          Flight cancellations are processed on the EaseMyTrip website.
-          Click the button below to go to the cancellation page where you can
-          review your flight details and complete the cancellation.
+    <!-- STEP 1: Flight details + Passenger selection -->
+    <div class="hc-step {{ 'active' if not is_otp_send and not all_cancelled else '' }}" data-step="details">
+
+      <!-- Flight Segments -->
+      {% for seg in flight_segments %}
+      <div class="fc-segment-card">
+        {% if seg.bound_type %}
+        <div class="fc-segment-bound">
+          {% if 'out' in seg.bound_type|lower %}Outbound{% elif 'in' in seg.bound_type|lower %}Inbound{% else %}{{ seg.bound_type }}{% endif %}
+        </div>
+        {% endif %}
+        <div class="fc-airline-row">✈️ {{ seg.airline_name }} {{ seg.flight_number }}</div>
+        <div class="fc-route">
+          <span>{{ seg.origin }}{% if seg.origin_airport %} ({{ seg.origin_airport | truncate_text(25) }}){% endif %}</span>
+          <span class="fc-route-arrow">→</span>
+          <span>{{ seg.destination }}{% if seg.destination_airport %} ({{ seg.destination_airport | truncate_text(25) }}){% endif %}</span>
+        </div>
+        <div class="fc-details-row">
+          {% if seg.departure_date %}
+          <div class="fc-detail-item">
+            <div class="fc-detail-label">Departure</div>
+            <div class="fc-detail-value">{{ seg.departure_date }} {{ seg.departure_time }}</div>
+          </div>
+          {% endif %}
+          {% if seg.arrival_date %}
+          <div class="fc-detail-item">
+            <div class="fc-detail-label">Arrival</div>
+            <div class="fc-detail-value">{{ seg.arrival_date }} {{ seg.arrival_time }}</div>
+          </div>
+          {% endif %}
+          {% if seg.duration %}
+          <div class="fc-detail-item">
+            <div class="fc-detail-label">Duration</div>
+            <div class="fc-detail-value">{{ seg.duration }}</div>
+          </div>
+          {% endif %}
+          {% if seg.cabin_class %}
+          <div class="fc-detail-item">
+            <div class="fc-detail-label">Class</div>
+            <div class="fc-detail-value">{{ seg.cabin_class }}</div>
+          </div>
+          {% endif %}
+          {% if seg.origin_terminal %}
+          <div class="fc-detail-item">
+            <div class="fc-detail-label">Terminal</div>
+            <div class="fc-detail-value">T{{ seg.origin_terminal }} → T{{ seg.destination_terminal }}</div>
+          </div>
+          {% endif %}
+          {% if seg.check_in_baggage %}
+          <div class="fc-detail-item">
+            <div class="fc-detail-label">Baggage</div>
+            <div class="fc-detail-value">{{ seg.check_in_baggage }}</div>
+          </div>
+          {% endif %}
         </div>
       </div>
+      {% endfor %}
 
-      <a href="{{ redirect_url }}" target="_blank" rel="noopener" class="flight-redirect-btn">
-        Go to Cancellation Page
-      </a>
+      <!-- PNR Info -->
+      {% if pnr_info %}
+      <div class="fc-pnr-info">
+        {% for pnr in pnr_info %}
+          {% if pnr.airline_pnr %}<span class="fc-pnr-item">Airline PNR: {{ pnr.airline_pnr }}</span>{% endif %}
+          {% if pnr.gds_pnr %}<span class="fc-pnr-item">GDS PNR: {{ pnr.gds_pnr }}</span>{% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
 
-      <div class="flight-redirect-note">
-        You will be redirected to EaseMyTrip's cancellation page in a new tab.
-        If the page asks you to log in, use your booking ID and registered email.
+      <!-- Passenger Selection -->
+      <div class="fc-pax-section">
+        <div class="fc-pax-title">Select passengers to cancel</div>
+        <label class="fc-select-all">
+          <input type="checkbox" class="fc-select-all-cb" /> Select All Passengers
+        </label>
+
+        {% if outbound_passengers %}
+        <div class="fc-bound-label">Outbound</div>
+        <table class="fc-pax-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Passenger</th>
+              <th>Type</th>
+              <th>Ticket</th>
+              <th>Status</th>
+              <th>Cancel Charge</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pax in outbound_passengers %}
+            <tr{% if pax.is_cancelled or not pax.is_cancellable %} style="opacity: 0.5;"{% endif %}>
+              <td><input type="checkbox" class="fc-pax-cb" data-pax-id="{{ pax.pax_id }}" data-bound="outbound"{% if pax.is_cancelled or not pax.is_cancellable %} disabled{% endif %} /></td>
+              <td>{{ pax.title }} {{ pax.first_name }} {{ pax.last_name }}</td>
+              <td>{{ pax.pax_type }}</td>
+              <td>{{ pax.ticket_number or '-' }}</td>
+              <td>
+                {% if pax.is_cancelled %}
+                <span class="fc-status-badge fc-status-cancelled">Cancelled</span>
+                {% elif pax.status %}
+                <span class="fc-status-badge {{ 'fc-status-confirmed' if pax.status|lower == 'confirmed' or pax.status|lower == 'booked' else 'fc-status-other' }}">{{ pax.status }}</span>
+                {% endif %}
+              </td>
+              <td>{% if pax.cancellation_charge %}₹{{ pax.cancellation_charge }}{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+
+        {% if inbound_passengers %}
+        <div class="fc-bound-label">Inbound</div>
+        <table class="fc-pax-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Passenger</th>
+              <th>Type</th>
+              <th>Ticket</th>
+              <th>Status</th>
+              <th>Cancel Charge</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pax in inbound_passengers %}
+            <tr{% if pax.is_cancelled or not pax.is_cancellable %} style="opacity: 0.5;"{% endif %}>
+              <td><input type="checkbox" class="fc-pax-cb" data-pax-id="{{ pax.pax_id }}" data-bound="inbound"{% if pax.is_cancelled or not pax.is_cancellable %} disabled{% endif %} /></td>
+              <td>{{ pax.title }} {{ pax.first_name }} {{ pax.last_name }}</td>
+              <td>{{ pax.pax_type }}</td>
+              <td>{{ pax.ticket_number or '-' }}</td>
+              <td>
+                {% if pax.is_cancelled %}
+                <span class="fc-status-badge fc-status-cancelled">Cancelled</span>
+                {% elif pax.status %}
+                <span class="fc-status-badge {{ 'fc-status-confirmed' if pax.status|lower == 'confirmed' or pax.status|lower == 'booked' else 'fc-status-other' }}">{{ pax.status }}</span>
+                {% endif %}
+              </td>
+              <td>{% if pax.cancellation_charge %}₹{{ pax.cancellation_charge }}{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+
+      <!-- Cancellation Policy -->
+      {% if cancellation_policy %}
+      <div class="fc-policy-section">
+        <div class="fc-policy-title">Cancellation Policy</div>
+        {% for sector in cancellation_policy %}
+          {% if sector.sector_name %}
+          <div style="font-size:12px;font-weight:600;color:#202020;margin:4px 0 2px;">{{ sector.sector_name }}</div>
+          {% endif %}
+          {% for pol in sector.policies %}
+          <div class="fc-policy-item">
+            {% if pol.policy_text %}{{ pol.policy_text }}{% else %}{{ pol.charge_type }}: ₹{{ pol.charge_value }}{% if pol.from_date %} ({{ pol.from_date }} - {{ pol.to_date }}){% endif %}{% endif %}
+          </div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Price Info -->
+      {% if price_info and price_info.total_fare %}
+      <div class="fc-price-info">
+        <div class="fc-price-row">
+          <span class="fc-price-label">Total Fare</span>
+          <span class="fc-price-value fc-price-total">₹{{ price_info.total_fare }}</span>
+        </div>
+        {% if price_info.total_base_fare %}
+        <div class="fc-price-row">
+          <span class="fc-price-label">Base Fare</span>
+          <span class="fc-price-value">₹{{ price_info.total_base_fare }}</span>
+        </div>
+        {% endif %}
+        {% if price_info.total_tax %}
+        <div class="fc-price-row">
+          <span class="fc-price-label">Taxes &amp; Fees</span>
+          <span class="fc-price-value">₹{{ price_info.total_tax }}</span>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <button type="button" class="hc-cancel-btn fc-proceed-btn" disabled>Cancel Selected Passengers</button>
+    </div>
+
+    <!-- STEP 2: Send OTP & Confirm -->
+    <div class="hc-step" data-step="otp">
+      <div class="hc-selected-room-badge">
+        Cancelling: <strong class="fc-selected-pax-label"></strong>
+      </div>
+      <div class="hc-verify-card">
+        <div class="hc-verify-icon hc-verify-icon--cancel">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+          </svg>
+        </div>
+        <div class="hc-verify-title">Confirm Cancellation</div>
+        <p class="hc-verify-desc">A cancellation OTP has been sent to your registered email &amp; phone. Enter it below to confirm.</p>
+        <div class="hc-otp-field">
+          <input type="text" class="hc-otp-input" maxlength="10" placeholder="Enter OTP" autocomplete="one-time-code" />
+        </div>
+        <div class="hc-error-msg hc-step-error"></div>
+        <div class="hc-btn-row" style="justify-content: center;">
+          <button type="button" class="hc-back-btn" data-back-to="details">Back</button>
+          <button type="button" class="hc-submit-btn fc-confirm-btn">Confirm Cancellation</button>
+        </div>
+        <p class="hc-verify-footer">
+          This action cannot be undone. Refund will be processed as per airline cancellation policy.<br>
+          Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-cancel-otp">Resend OTP</button>
+        </p>
       </div>
     </div>
+
+    <!-- STEP 3: Result -->
+    <div class="hc-step" data-step="result">
+      <div class="hc-result-content"></div>
+    </div>
+
+    <!-- STEP: Already Cancelled -->
+    <div class="hc-step {{ 'active' if not is_otp_send and all_cancelled else '' }}" data-step="cancelled">
+      <div style="text-align:center;padding:30px 20px;">
+        <div style="width:56px;height:56px;margin:0 auto 14px;background:#ffebee;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#c62828" style="width:28px;height:28px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </div>
+        <h3 style="font-size:17px;font-weight:700;color:#1a1a2e;margin:0 0 8px;">Booking Already Cancelled</h3>
+        <p style="font-size:13px;color:#646d74;margin:0 0 14px;">All passengers in this flight booking have already been cancelled.</p>
+        <div style="background:#f8f9fa;border-radius:8px;padding:10px 14px;display:inline-block;">
+          <span style="font-size:12px;color:#646d74;">No further action is needed. If you have questions about your refund, please contact support.</span>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -4342,15 +4802,20 @@ FLIGHT_REDIRECT_TEMPLATE = """
 
   var API_BASE = '{{ api_base_url }}';
   var VERIFY_OTP_URL = API_BASE + '/api/hotel-cancel/verify-otp';
+  var OTP_URL = API_BASE + '/api/hotel-cancel/send-otp';
+  var CANCEL_URL = API_BASE + '/api/hotel-cancel/confirm';
   var RESEND_LOGIN_OTP_URL = API_BASE + '/api/hotel-cancel/resend-login-otp';
+  var BID = '{{ bid }}';
   var BOOKING_ID = '{{ booking_id }}';
   var EMAIL = '{{ email }}';
+  var ALL_CANCELLED = {{ 'true' if all_cancelled else 'false' }};
 
-  /* ---- DOM references (scoped to container) ---- */
+  var selectedOutbound = [];
+  var selectedInbound = [];
+
   var loadingOverlay = container.querySelector('.hc-loading');
   var globalErrorBanner = container.querySelector('main > .hc-error-msg');
 
-  /* ---- Utility functions (same as hotel/train/bus) ---- */
   function hideAllErrors() {
     var errs = container.querySelectorAll('.hc-error-msg');
     for (var i = 0; i < errs.length; i++) errs[i].style.display = 'none';
@@ -4358,28 +4823,68 @@ FLIGHT_REDIRECT_TEMPLATE = """
 
   function showStep(stepName) {
     var steps = container.querySelectorAll('.hc-step');
-    for (var i = 0; i < steps.length; i++) {
-      steps[i].classList.remove('active');
-    }
+    for (var i = 0; i < steps.length; i++) steps[i].classList.remove('active');
     var target = container.querySelector('[data-step="' + stepName + '"]');
     if (target) target.classList.add('active');
     hideAllErrors();
   }
 
-  function showLoading(show) {
-    loadingOverlay.style.display = show ? 'flex' : 'none';
-  }
-
-  function showError(message) {
+  function showLoading(show) { loadingOverlay.style.display = show ? 'flex' : 'none'; }
+  function showError(msg) {
     hideAllErrors();
     var activeStep = container.querySelector('.hc-step.active');
     var inlineErr = activeStep ? activeStep.querySelector('.hc-step-error') : null;
     var target = inlineErr || globalErrorBanner;
-    target.textContent = message;
+    target.textContent = msg;
     target.style.display = 'block';
   }
 
-  /* ---- API: Verify login OTP ---- */
+  function updateSelectedLabel() {
+    var total = selectedOutbound.length + selectedInbound.length;
+    var labels = container.querySelectorAll('.fc-selected-pax-label');
+    var text = total + ' passenger(s)';
+    for (var i = 0; i < labels.length; i++) labels[i].textContent = text;
+  }
+
+  function updateProceedBtn() {
+    var btn = container.querySelector('.fc-proceed-btn');
+    var cbs = container.querySelectorAll('.fc-pax-cb:not(:disabled):checked');
+    selectedOutbound = [];
+    selectedInbound = [];
+    for (var i = 0; i < cbs.length; i++) {
+      var paxId = cbs[i].getAttribute('data-pax-id');
+      var bound = cbs[i].getAttribute('data-bound');
+      if (bound === 'inbound') {
+        selectedInbound.push(paxId);
+      } else {
+        selectedOutbound.push(paxId);
+      }
+    }
+    btn.disabled = (selectedOutbound.length + selectedInbound.length) === 0;
+  }
+
+  /* Checkbox handlers */
+  var selectAllCb = container.querySelector('.fc-select-all-cb');
+  var paxCbs = container.querySelectorAll('.fc-pax-cb');
+  var activePaxCbs = container.querySelectorAll('.fc-pax-cb:not(:disabled)');
+
+  if (selectAllCb) {
+    selectAllCb.addEventListener('change', function() {
+      for (var i = 0; i < activePaxCbs.length; i++) activePaxCbs[i].checked = this.checked;
+      updateProceedBtn();
+    });
+  }
+  for (var i = 0; i < activePaxCbs.length; i++) {
+    activePaxCbs[i].addEventListener('change', function() {
+      updateProceedBtn();
+      if (selectAllCb) {
+        var allChecked = container.querySelectorAll('.fc-pax-cb:not(:disabled):checked').length === activePaxCbs.length;
+        selectAllCb.checked = allChecked;
+      }
+    });
+  }
+
+  /* API helpers */
   function verifyLoginOtp(otp) {
     showLoading(true);
     hideAllErrors();
@@ -4393,7 +4898,6 @@ FLIGHT_REDIRECT_TEMPLATE = """
       showLoading(false);
       var isVerified = false;
       var msg = '';
-
       if (data.structured_content) {
         isVerified = !!data.structured_content.success;
         msg = data.structured_content.message || data.response_text || '';
@@ -4407,7 +4911,6 @@ FLIGHT_REDIRECT_TEMPLATE = """
         isVerified = !!data.isStatus;
         msg = data.Msg || data.Message || '';
       }
-
       if (!isVerified) {
         showError(msg || 'Invalid OTP. Please check and try again.');
         return null;
@@ -4424,27 +4927,107 @@ FLIGHT_REDIRECT_TEMPLATE = """
     });
   }
 
-  /* ---- Step 0: Verify login OTP ---- */
+  function sendOtp() {
+    showLoading(true);
+    hideAllErrors();
+    return fetch(OTP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL, transaction_type: 'Flight' })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      showLoading(false);
+      var success = false;
+      if (data.structured_content) {
+        success = !!data.structured_content.success;
+      } else {
+        success = !!(data.isStatus || data.IsStatus);
+      }
+      if (!success) {
+        var msg = (data.structured_content && data.structured_content.message) || data.Msg || data.Message || 'Failed to send OTP. Please try again.';
+        showError(msg);
+        return null;
+      }
+      return data;
+    })
+    .catch(function(err) {
+      showLoading(false);
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
+      return null;
+    });
+  }
+
+  function confirmCancellation(otp) {
+    showLoading(true);
+    hideAllErrors();
+    return fetch(CANCEL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        booking_id: BOOKING_ID,
+        email: EMAIL,
+        otp: otp,
+        outbound_pax_ids: selectedOutbound.join(','),
+        inbound_pax_ids: selectedInbound.join(','),
+        transaction_type: 'Flight'
+      })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      showLoading(false);
+      if (typeof data === 'string') {
+        var success = data.toLowerCase().indexOf('success') !== -1 || data.toLowerCase().indexOf('cancel') !== -1;
+        if (!success) {
+          var isOtpError = data.toLowerCase().indexOf('otp') !== -1;
+          var fallback = isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.';
+          showError(data || fallback);
+          return null;
+        }
+        return { Status: true, message: data };
+      }
+      var isSuccess = data.Status || data.isStatus || data.isRequested || data.isCancelled;
+      if (!isSuccess) {
+        var msg = data.LogMessage || data.Message || data.Msg || data.msg || '';
+        var isOtpError = msg.toLowerCase().indexOf('otp') !== -1;
+        var fallback = isOtpError ? 'Invalid OTP. Please check and try again.' : 'Cancellation failed. Please try again.';
+        showError(msg || fallback);
+        return null;
+      }
+      return data;
+    })
+    .catch(function(err) {
+      showLoading(false);
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
+      return null;
+    });
+  }
+
+  /* Step 0: Verify login OTP */
   var verifyOtpBtn = container.querySelector('.hc-verify-otp-btn');
   if (verifyOtpBtn) {
     verifyOtpBtn.addEventListener('click', function() {
       var otpInput = container.querySelector('.hc-login-otp-input');
       var otp = otpInput ? otpInput.value.trim() : '';
-      if (!otp || otp.length < 4) {
-        showError('Please enter a valid OTP.');
-        return;
-      }
+      if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
       verifyLoginOtp(otp).then(function(result) {
         if (result) {
-          var sub = container.querySelector('.bksub');
+          var sub = container.querySelector('.fc-subtitle');
           if (sub) sub.style.display = '';
-          showStep('redirect');
+          if (ALL_CANCELLED) { showStep('cancelled'); }
+          else { showStep('details'); }
         }
       });
     });
   }
 
-  /* ---- Resend login OTP ---- */
+  /* Resend login OTP */
   var resendLoginOtpBtn = container.querySelector('.hc-resend-login-otp');
   if (resendLoginOtpBtn) {
     resendLoginOtpBtn.addEventListener('click', function() {
@@ -4457,7 +5040,7 @@ FLIGHT_REDIRECT_TEMPLATE = """
         body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL })
       })
       .then(function(resp) { return resp.json(); })
-      .then(function(data) {
+      .then(function() {
         btn.textContent = 'OTP Sent!';
         setTimeout(function() { btn.textContent = 'Resend OTP'; btn.disabled = false; }, 3000);
       })
@@ -4469,42 +5052,165 @@ FLIGHT_REDIRECT_TEMPLATE = """
     });
   }
 
-  /* ---- Enter key on OTP input ---- */
-  var otpInput = container.querySelector('.hc-login-otp-input');
-  if (otpInput && verifyOtpBtn) {
-    otpInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') { verifyOtpBtn.click(); }
+  /* Step 1: Proceed with selected passengers */
+  var proceedBtn = container.querySelector('.fc-proceed-btn');
+  if (proceedBtn) {
+    proceedBtn.addEventListener('click', function() {
+      if (selectedOutbound.length + selectedInbound.length === 0) return;
+      updateSelectedLabel();
+      sendOtp().then(function(result) { if (result) showStep('otp'); });
     });
   }
+
+  /* Step 2: Confirm cancellation */
+  var confirmBtn = container.querySelector('.fc-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', function() {
+      var otpInput = container.querySelector('.hc-otp-input');
+      var otp = otpInput ? otpInput.value.trim() : '';
+      if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
+      confirmCancellation(otp).then(function(result) {
+        if (result) { renderResult(result); showStep('result'); }
+      });
+    });
+  }
+
+  /* Resend cancellation OTP */
+  var resendCancelOtpBtn = container.querySelector('.hc-resend-cancel-otp');
+  if (resendCancelOtpBtn) {
+    resendCancelOtpBtn.addEventListener('click', function() {
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      sendOtp().then(function(result) {
+        if (result) {
+          btn.textContent = 'OTP Sent!';
+        } else {
+          btn.textContent = 'Resend OTP';
+        }
+        btn.disabled = false;
+        setTimeout(function() { btn.textContent = 'Resend OTP'; }, 3000);
+      });
+    });
+  }
+
+  /* Step 3: Render result */
+  function renderResult(data) {
+    var resultContainer = container.querySelector('.hc-result-content');
+    var html = '<div class="hc-success-box">';
+    html += '<div class="hc-success-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>';
+    html += '<div class="hc-success-title">Cancellation Confirmed!</div>';
+
+    var msg = data.msg || data.Message || data.Msg || data.message || '';
+    var requestId = data.RequestId || data.requestId || '';
+    if (msg) html += '<p style="font-size:13px;color:#646d74;margin-bottom:12px;">' + msg + '</p>';
+    if (requestId) html += '<p style="font-size:12px;color:#868686;margin-bottom:12px;">Request ID: ' + requestId + '</p>';
+
+    var refundAmount = data.RefundAmount;
+    var cancellationCharges = data.CancellationCharges;
+    var refundMode = data.RefundMode;
+
+    if (refundAmount || cancellationCharges || refundMode) {
+      html += '<div class="hc-refund-box"><div class="hc-refund-title">Refund Information</div>';
+      if (refundAmount) html += '<div class="hc-refund-amount">₹' + refundAmount + '</div>';
+      if (cancellationCharges) html += '<div class="hc-refund-row"><span class="hc-refund-label">Cancellation Charges</span><span class="hc-refund-value">₹' + cancellationCharges + '</span></div>';
+      if (refundMode) html += '<div class="hc-refund-row"><span class="hc-refund-label">Refund Mode</span><span class="hc-refund-value">' + refundMode + '</span></div>';
+      html += '</div>';
+    }
+
+    html += '</div>';
+    html += '<div class="hc-footer-note">You will receive a confirmation email shortly. Refund will be processed as per airline cancellation policy.</div>';
+    resultContainer.innerHTML = html;
+  }
+
+  /* Back navigation */
+  var backBtns = container.querySelectorAll('.hc-back-btn');
+  for (var i = 0; i < backBtns.length; i++) {
+    backBtns[i].addEventListener('click', function() { showStep(this.getAttribute('data-back-to')); });
+  }
+
 })();
 </script>
 """
 
 
-def render_flight_redirect(
-    booking_id: str,
-    email: str,
-    redirect_url: str,
+def render_flight_booking_details(
+    booking_details: Dict[str, Any],
+    booking_id: str = "",
+    email: str = "",
     bid: str = "",
     api_base_url: str = "",
     is_otp_send: bool = False,
 ) -> str:
     """
-    Render a flight cancellation card with optional login OTP verification.
+    Render flight booking details as interactive HTML with cancellation flow.
 
-    When is_otp_send=True, shows OTP verification step first, then redirect card.
-    When is_otp_send=False, shows redirect card directly.
+    Args:
+        booking_details: Flight booking details from API
+        booking_id: Booking ID
+        email: User email
+        bid: Encrypted booking ID from guest login
+        api_base_url: Base URL of the chatbot API
+        is_otp_send: Whether a login OTP was auto-sent
+
+    Returns:
+        HTML string with rendered interactive flight booking details
     """
+    flight_segments = booking_details.get("flight_segments", [])
+    outbound_passengers = booking_details.get("outbound_passengers", [])
+    inbound_passengers = booking_details.get("inbound_passengers", [])
+    price_info = booking_details.get("price_info", {})
+    pnr_info = booking_details.get("pnr_info", [])
+    cancellation_policy = booking_details.get("cancellation_policy", [])
+
+    if not flight_segments and not outbound_passengers:
+        return """
+        <div class="flight-cancel-carousel">
+          <main style="max-width: 700px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; color: #646d74; padding: 40px 20px;">
+              <p style="font-size: 14px;">No flight details found in this booking.</p>
+            </div>
+          </main>
+        </div>
+        """
+
+    # Build title and subtitle
+    title = f"Flight Booking - {booking_id}" if booking_id else "Flight Booking Details"
+    subtitle_parts = []
+    if flight_segments:
+        seg = flight_segments[0]
+        if seg.get("airline_name"):
+            subtitle_parts.append(f"{seg['airline_name']} {seg.get('flight_number', '')}")
+        if seg.get("origin") and seg.get("destination"):
+            subtitle_parts.append(f"{seg['origin']} → {seg['destination']}")
+    total_pax = len(outbound_passengers) + len(inbound_passengers)
+    subtitle_parts.append(f"{total_pax} passenger(s)")
+    for pnr in pnr_info:
+        if pnr.get("airline_pnr"):
+            subtitle_parts.append(f"PNR: {pnr['airline_pnr']}")
+            break
+    subtitle = " • ".join(subtitle_parts)
+
     import uuid
     instance_id = str(uuid.uuid4())[:8]
 
-    template = _jinja_env.from_string(FLIGHT_REDIRECT_TEMPLATE)
+    all_cancelled = booking_details.get("all_cancelled", False)
+
+    template = _jinja_env.from_string(FLIGHT_BOOKING_TEMPLATE)
     return template.render(
+        title=title,
+        subtitle=subtitle,
+        flight_segments=flight_segments,
+        outbound_passengers=outbound_passengers,
+        inbound_passengers=inbound_passengers,
+        price_info=price_info,
+        pnr_info=pnr_info,
+        cancellation_policy=cancellation_policy,
         instance_id=instance_id,
+        bid=bid,
         booking_id=booking_id,
         email=email,
-        redirect_url=redirect_url,
-        bid=bid,
         api_base_url=api_base_url,
         is_otp_send=is_otp_send,
+        all_cancelled=all_cancelled,
     )

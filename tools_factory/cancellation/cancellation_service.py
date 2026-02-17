@@ -55,8 +55,11 @@ class CancellationService:
         self._transaction_screen_id = None
         self._booking_id = None
         self._email = None
-        self._transaction_type = None  # "Hotel", "Train", etc.
+        self._transaction_type = None  # "Hotel", "Train", "Flight", etc.
         self._emt_screen_id = None  # For train: ID field from PaxList
+        # Flight-specific state
+        self._flight_transaction_id = None  # Numeric ID e.g. "162759795"
+        self._flight_transaction_screen_id = None  # e.g. "EMT162759795"
 
     async def guest_login(self, booking_id: str, email: str) -> Dict[str, Any]:
         """
@@ -960,6 +963,351 @@ class CancellationService:
             return {
                 "success": False,
                 "message": "Bus cancellation request failed",
+                "refund_info": None,
+                "error": str(e),
+                "raw_response": {},
+            }
+
+    # ==================================================================
+    # Flight-specific methods
+    # ==================================================================
+
+    async def fetch_flight_booking_details(self, bid: str) -> Dict[str, Any]:
+        """
+        Fetch flight booking details using the bid token.
+
+        Returns dict with keys: success, flight_segments, outbound_passengers,
+        inbound_passengers, price_info, pnr_info, cancellation_policy,
+        trip_status, all_cancelled, error, raw_response
+        """
+        try:
+            # transactionScreenId = booking_id (e.g., "EMT162759795")
+            transaction_screen_id = self._booking_id or ""
+            email = self._email or ""
+            response = await self.client.fetch_flight_booking_details(
+                bid=bid,
+                transaction_screen_id=transaction_screen_id,
+                email=email,
+            )
+
+            passenger_details = response.get("PassengerDetails") or {}
+            booked_passanger = response.get("bookedPassanger") or {}
+
+            # Store transaction IDs for OTP and cancellation
+            self._flight_transaction_id = str(response.get("TransactionId") or "")
+            self._flight_transaction_screen_id = str(
+                response.get("TransactionScreenId") or transaction_screen_id
+            )
+
+            trip_status = response.get("TripStatus") or ""
+
+            # Parse flight segments from FlightDetail
+            flight_detail = passenger_details.get("FlightDetail") or []
+            flight_segments = []
+            for seg in flight_detail:
+                flight_segments.append({
+                    "airline_name": seg.get("AirLineName"),
+                    "airline_code": seg.get("AirLineCode"),
+                    "flight_number": seg.get("FlightNumber"),
+                    "origin": seg.get("Origin"),
+                    "origin_airport": seg.get("OriginAirportName"),
+                    "destination": seg.get("Destination"),
+                    "destination_airport": seg.get("DestinationAirportName"),
+                    "departure_date": seg.get("DepartureDate"),
+                    "departure_time": seg.get("DepartureTime"),
+                    "arrival_date": seg.get("ArrivalDate"),
+                    "arrival_time": seg.get("ArrivalTime"),
+                    "origin_terminal": seg.get("OriginTerminal"),
+                    "destination_terminal": seg.get("DestinationTerminal"),
+                    "duration": seg.get("Duration"),
+                    "cabin_class": seg.get("CabinClass"),
+                    "cabin_baggage": seg.get("CabinBaggage"),
+                    "check_in_baggage": seg.get("CheckInBaggage"),
+                    "bound_type": seg.get("BoundType"),
+                    "stops": seg.get("Stops"),
+                })
+
+            # Parse outbound passengers
+            outbound_passengers = []
+            lst_outbound = booked_passanger.get("lstOutbond") or []
+            for group in lst_outbound:
+                pax_list = group.get("outBondTypePass") or []
+                for pax in pax_list:
+                    is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
+                    is_cancelled = str(pax.get("status", "")).lower() in ("cancelled", "cancel")
+                    outbound_passengers.append({
+                        "pax_id": pax.get("paxId"),
+                        "title": pax.get("title"),
+                        "first_name": pax.get("firstName"),
+                        "last_name": pax.get("lastName"),
+                        "pax_type": pax.get("paxType"),
+                        "ticket_number": pax.get("ticketNumber"),
+                        "status": pax.get("status"),
+                        "is_cancellable": is_cancellable,
+                        "is_cancelled": is_cancelled,
+                        "cancellation_charge": pax.get("cancellationCharge"),
+                        "bound_type": pax.get("boundType"),
+                        "possible_mode": pax.get("possibleMode"),
+                    })
+
+            # Parse inbound passengers (round-trip)
+            inbound_passengers = []
+            lst_inbound = booked_passanger.get("lstInbound") or []
+            for group in lst_inbound:
+                pax_list = group.get("inBoundTypePass") or group.get("outBondTypePass") or []
+                for pax in pax_list:
+                    is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
+                    is_cancelled = str(pax.get("status", "")).lower() in ("cancelled", "cancel")
+                    inbound_passengers.append({
+                        "pax_id": pax.get("paxId"),
+                        "title": pax.get("title"),
+                        "first_name": pax.get("firstName"),
+                        "last_name": pax.get("lastName"),
+                        "pax_type": pax.get("paxType"),
+                        "ticket_number": pax.get("ticketNumber"),
+                        "status": pax.get("status"),
+                        "is_cancellable": is_cancellable,
+                        "is_cancelled": is_cancelled,
+                        "cancellation_charge": pax.get("cancellationCharge"),
+                        "bound_type": pax.get("boundType"),
+                        "possible_mode": pax.get("possibleMode"),
+                    })
+
+            # Parse price info
+            price_details = passenger_details.get("FlightPriceDetails") or {}
+            price_info = {
+                "total_fare": price_details.get("TotalFare"),
+                "total_base_fare": price_details.get("TotalBaseFare"),
+                "total_tax": price_details.get("TotalTax"),
+                "currency": price_details.get("Currency"),
+            }
+
+            # Parse PNR info
+            pnr_list = passenger_details.get("PNRList") or []
+            pnr_info = []
+            for pnr in pnr_list:
+                pnr_info.append({
+                    "airline_pnr": pnr.get("Airlinepnr"),
+                    "gds_pnr": pnr.get("Gdspnr"),
+                })
+
+            # Parse cancellation policy
+            cancellation_policy_data = response.get("FlightCancellationPolicy") or {}
+            sectors = cancellation_policy_data.get("Sectors") or []
+            cancellation_policy = []
+            for sector in sectors:
+                policies = sector.get("Policies") or []
+                policy_items = []
+                for pol in policies:
+                    policy_items.append({
+                        "charge_type": pol.get("ChargeType"),
+                        "charge_value": pol.get("ChargeValue"),
+                        "from_date": pol.get("FromDate"),
+                        "to_date": pol.get("ToDate"),
+                        "policy_text": pol.get("PolicyText"),
+                    })
+                cancellation_policy.append({
+                    "sector_name": sector.get("SectorName"),
+                    "policies": policy_items,
+                })
+
+            # Parse pax status
+            pax_status_data = response.get("PaxStatus") or {}
+            pax_statuses = pax_status_data.get("Pax") or []
+
+            # Check if all passengers are cancelled
+            all_pax = outbound_passengers + inbound_passengers
+            cancellable_pax = [p for p in all_pax if p.get("is_cancellable")]
+            all_cancelled = bool(all_pax) and all(p.get("is_cancelled") for p in all_pax)
+
+            return {
+                "success": True,
+                "flight_segments": flight_segments,
+                "outbound_passengers": outbound_passengers,
+                "inbound_passengers": inbound_passengers,
+                "price_info": price_info,
+                "pnr_info": pnr_info,
+                "cancellation_policy": cancellation_policy,
+                "pax_statuses": pax_statuses,
+                "trip_status": trip_status,
+                "transaction_id": self._flight_transaction_id,
+                "transaction_screen_id": self._flight_transaction_screen_id,
+                "all_cancelled": all_cancelled,
+                "total_cancellable": len(cancellable_pax),
+                "error": None,
+                "raw_response": response,
+            }
+        except Exception as e:
+            logger.error(f"Fetch flight booking details failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "flight_segments": [],
+                "outbound_passengers": [],
+                "inbound_passengers": [],
+                "price_info": {},
+                "pnr_info": [],
+                "cancellation_policy": [],
+                "pax_statuses": [],
+                "trip_status": "",
+                "transaction_id": None,
+                "transaction_screen_id": None,
+                "all_cancelled": False,
+                "total_cancellable": 0,
+                "error": str(e),
+                "raw_response": {},
+            }
+
+    async def send_flight_cancellation_otp(
+        self,
+        booking_id: str,
+        email: str,
+    ) -> Dict[str, Any]:
+        """
+        Send cancellation OTP for flight booking.
+
+        Uses stored flight transaction IDs from fetch_flight_booking_details.
+        Returns dict with keys: success, message, error, raw_response
+        """
+        try:
+            if not self._flight_transaction_id or not self._flight_transaction_screen_id:
+                return {
+                    "success": False,
+                    "message": "No flight transaction ID found. Please fetch booking details first.",
+                    "error": "NO_TRANSACTION_ID",
+                    "raw_response": {},
+                }
+
+            logger.info(
+                f"Sending flight cancellation OTP for TransactionId: {self._flight_transaction_id}, "
+                f"TransactionScreenId: {self._flight_transaction_screen_id}"
+            )
+            response = await self.client.send_flight_cancellation_otp(
+                transaction_id=self._flight_transaction_id,
+                transaction_screen_id=self._flight_transaction_screen_id,
+                email=email,
+            )
+
+            logger.info(f"Flight OTP Response: {response}")
+
+            is_status = response.get("IsStatus", False) or response.get("isStatus", False)
+            msg = response.get("Msg") or response.get("Message") or ""
+
+            has_error = (
+                response.get("Error")
+                or response.get("error")
+                or (msg and ("error" in msg.lower() or "fail" in msg.lower() or "expired" in msg.lower()))
+            )
+
+            is_success = is_status or (not has_error and msg != "Failed")
+
+            if not is_success:
+                logger.error(f"Flight OTP send failed. Response: {response}")
+
+            return {
+                "success": is_success,
+                "message": msg if msg else ("OTP sent successfully" if is_success else "Failed to send OTP"),
+                "error": None if is_success else "OTP_SEND_FAILED",
+                "raw_response": response,
+            }
+        except Exception as e:
+            logger.error(f"Send flight cancellation OTP failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "message": f"Failed to send cancellation OTP: {e}",
+                "error": str(e),
+                "raw_response": {},
+            }
+
+    async def request_flight_cancellation(
+        self,
+        booking_id: str,
+        email: str,
+        otp: str,
+        outbound_pax_ids: str = "",
+        inbound_pax_ids: str = "",
+        mode: str = "1",
+    ) -> Dict[str, Any]:
+        """
+        Submit flight cancellation request.
+
+        Args:
+            booking_id: Booking ID
+            email: User email
+            otp: Cancellation OTP
+            outbound_pax_ids: Comma-separated outbound passenger IDs
+            inbound_pax_ids: Comma-separated inbound passenger IDs
+            mode: Cancellation mode (default "1")
+
+        Returns dict with keys: success, message, refund_info, error, raw_response
+        """
+        try:
+            if not self._flight_transaction_screen_id:
+                return {
+                    "success": False,
+                    "message": "No flight transaction screen ID found. Please fetch booking details first.",
+                    "refund_info": None,
+                    "error": "NO_TRANSACTION_ID",
+                    "raw_response": {},
+                }
+
+            # Compute isPartialCancel: "true" if not all cancellable passengers selected
+            all_selected_ids = set()
+            if outbound_pax_ids:
+                all_selected_ids.update(outbound_pax_ids.split(","))
+            if inbound_pax_ids:
+                all_selected_ids.update(inbound_pax_ids.split(","))
+
+            total_cancellable = getattr(self, "_total_cancellable", 0)
+            is_partial = "true" if len(all_selected_ids) < total_cancellable else "false"
+
+            response = await self.client.cancel_flight(
+                transaction_screen_id=self._flight_transaction_screen_id,
+                email=email,
+                otp=otp,
+                outbound_pax_ids=outbound_pax_ids,
+                inbound_pax_ids=inbound_pax_ids,
+                mode=mode,
+                is_partial_cancel=is_partial,
+            )
+
+            logger.info(f"Flight Cancellation Response: {response}")
+
+            if isinstance(response, str):
+                is_success = "success" in response.lower() or "cancel" in response.lower()
+                msg = response
+                refund_info = None
+            else:
+                is_requested = response.get("isRequested", False)
+                is_cancelled = response.get("isCancelled", False)
+                is_success = is_requested or is_cancelled or response.get("Status", False)
+                msg = response.get("msg") or response.get("Message") or response.get("Msg") or ""
+                status_text = response.get("Status")
+                request_id = response.get("RequestId")
+
+                if request_id and not msg:
+                    msg = f"Cancellation request submitted (Request ID: {request_id})"
+
+                refund_info = None
+                if response.get("RefundAmount") or response.get("CancellationCharges"):
+                    refund_info = {
+                        "refund_amount": response.get("RefundAmount"),
+                        "cancellation_charges": response.get("CancellationCharges"),
+                        "refund_mode": response.get("RefundMode"),
+                        "request_id": request_id,
+                    }
+
+            return {
+                "success": bool(is_success),
+                "message": msg if is_success else (msg or "Flight cancellation request failed"),
+                "refund_info": refund_info,
+                "error": None if is_success else "CANCELLATION_FAILED",
+                "raw_response": response,
+            }
+        except Exception as e:
+            logger.error(f"Flight cancellation failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "message": "Flight cancellation request failed",
                 "refund_info": None,
                 "error": str(e),
                 "raw_response": {},

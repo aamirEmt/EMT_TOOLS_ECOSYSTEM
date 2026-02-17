@@ -71,6 +71,15 @@ class CancellationInput(BaseModel):
         default=None,
         description="Comma-separated seat numbers to cancel (required for bus 'confirm'), e.g. '2,5'",
     )
+    # Flight-specific fields for action="confirm"
+    outbound_pax_ids: Optional[str] = Field(
+        default=None,
+        description="Comma-separated outbound passenger IDs for flight cancellation",
+    )
+    inbound_pax_ids: Optional[str] = Field(
+        default=None,
+        description="Comma-separated inbound passenger IDs for flight cancellation",
+    )
 
 
 # ============================================================
@@ -84,9 +93,9 @@ class WhatsappCancellationFormat(BaseModel):
     rooms: Optional[list] = None        # Hotel
     passengers: Optional[list] = None   # Train
     seats: Optional[list] = None        # Bus
+    flight_passengers: Optional[list] = None  # Flight
     transaction_type: Optional[str] = None
     refund_info: Optional[dict] = None  # For confirm success
-    redirect_url: Optional[str] = None  # For flight cancellation redirect
 
 
 class WhatsappCancellationFinalResponse(BaseModel):

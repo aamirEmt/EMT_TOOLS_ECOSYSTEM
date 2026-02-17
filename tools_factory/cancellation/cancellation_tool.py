@@ -1,7 +1,6 @@
 """Cancellation Tool - Unified tool with action-based dispatch"""
 from typing import Dict, Tuple
 import asyncio
-import os
 import time
 import logging
 from pydantic import ValidationError
@@ -10,14 +9,12 @@ from ..base import BaseTool, ToolMetadata
 from ..base_schema import ToolResponseFormat
 from .cancellation_schema import CancellationInput
 from .cancellation_service import CancellationService
-from emt_client.config import CHATBOT_API_BASE_URL, MYBOOKINGS_BASE_URL
+from emt_client.config import CHATBOT_API_BASE_URL
 from .cancellation_renderer import (
     render_booking_details, render_cancellation_success,
     render_train_booking_details, render_bus_booking_details,
-    render_flight_redirect,
+    render_flight_booking_details,
 )
-
-FLIGHT_CANCELLATION_URL = f"{MYBOOKINGS_BASE_URL}/MyBooking/CancelFlightDetails?bid={{bid}}"
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +102,7 @@ class CancellationTool(BaseTool):
                 "For hotel: also pass room_id and transaction_id. "
                 "For train: also pass pax_ids, reservation_id, pnr_number. "
                 "For bus: also pass seats (comma-separated seat numbers). "
-                "For flight: after login + OTP verification, a redirect URL to EaseMyTrip's cancellation page is provided."
+                "For flight: also pass outbound_pax_ids and/or inbound_pax_ids (comma-separated)."
             ),
             input_schema=CancellationInput.model_json_schema(),
             category="cancellation",
@@ -194,140 +191,6 @@ class CancellationTool(BaseTool):
 
         return await self._handle_start_hotel(
             input_data, login_result, bid, user_type, render_html, is_whatsapp, service
-        )
-
-    # ----------------------------------------------------------
-    # _handle_start — Flight branch (redirect only)
-    # ----------------------------------------------------------
-    async def _handle_start_flight(
-        self, input_data, login_result, bid, user_type, render_html, is_whatsapp, service
-    ) -> ToolResponseFormat:
-        redirect_url = FLIGHT_CANCELLATION_URL.format(bid=bid)
-        is_otp_send = login_result.get("ids", {}).get("is_otp_send", False)
-
-        # If OTP was sent, user must verify first before getting redirect
-        if is_otp_send:
-            otp_text = (
-                f"I've found your flight booking ({input_data.booking_id}).\n\n"
-                f"📧 An OTP has been sent to your registered email/phone. "
-                f"Please provide it to verify your identity before proceeding with cancellation."
-            )
-
-            # Website mode: render HTML card with OTP verification + redirect
-            if render_html:
-                api_base_url = CHATBOT_API_BASE_URL
-                html = render_flight_redirect(
-                    booking_id=input_data.booking_id,
-                    email=input_data.email,
-                    redirect_url=redirect_url,
-                    bid=bid,
-                    api_base_url=api_base_url,
-                    is_otp_send=True,
-                )
-                return ToolResponseFormat(
-                    response_text=otp_text,
-                    structured_content={
-                        "bid": bid,
-                        "transaction_type": "Flight",
-                        "otp_required": True,
-                    },
-                    html=html,
-                )
-
-            whatsapp_response = None
-            if is_whatsapp:
-                from .cancellation_schema import (
-                    WhatsappCancellationFormat,
-                    WhatsappCancellationFinalResponse,
-                )
-                whatsapp_response = WhatsappCancellationFinalResponse(
-                    response_text=otp_text,
-                    whatsapp_json=WhatsappCancellationFormat(
-                        type="cancellation",
-                        status="booking_details",
-                        message=otp_text,
-                        booking_id=input_data.booking_id,
-                        transaction_type="Flight",
-                    ),
-                )
-            return ToolResponseFormat(
-                response_text=otp_text,
-                structured_content={
-                    "bid": bid,
-                    "transaction_type": "Flight",
-                    "otp_required": True,
-                },
-                whatsapp_response=(
-                    whatsapp_response.model_dump() if whatsapp_response else None
-                ),
-            )
-
-        # No OTP required — show redirect immediately
-        return self._build_flight_redirect_response(
-            input_data, bid, redirect_url, render_html, is_whatsapp
-        )
-
-    def _build_flight_redirect_response(
-        self, input_data, bid, redirect_url, render_html, is_whatsapp
-    ) -> ToolResponseFormat:
-        """Build the flight redirect response for all user types."""
-        text = (
-            f"✈️ Flight Cancellation for booking {input_data.booking_id}\n\n"
-            f"Flight cancellations are processed on the EaseMyTrip website.\n"
-            f"Please visit the link below to review your flight details and complete the cancellation:\n\n"
-            f"🔗 {redirect_url}"
-        )
-
-        # Website mode: render HTML redirect card (no OTP step — already verified or not required)
-        if render_html:
-            api_base_url = CHATBOT_API_BASE_URL
-            html = render_flight_redirect(
-                booking_id=input_data.booking_id,
-                email=input_data.email,
-                redirect_url=redirect_url,
-                bid=bid,
-                api_base_url=api_base_url,
-                is_otp_send=False,
-            )
-            return ToolResponseFormat(
-                response_text=text,
-                structured_content={
-                    "bid": bid,
-                    "transaction_type": "Flight",
-                    "redirect_url": redirect_url,
-                },
-                html=html,
-            )
-
-        # WhatsApp mode
-        whatsapp_response = None
-        if is_whatsapp:
-            from .cancellation_schema import (
-                WhatsappCancellationFormat,
-                WhatsappCancellationFinalResponse,
-            )
-            whatsapp_response = WhatsappCancellationFinalResponse(
-                response_text=text,
-                whatsapp_json=WhatsappCancellationFormat(
-                    type="cancellation",
-                    status="redirect",
-                    message=text,
-                    booking_id=input_data.booking_id,
-                    transaction_type="Flight",
-                    redirect_url=redirect_url,
-                ),
-            )
-
-        return ToolResponseFormat(
-            response_text=text,
-            structured_content={
-                "bid": bid,
-                "transaction_type": "Flight",
-                "redirect_url": redirect_url,
-            },
-            whatsapp_response=(
-                whatsapp_response.model_dump() if whatsapp_response else None
-            ),
         )
 
     # ----------------------------------------------------------
@@ -695,16 +558,6 @@ class CancellationTool(BaseTool):
                 ),
             )
 
-        # For Flight: OTP verified → return redirect immediately
-        service = await get_user_service(input_data.booking_id, input_data.email)
-        if service._transaction_type == "Flight":
-            bid = service._bid
-            redirect_url = FLIGHT_CANCELLATION_URL.format(bid=bid)
-            render_html = user_type.lower() == "website"
-            return self._build_flight_redirect_response(
-                input_data, bid, redirect_url, render_html, is_whatsapp
-            )
-
         success_text = (
             f"✅ OTP verified successfully!\n\n"
             f"Your identity has been confirmed. Would you like to proceed with the cancellation?"
@@ -743,16 +596,13 @@ class CancellationTool(BaseTool):
         # Route based on transaction type
         tx_type = service._transaction_type
 
-        # Flight does not use cancellation OTP — redirect flow only
-        if tx_type == "Flight":
-            return ToolResponseFormat(
-                response_text="Flight cancellations do not require a separate cancellation OTP. "
-                              "After verifying your login OTP, you will be redirected to EaseMyTrip's cancellation page.",
-                is_error=True,
-            )
-
         try:
-            if tx_type == "Train":
+            if tx_type == "Flight":
+                result = await service.send_flight_cancellation_otp(
+                    booking_id=input_data.booking_id,
+                    email=input_data.email,
+                )
+            elif tx_type == "Train":
                 result = await service.send_train_cancellation_otp(
                     booking_id=input_data.booking_id,
                     email=input_data.email,
@@ -822,14 +672,8 @@ class CancellationTool(BaseTool):
         service = await get_user_service(input_data.booking_id, input_data.email)
         tx_type = service._transaction_type
 
-        # Flight does not use in-app confirm — redirect flow only
         if tx_type == "Flight":
-            return ToolResponseFormat(
-                response_text="Flight cancellations are processed on the EaseMyTrip website. "
-                              "Please use the redirect link provided after OTP verification.",
-                is_error=True,
-            )
-
+            return await self._handle_confirm_flight(input_data, render_html, is_whatsapp, service)
         if tx_type == "Train":
             return await self._handle_confirm_train(input_data, render_html, is_whatsapp, service)
         if tx_type == "Bus":
@@ -1236,6 +1080,287 @@ class CancellationTool(BaseTool):
                     message=success_text,
                     booking_id=input_data.booking_id,
                     transaction_type="Bus",
+                    refund_info=result.get("refund_info"),
+                ),
+            )
+
+        return ToolResponseFormat(
+            response_text=success_text,
+            structured_content=result,
+            html=html,
+            whatsapp_response=(
+                whatsapp_response.model_dump() if whatsapp_response else None
+            ),
+        )
+
+    # ----------------------------------------------------------
+    # _handle_start — Flight branch
+    # ----------------------------------------------------------
+    async def _handle_start_flight(
+        self, input_data, login_result, bid, user_type, render_html, is_whatsapp, service
+    ) -> ToolResponseFormat:
+        try:
+            details_result = await service.fetch_flight_booking_details(bid=bid)
+        except Exception as exc:
+            logger.error(f"Service error during fetch flight details: {exc}", exc_info=True)
+            return ToolResponseFormat(
+                response_text="Something went wrong while fetching flight booking details. Please try again.",
+                is_error=True,
+            )
+
+        combined = {
+            "login": login_result,
+            "booking_details": details_result,
+            "bid": bid,
+            "transaction_type": "Flight",
+        }
+
+        if not details_result["success"]:
+            return ToolResponseFormat(
+                response_text=f"Login succeeded but failed to fetch flight details: {details_result.get('error')}",
+                structured_content=combined,
+                is_error=True,
+            )
+
+        # Store total cancellable for partial cancel computation
+        service._total_cancellable = details_result.get("total_cancellable", 0)
+
+        # Website mode: render interactive HTML
+        if render_html:
+            api_base_url = CHATBOT_API_BASE_URL
+            is_otp_send = login_result.get("ids", {}).get("is_otp_send", False)
+            html = render_flight_booking_details(
+                booking_details=details_result,
+                booking_id=input_data.booking_id,
+                email=input_data.email,
+                bid=bid,
+                api_base_url=api_base_url,
+                is_otp_send=is_otp_send,
+            )
+            return ToolResponseFormat(
+                response_text=f"Flight booking details for {input_data.booking_id}",
+                structured_content={
+                    "booking_details": details_result,
+                    "bid": bid,
+                    "transaction_type": "Flight",
+                },
+                html=html,
+            )
+
+        # Chatbot / WhatsApp mode: build friendly text
+        flight_segments = details_result.get("flight_segments", [])
+        outbound_pax = details_result.get("outbound_passengers", [])
+        inbound_pax = details_result.get("inbound_passengers", [])
+        price_info = details_result.get("price_info", {})
+        pnr_info = details_result.get("pnr_info", [])
+
+        booking_summary = []
+
+        # Flight segments info
+        for seg in flight_segments:
+            airline = seg.get("airline_name", "")
+            flight_no = seg.get("flight_number", "")
+            origin = seg.get("origin", "")
+            destination = seg.get("destination", "")
+            dep_date = seg.get("departure_date", "")
+            dep_time = seg.get("departure_time", "")
+            arr_time = seg.get("arrival_time", "")
+            duration = seg.get("duration", "")
+            cabin = seg.get("cabin_class", "")
+            bound = seg.get("bound_type", "")
+
+            bound_label = ""
+            if bound:
+                bound_lower = str(bound).lower()
+                if "out" in bound_lower:
+                    bound_label = "Outbound"
+                elif "in" in bound_lower:
+                    bound_label = "Inbound"
+
+            seg_line = f"✈️ {airline} {flight_no} — {origin} → {destination}"
+            if dep_date:
+                seg_line += f" | {dep_date}"
+            if dep_time and arr_time:
+                seg_line += f" ({dep_time} - {arr_time})"
+            if duration:
+                seg_line += f" | {duration}"
+            if cabin:
+                seg_line += f" | {cabin}"
+            if bound_label:
+                seg_line = f"[{bound_label}] {seg_line}"
+            booking_summary.append(seg_line)
+
+        # PNR info
+        for pnr in pnr_info:
+            airline_pnr = pnr.get("airline_pnr", "")
+            gds_pnr = pnr.get("gds_pnr", "")
+            if airline_pnr:
+                booking_summary.append(f"🔢 Airline PNR: {airline_pnr}")
+            if gds_pnr:
+                booking_summary.append(f"🔢 GDS PNR: {gds_pnr}")
+
+        # Price info
+        total_fare = price_info.get("total_fare", "")
+        if total_fare:
+            booking_summary.append(f"💰 Total Fare: ₹{total_fare}")
+
+        # Passengers
+        pax_descriptions = []
+        all_pax = []
+        for pax in outbound_pax:
+            all_pax.append({**pax, "_bound": "Outbound"})
+        for pax in inbound_pax:
+            all_pax.append({**pax, "_bound": "Inbound"})
+
+        for idx, pax in enumerate(all_pax, 1):
+            name = f"{pax.get('title', '')} {pax.get('first_name', '')} {pax.get('last_name', '')}".strip()
+            pax_type = pax.get("pax_type", "")
+            status = pax.get("status", "")
+            ticket = pax.get("ticket_number", "")
+            bound_label = pax.get("_bound", "")
+            charge = pax.get("cancellation_charge", "")
+
+            desc = f"\n{idx}. {name}"
+            if pax_type:
+                desc += f" ({pax_type})"
+            if bound_label:
+                desc += f" [{bound_label}]"
+            if ticket:
+                desc += f" - Ticket: {ticket}"
+            if status:
+                desc += f" - {status}"
+            if charge:
+                desc += f" - Cancel charge: ₹{charge}"
+            pax_descriptions.append(desc)
+
+        otp_sent = login_result.get("ids", {}).get("is_otp_send")
+        otp_notice = ""
+        if otp_sent:
+            otp_notice = "\n\n📧 An OTP has been sent to your registered email/phone. Please provide it to verify your identity before proceeding."
+
+        text = (
+            f"Here are the details for your flight booking **{input_data.booking_id}**:\n\n"
+            + "\n".join(booking_summary)
+            + "\n\n👥 **Passengers:**"
+            + "".join(pax_descriptions)
+            + otp_notice
+            + "\n\nWould you like to proceed with the cancellation?"
+        )
+
+        whatsapp_response = None
+        if is_whatsapp:
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="booking_details",
+                    message=text,
+                    booking_id=input_data.booking_id,
+                    transaction_type="Flight",
+                    flight_passengers=[
+                        {
+                            "pax_id": p.get("pax_id"),
+                            "name": f"{p.get('title', '')} {p.get('first_name', '')} {p.get('last_name', '')}".strip(),
+                            "pax_type": p.get("pax_type"),
+                            "status": p.get("status"),
+                            "bound_type": p.get("bound_type"),
+                        }
+                        for p in all_pax
+                    ],
+                ),
+            )
+
+        return ToolResponseFormat(
+            response_text=text,
+            structured_content=combined,
+            whatsapp_response=(
+                whatsapp_response.model_dump() if whatsapp_response else None
+            ),
+        )
+
+    # ----------------------------------------------------------
+    # _handle_confirm — Flight branch
+    # ----------------------------------------------------------
+    async def _handle_confirm_flight(self, input_data, render_html, is_whatsapp, service) -> ToolResponseFormat:
+        if not input_data.otp:
+            return ToolResponseFormat(
+                response_text="Missing required field for flight confirm: otp",
+                is_error=True,
+            )
+
+        if not input_data.outbound_pax_ids and not input_data.inbound_pax_ids:
+            return ToolResponseFormat(
+                response_text="Missing required fields for flight confirm: at least one of outbound_pax_ids or inbound_pax_ids must be provided",
+                is_error=True,
+            )
+
+        try:
+            result = await service.request_flight_cancellation(
+                booking_id=input_data.booking_id,
+                email=input_data.email,
+                otp=input_data.otp,
+                outbound_pax_ids=input_data.outbound_pax_ids or "",
+                inbound_pax_ids=input_data.inbound_pax_ids or "",
+            )
+        except Exception as exc:
+            logger.error(f"Service error during flight cancellation: {exc}", exc_info=True)
+            return ToolResponseFormat(
+                response_text="Something went wrong while submitting flight cancellation. Please try again.",
+                is_error=True,
+            )
+
+        if not result["success"]:
+            return ToolResponseFormat(
+                response_text=f"❌ Flight cancellation failed: {result['message']}\n\nPlease try again or contact customer support.",
+                structured_content=result,
+                is_error=True,
+            )
+
+        refund_info = result.get("refund_info")
+        if refund_info:
+            refund_amount = refund_info.get('refund_amount', 'N/A')
+            cancellation_charges = refund_info.get('cancellation_charges', 'N/A')
+            success_text = (
+                f"Your flight booking has been successfully cancelled!\n\n"
+                f"Refund Details:\n"
+                f"   • Refund Amount: ₹{refund_amount}\n"
+                f"   • Cancellation Charges: ₹{cancellation_charges}\n"
+                f"   • Refund Mode: {refund_info.get('refund_mode', 'Original payment method')}\n\n"
+                f"You will receive a cancellation confirmation email shortly.\n"
+                f"The refund will be processed within 5-7 business days.\n\n"
+                f"Thank you for using EaseMyTrip. We hope to serve you again!"
+            )
+        else:
+            success_text = (
+                f"Your flight booking has been successfully cancelled!\n\n"
+                f"{result.get('message', '')}\n\n"
+                f"You will receive a cancellation confirmation email shortly.\n\n"
+                f"Thank you for using EaseMyTrip. We hope to serve you again!"
+            )
+
+        html = None
+        if render_html:
+            result["booking_id"] = input_data.booking_id
+            html = render_cancellation_success(result)
+
+        whatsapp_response = None
+        if is_whatsapp:
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=success_text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="cancelled",
+                    message=success_text,
+                    booking_id=input_data.booking_id,
+                    transaction_type="Flight",
                     refund_info=result.get("refund_info"),
                 ),
             )
