@@ -297,6 +297,9 @@ class CancellationService:
         Re-login and re-fetch booking details to get a fresh bid with
         the server-side session advanced to the correct state.
 
+        Routes to the correct booking details endpoint based on transaction type
+        to avoid triggering cross-module OTP sends.
+
         Returns dict with fresh bid + transaction_screen_id, or raises on failure.
         """
         login = await self.guest_login(booking_id, email)
@@ -306,8 +309,27 @@ class CancellationService:
         bid = login["ids"]["bid"]
         transaction_screen_id = login["ids"].get("transaction_screen_id")
 
-        # Must also fetch details so server advances session state
-        await self.client.fetch_booking_details(bid)
+        # Fetch details using module-specific endpoint to avoid cross-module OTP triggers
+        # The server auto-sends OTP when booking details are fetched for certain modules
+        transaction_type = self._transaction_type or "Hotel"
+
+        logger.info(f"Refreshing session for {transaction_type} booking...")
+
+        if transaction_type == "Flight":
+            # Flight uses different parameters and endpoint
+            await self.client.fetch_flight_booking_details(
+                bid=bid,
+                transaction_screen_id=self._booking_id or booking_id,
+                email=email
+            )
+        elif transaction_type == "Train":
+            await self.client.fetch_train_booking_details(bid)
+        elif transaction_type == "Bus":
+            await self.client.fetch_bus_booking_details(bid)
+        else:  # Hotel or unknown - default to hotel
+            if transaction_type != "Hotel":
+                logger.warning(f"Unknown transaction type '{transaction_type}', defaulting to hotel endpoint")
+            await self.client.fetch_booking_details(bid)
 
         return {
             "bid": bid,
@@ -322,11 +344,21 @@ class CancellationService:
         """
         Step 3: Request OTP for cancellation using existing session.
 
+        THIS METHOD IS FOR HOTEL BOOKINGS ONLY.
+        For other booking types, use the module-specific methods.
+
         Uses stored session from guest_login (with persistent cookies).
         Only refreshes if no stored session exists.
         Returns dict with keys: success, message, error, bid, raw_response
         """
         try:
+            # Safety check: Warn if called for non-hotel booking
+            if self._transaction_type and self._transaction_type != "Hotel":
+                logger.warning(
+                    f"send_cancellation_otp() called for {self._transaction_type} booking. "
+                    f"This should use send_{self._transaction_type.lower()}_cancellation_otp() instead."
+                )
+
             # Use stored session if available, otherwise refresh
             if not self._bid or booking_id != self._booking_id or email != self._email:
                 logger.info("No stored session or credentials changed, refreshing session...")
