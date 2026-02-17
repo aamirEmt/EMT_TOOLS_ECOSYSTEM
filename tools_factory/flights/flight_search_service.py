@@ -144,6 +144,31 @@ def _duration_to_minutes(value: Any) -> Optional[int]:
 
     return None
 
+def _coerce_refundable_flag(value: Any) -> Optional[bool]:
+    """
+    Normalize refundable flags that may arrive as bool, 1/0, or strings like
+    'True', 'False', 'Refundable', 'NonRefundable'.
+    """
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        if value == 1:
+            return True
+        if value == 0:
+            return False
+
+    text = str(value).strip().lower()
+    if not text:
+        return None
+
+    if text in {"1", "true", "t", "yes", "y", "refundable"}:
+        return True
+    if text in {"0", "false", "f", "no", "n", "nonrefundable", "non-refundable", "non refundable", "non-refund", "nonrefundable"}:
+        return False
+    return None
+
 
 def _sum_leg_durations(legs: List[Dict[str, Any]]) -> Optional[int]:
     total = 0
@@ -509,6 +534,9 @@ def _process_international_combos(
                 except (TypeError, ValueError):
                     combo_fare = 0.0
 
+            outbound_refundable = _coerce_refundable_flag(outbound_block.get("RF"))
+            inbound_refundable = _coerce_refundable_flag(inbound_block.get("RF"))
+
             combos.append(
                 {
                     "id": f"{journey_idx}-{segment_idx}-{outbound_ref}-{inbound_ref}",
@@ -518,7 +546,7 @@ def _process_international_combos(
                         "origin": outbound_leg[0]["origin"],
                         "destination": outbound_leg[-1]["destination"],
                         "journey_time": outbound_block.get("JyTm", ""),
-                        "is_refundable": outbound_block.get("RF") == "Refundable",
+                        "is_refundable": outbound_refundable if outbound_refundable is not None else False,
                         "total_stops": max(len(_extract_flight_ids(outbound_block)) - 1, 0),
                         "direction": "outbound",
                         "legs": outbound_leg if isinstance(outbound_leg, list) else [outbound_leg],
@@ -530,7 +558,7 @@ def _process_international_combos(
                         "origin": inbound_leg[0]["origin"],
                         "destination": inbound_leg[-1]["destination"],
                         "journey_time": inbound_block.get("JyTm", ""),
-                        "is_refundable": inbound_block.get("RF") == "Refundable",
+                        "is_refundable": inbound_refundable if inbound_refundable is not None else False,
                         "total_stops": max(len(_extract_flight_ids(inbound_block)) - 1, 0),
                         "direction": "return",
                        # "legs": [inbound_leg],
@@ -832,9 +860,11 @@ async def search_flights(
     cabin: Optional[str] = None,
     stops: Optional[int] = None,
     fastest: Optional[bool] = None,
+    refundable: Optional[bool] = None,
     fare_type: Optional[int] = 0,
     departure_time_window: Optional[str] = None,
     arrival_time_window: Optional[str] = None,
+    airline_names: Optional[list[str]] = None,
 ) -> dict:
     """Call EaseMyTrip flight search API.
 
@@ -848,9 +878,11 @@ async def search_flights(
         infants: Number of infant passengers
         stops: Number of preferred stops (0 = nonstop, 1 = one stop, etc.)
         fastest: If true, sort results by shortest journey time
+        refundable: If true, only refundable options; if false, only non-refundable
         fare_type: Fare type code (0=standard, 1=defence, 2=student, 3=senior, 4=doctor/nurse)
         departure_time_window: Time-of-day window for departure (e.g., '06:00-12:00')
         arrival_time_window: Time-of-day window for arrival (e.g., '18:00-23:00')
+        airline_names: Optional list of airline names to filter results (case-insensitive)
 
     Returns:
         Dict containing flight search results with outbound and return flights
@@ -917,8 +949,10 @@ async def search_flights(
         "stops": stops,
         "fare_type": fare_type,
         "fastest": fastest,
+        "refundable": refundable,
         "departure_time_window": departure_time_window,
         "arrival_time_window": arrival_time_window,
+        "airline_names": airline_names,
     }
 
   
@@ -1116,6 +1150,32 @@ def process_flight_results(
         arr_time = legs[-1].get("arrival_time")
         return _is_within_window(dep_time, departure_window) and _is_within_window(arr_time, arrival_window)
 
+    def _matches_airline_filters(flight: Dict[str, Any]) -> bool:
+        names = search_context.get("airline_names") if search_context else None
+        if not names:
+            return True
+        legs = flight.get("legs") or []
+        if not legs:
+            return False
+        airline = (legs[0].get("airline_name") or "").lower()
+        code = (legs[0].get("airline_code") or "").lower()
+        for name in names:
+            n = str(name).lower()
+            if n in airline or n in code:
+                return True
+        return False
+
+    def _matches_refundable_filters(flight: Dict[str, Any]) -> bool:
+        preference = search_context.get("refundable") if search_context else None
+        if preference is None:
+            return True
+        flag = flight.get("is_refundable")
+        if preference is True:
+            return flag is True
+        if preference is False:
+            return flag is False
+        return True
+
     stops_filter = _coerce_stops(search_context.get("stops")) if search_context else None
     fastest_flag = bool(search_context.get("fastest")) if search_context else False
 
@@ -1156,7 +1216,12 @@ def process_flight_results(
                 
             )
 
-            if processed_flight and _matches_time_filters(processed_flight):
+            if (
+                processed_flight
+                and _matches_time_filters(processed_flight)
+                and _matches_airline_filters(processed_flight)
+                and _matches_refundable_filters(processed_flight)
+            ):
                 if journey_index == 0:
                     outbound_flights.append(processed_flight)
                 elif journey_index == 1 and is_roundtrip:
@@ -1182,7 +1247,11 @@ def process_flight_results(
             combos = [
                 combo for combo in combos
                 if _matches_time_filters(combo.get("onward_flight", {}))
-                and _matches_time_filters(combo.get("return_flight", {}))
+                # and _matches_time_filters(combo.get("return_flight", {}))
+                and _matches_airline_filters(combo.get("onward_flight", {}))
+                and _matches_airline_filters(combo.get("return_flight", {}))
+                and _matches_refundable_filters(combo.get("onward_flight", {}))
+                and _matches_refundable_filters(combo.get("return_flight", {}))
             ]
     else:
         combos=[]
@@ -1257,7 +1326,8 @@ def process_segment(
     bond = bonds[0]
 
     journey_time = bond.get("JyTm", "")
-    is_refundable = bond.get("RF") == "1"
+    refundable_flag = _coerce_refundable_flag(bond.get("RF"))
+    is_refundable = refundable_flag if refundable_flag is not None else False
     if is_international and  not is_roundtrip:
         stops = bond.get("STP", "0")
         

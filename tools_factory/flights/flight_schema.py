@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List, Any
 from datetime import datetime
 import re
 from pydantic import BaseModel, Field, ConfigDict, field_validator
@@ -37,6 +37,10 @@ class FlightSearchInput(BaseModel):
         None,
         description="If the user asks for fastest/shortest/quickest flights, set this to true, don't skip it otherwise"
     )
+    refundable: Optional[bool] = Field(
+        None,
+        description="Set true to show only refundable options, false for non-refundable. Omit for no preference."
+    )
     departure_time_window: Optional[str] = Field(
         "00:00-24:00",
         alias="departureTimeWindow",
@@ -63,6 +67,14 @@ class FlightSearchInput(BaseModel):
         description=(
             "Take this necessary field for fare type selection if user has specified any preference- defence, student, senior citizen, doctor/nurse. "
             "Fare type code: 0 is standard (default), 1 is for <defence/armed forces (army people)>, 2 is for student traveller, 3 is for senior citizen (people above 60 year old), 4=doctor/nurse (basically healtcare professionals). "
+        ),
+    )
+    airline_names: Optional[List[str]] = Field(
+        None,
+        alias="flightNames",
+        description=(
+            "Filter by exact airline names (case-insensitive). Accepts a single name or list. "
+            "Examples: <IndiGo>, <Air India Express>, <Air India>, SpiceJet, AkasaAir, Qatar Airways, Emirates Airlines, Etihad Airways."
         ),
     )
     
@@ -110,6 +122,23 @@ class FlightSearchInput(BaseModel):
             if text in {"0", "false", "no", "n"}:
                 return False
         raise ValueError("fastest must be a boolean-like value (true/false or 1/0)")
+    
+    @field_validator("refundable", mode="before")
+    @classmethod
+    def coerce_refundable(cls, v):
+        if v is None:
+            return v
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, (int, float)):
+            return bool(int(v))
+        if isinstance(v, str):
+            text = v.strip().lower()
+            if text in {"1", "true", "yes", "y", "refundable"}:
+                return True
+            if text in {"0", "false", "no", "n", "nonrefundable", "non-refundable", "non refundable"}:
+                return False
+        raise ValueError("refundable must be a boolean-like value (true/false or 1/0)")
     
     @staticmethod
     def _normalize_time_str(raw: str) -> Optional[tuple[int, int]]:
@@ -204,6 +233,19 @@ class FlightSearchInput(BaseModel):
     @classmethod
     def ensure_time_window(cls, v: Optional[str]) -> str:
         return cls._normalize_window(v)
+    
+    @field_validator("airline_names", mode="before")
+    @classmethod
+    def normalize_airline_names(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, str):
+            parts = [p.strip() for p in v.split(",") if p.strip()]
+            return parts or None
+        if isinstance(v, list):
+            parts = [str(p).strip() for p in v if str(p).strip()]
+            return parts or None
+        return None
     
 
 class WhatsappFlightFormat(BaseModel):

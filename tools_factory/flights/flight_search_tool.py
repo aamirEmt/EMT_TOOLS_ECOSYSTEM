@@ -63,6 +63,7 @@ class FlightSearchTool(BaseTool):
                 "- cabin (string | null, optional): Cabin class 'economy', 'premium economy', 'business', 'first'.\n"
                 "- stops (integer | null, optional): Max stops: 0=non-stop, 1=max 1 stop, 2=max 2 stops. Omit for no preference.\n"
                 "- fastest (boolean | null, optional): true if user asks for fastest/shortest/quickest flights.\n"
+                "- refundable (boolean | null, optional): true to show only refundable options, false for non-refundable only; omit for all.\n"
                 "- departureTimeWindow (string, default '00:00-24:00'): Preferred departure range 'HH:MM-HH:MM'; accepts natural terms like morning/afternoon/evening/night/early morning or loose ranges like '6am-11am'.\n"
                 "- arrivalTimeWindow (string, default '00:00-24:00'): Preferred arrival range 'HH:MM-HH:MM'; accepts natural terms like morning/afternoon/evening/night/early morning or loose ranges like '5pm-9:30pm'.\n"
                 "- fareType (integer, default: 0): Special fare category. 0=Standard, 1=Defence/Armed Forces, 2=Student, 3=Senior Citizen (60+), 4=Doctor/Nurse."
@@ -120,9 +121,11 @@ class FlightSearchTool(BaseTool):
             cabin=payload.cabin,
             stops=payload.stops,
             fastest=payload.fastest,
+            refundable=payload.refundable,
             fare_type=payload.fare_type,
             departure_time_window=payload.departure_time_window,
             arrival_time_window=payload.arrival_time_window,
+            airline_names=payload.airline_names,
         )
         has_error = bool(flight_results.get("error")) 
         # --------------------------------------------------
