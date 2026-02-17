@@ -473,6 +473,20 @@ BUS_DECRYPTION_KEY = _get_config_value(
     default='TMTOO1vDhT9aWsV1'
 )
 
+# Bus Confirm Seats API endpoint
+BUS_CONFIRM_SEATS_URL = _get_config_value(
+    'BUS_CONFIRM_SEATS_URL',
+    'BUS_CONFIRM_SEATS_URL',
+    default='https://busservice.easemytrip.com/v1/api/bus/ConfirmSeats/'
+)
+
+# Bus Payment Page URL
+BUS_PAYMENT_URL = _get_config_value(
+    'BUS_PAYMENT_URL',
+    'BUS_PAYMENT_URL',
+    default='https://bus.easemytrip.com/Home/BusPayment'
+)
+
 # ============================================================================
 # 📦 EXPORT ALL CONFIGURATIONS
 # ============================================================================
@@ -507,6 +521,8 @@ __all__ = [
     "BUS_DEEPLINK_BASE",
     "BUS_AUTOSUGGEST_URL",
     "BUS_AUTOSUGGEST_KEY",
+    "BUS_CONFIRM_SEATS_URL",
+    "BUS_PAYMENT_URL",
     "BUS_ENCRYPTED_HEADER",
     "BUS_DECRYPTION_KEY",
     # Train Endpoints

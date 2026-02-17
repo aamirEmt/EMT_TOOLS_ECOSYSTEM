@@ -580,6 +580,344 @@ BUS_CAROUSEL_STYLES = """
   font-weight: 500;
   line-height: 1.4;
 }
+
+/* Seat Selection Modal Styles */
+.bus-carousel .seat-modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.bus-carousel .seat-modal-overlay.active {
+  display: flex;
+}
+
+.bus-carousel .seat-modal {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 900px;
+  width: 95%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.bus-carousel .seat-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+}
+
+.bus-carousel .seat-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #202020;
+}
+
+.bus-carousel .seat-modal-subtitle {
+  font-size: 12px;
+  color: #868686;
+  margin-top: 2px;
+}
+
+.bus-carousel .seat-modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #e0e0e0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.bus-carousel .seat-modal-close:hover {
+  background: #d0d0d0;
+  color: #333;
+}
+
+.bus-carousel .seat-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  gap: 20px;
+}
+
+.bus-carousel .seat-layout-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.bus-carousel .seat-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.bus-carousel .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #666;
+}
+
+.bus-carousel .legend-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+}
+
+.bus-carousel .legend-box.available {
+  background: #e8f5e9;
+  border-color: #4caf50;
+}
+
+.bus-carousel .legend-box.selected {
+  background: #fff3e0;
+  border-color: #ef6614;
+}
+
+.bus-carousel .legend-box.booked {
+  background: #eeeeee;
+  border-color: #9e9e9e;
+}
+
+.bus-carousel .legend-box.ladies {
+  background: #fce4ec;
+  border-color: #e91e63;
+}
+
+.bus-carousel .seat-decks {
+  display: flex;
+  gap: 20px;
+}
+
+.bus-carousel .seat-deck {
+  flex: 1;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.bus-carousel .deck-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 12px;
+  text-align: center;
+  padding: 6px;
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.bus-carousel .seat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.bus-carousel .seat-row {
+  display: flex;
+  gap: 4px;
+}
+
+.bus-carousel .seat {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.bus-carousel .seat.sleeper {
+  width: 64px;
+}
+
+.bus-carousel .seat.available {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #4caf50;
+}
+
+.bus-carousel .seat.available:hover {
+  background: #c8e6c9;
+  transform: scale(1.05);
+}
+
+.bus-carousel .seat.selected {
+  background: #fff3e0;
+  color: #e65100;
+  border-color: #ef6614;
+  box-shadow: 0 2px 8px rgba(239, 102, 20, 0.3);
+}
+
+.bus-carousel .seat.booked {
+  background: #eeeeee;
+  color: #9e9e9e;
+  cursor: not-allowed;
+}
+
+.bus-carousel .seat.ladies {
+  background: #fce4ec;
+  color: #c2185b;
+  border-color: #e91e63;
+}
+
+.bus-carousel .seat.empty {
+  visibility: hidden;
+}
+
+.bus-carousel .seat-aisle {
+  width: 16px;
+}
+
+.bus-carousel .points-section {
+  width: 280px;
+  flex-shrink: 0;
+  border-left: 1px solid #e0e0e0;
+  padding-left: 20px;
+}
+
+.bus-carousel .points-tabs {
+  display: flex;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 12px;
+}
+
+.bus-carousel .points-tab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: #868686;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+
+.bus-carousel .points-tab.active {
+  color: #2093ef;
+  border-bottom-color: #2093ef;
+}
+
+.bus-carousel .points-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.bus-carousel .point-item {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bus-carousel .point-item:hover {
+  background: #f5f5f5;
+}
+
+.bus-carousel .point-item.selected {
+  border-color: #2093ef;
+  background: #e3f2fd;
+}
+
+.bus-carousel .point-time {
+  font-size: 13px;
+  font-weight: 600;
+  color: #202020;
+}
+
+.bus-carousel .point-name {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.bus-carousel .seat-modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bus-carousel .selected-info {
+  font-size: 12px;
+  color: #666;
+}
+
+.bus-carousel .selected-info strong {
+  color: #202020;
+}
+
+.bus-carousel .total-fare {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202020;
+}
+
+.bus-carousel .continue-btn {
+  padding: 12px 32px;
+  background: #ef6614;
+  color: #fff;
+  border: none;
+  border-radius: 40px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bus-carousel .continue-btn:hover:not(:disabled) {
+  background: #e75806;
+}
+
+.bus-carousel .continue-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.bus-carousel .seat-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #868686;
+}
+
 """
 # BUS_CAROUSEL_STYLES = """
 # @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
@@ -1121,7 +1459,21 @@ BUS_CAROUSEL_TEMPLATE = """
           </div>
 
           <div class="busftr">
-            <a href="{{ bus.booking_link }}" target="_blank" rel="noopener noreferrer" class="bkbtn">Book Now</a>
+            <button type="button" class="bkbtn select-seats-btn" 
+                    data-bus-id="{{ bus.bus_id }}"
+                    data-route-id="{{ bus.route_id }}"
+                    data-engine-id="{{ bus.engine_id }}"
+                    data-operator-id="{{ bus.operator_id }}"
+                    data-operator-name="{{ bus.operator_name_full }}"
+                    data-bus-type="{{ bus.bus_type_full }}"
+                    data-departure-time="{{ bus.departure_time }}"
+                    data-arrival-time="{{ bus.arrival_time }}"
+                    data-duration="{{ bus.duration }}"
+                    data-is-seater="{{ bus.is_seater | lower }}"
+                    data-is-sleeper="{{ bus.is_sleeper | lower }}"
+                    data-booking-link="{{ bus.booking_link }}">
+              Select Seats
+            </button>
             {% if bus.is_cancellable %}
             <div class="cancelpolicy cancellable">Cancellation Available</div>
             {% else %}
@@ -1149,6 +1501,169 @@ BUS_CAROUSEL_TEMPLATE = """
     <div class="emt-empty">No buses found for this route</div>
     {% endif %}
   </main>
+  <!-- Seat Selection Modal -->
+<div class="seat-modal-overlay" id="seatModalOverlay">
+  <div class="seat-modal">
+    <div class="seat-modal-header">
+      <div>
+        <div class="seat-modal-title" id="modalBusOperator">Loading...</div>
+        <div class="seat-modal-subtitle" id="modalBusType"></div>
+      </div>
+      <button type="button" class="seat-modal-close" onclick="closeSeatModal()">×</button>
+    </div>
+    <div class="seat-modal-body">
+      <div class="seat-layout-section">
+        <div class="seat-legend">
+          <div class="legend-item"><div class="legend-box available"></div>Available</div>
+          <div class="legend-item"><div class="legend-box selected"></div>Selected</div>
+          <div class="legend-item"><div class="legend-box booked"></div>Booked</div>
+          <div class="legend-item"><div class="legend-box ladies"></div>Ladies</div>
+        </div>
+        <div id="seatLayoutContainer" class="seat-loading">Loading seat layout...</div>
+      </div>
+      <div class="points-section">
+        <div class="points-tabs">
+          <div class="points-tab active" data-tab="boarding" onclick="switchPointsTab('boarding')">BOARDING</div>
+          <div class="points-tab" data-tab="dropping" onclick="switchPointsTab('dropping')">DROPPING</div>
+        </div>
+        <div id="boardingPointsList" class="points-list"></div>
+        <div id="droppingPointsList" class="points-list" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="seat-modal-footer">
+      <div class="selected-info">
+        <div>Seats: <strong id="selectedSeatsDisplay">None</strong></div>
+        <div class="total-fare">₹<span id="totalFareDisplay">0</span></div>
+      </div>
+      <button type="button" class="continue-btn" id="continueBtn" disabled onclick="confirmAndRedirect()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // State management
+  let currentBusData = null;
+  let selectedSeats = [];
+  let selectedBoardingPoint = null;
+  let selectedDroppingPoint = null;
+  let seatLayoutData = null;
+  
+  // Expose functions globally
+  window.openSeatModal = openSeatModal;
+  window.closeSeatModal = closeSeatModal;
+  window.switchPointsTab = switchPointsTab;
+  window.confirmAndRedirect = confirmAndRedirect;
+  
+  // Attach click handlers to all select seats buttons
+  document.querySelectorAll('.select-seats-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const busData = {
+        busId: this.dataset.busId,
+        routeId: this.dataset.routeId,
+        engineId: parseInt(this.dataset.engineId),
+        operatorId: this.dataset.operatorId,
+        operatorName: this.dataset.operatorName,
+        busType: this.dataset.busType,
+        departureTime: this.dataset.departureTime,
+        arrivalTime: this.dataset.arrivalTime,
+        duration: this.dataset.duration,
+        isSeater: this.dataset.isSeater === 'true',
+        isSleeper: this.dataset.isSleeper === 'true',
+        bookingLink: this.dataset.bookingLink,
+      };
+      openSeatModal(busData);
+    });
+  });
+  
+  function openSeatModal(busData) {
+    currentBusData = busData;
+    selectedSeats = [];
+    selectedBoardingPoint = null;
+    selectedDroppingPoint = null;
+    
+    document.getElementById('modalBusOperator').textContent = busData.operatorName;
+    document.getElementById('modalBusType').textContent = busData.busType;
+    document.getElementById('seatLayoutContainer').innerHTML = '<div class="seat-loading">Loading seat layout...</div>';
+    document.getElementById('boardingPointsList').innerHTML = '';
+    document.getElementById('droppingPointsList').innerHTML = '';
+    document.getElementById('seatModalOverlay').classList.add('active');
+    
+    updateFooter();
+    fetchSeatLayout(busData);
+  }
+  
+  function closeSeatModal() {
+    document.getElementById('seatModalOverlay').classList.remove('active');
+    currentBusData = null;
+    selectedSeats = [];
+    selectedBoardingPoint = null;
+    selectedDroppingPoint = null;
+  }
+  
+  async function fetchSeatLayout(busData) {
+    // For now, redirect to booking link directly
+    // In production, this would call the SeatBind API
+    // and render the seat layout
+    
+    // Simulate API call - in real implementation, call your backend
+    try {
+      // Show a message that seat selection requires the full website
+      document.getElementById('seatLayoutContainer').innerHTML = `
+        <div style="text-align: center; padding: 40px 20px;">
+          <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+            For the best seat selection experience, please continue on the EaseMyTrip website.
+          </p>
+          <a href="${busData.bookingLink}" target="_blank" rel="noopener noreferrer" 
+             style="display: inline-block; padding: 12px 24px; background: #ef6614; color: #fff; 
+                    text-decoration: none; border-radius: 40px; font-weight: 600;">
+            Select Seats on Website
+          </a>
+        </div>
+      `;
+      
+      // Hide footer continue button since we're redirecting
+      document.getElementById('continueBtn').style.display = 'none';
+      
+    } catch (error) {
+      document.getElementById('seatLayoutContainer').innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; color: #d32f2f;">
+          Failed to load seat layout. Please try again.
+        </div>
+      `;
+    }
+  }
+  
+  function switchPointsTab(tab) {
+    document.querySelectorAll('.points-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.points-tab[data-tab="${tab}"]`).classList.add('active');
+    
+    document.getElementById('boardingPointsList').style.display = tab === 'boarding' ? 'block' : 'none';
+    document.getElementById('droppingPointsList').style.display = tab === 'dropping' ? 'block' : 'none';
+  }
+  
+  function updateFooter() {
+    const seatsDisplay = selectedSeats.length > 0 
+      ? selectedSeats.map(s => s.name).join(', ')
+      : 'None';
+    const totalFare = selectedSeats.reduce((sum, s) => sum + s.fare, 0);
+    
+    document.getElementById('selectedSeatsDisplay').textContent = seatsDisplay;
+    document.getElementById('totalFareDisplay').textContent = totalFare.toLocaleString();
+    
+    const canContinue = selectedSeats.length > 0 && selectedBoardingPoint && selectedDroppingPoint;
+    document.getElementById('continueBtn').disabled = !canContinue;
+  }
+  
+  function confirmAndRedirect() {
+    if (!currentBusData || selectedSeats.length === 0) return;
+    
+    // Redirect to booking link with selected data
+    window.open(currentBusData.bookingLink, '_blank');
+    closeSeatModal();
+  }
+})();
+</script>
 </div>
 """
 
@@ -1718,6 +2233,10 @@ def _normalize_bus_for_ui(bus: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "operator_name": _truncate_text(operator_name_full, 22),
         "operator_name_full": operator_name_full,
         "bus_type": _truncate_text(bus_type_full, 30),
+        "bus_id": bus.get("bus_id", ""),
+        "route_id": str(bus.get("route_id", "")),
+        "engine_id": bus.get("engine_id", 0),
+        "operator_id": str(bus.get("operator_id", "")),
         "bus_type_full": bus_type_full,
         "departure_time": _format_time(bus.get("departure_time") or bus.get("departureTime")),
         "arrival_time": _format_time(bus.get("arrival_time") or bus.get("ArrivalTime")),
@@ -1743,6 +2262,7 @@ def _normalize_bus_for_ui(bus: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "m_ticket": m_ticket,
         "is_cancellable": is_cancellable,
         "booking_link": booking_link,
+
     }
 
 

@@ -1,4 +1,5 @@
 import aiohttp
+from typing import Dict, Any
 from ..config import (
     BUS_SEARCH_URL,
     BUS_SEAT_BIND_URL,
@@ -56,3 +57,37 @@ class BusApiClient:
                 if response.status != 200:
                     raise Exception(f"Autosuggest API returned status {response.status}")
                 return await response.text()
+            
+    async def confirm_seats(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Confirm selected seats via the ConfirmSeats API.
+        
+        Args:
+            payload: Seat confirmation payload
+            
+        Returns:
+            API response data
+        """
+        from emt_client.config import BUS_CONFIRM_SEATS_URL
+        
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    BUS_CONFIRM_SEATS_URL,
+                    json=payload,
+                    headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=30),
+                ) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    else:
+                        return {
+                            "error": f"HTTP {response.status}: {await response.text()}"
+                        }
+        except Exception as e:
+            return {"error": str(e)}

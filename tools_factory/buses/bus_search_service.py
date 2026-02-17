@@ -27,6 +27,8 @@ except ImportError:
         WhatsappBusFinalResponse,
     )
 
+from emt_client.clients.bus_client import BusApiClient
+
 from emt_client.config import (
     BUS_SEARCH_URL,
     BUS_SEAT_BIND_URL as SEAT_BIND_URL,
@@ -35,9 +37,9 @@ from emt_client.config import (
     BUS_AUTOSUGGEST_KEY,
     BUS_ENCRYPTED_HEADER,
     BUS_DECRYPTION_KEY,
+    BUS_CONFIRM_SEATS_URL,
+    BUS_PAYMENT_URL,
 )
-from emt_client.clients.bus_client import BusApiClient
-
 
 # ============================================================================
 # ENCRYPTION/DECRYPTION FUNCTIONS 
@@ -1334,3 +1336,195 @@ async def get_seat_layout(
         operator_name,
         bus_type,
     )
+
+async def confirm_seats(
+    available_trip_id: str,
+    engine_id: int,
+    route_id: str,
+    operator_id: str,
+    source: str,
+    destination: str,
+    bus_operator: str,
+    bus_type: str,
+    departure_time: str,
+    arrival_time: str,
+    seats: List[Dict[str, Any]],
+    boarding_id: str,
+    boarding_point: Dict[str, Any],
+    drop_id: str,
+    dropping_point: Dict[str, Any],
+    session_id: str = "",
+    sid: str = "",
+    vid: str = "",
+    trace_id: str = "",
+    total_fare: float = 0,
+    discount: float = 0,
+    coupon_code: str = "",
+    cancel_policy_list: List[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Confirm selected seats and get payment redirect URL.
+    
+    Args:
+        available_trip_id: Bus trip ID (e.g., "1265#757#7298#...")
+        engine_id: Engine ID from search results
+        route_id: Route ID
+        operator_id: Operator ID
+        source: Source city name
+        destination: Destination city name
+        bus_operator: Bus operator name
+        bus_type: Bus type string
+        departure_time: Departure time
+        arrival_time: Arrival time
+        seats: List of selected seats with fare details
+        boarding_id: Selected boarding point ID
+        boarding_point: Full boarding point details
+        drop_id: Selected dropping point ID
+        dropping_point: Full dropping point details
+        session_id: Session ID
+        sid: Session ID (Sid)
+        vid: Visitor ID (Vid)
+        trace_id: Trace ID
+        total_fare: Total fare amount
+        discount: Discount amount
+        coupon_code: Coupon code if any
+        cancel_policy_list: Cancellation policy list
+        
+    Returns:
+        Dict with success status and payment URL
+    """
+    
+    # Generate IDs if not provided
+    if not sid:
+        sid = _generate_session_id()
+    if not vid:
+        vid = _generate_visitor_id()
+    if not trace_id:
+        trace_id = str(uuid.uuid4())
+    
+    # Build payload for ConfirmSeats API
+    payload = {
+        "seats": seats,
+        "sessionId": session_id,
+        "totalFare": total_fare,
+        "boardingId": boarding_id,
+        "boardingName": boarding_point.get("bdLongName", "") or boarding_point.get("bdPoint", ""),
+        "boardingPoint": boarding_point,
+        "dropId": drop_id,
+        "DropingPoint": dropping_point,
+        "availableTripId": available_trip_id,
+        "source": source,
+        "destination": destination,
+        "busOperator": bus_operator,
+        "busType": bus_type,
+        "routeId": route_id,
+        "engineId": engine_id,
+        "operator_id": operator_id,
+        "DepTime": departure_time,
+        "arrivalDate": arrival_time,
+        "departureDate": None,
+        "Discount": discount,
+        "CashBack": 0,
+        "serviceFee": 0,
+        "STF": 0,
+        "TDS": 0,
+        "cpnCode": coupon_code,
+        "agentCode": "",
+        "agentType": "",
+        "agentMarkUp": 0,
+        "agentACBalance": 0,
+        "Sid": sid,
+        "Vid": vid,
+        "TraceId": trace_id,
+        "cancelPolicyList": cancel_policy_list or [],
+    }
+    
+    try:
+        client = BusApiClient()
+        data = await client.confirm_seats(payload)
+        
+        if "error" in data:
+            return {
+                "success": False,
+                "message": data.get("error", "Unknown error"),
+                "payment_url": None,
+            }
+        
+        # Build payment URL
+        payment_url = f"{BUS_PAYMENT_URL}?userid=Emt"
+        
+        return {
+            "success": True,
+            "message": "Seats confirmed successfully",
+            "payment_url": payment_url,
+            "confirmation_data": data,
+        }
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"API Error: {str(e)}",
+            "payment_url": None,
+        }
+
+
+def build_seat_bind_payload(
+    bus_data: Dict[str, Any],
+    source_id: str,
+    destination_id: str,
+    source_name: str,
+    destination_name: str,
+    journey_date: str,
+    session_id: str = "",
+    visitor_id: str = "",
+) -> Dict[str, Any]:
+    """
+    Build the payload for SeatBind API from bus search result data.
+    
+    This is a helper to construct the correct payload format.
+    """
+    bus_id = bus_data.get("bus_id", "")
+    route_id = bus_data.get("route_id", "")
+    engine_id = bus_data.get("engine_id", 0)
+    operator_id = bus_data.get("operator_id", "")
+    operator_name = bus_data.get("operator_name", "")
+    bus_type = bus_data.get("bus_type", "")
+    departure_time = bus_data.get("departure_time", "")
+    arrival_time = bus_data.get("arrival_time", "")
+    duration = bus_data.get("duration", "")
+    is_seater = bus_data.get("is_seater", True)
+    is_sleeper = bus_data.get("is_sleeper", True)
+    trace_id = bus_data.get("trace_id", "") or str(uuid.uuid4())
+    
+    sid = session_id or _generate_session_id()
+    vid = visitor_id or _generate_visitor_id()
+    
+    search_req = f"{source_id}|{destination_id}|{source_name}|{destination_name}|{journey_date}"
+    
+    return {
+        "id": bus_id,
+        "engineId": engine_id,
+        "routeid": route_id,
+        "JourneyDate": journey_date,
+        "OperatorId": operator_id,
+        "Sid": sid,
+        "Vid": vid,
+        "TraceID": trace_id,
+        "agentType": "NAN",
+        "bpId": "",
+        "dpId": "",
+        "bustype": bus_type,
+        "travel": operator_name,
+        "DepartureTime": departure_time,
+        "ArrivalTime": arrival_time,
+        "duration": duration,
+        "seater": is_seater,
+        "sleeper": is_sleeper,
+        "sessionId": None,
+        "Idproof": 0,
+        "SeatPrice": 0,
+        "isBpdp": False,
+        "stStatus": False,
+        "countryCode": None,
+        "searchReq": search_req,
+    }

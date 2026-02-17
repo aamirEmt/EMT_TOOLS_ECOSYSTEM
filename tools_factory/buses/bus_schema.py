@@ -357,3 +357,113 @@ class SeatLayoutResponse(BaseModel):
     message: str
     layout: Optional[SeatLayoutInfo] = None
     raw_response: Optional[Dict[str, Any]] = None
+
+
+class SeatSelectionInput(BaseModel):
+    """Input for selecting seats and getting seat layout"""
+    
+    source_id: str = Field(..., alias="sourceId", description="Source city ID")
+    destination_id: str = Field(..., alias="destinationId", description="Destination city ID")
+    source_name: Optional[str] = Field(None, alias="sourceName", description="Source city name")
+    destination_name: Optional[str] = Field(None, alias="destinationName", description="Destination city name")
+    journey_date: str = Field(..., alias="journeyDate", description="Journey date in dd-MM-yyyy format")
+    bus_id: str = Field(..., alias="busId", description="Bus ID from search results")
+    route_id: str = Field(..., alias="routeId", description="Route ID from search results")
+    engine_id: int = Field(..., alias="engineId", description="Engine ID from search results")
+    operator_id: str = Field(..., alias="operatorId", description="Operator ID")
+    operator_name: str = Field(..., alias="operatorName", description="Operator/Travel name")
+    bus_type: str = Field(..., alias="busType", description="Bus type string")
+    departure_time: str = Field(..., alias="departureTime", description="Departure time")
+    arrival_time: str = Field(..., alias="arrivalTime", description="Arrival time")
+    duration: str = Field(..., alias="duration", description="Journey duration")
+    is_seater: bool = Field(True, alias="isSeater", description="Has seater seats")
+    is_sleeper: bool = Field(True, alias="isSleeper", description="Has sleeper seats")
+    session_id: Optional[str] = Field(None, alias="sessionId", description="Session ID from search")
+    visitor_id: Optional[str] = Field(None, alias="visitorId", description="Visitor ID from search")
+    trace_id: Optional[str] = Field(None, alias="traceId", description="Trace ID from search")
+    
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+
+class SelectedSeat(BaseModel):
+    """Single selected seat details"""
+    
+    seat_no: str = Field(..., alias="seatNo", description="Seat number/name")
+    seat_type: str = Field(..., alias="seatType", description="Seat type (ST/SL)")
+    fare: float = Field(..., description="Seat fare")
+    seat_id: Optional[str] = Field(None, alias="seatId", description="Seat ID")
+    actual_fare: float = Field(..., alias="actualfare", description="Actual fare")
+    gender: str = Field("M", description="Gender (M/F)")
+    base_fare: float = Field(..., alias="baseFare", description="Base fare")
+    encrypted_seat: str = Field(..., alias="EncriSeat", description="Encrypted seat data")
+    
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class ConfirmSeatsInput(BaseModel):
+    """Input for confirming selected seats"""
+    
+    # Bus identification
+    available_trip_id: str = Field(..., alias="availableTripId", description="Bus trip ID")
+    engine_id: int = Field(..., alias="engineId", description="Engine ID")
+    route_id: str = Field(..., alias="routeId", description="Route ID")
+    operator_id: str = Field(..., alias="operator_id", description="Operator ID")
+    
+    # Journey details
+    source: str = Field(..., description="Source city name")
+    destination: str = Field(..., description="Destination city name")
+    bus_operator: str = Field(..., alias="busOperator", description="Bus operator name")
+    bus_type: str = Field(..., alias="busType", description="Bus type")
+    departure_time: str = Field(..., alias="DepTime", description="Departure time")
+    arrival_date: str = Field(..., alias="arrivalDate", description="Arrival time")
+    
+    # Selected seats
+    seats: List[SelectedSeat] = Field(..., description="List of selected seats")
+    
+    # Boarding point
+    boarding_id: str = Field(..., alias="boardingId", description="Boarding point ID")
+    boarding_name: str = Field("", alias="boardingName", description="Boarding point name")
+    boarding_point: Dict[str, Any] = Field(..., alias="boardingPoint", description="Full boarding point details")
+    
+    # Dropping point
+    drop_id: str = Field(..., alias="dropId", description="Dropping point ID")
+    dropping_point: Dict[str, Any] = Field(..., alias="DropingPoint", description="Full dropping point details")
+    
+    # Session info
+    session_id: Optional[str] = Field(None, alias="sessionId", description="Session ID")
+    sid: str = Field(..., alias="Sid", description="Session ID")
+    vid: str = Field(..., alias="Vid", description="Visitor ID")
+    trace_id: str = Field(..., alias="TraceId", description="Trace ID")
+    
+    # Fare details
+    total_fare: float = Field(0, alias="totalFare", description="Total fare")
+    discount: float = Field(0, alias="Discount", description="Discount amount")
+    cash_back: float = Field(0, alias="CashBack", description="Cashback amount")
+    service_fee: float = Field(0, alias="serviceFee", description="Service fee")
+    stf: float = Field(0, alias="STF", description="STF")
+    tds: float = Field(0, alias="TDS", description="TDS")
+    
+    # Other
+    coupon_code: str = Field("", alias="cpnCode", description="Coupon code")
+    agent_code: str = Field("", alias="agentCode", description="Agent code")
+    agent_type: str = Field("", alias="agentType", description="Agent type")
+    agent_markup: float = Field(0, alias="agentMarkUp", description="Agent markup")
+    agent_ac_balance: float = Field(0, alias="agentACBalance", description="Agent AC balance")
+    departure_date: Optional[str] = Field(None, alias="departureDate", description="Departure date")
+    cancel_policy_list: List[Dict[str, Any]] = Field([], alias="cancelPolicyList", description="Cancellation policy")
+    
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+
+# class SeatLayoutResponse(BaseModel):
+#     """Response from seat layout API"""
+    
+#     success: bool
+#     message: str
+#     layout: Optional[SeatLayoutInfo] = None
+#     boarding_points: List[Dict[str, Any]] = []
+#     dropping_points: List[Dict[str, Any]] = []
+#     session_id: Optional[str] = None
+#     visitor_id: Optional[str] = None
+#     trace_id: Optional[str] = None
+#     raw_response: Optional[Dict[str, Any]] = None
