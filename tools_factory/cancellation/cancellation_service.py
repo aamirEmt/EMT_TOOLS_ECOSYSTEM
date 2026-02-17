@@ -990,8 +990,18 @@ class CancellationService:
                 email=email,
             )
 
+            logger.info(f"Flight API response keys: {list(response.keys()) if isinstance(response, dict) else type(response)}")
+
             passenger_details = response.get("PassengerDetails") or {}
             booked_passanger = response.get("bookedPassanger") or {}
+
+            logger.info(
+                f"Flight parsing: PassengerDetails keys={list(passenger_details.keys())}, "
+                f"bookedPassanger keys={list(booked_passanger.keys())}, "
+                f"FlightDetail count={len(passenger_details.get('FlightDetail') or [])}, "
+                f"lstOutbond count={len(booked_passanger.get('lstOutbond') or [])}, "
+                f"lstInbound count={len(booked_passanger.get('lstInbound') or [])}"
+            )
 
             # Store transaction IDs for OTP and cancellation
             self._flight_transaction_id = str(response.get("TransactionId") or "")
