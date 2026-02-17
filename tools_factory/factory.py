@@ -47,6 +47,15 @@ class ToolFactory:
         # self.register_tool(GetHotelBookingsTool(login_tool))
         # self.register_tool(GetTrainBookingsTool(login_tool))
         # self.register_tool(GetBusBookingsTool(login_tool))
+        # Login tool with session manager for multi-user support
+        login_tool = LoginTool(self.session_manager)
+        self.register_tool(login_tool)
+
+        # Booking tools with session manager (require session_id parameter)
+        self.register_tool(GetFlightBookingsTool(self.session_manager))
+        self.register_tool(GetHotelBookingsTool(self.session_manager))
+        self.register_tool(GetTrainBookingsTool(self.session_manager))
+        self.register_tool(GetBusBookingsTool(self.session_manager))
     
     def register_tool(self, tool: BaseTool):
         """Register a tool"""
