@@ -2,6 +2,10 @@ from tools_factory.base import BaseTool
 from tools_factory.flights.flight_search_tool import FlightSearchTool
 from tools_factory.hotels.hotel_search_tool import HotelSearchTool
 from tools_factory.trains.train_search_tool import TrainSearchTool
+from tools_factory.trains.Train_PnrStatus.pnr_status_tool import TrainPnrStatusTool
+from tools_factory.trains.Train_AvailabilityCheck.availability_check_tool import TrainAvailabilityCheckTool
+from tools_factory.trains.Train_RouteCheck.route_check_tool import TrainRouteCheckTool
+from tools_factory.trains.Train_StatusCheck.train_status_tool import TrainStatusTool
 from tools_factory.login.login_tool import LoginTool
 # from tools_factory.buses.bus_search_tool import BusSearchTool, BusSeatLayoutTool
 from tools_factory.buses.bus_search_tool import BusSearchTool
@@ -26,10 +30,14 @@ class ToolFactory:
         # Search tools (no session needed)
         self.register_tool(FlightSearchTool())
         self.register_tool(HotelSearchTool())
-        #self.register_tool(BusSearchTool())
+        self.register_tool(BusSearchTool())
         # self.register_tool(BusSeatLayoutTool())
         
         self.register_tool(TrainSearchTool())
+        self.register_tool(TrainPnrStatusTool())
+        self.register_tool(TrainAvailabilityCheckTool())
+        self.register_tool(TrainRouteCheckTool())
+        self.register_tool(TrainStatusTool())
         # Login tool with session manager for multi-user support
         login_tool = LoginTool(self.session_manager)
         self.register_tool(login_tool)

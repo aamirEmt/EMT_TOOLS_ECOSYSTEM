@@ -32,14 +32,56 @@ class BusSearchInput(BaseModel):
         description="Journey date in dd-mm-yyyy format (e.g., '30-01-2026')",
     )
     is_volvo: Optional[bool] = Field(
-        False,
+        None,
         alias="isVolvo",
         description="Filter for Volvo buses only",
+    )
+    is_ac: Optional[bool] = Field(
+        None,
+        alias="isAC",
+        description="Filter for AC buses only. Set True for AC, False for Non-AC, None for all.",
+    )
+    is_seater: Optional[bool] = Field(
+        None,
+        alias="isSeater",
+        description="Filter for Seater buses only. Set True for Seater, False for Sleeper, None for all.",
+    )
+    is_sleeper: Optional[bool] = Field(
+        None,
+        alias="isSleeper",
+        description="Filter for Sleeper buses only. Set True for Sleeper, False for Seater, None for all.",
+    )
+    departure_time_from: Optional[str] = Field(
+        None,
+        alias="departureTimeFrom",
+        description="Filter buses departing after this time (HH:MM format, 24-hour). E.g., '06:00' for 6 AM, '18:00' for 6 PM.",
+    )
+    departure_time_to: Optional[str] = Field(
+        None,
+        alias="departureTimeTo",
+        description="Filter buses departing before this time (HH:MM format, 24-hour). E.g., '12:00' for 12 PM, '18:00' for 6 PM.",
+    )
+    page: int = Field(
+        default=1,
+        ge=1,
+        description="Page number for pagination. Default: 1",
     )
     model_config = ConfigDict(
         populate_by_name=True,
         extra="forbid",
+        json_schema_extra={
+            "additionalProperties": False,
+        }
     )
+    
+    @classmethod
+    def model_json_schema(cls, **kwargs):
+        schema = super().model_json_schema(**kwargs)
+        # Remove nullable fields from required if they have None defaults
+        if "required" in schema:
+            schema["required"] = [f for f in schema.get("required", []) 
+                                  if f not in ["min_price", "max_price", "minPrice", "maxPrice"]]
+        return schema
     
     @field_validator("journey_date")
     @classmethod

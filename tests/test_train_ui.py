@@ -50,11 +50,11 @@ async def test_train_search_mumbai_to_pune():
     """Test train search from Mumbai to Pune"""
     tool = TrainSearchTool()
 
-    journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
+    journey_date = (datetime.now() + timedelta(days=1)).strftime("%d-%m-%Y")
 
     result = await tool.execute(
-        fromStation="Panipat",
-        toStation="Mumbai",
+        fromStation="Delhi",
+        toStation="Jalandhar",
         journeyDate=journey_date,
         _limit=100,
         _user_type="website"
@@ -415,3 +415,385 @@ async def test_train_ui_class_filter_different_classes():
             print(f"    [UI TEST] HTML saved: {filename}")
 
     print(f"\n[PASS] UI Test: Multiple class filters work correctly")
+
+
+# ─── Quota-based Conditional UI Tests ───
+
+
+@pytest.mark.asyncio
+async def test_train_ui_general_quota_full_display():
+    """UI Test: General quota (GN) shows full display - fare, availability, Book Now.
+
+    When quota is GN (default), the UI should show:
+    - Class code
+    - Fare (₹...)
+    - Availability status
+    - "Tap To Refresh" or "Book Now" button
+    """
+    tool = TrainSearchTool()
+
+    journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    print("\n[UI TEST] Testing General Quota (GN) - Full Display")
+
+    result = await tool.execute(
+        fromStation="Delhi",
+        toStation="Jaipur",
+        journeyDate=journey_date,
+        quota="GN",
+        _limit=5,
+        _user_type="website"
+    )
+
+    assert not result.is_error
+    assert result.html is not None, "Should have HTML output"
+
+    data = result.structured_content
+    assert data.get("quota") == "GN"
+
+    html = result.html
+
+    # GN quota should NOT have "Check Tatkal" or similar buttons
+    assert "Check Tatkal" not in html, "GN quota should not show 'Check Tatkal' button"
+    assert "Check Ladies" not in html, "GN quota should not show 'Check Ladies' button"
+    assert "Check Senior" not in html, "GN quota should not show 'Check Senior' button"
+    assert "class-check-quota-btn" not in html, "GN quota should not have check-quota buttons"
+
+    # GN quota should show fare and availability
+    assert '<div class="class-fare">' in html, "GN quota should show fare"
+    assert '<div class="class-availability' in html, "GN quota should show availability"
+
+    # Should have either "Tap To Refresh" or "Book Now" buttons
+    has_refresh = "Tap To Refresh" in html
+    has_book = "Book Now" in html
+    assert has_refresh or has_book, "GN quota should show 'Tap To Refresh' or 'Book Now'"
+
+    print(f"  [PASS] GN quota shows full display (fare, availability, buttons)")
+
+    if result.html:
+        with open("train_ui_quota_general.html", "w", encoding="utf-8") as f:
+            f.write(result.html)
+        print(f"  [UI TEST] HTML saved: train_ui_quota_general.html")
+
+
+@pytest.mark.asyncio
+async def test_train_ui_senior_citizen_quota_minimal_display():
+    """UI Test: Senior Citizen quota (SS) shows minimal display - class code + Check Senior Citizen button.
+
+    When quota is SS, the UI should show:
+    - Class code ONLY (no fare, no availability)
+    - "Check Senior Citizen" button (not "Tap To Refresh" or "Book Now")
+    - data-quota="SS" on class cards
+    - Subtitle mentions "Senior Citizen Quota"
+    """
+    tool = TrainSearchTool()
+
+    journey_date = (datetime.now() + timedelta(days=5)).strftime("%d-%m-%Y")
+
+    print("\n[UI TEST] Testing Senior Citizen Quota (SS) - Minimal Display")
+
+    result = await tool.execute(
+        fromStation="Delhi",
+        toStation="Jaipur",
+        journeyDate=journey_date,
+        quota="SS",
+        _limit=5,
+        _user_type="website"
+    )
+
+    assert not result.is_error
+    assert result.html is not None, "Should have HTML output"
+
+    data = result.structured_content
+    assert data.get("quota") == "SS"
+
+    html = result.html
+
+    # SS quota should have "Check Senior Citizen" button
+    assert "Check Senior Citizen" in html, "SS quota should show 'Check Senior Citizen' button"
+    assert "class-check-quota-btn" in html, "SS quota should have check-quota button class"
+
+    # SS quota should NOT show fare or availability in class cards
+    assert '<div class="class-fare">' not in html, "SS quota should NOT show fare initially"
+    assert '<div class="class-availability' not in html, "SS quota should NOT show availability initially"
+
+    # SS quota should NOT show standard buttons
+    assert "Tap To Refresh</button>" not in html, "SS quota should not show 'Tap To Refresh'"
+    assert ">Book Now</a>" not in html, "SS quota should not show 'Book Now'"
+
+    # data-quota should be SS
+    assert 'data-quota="SS"' in html, "Class cards should have data-quota='SS'"
+
+    # Subtitle should mention Senior Citizen
+    assert "Senior Citizen Quota" in html, "Subtitle should mention 'Senior Citizen Quota'"
+
+    # Response text should mention Senior Citizen
+    assert "Senior Citizen" in result.response_text, "Response text should mention Senior Citizen"
+
+    print(f"  [PASS] SS quota shows minimal display (class code + Check Senior Citizen)")
+
+    if result.html:
+        with open("train_ui_quota_senior_citizen.html", "w", encoding="utf-8") as f:
+            f.write(result.html)
+        print(f"  [UI TEST] HTML saved: train_ui_quota_senior_citizen.html")
+
+
+@pytest.mark.asyncio
+async def test_train_ui_ladies_quota_minimal_display():
+    """UI Test: Ladies quota (LD) shows minimal display - class code + Check Ladies Quota button."""
+    tool = TrainSearchTool()
+
+    journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    print("\n[UI TEST] Testing Ladies Quota (LD) - Minimal Display")
+
+    result = await tool.execute(
+        fromStation="Delhi",
+        toStation="Agra",
+        journeyDate=journey_date,
+        quota="LD",
+        _limit=5,
+        _user_type="website"
+    )
+
+    assert not result.is_error
+    assert result.html is not None, "Should have HTML output"
+
+    data = result.structured_content
+    assert data.get("quota") == "LD"
+
+    html = result.html
+
+    # LD quota should have "Check Ladies Quota" button
+    assert "Check Ladies Quota" in html, "LD quota should show 'Check Ladies Quota' button"
+    assert "class-check-quota-btn" in html, "LD quota should have check-quota button class"
+
+    # Should NOT show fare/availability
+    assert '<div class="class-fare">' not in html, "LD quota should NOT show fare initially"
+    assert '<div class="class-availability' not in html, "LD quota should NOT show availability initially"
+
+    # data-quota should be LD
+    assert 'data-quota="LD"' in html, "Class cards should have data-quota='LD'"
+
+    # Subtitle should mention Ladies
+    assert "Ladies Quota" in html, "Subtitle should mention 'Ladies Quota'"
+
+    print(f"  [PASS] LD quota shows minimal display (class code + Check Ladies Quota)")
+
+    if result.html:
+        with open("train_ui_quota_ladies.html", "w", encoding="utf-8") as f:
+            f.write(result.html)
+        print(f"  [UI TEST] HTML saved: train_ui_quota_ladies.html")
+
+
+@pytest.mark.asyncio
+async def test_train_ui_multiple_quotas_comparison():
+    """UI Test: Compare UI output for different quotas on the same route.
+
+    Validates that:
+    1. GN quota shows full display (fare, availability, standard buttons)
+    2. Non-GN quotas show minimal display (class code + Check button)
+    3. Each quota type has the correct button label
+    4. data-quota attribute matches the requested quota
+    """
+    tool = TrainSearchTool()
+
+    journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    print("\n[UI TEST] Comparing UI across different quotas")
+
+    quota_tests = [
+        ("GN", "General", False),
+        ("TQ", "Tatkal", True),
+        ("LD", "Ladies Quota", True),
+        ("SS", "Senior Citizen", True),
+    ]
+
+    for quota_code, expected_label, is_non_general in quota_tests:
+        print(f"\n  Testing quota: {quota_code} ({expected_label})")
+
+        result = await tool.execute(
+            fromStation="Delhi",
+            toStation="Jaipur",
+            journeyDate=journey_date,
+            quota=quota_code,
+            _limit=3,
+            _user_type="website"
+        )
+
+        if result.is_error:
+            print(f"    [SKIP] Error: {result.response_text}")
+            continue
+
+        data = result.structured_content
+        assert data.get("quota") == quota_code, f"Quota should be {quota_code}"
+
+        if not result.html:
+            print(f"    [SKIP] No HTML output (no trains found)")
+            continue
+
+        html = result.html
+
+        # Verify data-quota attribute
+        assert f'data-quota="{quota_code}"' in html, \
+            f"Class cards should have data-quota='{quota_code}'"
+
+        if is_non_general:
+            # Non-GN: should have Check button, no fare/availability
+            assert "class-check-quota-btn" in html, \
+                f"{quota_code} quota should have check-quota button"
+            assert f"Check {expected_label}" in html, \
+                f"{quota_code} quota should show 'Check {expected_label}' button"
+            assert '<div class="class-fare">' not in html, \
+                f"{quota_code} quota should NOT show fare"
+            assert '<div class="class-availability' not in html, \
+                f"{quota_code} quota should NOT show availability"
+            print(f"    [PASS] Minimal display: class code + 'Check {expected_label}' button")
+        else:
+            # GN: should have full display
+            assert "class-check-quota-btn" not in html, \
+                "GN quota should NOT have check-quota button"
+            assert '<div class="class-fare">' in html, \
+                "GN quota should show fare"
+            assert '<div class="class-availability' in html, \
+                "GN quota should show availability"
+            print(f"    [PASS] Full display: fare, availability, standard buttons")
+
+        # Save HTML
+        filename = f"train_ui_quota_{quota_code.lower()}.html"
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(html)
+        print(f"    HTML saved: {filename}")
+
+    print(f"\n[PASS] UI Test: All quotas display correctly")
+
+
+@pytest.mark.asyncio
+async def test_train_ui_invalid_quota_falls_back_to_general():
+    """UI Test: Invalid quota falls back to GN and shows full display."""
+    tool = TrainSearchTool()
+
+    journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    print("\n[UI TEST] Testing invalid quota fallback to GN")
+
+    result = await tool.execute(
+        fromStation="Delhi",
+        toStation="Jaipur",
+        journeyDate=journey_date,
+        quota="INVALID",
+        _limit=5,
+        _user_type="website"
+    )
+
+    assert not result.is_error
+
+    data = result.structured_content
+    # Invalid quota should fall back to GN
+    assert data.get("quota") == "GN", "Invalid quota should fall back to GN"
+
+    if result.html:
+        html = result.html
+
+        # Should behave like GN - full display
+        assert "class-check-quota-btn" not in html, \
+            "Fallback GN should NOT have check-quota buttons"
+        assert '<div class="class-fare">' in html, "Fallback GN should show fare"
+        assert '<div class="class-availability' in html, "Fallback GN should show availability"
+
+        print(f"  [PASS] Invalid quota correctly falls back to GN full display")
+
+
+@pytest.mark.asyncio
+async def test_train_ui_tatkal_quota_with_class_filter():
+    """UI Test: Tatkal quota + class filter combination.
+
+    When both quota (TQ) and class (3A) are specified:
+    - Only trains with 3A class should appear
+    - UI should show minimal display (no fare/availability)
+    - "Check Tatkal" button should appear
+    - Response text should mention both filters
+    """
+    tool = TrainSearchTool()
+
+    journey_date = (datetime.now() + timedelta(days=5)).strftime("%d-%m-%Y")
+
+    print("\n[UI TEST] Testing Tatkal Quota + Class Filter (TQ + 3A)")
+
+    result = await tool.execute(
+        fromStation="Delhi",
+        toStation="Mumbai Central",
+        journeyDate=journey_date,
+        travelClass="3A",
+        quota="TQ",
+        _limit=5,
+        _user_type="website"
+    )
+
+    assert not result.is_error
+
+    data = result.structured_content
+    assert data.get("quota") == "TQ"
+
+    # Response text should mention both class and quota
+    assert "Tatkal" in result.response_text, "Response text should mention Tatkal"
+
+    if result.html:
+        html = result.html
+
+        # Should show Check Tatkal button (non-GN behavior)
+        assert "Check Tatkal" in html, "Should show 'Check Tatkal' button"
+        assert "class-check-quota-btn" in html
+
+        # Should NOT show fare/availability
+        assert '<div class="class-fare">' not in html, "TQ should NOT show fare"
+        assert '<div class="class-availability' not in html, "TQ should NOT show availability"
+
+        # data-quota should be TQ
+        assert 'data-quota="TQ"' in html
+
+        # Verify trains have 3A class
+        trains = data.get("trains", [])
+        for train in trains:
+            class_codes = [cls.get("class_code") for cls in train.get("classes", [])]
+            assert "3A" in class_codes, \
+                f"Train {train.get('train_number')} should have 3A: {class_codes}"
+
+        print(f"  [PASS] TQ + 3A filter: minimal display with Check Tatkal button")
+        print(f"  [PASS] All {len(trains)} trains have 3A class")
+
+        with open("train_ui_quota_tatkal_3a.html", "w", encoding="utf-8") as f:
+            f.write(html)
+        print(f"  HTML saved: train_ui_quota_tatkal_3a.html")
+
+
+@pytest.mark.asyncio
+async def test_train_ui_quota_whatsapp_no_html():
+    """UI Test: WhatsApp users with non-GN quota should NOT get HTML output."""
+    tool = TrainSearchTool()
+
+    journey_date = (datetime.now() + timedelta(days=7)).strftime("%d-%m-%Y")
+
+    print("\n[UI TEST] Testing Quota with WhatsApp user type")
+
+    result = await tool.execute(
+        fromStation="Delhi",
+        toStation="Jaipur",
+        journeyDate=journey_date,
+        quota="TQ",
+        _limit=5,
+        _user_type="whatsapp"
+    )
+
+    assert not result.is_error
+
+    # WhatsApp should NOT have HTML
+    assert result.html is None, "WhatsApp should not have HTML output"
+
+    # Should have whatsapp_response
+    assert result.whatsapp_response is not None, "WhatsApp should have whatsapp_response"
+
+    # Response text should mention Tatkal
+    assert "Tatkal" in result.response_text, "Response text should mention Tatkal"
+
+    print(f"  [PASS] WhatsApp + TQ quota: no HTML, has whatsapp_response")

@@ -32,6 +32,7 @@ class FlightSearchInput(BaseModel):
     adults: int = Field(1, ge=1, le=9, description="Number of adults (1-9). Cannot be null or None, defaults to 1.")
     children: int = Field(0, ge=0, le=8, description="Number of children (0-8). Cannot be null or None, defaults to 0.")
     infants: int = Field(0, ge=0, le=8, description="Number of infants (0-8). Cannot be null or None, defaults to 0.")
+    page: int = Field(1, ge=1, description="Page number for pagination (1-indexed)")
 
     model_config = ConfigDict(
         populate_by_name=True,  # accept both outbound_date & outboundDate
