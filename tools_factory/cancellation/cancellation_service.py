@@ -1004,9 +1004,14 @@ class CancellationService:
             )
 
             # Store transaction IDs for OTP and cancellation
-            self._flight_transaction_id = str(response.get("TransactionId") or "")
+            # TransactionId is in FlightPriceDetails, not at root level
+            price_details_temp = passenger_details.get("FlightPriceDetails") or {}
+            flt_details = passenger_details.get("fltDetails") or {}
+            self._flight_transaction_id = str(
+                price_details_temp.get("TransactionId") or response.get("TransactionId") or ""
+            )
             self._flight_transaction_screen_id = str(
-                response.get("TransactionScreenId") or transaction_screen_id
+                flt_details.get("transactionScreenId") or response.get("TransactionScreenId") or transaction_screen_id
             )
 
             trip_status = response.get("TripStatus") or ""
@@ -1017,24 +1022,26 @@ class CancellationService:
             for seg in flight_detail:
                 flight_segments.append({
                     "airline_name": seg.get("AirLineName"),
-                    "airline_code": seg.get("AirLineCode"),
+                    "airline_code": seg.get("AirlineCode") or seg.get("AirLineCode"),
                     "flight_number": seg.get("FlightNumber"),
-                    "origin": seg.get("Origin"),
-                    "origin_airport": seg.get("OriginAirportName"),
-                    "destination": seg.get("Destination"),
-                    "destination_airport": seg.get("DestinationAirportName"),
+                    "origin": seg.get("DepartureCityCode") or seg.get("Origin"),
+                    "origin_city": seg.get("DepartureCity"),
+                    "origin_airport": seg.get("DepartureName") or seg.get("OriginAirportName"),
+                    "destination": seg.get("ArrivalCityCode") or seg.get("Destination"),
+                    "destination_city": seg.get("ArrivalCity"),
+                    "destination_airport": seg.get("ArrivalName") or seg.get("DestinationAirportName"),
                     "departure_date": seg.get("DepartureDate"),
                     "departure_time": seg.get("DepartureTime"),
                     "arrival_date": seg.get("ArrivalDate"),
                     "arrival_time": seg.get("ArrivalTime"),
-                    "origin_terminal": seg.get("OriginTerminal"),
-                    "destination_terminal": seg.get("DestinationTerminal"),
-                    "duration": seg.get("Duration"),
-                    "cabin_class": seg.get("CabinClass"),
-                    "cabin_baggage": seg.get("CabinBaggage"),
-                    "check_in_baggage": seg.get("CheckInBaggage"),
+                    "origin_terminal": seg.get("SourceTerminal") or seg.get("OriginTerminal"),
+                    "destination_terminal": seg.get("DestinationalTerminal") or seg.get("DestinationTerminal"),
+                    "duration": seg.get("FlightDuration") or seg.get("Duration"),
+                    "cabin_class": seg.get("ClassType") or seg.get("CabinClass"),
+                    "cabin_baggage": seg.get("CabinBag") or seg.get("CabinBaggage"),
+                    "check_in_baggage": seg.get("BaggageWeight") or seg.get("CheckInBaggage"),
                     "bound_type": seg.get("BoundType"),
-                    "stops": seg.get("Stops"),
+                    "stops": seg.get("FlightStops") or seg.get("Stops"),
                 })
 
             # Parse outbound passengers
@@ -1044,20 +1051,21 @@ class CancellationService:
                 pax_list = group.get("outBondTypePass") or []
                 for pax in pax_list:
                     is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
-                    is_cancelled = str(pax.get("status", "")).lower() in ("cancelled", "cancel")
+                    status = pax.get("Status") or pax.get("status") or ""
+                    is_cancelled = str(status).lower() in ("cancelled", "cancel")
                     outbound_passengers.append({
                         "pax_id": pax.get("paxId"),
                         "title": pax.get("title"),
-                        "first_name": pax.get("firstName"),
+                        "first_name": pax.get("FirstName") or pax.get("firstName"),
                         "last_name": pax.get("lastName"),
                         "pax_type": pax.get("paxType"),
                         "ticket_number": pax.get("ticketNumber"),
-                        "status": pax.get("status"),
+                        "status": status,
                         "is_cancellable": is_cancellable,
                         "is_cancelled": is_cancelled,
                         "cancellation_charge": pax.get("cancellationCharge"),
-                        "bound_type": pax.get("boundType"),
-                        "possible_mode": pax.get("possibleMode"),
+                        "bound_type": pax.get("tripType") or pax.get("boundType"),
+                        "possible_mode": pax.get("possiblemode") or pax.get("possibleMode"),
                     })
 
             # Parse inbound passengers (round-trip)
@@ -1067,20 +1075,21 @@ class CancellationService:
                 pax_list = group.get("inBoundTypePass") or group.get("outBondTypePass") or []
                 for pax in pax_list:
                     is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
-                    is_cancelled = str(pax.get("status", "")).lower() in ("cancelled", "cancel")
+                    status = pax.get("Status") or pax.get("status") or ""
+                    is_cancelled = str(status).lower() in ("cancelled", "cancel")
                     inbound_passengers.append({
                         "pax_id": pax.get("paxId"),
                         "title": pax.get("title"),
-                        "first_name": pax.get("firstName"),
+                        "first_name": pax.get("FirstName") or pax.get("firstName"),
                         "last_name": pax.get("lastName"),
                         "pax_type": pax.get("paxType"),
                         "ticket_number": pax.get("ticketNumber"),
-                        "status": pax.get("status"),
+                        "status": status,
                         "is_cancellable": is_cancellable,
                         "is_cancelled": is_cancelled,
                         "cancellation_charge": pax.get("cancellationCharge"),
-                        "bound_type": pax.get("boundType"),
-                        "possible_mode": pax.get("possibleMode"),
+                        "bound_type": pax.get("tripType") or pax.get("boundType"),
+                        "possible_mode": pax.get("possiblemode") or pax.get("possibleMode"),
                     })
 
             # Parse price info
@@ -1092,13 +1101,13 @@ class CancellationService:
                 "currency": price_details.get("Currency"),
             }
 
-            # Parse PNR info
-            pnr_list = passenger_details.get("PNRList") or []
+            # Parse PNR info (PNRList is a dict, not a list)
+            pnr_data = passenger_details.get("PNRList") or {}
             pnr_info = []
-            for pnr in pnr_list:
+            if pnr_data and isinstance(pnr_data, dict):
                 pnr_info.append({
-                    "airline_pnr": pnr.get("Airlinepnr"),
-                    "gds_pnr": pnr.get("Gdspnr"),
+                    "airline_pnr": pnr_data.get("Airlinepnr"),
+                    "gds_pnr": pnr_data.get("Gdspnr"),
                 })
 
             # Parse cancellation policy
@@ -1106,18 +1115,22 @@ class CancellationService:
             sectors = cancellation_policy_data.get("Sectors") or []
             cancellation_policy = []
             for sector in sectors:
-                policies = sector.get("Policies") or []
+                # Field name is "CancellationPolicies" not "Policies"
+                policies = sector.get("CancellationPolicies") or sector.get("Policies") or []
                 policy_items = []
                 for pol in policies:
                     policy_items.append({
                         "charge_type": pol.get("ChargeType"),
-                        "charge_value": pol.get("ChargeValue"),
+                        "charge_value": pol.get("ChargeValue") or pol.get("Charge"),
                         "from_date": pol.get("FromDate"),
                         "to_date": pol.get("ToDate"),
-                        "policy_text": pol.get("PolicyText"),
+                        "policy_text": pol.get("PolicyText") or pol.get("Time"),
+                        "is_refundable": pol.get("Refundable"),
+                        "is_cancellation": pol.get("IsCancellation"),
                     })
                 cancellation_policy.append({
-                    "sector_name": sector.get("SectorName"),
+                    "sector_name": sector.get("SectorName") or sector.get("Sector"),
+                    "bound_type": sector.get("Boundtype"),
                     "policies": policy_items,
                 })
 
