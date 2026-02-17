@@ -4,19 +4,25 @@ import logging
 
 from ..base import BaseTool, ToolMetadata
 from .bus_bookings_service import BusBookingsService
-from tools_factory.login.login_tool import LoginTool
 from .booking_schema import GetBookingsInput
 from tools_factory.base_schema import ToolResponseFormat
+from emt_client.auth.session_manager import SessionManager
 
 logger = logging.getLogger(__name__)
 
 
 class GetBusBookingsTool(BaseTool):
     """Tool for fetching bus bookings"""
-    
-    def __init__(self, login_tool: LoginTool):
+
+    def __init__(self, session_manager: SessionManager):
+        """
+        Initialize with SessionManager for multi-user support.
+
+        Args:
+            session_manager: SessionManager to look up user sessions by session_id
+        """
         super().__init__()
-        self.service = BusBookingsService(login_tool.service.token_provider)
+        self.session_manager = session_manager
     
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
@@ -30,7 +36,32 @@ class GetBusBookingsTool(BaseTool):
     
     async def execute(self, **kwargs) -> ToolResponseFormat:
         try:
-            result = await self.service.get_bus_bookings()
+            # Extract runtime flags (internal)
+            session_id = kwargs.pop("_session_id", None)
+            limit = kwargs.pop("_limit", None)
+            user_type = kwargs.pop("_user_type", "website")
+            render_html = user_type.lower() == "website"
+            is_whatsapp = user_type.lower() == "whatsapp"
+
+            # Validate session_id is provided
+            if not session_id:
+                return ToolResponseFormat(
+                    response_text="session_id is required. Please login first to get a session_id.",
+                    is_error=True
+                )
+
+            # Get session-specific token provider
+            token_provider = self.session_manager.get_session(session_id)
+
+            if not token_provider:
+                return ToolResponseFormat(
+                    response_text="Invalid or expired session. Please login again.",
+                    is_error=True
+                )
+
+            # Create service with session-specific provider
+            service = BusBookingsService(token_provider)
+            result = await service.get_bus_bookings()
             
             if not result.get("success"):
                 error_message = result.get("error", "Unknown error")

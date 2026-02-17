@@ -13,17 +13,21 @@ from tools_factory.bookings.flight_bookings_tool import GetFlightBookingsTool
 from tools_factory.bookings.hotel_bookings_tool import GetHotelBookingsTool
 from tools_factory.bookings.train_bookings_tool import GetTrainBookingsTool
 from tools_factory.bookings.bus_bookings_tool import GetBusBookingsTool
+from emt_client.auth.session_manager import SessionManager
 from typing import Dict, Optional, List
+
 
 class ToolFactory:
     """Central factory for managing and creating tools"""
-    
+
     def __init__(self):
         self._tools: Dict[str, BaseTool] = {}
+        self.session_manager = SessionManager()  # Per-user session isolation
         self._register_default_tools()
-    
+
     def _register_default_tools(self):
         """Register all available tools"""
+        # Search tools (no session needed)
         self.register_tool(FlightSearchTool())
         self.register_tool(HotelSearchTool())
         self.register_tool(BusSearchTool())
@@ -34,15 +38,15 @@ class ToolFactory:
         self.register_tool(TrainAvailabilityCheckTool())
         self.register_tool(TrainRouteCheckTool())
         self.register_tool(TrainStatusTool())
+        # Login tool with session manager for multi-user support
+        login_tool = LoginTool(self.session_manager)
+        self.register_tool(login_tool)
 
-        # login_tool = LoginTool()
-        # self.register_tool(login_tool)
-        
-        # Register booking tools with shared login token provider
-        # self.register_tool(GetFlightBookingsTool(login_tool))
-        # self.register_tool(GetHotelBookingsTool(login_tool))
-        # self.register_tool(GetTrainBookingsTool(login_tool))
-        # self.register_tool(GetBusBookingsTool(login_tool))
+        # Booking tools with session manager (require session_id parameter)
+        self.register_tool(GetFlightBookingsTool(self.session_manager))
+        self.register_tool(GetHotelBookingsTool(self.session_manager))
+        self.register_tool(GetTrainBookingsTool(self.session_manager))
+        self.register_tool(GetBusBookingsTool(self.session_manager))
     
     def register_tool(self, tool: BaseTool):
         """Register a tool"""
@@ -76,6 +80,10 @@ class ToolFactory:
     def list_all_tools(self) -> List[BaseTool]:
         """Get all available tools"""
         return list(self._tools.values())
+
+    def get_session_manager(self) -> SessionManager:
+        """Get the session manager for direct session manipulation"""
+        return self.session_manager
 
 # ====================
 # TOOL REGISTRY (Singleton)
