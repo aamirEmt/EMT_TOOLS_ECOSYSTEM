@@ -1471,11 +1471,16 @@ BUS_CAROUSEL_TEMPLATE = """
                     data-duration="{{ bus.duration }}"
                     data-is-seater="{{ bus.is_seater | lower }}"
                     data-is-sleeper="{{ bus.is_sleeper | lower }}"
-                    data-booking-link="{{ bus.booking_link }}">
+                    data-booking-link="{{ bus.booking_link }}"
+                    data-source-id="{{ source_id }}"
+                    data-destination-id="{{ destination_id }}"
+                    data-source-name="{{ source_city }}"
+                    data-destination-name="{{ destination_city }}"
+                    data-journey-date="{{ journey_date_raw }}">
               Select Seats
             </button>
             {% if bus.is_cancellable %}
-            <div class="cancelpolicy cancellable">Cancellation Available</div>
+            <div class="cancelpolicy cancellable">Free Cancellation</div>
             {% else %}
             <div class="cancelpolicy">Non-refundable</div>
             {% endif %}
@@ -1554,27 +1559,39 @@ BUS_CAROUSEL_TEMPLATE = """
   window.closeSeatModal = closeSeatModal;
   window.switchPointsTab = switchPointsTab;
   window.confirmAndRedirect = confirmAndRedirect;
+  window.selectSeat = selectSeat;
+  window.selectBoardingPoint = selectBoardingPoint;
+  window.selectDroppingPoint = selectDroppingPoint;
   
   // Attach click handlers to all select seats buttons
-  document.querySelectorAll('.select-seats-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const busData = {
-        busId: this.dataset.busId,
-        routeId: this.dataset.routeId,
-        engineId: parseInt(this.dataset.engineId),
-        operatorId: this.dataset.operatorId,
-        operatorName: this.dataset.operatorName,
-        busType: this.dataset.busType,
-        departureTime: this.dataset.departureTime,
-        arrivalTime: this.dataset.arrivalTime,
-        duration: this.dataset.duration,
-        isSeater: this.dataset.isSeater === 'true',
-        isSleeper: this.dataset.isSleeper === 'true',
-        bookingLink: this.dataset.bookingLink,
-      };
-      openSeatModal(busData);
+  setTimeout(function() {
+    document.querySelectorAll('.select-seats-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const busData = {
+          busId: this.dataset.busId,
+          routeId: this.dataset.routeId,
+          engineId: parseInt(this.dataset.engineId) || 0,
+          operatorId: this.dataset.operatorId,
+          operatorName: this.dataset.operatorName,
+          busType: this.dataset.busType,
+          departureTime: this.dataset.departureTime,
+          arrivalTime: this.dataset.arrivalTime,
+          duration: this.dataset.duration,
+          isSeater: this.dataset.isSeater === 'true',
+          isSleeper: this.dataset.isSleeper === 'true',
+          bookingLink: this.dataset.bookingLink,
+          sourceId: this.dataset.sourceId || '',
+          destinationId: this.dataset.destinationId || '',
+          sourceName: this.dataset.sourceName || '',
+          destinationName: this.dataset.destinationName || '',
+          journeyDate: this.dataset.journeyDate || ''
+        };
+        openSeatModal(busData);
+      });
     });
-  });
+  }, 100);
   
   function openSeatModal(busData) {
     currentBusData = busData;
@@ -1582,74 +1599,121 @@ BUS_CAROUSEL_TEMPLATE = """
     selectedBoardingPoint = null;
     selectedDroppingPoint = null;
     
-    document.getElementById('modalBusOperator').textContent = busData.operatorName;
-    document.getElementById('modalBusType').textContent = busData.busType;
+    document.getElementById('modalBusOperator').textContent = busData.operatorName || 'Bus Operator';
+    document.getElementById('modalBusType').textContent = busData.busType || '';
     document.getElementById('seatLayoutContainer').innerHTML = '<div class="seat-loading">Loading seat layout...</div>';
     document.getElementById('boardingPointsList').innerHTML = '';
     document.getElementById('droppingPointsList').innerHTML = '';
     document.getElementById('seatModalOverlay').classList.add('active');
+    document.getElementById('continueBtn').style.display = 'block';
     
     updateFooter();
-    fetchSeatLayout(busData);
+    
+    // For now, show redirect option since we need backend API call
+    showRedirectOption(busData);
+  }
+  
+  function showRedirectOption(busData) {
+    const container = document.getElementById('seatLayoutContainer');
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px;">
+        <div style="margin-bottom: 20px;">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#ef6614" stroke-width="1.5">
+            <rect x="3" y="8" width="18" height="12" rx="2"/>
+            <path d="M7 8V6a2 2 0 012-2h6a2 2 0 012 2v2"/>
+            <circle cx="7.5" cy="14" r="1.5"/>
+            <circle cx="16.5" cy="14" r="1.5"/>
+            <path d="M7 17h10"/>
+          </svg>
+        </div>
+        <h3 style="font-size: 16px; font-weight: 600; color: #202020; margin-bottom: 8px;">
+          ${busData.operatorName}
+        </h3>
+        <p style="font-size: 13px; color: #666; margin-bottom: 8px;">
+          ${busData.busType}
+        </p>
+        <p style="font-size: 14px; color: #868686; margin-bottom: 24px;">
+          ${busData.departureTime} → ${busData.arrivalTime} (${busData.duration})
+        </p>
+        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">
+          Click below to select seats and complete your booking on EaseMyTrip
+        </p>
+        <a href="${busData.bookingLink}" target="_blank" rel="noopener noreferrer" 
+           style="display: inline-block; padding: 14px 32px; background: #ef6614; color: #fff; 
+                  text-decoration: none; border-radius: 40px; font-weight: 600; font-size: 14px;
+                  transition: background 0.2s;"
+           onmouseover="this.style.background='#e75806'"
+           onmouseout="this.style.background='#ef6614'">
+          Select Seats & Book
+        </a>
+      </div>
+    `;
+    
+    // Hide footer continue button since we're showing redirect
+    document.getElementById('continueBtn').style.display = 'none';
+    
+    // Hide points section for redirect mode
+    document.querySelector('.points-section').style.display = 'none';
   }
   
   function closeSeatModal() {
     document.getElementById('seatModalOverlay').classList.remove('active');
+    // Reset points section visibility
+    document.querySelector('.points-section').style.display = 'block';
     currentBusData = null;
     selectedSeats = [];
     selectedBoardingPoint = null;
     selectedDroppingPoint = null;
   }
   
-  async function fetchSeatLayout(busData) {
-    // For now, redirect to booking link directly
-    // In production, this would call the SeatBind API
-    // and render the seat layout
-    
-    // Simulate API call - in real implementation, call your backend
-    try {
-      // Show a message that seat selection requires the full website
-      document.getElementById('seatLayoutContainer').innerHTML = `
-        <div style="text-align: center; padding: 40px 20px;">
-          <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
-            For the best seat selection experience, please continue on the EaseMyTrip website.
-          </p>
-          <a href="${busData.bookingLink}" target="_blank" rel="noopener noreferrer" 
-             style="display: inline-block; padding: 12px 24px; background: #ef6614; color: #fff; 
-                    text-decoration: none; border-radius: 40px; font-weight: 600;">
-            Select Seats on Website
-          </a>
-        </div>
-      `;
-      
-      // Hide footer continue button since we're redirecting
-      document.getElementById('continueBtn').style.display = 'none';
-      
-    } catch (error) {
-      document.getElementById('seatLayoutContainer').innerHTML = `
-        <div style="text-align: center; padding: 40px 20px; color: #d32f2f;">
-          Failed to load seat layout. Please try again.
-        </div>
-      `;
-    }
-  }
-  
   function switchPointsTab(tab) {
     document.querySelectorAll('.points-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`.points-tab[data-tab="${tab}"]`).classList.add('active');
+    document.querySelector('.points-tab[data-tab="' + tab + '"]').classList.add('active');
     
     document.getElementById('boardingPointsList').style.display = tab === 'boarding' ? 'block' : 'none';
     document.getElementById('droppingPointsList').style.display = tab === 'dropping' ? 'block' : 'none';
+  }
+  
+  function selectSeat(seatElement, seatData) {
+    if (seatElement.classList.contains('booked')) return;
+    
+    const isSelected = seatElement.classList.contains('selected');
+    
+    if (isSelected) {
+      seatElement.classList.remove('selected');
+      seatElement.classList.add('available');
+      selectedSeats = selectedSeats.filter(s => s.id !== seatData.id);
+    } else {
+      seatElement.classList.remove('available');
+      seatElement.classList.add('selected');
+      selectedSeats.push(seatData);
+    }
+    
+    updateFooter();
+  }
+  
+  function selectBoardingPoint(element, pointData) {
+    document.querySelectorAll('#boardingPointsList .point-item').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedBoardingPoint = pointData;
+    updateFooter();
+  }
+  
+  function selectDroppingPoint(element, pointData) {
+    document.querySelectorAll('#droppingPointsList .point-item').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedDroppingPoint = pointData;
+    updateFooter();
   }
   
   function updateFooter() {
     const seatsDisplay = selectedSeats.length > 0 
       ? selectedSeats.map(s => s.name).join(', ')
       : 'None';
-    const totalFare = selectedSeats.reduce((sum, s) => sum + s.fare, 0);
+    const totalFare = selectedSeats.reduce((sum, s) => sum + (parseFloat(s.fare) || 0), 0);
     
     document.getElementById('selectedSeatsDisplay').textContent = seatsDisplay;
-    document.getElementById('totalFareDisplay').textContent = totalFare.toLocaleString();
+    document.getElementById('totalFareDisplay').textContent = totalFare.toLocaleString('en-IN');
     
     const canContinue = selectedSeats.length > 0 && selectedBoardingPoint && selectedDroppingPoint;
     document.getElementById('continueBtn').disabled = !canContinue;
@@ -1662,6 +1726,13 @@ BUS_CAROUSEL_TEMPLATE = """
     window.open(currentBusData.bookingLink, '_blank');
     closeSeatModal();
   }
+  
+  // Close modal when clicking overlay
+  document.getElementById('seatModalOverlay')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeSeatModal();
+    }
+  });
 })();
 </script>
 </div>
@@ -2289,12 +2360,18 @@ def render_bus_results(bus_results: Dict[str, Any]) -> str:
     non_ac_count = bus_results.get("non_ac_count", 0)
     bus_count = bus_results.get("total_count") or len(buses_ui)
     
+    # Get raw journey date for API calls
+    journey_date_raw = bus_results.get("journey_date", "")
+    
     template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
     return template.render(
         styles=BUS_CAROUSEL_STYLES,
         source_city=source_city,
         destination_city=destination_city,
         journey_date=journey_date,
+        journey_date_raw=journey_date_raw,
+        source_id=bus_results.get("source_id", ""),
+        destination_id=bus_results.get("destination_id", ""),
         bus_count=bus_count,
         ac_count=ac_count,
         non_ac_count=non_ac_count,
