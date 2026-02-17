@@ -33,8 +33,9 @@ class OtpLoginTool(BaseTool):
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
         try:
-            session_id = kwargs.pop("_session_id", None)
-            action = kwargs.get("action")
+            # Accept session_id from either _session_id or session_id
+            session_id = kwargs.pop("_session_id", None) or kwargs.pop("session_id", None)
+            action = kwargs.pop("action", None)
 
             if not action or action not in ("send_otp", "verify_otp"):
                 return ToolResponseFormat(
