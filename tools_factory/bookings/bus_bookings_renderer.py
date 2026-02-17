@@ -291,7 +291,7 @@ BUS_BOOKINGS_TEMPLATE = """
   {% if tabs %}
   <div class="bkng-tabs">
     {% for tab in tabs %}
-    <button class="bkng-tab {% if tab.active %}active{% endif %}" data-status="{{ tab.key }}">
+    <button class="bkng-tab {% if tab.active %}active{% endif %}" data-status="{{ tab.key }}" onclick="var p=this.closest('.bus-bookings');p.querySelectorAll('.bkng-tab').forEach(function(t){t.classList.remove('active')});this.classList.add('active');var s=this.dataset.status,v=0;p.querySelectorAll('.bkng-card').forEach(function(c){var show=s==='all'||c.dataset.status===s;c.style.display=show?'':'none';if(show)v++});var e=p.querySelector('.bkng-empty');if(e)e.style.display=v?'none':''">
       {{ tab.label }} <span class="tab-count">({{ tab.count }})</span>
     </button>
     {% endfor %}
@@ -363,34 +363,6 @@ BUS_BOOKINGS_TEMPLATE = """
   </div>
 </div>
 
-<script>
-(function() {
-  var panel = document.querySelector('[data-instance-id="bus-bookings-{{ instance_id }}"]');
-  if (!panel) return;
-
-  panel.querySelectorAll('.bkng-tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      panel.querySelectorAll('.bkng-tab').forEach(function(t) { t.classList.remove('active'); });
-      this.classList.add('active');
-      var status = this.dataset.status;
-      var cards = panel.querySelectorAll('.bkng-card');
-      var visibleCount = 0;
-      cards.forEach(function(card) {
-        if (status === 'all' || card.dataset.status === status) {
-          card.style.display = '';
-          visibleCount++;
-        } else {
-          card.style.display = 'none';
-        }
-      });
-      var emptyMsg = panel.querySelector('.bkng-empty');
-      if (emptyMsg) {
-        emptyMsg.style.display = visibleCount === 0 ? '' : 'none';
-      }
-    });
-  });
-})();
-</script>
 """
 
 
