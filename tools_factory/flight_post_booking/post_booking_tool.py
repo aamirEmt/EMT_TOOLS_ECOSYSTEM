@@ -62,7 +62,7 @@ class FlightPostBookingTool(BaseTool):
         return ToolMetadata(
             name="flight_post_booking",
             description=(
-                "Tool for add seat, meal, baggage post-booking actions. "
+                "Tool for add seat, meal, baggage, reschedule flight, download ticket and invoice (post-booking actions.) "
                 "Takes booking ID and email to send OTP, then verifies OTP and returns a redirect URL with BID for post-booking management. "
                 "Send OTP for post-booking flight actions (add seat, meal, baggage), "
                 "verify it, and return a redirect URL containing the BID."
