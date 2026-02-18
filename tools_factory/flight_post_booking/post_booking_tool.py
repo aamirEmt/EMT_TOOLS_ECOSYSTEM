@@ -18,7 +18,7 @@ _sessions: Dict[str, Tuple[FlightPostBookingService, float]] = {}
 _sessions_lock = asyncio.Lock()
 _SESSION_TTL_SECONDS = 1800  # 30 minutes
 
-POST_BOOKING_BASE_URL = "https://mybookings.easemytrip.com/Mybooking"
+POST_BOOKING_BASE_URL = "https://mybookings.easemytrip.com/MyBooking/FlightDetails"
 
 
 def _session_key(booking_id: str, email: str) -> str:
