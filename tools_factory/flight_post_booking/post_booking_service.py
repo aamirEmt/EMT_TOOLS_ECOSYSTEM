@@ -106,5 +106,6 @@ class FlightPostBookingService:
             "success": True,
             "message": data.get("Message") or "OTP verified successfully.",
             "bid": self._bid,
+            "transaction_type": self._transaction_type or "Flight",
             "raw": data,
         }

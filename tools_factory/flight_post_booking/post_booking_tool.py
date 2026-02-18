@@ -18,7 +18,18 @@ _sessions: Dict[str, Tuple[FlightPostBookingService, float]] = {}
 _sessions_lock = asyncio.Lock()
 _SESSION_TTL_SECONDS = 1800  # 30 minutes
 
-POST_BOOKING_BASE_URL = "https://mybookings.easemytrip.com/MyBooking/FlightDetails"
+POST_BOOKING_BASE_URLS = {
+    "flight": "https://mybookings.easemytrip.com/MyBooking/FlightDetails",
+    "bus": "https://mybookings.easemytrip.com/Bus/bookingDetail",
+    "train": "https://mybookings.easemytrip.com/Train/Index",
+    "hotels": "https://mybookings.easemytrip.com/Hotels/Detail",
+}
+
+
+def _resolve_post_booking_url(transaction_type: str | None) -> str:
+    """Return the correct post-booking base URL for the given transaction type."""
+    tx = (transaction_type or "flight").strip().lower()
+    return POST_BOOKING_BASE_URLS.get(tx, POST_BOOKING_BASE_URLS["flight"])
 
 
 def _session_key(booking_id: str, email: str) -> str:
@@ -125,6 +136,7 @@ class FlightPostBookingTool(BaseTool):
             structured_content={
                 "otp_sent": result.get("is_otp_sent", True),
                 "bid": result.get("bid"),
+                "transaction_type": result.get("transaction_type") or "Flight",
                 "message": result.get("message"),
             },
         )
@@ -158,18 +170,21 @@ class FlightPostBookingTool(BaseTool):
             )
 
         bid = result.get("bid") or getattr(service, "_bid", None)
+        transaction_type = getattr(service, "_transaction_type", None) or "Flight"
         if not bid:
             return ToolResponseFormat(
                 response_text="OTP verified but BID was not found.",
                 is_error=True,
             )
 
-        redirect_url = f"{POST_BOOKING_BASE_URL}?bid={bid}"
+        base_url = _resolve_post_booking_url(transaction_type)
+        redirect_url = f"{base_url}?bid={bid}"
 
         return ToolResponseFormat(
             response_text="OTP verified. Continue with seat/meal/baggage selection.",
             structured_content={
                 "bid": bid,
+                "transaction_type": transaction_type,
                 "redirect_url": redirect_url,
                 "actions": ["add_seat", "add_meal", "add_baggage"],
                 "message": result.get("message"),
