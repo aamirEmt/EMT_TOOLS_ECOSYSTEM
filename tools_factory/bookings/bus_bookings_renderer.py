@@ -272,6 +272,9 @@ BUS_BOOKINGS_TEMPLATE = """
   color: #33691e;
   font-weight: 500;
   border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .bus-bookings .bkng-empty {
@@ -339,7 +342,7 @@ BUS_BOOKINGS_TEMPLATE = """
       </div>
 
       {% if booking.refund_amt %}
-      <div class="refund-row">Refund: {{ booking.refund_amt }} | {{ booking.refund_date }}</div>
+      <div class="refund-row"><span>Refund: {{ booking.refund_amt }}</span><span>{{ booking.refund_date }}</span></div>
       {% endif %}
 
       <div class="card-footer">

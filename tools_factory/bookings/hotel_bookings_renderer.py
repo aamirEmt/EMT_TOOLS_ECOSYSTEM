@@ -260,6 +260,11 @@ HOTEL_BOOKINGS_TEMPLATE = """
   gap: 4px;
 }
 
+.hotel-bookings .footer-item.location-item {
+  flex-basis: 100%;
+  display: inline;
+}
+
 .hotel-bookings .footer-label { font-weight: 500; color: #868686; }
 .hotel-bookings .footer-value { color: #202020; font-weight: 500; }
 
@@ -344,9 +349,8 @@ HOTEL_BOOKINGS_TEMPLATE = """
 
       <div class="card-footer">
         {% if booking.trip_details %}
-        <div class="footer-item">
-          <span class="footer-label">Location:</span>
-          <span class="footer-value">{{ booking.trip_details }}</span>
+        <div class="footer-item location-item">
+          <span class="footer-label">Location:</span> <span class="footer-value">{{ booking.trip_details }}</span>
         </div>
         {% endif %}
         <div class="footer-item">
