@@ -7,6 +7,7 @@ from tools_factory.trains.Train_AvailabilityCheck.availability_check_tool import
 from tools_factory.trains.Train_RouteCheck.route_check_tool import TrainRouteCheckTool
 from tools_factory.trains.Train_StatusCheck.train_status_tool import TrainStatusTool
 from tools_factory.login.login_tool import LoginTool
+from tools_factory.flight_post_booking.post_booking_tool import FlightPostBookingTool
 # from tools_factory.buses.bus_search_tool import BusSearchTool, BusSeatLayoutTool
 from tools_factory.buses.bus_search_tool import BusSearchTool
 from tools_factory.bookings.flight_bookings_tool import GetFlightBookingsTool
@@ -34,6 +35,7 @@ class ToolFactory:
         self.register_tool(TrainAvailabilityCheckTool())
         self.register_tool(TrainRouteCheckTool())
         self.register_tool(TrainStatusTool())
+        self.register_tool(FlightPostBookingTool())
 
         # login_tool = LoginTool()
         # self.register_tool(login_tool)
