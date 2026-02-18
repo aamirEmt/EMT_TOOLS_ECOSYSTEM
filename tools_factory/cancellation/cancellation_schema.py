@@ -37,10 +37,6 @@ class CancellationInput(BaseModel):
         default=False,
         description="Whether booking was pay-at-hotel",
     )
-    payment_url: Optional[str] = Field(
-        default="",
-        description="Payment URL from booking details",
-    )
     reason: str = Field(
         default="Change of plans",
         description="Cancellation reason",
@@ -79,6 +75,10 @@ class CancellationInput(BaseModel):
     inbound_pax_ids: Optional[str] = Field(
         default=None,
         description="Comma-separated inbound passenger IDs for flight cancellation",
+    )
+    mode: Optional[str] = Field(
+        default=None,
+        description="Cancellation mode for flight cancellation (1-4)",
     )
 
 

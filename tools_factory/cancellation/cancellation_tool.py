@@ -702,9 +702,12 @@ class CancellationTool(BaseTool):
             booking_summary.append(f"💰 Total Booking Amount: ₹{total_fare}")
 
         room_descriptions = []
+        cancellation_params = []  # Store params for LLM to use
+
         for idx, r in enumerate(rooms, 1):
             room_type = r.get('room_type', 'Room')
             room_no = r.get('room_no')
+            room_id = r.get('room_id')
             amount = r.get('amount')
             policy = r.get('cancellation_policy', '')
             adults = r.get('total_adults')
@@ -718,18 +721,44 @@ class CancellationTool(BaseTool):
                 desc += f" - ₹{amount}"
             room_descriptions.append(desc)
 
+            # Store cancellation parameters for this room
+            if room_id:
+                cancellation_params.append(f"room_{idx}_id: {room_id}")
+
             if policy:
                 for line in policy.split('\n'):
                     if line.strip():
                         room_descriptions.append(f"   {line}")
+
+        # Get transaction_id from booking details
+        transaction_id = details_result.get("transaction_id") or details_result.get("booking_details", {}).get("transaction_id")
+
+        # Store cancellation metadata in service for WhatsApp (auto-populate later)
+        service._cancellation_room_ids = [r.get("room_id") for r in rooms if r.get("room_id")]
+        service._cancellation_transaction_id = transaction_id
 
         text = (
             f"✅ OTP verified successfully!\n\n"
             f"I've pulled up your booking details for {hotel_name}.\n\n"
             + "\n".join(booking_summary) + "\n"
             + "\n".join(room_descriptions)
-            + "\n\nWould you like to proceed with the cancellation?"
+            + "\n\n📋 Cancellation Details:"
+            + f"\n- Booking ID: {input_data.booking_id}"
         )
+
+        # Add transaction_id if available
+        if transaction_id:
+            text += f"\n- Transaction ID: {transaction_id}"
+
+        # Add room IDs for reference
+        if len(rooms) == 1 and rooms[0].get('room_id'):
+            text += f"\n- Room ID: {rooms[0].get('room_id')}"
+        elif len(rooms) > 1:
+            for idx, r in enumerate(rooms, 1):
+                if r.get('room_id'):
+                    text += f"\n- Room {idx} ID: {r.get('room_id')}"
+
+        text += "\n\nWould you like to proceed with the cancellation?"
 
         from .cancellation_schema import (
             WhatsappCancellationFormat,
@@ -825,6 +854,12 @@ class CancellationTool(BaseTool):
                 desc += f" - Status: {status}"
             pax_descriptions.append(desc)
 
+        # Store cancellation metadata in service for WhatsApp (auto-populate later)
+        service._cancellation_pax_ids = [p.get("pax_id") for p in passengers if p.get("pax_id")]
+        service._cancellation_reservation_id = details_result.get("reservation_id")
+        service._cancellation_pnr_number = pnr_number
+        service._cancellation_total_passenger = len(passengers)
+
         text = (
             f"✅ OTP verified successfully!\n\n"
             f"I've pulled up your train booking details.\n\n"
@@ -916,6 +951,9 @@ class CancellationTool(BaseTool):
             if status:
                 desc += f" - {status}"
             pax_descriptions.append(desc)
+
+        # Store cancellation metadata in service for WhatsApp (auto-populate later)
+        service._cancellation_seats = ",".join([p.get("seat_no", "") for p in passengers if p.get("seat_no")])
 
         text = (
             f"✅ OTP verified successfully!\n\n"
@@ -1054,6 +1092,12 @@ class CancellationTool(BaseTool):
                 desc += f" - Cancel charge: ₹{charge}"
             pax_descriptions.append(desc)
 
+        # Store cancellation metadata in service for WhatsApp (auto-populate later)
+        outbound_ids = [p.get("pax_id", "") for p in outbound_pax if p.get("pax_id")]
+        inbound_ids = [p.get("pax_id", "") for p in inbound_pax if p.get("pax_id")]
+        service._cancellation_outbound_pax_ids = ",".join(outbound_ids) if outbound_ids else None
+        service._cancellation_inbound_pax_ids = ",".join(inbound_ids) if inbound_ids else None
+
         text = (
             f"✅ OTP verified successfully!\n\n"
             f"Here are the details for your flight booking **{input_data.booking_id}**:\n\n"
@@ -1141,9 +1185,8 @@ class CancellationTool(BaseTool):
 
         otp_text = (
             f"📧 An OTP (One-Time Password) has been sent to your registered email/phone.\n\n"
-            f"🔐 Please check your email and provide the OTP to confirm the cancellation.\n\n"
-            f"⏱️ Note: The OTP is valid for 10 minutes only.\n\n"
-            f"Type the OTP like: \"123456\" or \"My OTP is ABC123\""
+            f"🔐 Please provide the OTP to confirm the cancellation.\n\n"
+            f"⏱️ Note: The OTP is valid for 10 minutes only."
         )
 
         whatsapp_response = None
@@ -1192,10 +1235,27 @@ class CancellationTool(BaseTool):
     # _handle_confirm — Hotel branch
     # ----------------------------------------------------------
     async def _handle_confirm_hotel(self, input_data, render_html, is_whatsapp, service) -> ToolResponseFormat:
+        # Auto-populate parameters for WhatsApp users from service session
+        room_id = input_data.room_id
+        transaction_id = input_data.transaction_id
+
+        if is_whatsapp:
+            # Auto-fill from service session if not provided
+            if not room_id and hasattr(service, '_cancellation_room_ids') and service._cancellation_room_ids:
+                room_id = service._cancellation_room_ids[0]  # Default to first room
+            if not transaction_id and hasattr(service, '_cancellation_transaction_id'):
+                transaction_id = service._cancellation_transaction_id
+
         # Validate required fields
-        if not input_data.otp or not input_data.room_id or not input_data.transaction_id:
+        if not input_data.otp:
             return ToolResponseFormat(
-                response_text="Missing required fields for confirm: otp, room_id, transaction_id",
+                response_text="Please provide the OTP to confirm the cancellation.",
+                is_error=True,
+            )
+
+        if not room_id or not transaction_id:
+            return ToolResponseFormat(
+                response_text="Missing required cancellation details. Please start the cancellation process again.",
                 is_error=True,
             )
 
@@ -1204,10 +1264,9 @@ class CancellationTool(BaseTool):
                 booking_id=input_data.booking_id,
                 email=input_data.email,
                 otp=input_data.otp,
-                room_id=input_data.room_id,
-                transaction_id=input_data.transaction_id,
+                room_id=room_id,  # Use auto-populated value
+                transaction_id=transaction_id,  # Use auto-populated value
                 is_pay_at_hotel=input_data.is_pay_at_hotel,
-                payment_url=input_data.payment_url or "",
                 reason=input_data.reason,
                 remark=input_data.remark,
             )
@@ -1283,10 +1342,33 @@ class CancellationTool(BaseTool):
     # _handle_confirm — Train branch
     # ----------------------------------------------------------
     async def _handle_confirm_train(self, input_data, render_html, is_whatsapp, service) -> ToolResponseFormat:
+        # Auto-populate parameters for WhatsApp users from service session
+        pax_ids = input_data.pax_ids
+        reservation_id = input_data.reservation_id
+        pnr_number = input_data.pnr_number
+        total_passenger = input_data.total_passenger
+
+        if is_whatsapp:
+            # Auto-fill from service session if not provided
+            if not pax_ids and hasattr(service, '_cancellation_pax_ids'):
+                pax_ids = service._cancellation_pax_ids
+            if not reservation_id and hasattr(service, '_cancellation_reservation_id'):
+                reservation_id = service._cancellation_reservation_id
+            if not pnr_number and hasattr(service, '_cancellation_pnr_number'):
+                pnr_number = service._cancellation_pnr_number
+            if not total_passenger and hasattr(service, '_cancellation_total_passenger'):
+                total_passenger = service._cancellation_total_passenger
+
         # Validate required fields
-        if not input_data.otp or not input_data.pax_ids or not input_data.reservation_id or not input_data.pnr_number:
+        if not input_data.otp:
             return ToolResponseFormat(
-                response_text="Missing required fields for train confirm: otp, pax_ids, reservation_id, pnr_number",
+                response_text="Please provide the OTP to confirm the cancellation.",
+                is_error=True,
+            )
+
+        if not pax_ids or not reservation_id or not pnr_number:
+            return ToolResponseFormat(
+                response_text="Missing required cancellation details. Please start the cancellation process again.",
                 is_error=True,
             )
 
@@ -1295,10 +1377,10 @@ class CancellationTool(BaseTool):
                 booking_id=input_data.booking_id,
                 email=input_data.email,
                 otp=input_data.otp,
-                pax_ids=input_data.pax_ids,
-                reservation_id=input_data.reservation_id,
-                pnr_number=input_data.pnr_number,
-                total_passenger=input_data.total_passenger or len(input_data.pax_ids),
+                pax_ids=pax_ids,  # Use auto-populated value
+                reservation_id=reservation_id,  # Use auto-populated value
+                pnr_number=pnr_number,  # Use auto-populated value
+                total_passenger=total_passenger or len(pax_ids),
             )
         except Exception as exc:
             logger.error(f"Service error during train cancellation: {exc}", exc_info=True)
@@ -1543,9 +1625,24 @@ class CancellationTool(BaseTool):
     # _handle_confirm — Bus branch
     # ----------------------------------------------------------
     async def _handle_confirm_bus(self, input_data, render_html, is_whatsapp, service) -> ToolResponseFormat:
-        if not input_data.otp or not input_data.seats:
+        # Auto-populate parameters for WhatsApp users from service session
+        seats = input_data.seats
+
+        if is_whatsapp:
+            # Auto-fill from service session if not provided
+            if not seats and hasattr(service, '_cancellation_seats'):
+                seats = service._cancellation_seats
+
+        # Validate required fields
+        if not input_data.otp:
             return ToolResponseFormat(
-                response_text="Missing required fields for bus confirm: otp, seats",
+                response_text="Please provide the OTP to confirm the cancellation.",
+                is_error=True,
+            )
+
+        if not seats:
+            return ToolResponseFormat(
+                response_text="Missing required cancellation details. Please start the cancellation process again.",
                 is_error=True,
             )
 
@@ -1554,7 +1651,7 @@ class CancellationTool(BaseTool):
                 booking_id=input_data.booking_id,
                 email=input_data.email,
                 otp=input_data.otp,
-                seats=input_data.seats,
+                seats=seats,  # Use auto-populated value
                 transaction_id=input_data.transaction_id or "",
                 reason=input_data.reason or "",
                 remark=input_data.remark or "",
@@ -1852,25 +1949,41 @@ class CancellationTool(BaseTool):
     # _handle_confirm — Flight branch
     # ----------------------------------------------------------
     async def _handle_confirm_flight(self, input_data, render_html, is_whatsapp, service) -> ToolResponseFormat:
+        # Auto-populate parameters for WhatsApp users from service session
+        outbound_pax_ids = input_data.outbound_pax_ids
+        inbound_pax_ids = input_data.inbound_pax_ids
+
+        if is_whatsapp:
+            # Auto-fill from service session if not provided
+            if not outbound_pax_ids and hasattr(service, '_cancellation_outbound_pax_ids'):
+                outbound_pax_ids = service._cancellation_outbound_pax_ids
+            if not inbound_pax_ids and hasattr(service, '_cancellation_inbound_pax_ids'):
+                inbound_pax_ids = service._cancellation_inbound_pax_ids
+
+        # Validate required fields
         if not input_data.otp:
             return ToolResponseFormat(
-                response_text="Missing required field for flight confirm: otp",
+                response_text="Please provide the OTP to confirm the cancellation.",
                 is_error=True,
             )
 
-        if not input_data.outbound_pax_ids and not input_data.inbound_pax_ids:
+        if not outbound_pax_ids and not inbound_pax_ids:
             return ToolResponseFormat(
-                response_text="Missing required fields for flight confirm: at least one of outbound_pax_ids or inbound_pax_ids must be provided",
+                response_text="Missing required cancellation details. Please start the cancellation process again.",
                 is_error=True,
             )
+
+        # Extract mode (default to "1" for backward compatibility)
+        mode = input_data.mode or "1"
 
         try:
             result = await service.request_flight_cancellation(
                 booking_id=input_data.booking_id,
                 email=input_data.email,
                 otp=input_data.otp,
-                outbound_pax_ids=input_data.outbound_pax_ids or "",
-                inbound_pax_ids=input_data.inbound_pax_ids or "",
+                outbound_pax_ids=outbound_pax_ids or "",  # Use auto-populated value
+                inbound_pax_ids=inbound_pax_ids or "",  # Use auto-populated value
+                mode=mode,  # Pass mode to service
             )
         except Exception as exc:
             logger.error(f"Service error during flight cancellation: {exc}", exc_info=True)

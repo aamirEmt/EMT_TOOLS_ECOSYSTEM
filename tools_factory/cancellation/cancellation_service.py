@@ -165,7 +165,7 @@ class CancellationService:
         """
         Step 2: Fetch room and booking details using the bid token.
 
-        Returns dict with keys: success, rooms, payment_url, hotel_info, guest_info, error, raw_response
+        Returns dict with keys: success, rooms, hotel_info, guest_info, error, raw_response
         """
         try:
             response = await self.client.fetch_booking_details(bid)
@@ -264,9 +264,6 @@ class CancellationService:
                     "is_cancelled": is_cancelled,
                 })
 
-            links = response.get("Links") or {}
-            payment_url = links.get("PaymentURL") or links.get("PaymentUrl") or ""
-
             # Check if all rooms are cancelled
             all_cancelled = bool(rooms) and all(r.get("is_cancelled") for r in rooms)
 
@@ -275,7 +272,6 @@ class CancellationService:
                 "rooms": rooms,
                 "hotel_info": hotel_info,
                 "guest_info": guest_info,
-                "payment_url": payment_url,
                 "all_cancelled": all_cancelled,
                 "error": None,
                 "raw_response": response,
@@ -287,7 +283,6 @@ class CancellationService:
                 "rooms": [],
                 "hotel_info": {},
                 "guest_info": [],
-                "payment_url": None,
                 "error": str(e),
                 "raw_response": {},
             }
@@ -419,7 +414,6 @@ class CancellationService:
         room_id: str,
         transaction_id: str,
         is_pay_at_hotel: bool,
-        payment_url: str,
         reason: str = "Change of plans",
         remark: str = "",
     ) -> Dict[str, Any]:
@@ -446,7 +440,6 @@ class CancellationService:
                 room_id=room_id,
                 transaction_id=transaction_id,
                 is_pay_at_hotel=is_pay_at_hotel,
-                payment_url=payment_url,
                 reason=reason,
                 remark=remark,
             )
@@ -1311,7 +1304,8 @@ class CancellationService:
                 all_selected_ids.update(outbound_pax_ids.split(","))
             if inbound_pax_ids:
                 all_selected_ids.update(inbound_pax_ids.split(","))
-
+            outbound_pax_ids = "-".join(outbound_pax_ids.split(","))
+            inbound_pax_ids = "-".join(inbound_pax_ids.split(","))
             total_cancellable = getattr(self, "_total_cancellable", 0)
             is_partial = "true" if len(all_selected_ids) < total_cancellable else "false"
 

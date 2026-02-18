@@ -1,4 +1,4 @@
-"""Cancellation Booking Details Renderer (Display-Only)"""
+﻿"""Cancellation Booking Details Renderer (Display-Only)"""
 from typing import Dict, Any
 from jinja2 import Environment, BaseLoader, select_autoescape
 
@@ -285,25 +285,6 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 }
 
 .booking-details-carousel .hc-cancel-btn:hover {
-  opacity: 0.85;
-}
-
-.booking-details-carousel .hc-pay-now-btn {
-  display: inline-block;
-  padding: 4px 14px;
-  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  font-family: poppins, sans-serif;
-  transition: opacity 0.2s;
-}
-
-.booking-details-carousel .hc-pay-now-btn:hover {
   opacity: 0.85;
 }
 
@@ -874,9 +855,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
                 <div class="detail-row">
                   <span class="detail-label">Payment</span>
                   <span class="detail-value">
-                    {% if room.is_pay_at_hotel and payment_url %}
-                    <a href="{{ payment_url }}" target="_blank" rel="noopener" class="hc-pay-now-btn">Pay Now</a>
-                    {% elif room.is_pay_at_hotel %}
+                    {% if room.is_pay_at_hotel %}
                     <span class="hc-pay-pending">Payment Pending</span>
                     {% else %}
                     Prepaid
@@ -1003,7 +982,6 @@ INTERACTIVE_BOOKING_TEMPLATE = """
   var BOOKING_ID = '{{ booking_id }}';
   var EMAIL = '{{ email }}';
   var ROOMS = {{ rooms_json | tojson }};
-  var PAYMENT_URL = '{{ payment_url }}';
   var ALL_CANCELLED = {{ 'true' if all_cancelled else 'false' }};
 
   var selectedRoom = null;
@@ -1143,8 +1121,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         remark: remark || '',
         room_id: selectedRoom ? String(selectedRoom.room_id) : '',
         transaction_id: selectedRoom ? String(selectedRoom.transaction_id) : '',
-        is_pay_at_hotel: selectedRoom ? !!selectedRoom.is_pay_at_hotel : false,
-        payment_url: PAYMENT_URL || ''
+        is_pay_at_hotel: selectedRoom ? !!selectedRoom.is_pay_at_hotel : false
       })
     })
     .then(function(resp) { return resp.json(); })
@@ -1480,8 +1457,6 @@ def render_booking_details(
         subtitle_parts.append(", ".join(guest_names))
     subtitle = " • ".join(subtitle_parts)
 
-    payment_url = booking_details.get("payment_url", "")
-
     # Render interactive template with embedded JS for full cancel flow
     import uuid
     instance_id = str(uuid.uuid4())[:8]
@@ -1508,7 +1483,6 @@ def render_booking_details(
         subtitle=subtitle,
         hotel_info=hotel_info,
         rooms=rooms_ui,
-        payment_url=payment_url,
         instance_id=instance_id,
         bid=bid,
         booking_id=booking_id,
@@ -4004,6 +3978,15 @@ def render_already_cancelled(
     )
 
 
+# Flight cancellation mode labels
+FLIGHT_CANCELLATION_MODE_LABELS = {
+    "1": "I decided to cancel my flight",
+    "2": "Airline cancelled my scheduled flight",
+    "3": "I missed my flight",
+    "4": "I have already cancelled my tickets from the airlines with cancellation charges (Already Cancelled from Airline)",
+}
+
+
 # =====================================================================
 # ✈️ FLIGHT INTERACTIVE BOOKING TEMPLATE (WITH JS FOR CANCEL FLOW)
 # =====================================================================
@@ -4160,18 +4143,19 @@ FLIGHT_BOOKING_TEMPLATE = """
 
 .flight-cancel-carousel .fc-pax-table th {
   background: #f8f9fa;
-  padding: 8px 10px;
+  padding: 7px 4px;
   text-align: left;
-  font-weight: 600;
+  font-weight: 700;
   color: #646d74;
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
   border-bottom: 2px solid #e0e0e0;
 }
 
 .flight-cancel-carousel .fc-pax-table td {
-  padding: 10px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 5px;
+  font-size: 11px;
+  border-bottom: 2px solid #f0f0f0;
   color: #202020;
 }
 
@@ -4235,7 +4219,6 @@ FLIGHT_BOOKING_TEMPLATE = """
 .flight-cancel-carousel .fc-price-total {
   font-size: 16px;
   color: #ef6614;
-  font-family: inter, sans-serif;
 }
 
 .flight-cancel-carousel .fc-policy-section {
@@ -4257,6 +4240,69 @@ FLIGHT_BOOKING_TEMPLATE = """
   font-size: 12px;
   color: #646d74;
   padding: 3px 0;
+}
+
+/* Cancellation Mode Selection */
+.flight-cancel-carousel .fc-mode-section {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.flight-cancel-carousel .fc-mode-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.flight-cancel-carousel .fc-mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flight-cancel-carousel .fc-mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fafafa;
+}
+
+.flight-cancel-carousel .fc-mode-option:hover {
+  background: #f5f5f5;
+  border-color: #ef6614;
+}
+
+.flight-cancel-carousel .fc-mode-option:has(input:checked) {
+  background: #fef6f0;
+  border-color: #ef6614;
+  border-width: 2px;
+}
+
+.flight-cancel-carousel .fc-mode-radio {
+  accent-color: #ef6614;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.flight-cancel-carousel .fc-mode-label {
+  font-size: 13px;
+  color: #202020;
+  line-height: 1.4;
+  flex: 1;
+  cursor: pointer;
 }
 
 .flight-cancel-carousel .fc-pnr-info {
@@ -4500,6 +4546,28 @@ FLIGHT_BOOKING_TEMPLATE = """
 .flight-cancel-carousel.dark .fc-pax-table td { border-color: #222; }
 .flight-cancel-carousel.dark .fc-pax-table tr:hover { background: #1a1a1a; }
 .flight-cancel-carousel.dark .fc-policy-section { background: #1a1500; border-color: #5a4000; }
+.flight-cancel-carousel.dark .fc-mode-section {
+  background: #000;
+  border-color: #373737;
+}
+.flight-cancel-carousel.dark .fc-mode-title {
+  color: #fff;
+}
+.flight-cancel-carousel.dark .fc-mode-option {
+  background: #0a0a0a;
+  border-color: #373737;
+}
+.flight-cancel-carousel.dark .fc-mode-option:hover {
+  background: #1a1a1a;
+  border-color: #ef6614;
+}
+.flight-cancel-carousel.dark .fc-mode-option:has(input:checked) {
+  background: #1a1a0a;
+  border-color: #ef6614;
+}
+.flight-cancel-carousel.dark .fc-mode-label {
+  color: #fff;
+}
 .flight-cancel-carousel.dark .fc-pnr-item { background: #0a1929; color: #64b5f6; }
 .flight-cancel-carousel.dark .hc-loading { background: rgba(0,0,0,0.85); }
 .flight-cancel-carousel.dark .hc-error-msg { background: #3d0000; color: #ff8a80; }
@@ -4610,15 +4678,6 @@ FLIGHT_BOOKING_TEMPLATE = """
       </div>
       {% endfor %}
 
-      <!-- PNR Info -->
-      {% if pnr_info %}
-      <div class="fc-pnr-info">
-        {% for pnr in pnr_info %}
-          {% if pnr.airline_pnr %}<span class="fc-pnr-item">Airline PNR: {{ pnr.airline_pnr }}</span>{% endif %}
-          {% if pnr.gds_pnr %}<span class="fc-pnr-item">GDS PNR: {{ pnr.gds_pnr }}</span>{% endif %}
-        {% endfor %}
-      </div>
-      {% endif %}
 
       <!-- Passenger Selection -->
       <div class="fc-pax-section">
@@ -4696,14 +4755,26 @@ FLIGHT_BOOKING_TEMPLATE = """
         {% endif %}
       </div>
 
-      <!-- Cancellation Policy -->
+      <!-- Cancellation Mode Selection -->
+      {% if possible_modes %}
+      <div class="fc-mode-section">
+        <div class="fc-mode-title">Why did you cancel your flight bookings? Kindly, select any one of the following reasons mentioned below that led to your flight cancellation.</div>
+        <div class="fc-mode-options">
+          {% for mode in possible_modes %}
+          <label class="fc-mode-option">
+            <input type="radio" name="fc-cancel-mode-{{ instance_id }}" class="fc-mode-radio" value="{{ mode }}" />
+            <span class="fc-mode-label">{{ mode_labels.get(mode, "Mode " + mode) }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Cancellation Policy (moved below, optional) -->
       {% if cancellation_policy %}
       <div class="fc-policy-section">
         <div class="fc-policy-title">Cancellation Policy</div>
         {% for sector in cancellation_policy %}
-          {% if sector.sector_name %}
-          <div style="font-size:12px;font-weight:600;color:#202020;margin:4px 0 2px;">{{ sector.sector_name }}</div>
-          {% endif %}
           {% for pol in sector.policies %}
           <div class="fc-policy-item">
             {% if pol.policy_text %}{{ pol.policy_text }}{% else %}{{ pol.charge_type }}: ₹{{ pol.charge_value }}{% if pol.from_date %} ({{ pol.from_date }} - {{ pol.to_date }}){% endif %}{% endif %}
@@ -4812,6 +4883,7 @@ FLIGHT_BOOKING_TEMPLATE = """
 
   var selectedOutbound = [];
   var selectedInbound = [];
+  var selectedMode = null;
 
   var loadingOverlay = container.querySelector('.hc-loading');
   var globalErrorBanner = container.querySelector('main > .hc-error-msg');
@@ -4860,7 +4932,11 @@ FLIGHT_BOOKING_TEMPLATE = """
         selectedOutbound.push(paxId);
       }
     }
-    btn.disabled = (selectedOutbound.length + selectedInbound.length) === 0;
+    var hasPaxSelected = (selectedOutbound.length + selectedInbound.length) > 0;
+    var hasModeSelected = selectedMode !== null;
+    var hasModesAvailable = container.querySelectorAll('.fc-mode-radio').length > 0;
+    // If modes available, require both; otherwise only passengers (backward compat)
+    btn.disabled = !hasPaxSelected || (hasModesAvailable && !hasModeSelected);
   }
 
   /* Checkbox handlers */
@@ -4881,6 +4957,15 @@ FLIGHT_BOOKING_TEMPLATE = """
         var allChecked = container.querySelectorAll('.fc-pax-cb:not(:disabled):checked').length === activePaxCbs.length;
         selectAllCb.checked = allChecked;
       }
+    });
+  }
+
+  /* Mode radio button handler */
+  var modeRadios = container.querySelectorAll('.fc-mode-radio');
+  for (var i = 0; i < modeRadios.length; i++) {
+    modeRadios[i].addEventListener('change', function() {
+      selectedMode = this.value;
+      updateProceedBtn();
     });
   }
 
@@ -4973,7 +5058,8 @@ FLIGHT_BOOKING_TEMPLATE = """
         otp: otp,
         outbound_pax_ids: selectedOutbound.join(','),
         inbound_pax_ids: selectedInbound.join(','),
-        transaction_type: 'Flight'
+        transaction_type: 'Flight',
+        mode: selectedMode || '1'  // Default to '1' for backward compatibility
       })
     })
     .then(function(resp) { return resp.json(); })
@@ -5163,6 +5249,18 @@ def render_flight_booking_details(
     pnr_info = booking_details.get("pnr_info", [])
     cancellation_policy = booking_details.get("cancellation_policy", [])
 
+    # Extract possible modes from passengers (all should have same modes)
+    possible_mode_str = None
+    for pax in outbound_passengers + inbound_passengers:
+        if pax.get("possible_mode"):
+            possible_mode_str = pax["possible_mode"]
+            break
+
+    # Parse possible modes (e.g., "1-2-3-4" -> ["1", "2", "3", "4"])
+    possible_modes = []
+    if possible_mode_str:
+        possible_modes = [m.strip() for m in str(possible_mode_str).split("-") if m.strip()]
+
     if not flight_segments and not outbound_passengers:
         return """
         <div class="flight-cancel-carousel">
@@ -5213,4 +5311,6 @@ def render_flight_booking_details(
         api_base_url=api_base_url,
         is_otp_send=is_otp_send,
         all_cancelled=all_cancelled,
+        possible_modes=possible_modes,
+        mode_labels=FLIGHT_CANCELLATION_MODE_LABELS,
     )
