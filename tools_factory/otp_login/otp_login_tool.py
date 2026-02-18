@@ -2,7 +2,7 @@
 import logging
 
 from ..base import BaseTool, ToolMetadata
-from .otp_login_service import OtpLoginService
+from .otp_login_service import OtpLoginService, build_whatsapp_send_otp_response, build_whatsapp_verify_otp_response
 from .otp_login_schema import OtpLoginInput
 from tools_factory.base_schema import ToolResponseFormat
 from emt_client.auth.session_manager import SessionManager
@@ -37,6 +37,8 @@ class OtpLoginTool(BaseTool):
             # Accept session_id from either _session_id or session_id
             session_id = kwargs.pop("_session_id", None) or kwargs.pop("session_id", None)
             action = kwargs.pop("action", None)
+            user_type = kwargs.pop("_user_type", "website")
+            is_whatsapp = user_type.lower() == "whatsapp"
 
             if not action or action not in ("send_otp", "verify_otp"):
                 return ToolResponseFormat(
@@ -45,9 +47,9 @@ class OtpLoginTool(BaseTool):
                 )
 
             if action == "send_otp":
-                return await self._handle_send_otp(session_id, **kwargs)
+                return await self._handle_send_otp(session_id, is_whatsapp=is_whatsapp, **kwargs)
             else:
-                return await self._handle_verify_otp(session_id, **kwargs)
+                return await self._handle_verify_otp(session_id, is_whatsapp=is_whatsapp, **kwargs)
 
         except Exception as e:
             logger.error("Error executing otp_login tool", exc_info=True)
@@ -56,7 +58,7 @@ class OtpLoginTool(BaseTool):
                 is_error=True
             )
 
-    async def _handle_send_otp(self, session_id, **kwargs) -> ToolResponseFormat:
+    async def _handle_send_otp(self, session_id, is_whatsapp=False, **kwargs) -> ToolResponseFormat:
         phone_or_email = kwargs.get("phone_or_email")
 
         if not phone_or_email:
@@ -82,20 +84,25 @@ class OtpLoginTool(BaseTool):
                 is_error=True
             )
 
+        whatsapp_response = None
+        if is_whatsapp:
+            whatsapp_response = build_whatsapp_send_otp_response(phone_or_email, result.get("message", ""))
+
         return ToolResponseFormat(
             response_text=(
                 f"OTP sent successfully to {phone_or_email}. "
                 f"Please ask the user for the OTP they received, "
                 f"then call this tool again with action='verify_otp' and the otp_code."
             ),
-            structured_content={
+            structured_content=None if is_whatsapp else {
                 "session_id": session_id,
                 "phone_or_email": phone_or_email,
                 "message": result.get("message"),
-            }
+            },
+            whatsapp_response=whatsapp_response,
         )
 
-    async def _handle_verify_otp(self, session_id, **kwargs) -> ToolResponseFormat:
+    async def _handle_verify_otp(self, session_id, is_whatsapp=False, **kwargs) -> ToolResponseFormat:
         otp_code = kwargs.get("otp_code")
 
         if not otp_code:
@@ -134,6 +141,11 @@ class OtpLoginTool(BaseTool):
             )
 
         user = result.get("user", {})
+
+        whatsapp_response = None
+        if is_whatsapp:
+            whatsapp_response = build_whatsapp_verify_otp_response(user, result.get("message", ""))
+
         return ToolResponseFormat(
             response_text=(
                 "Login successful. Continue handling the user's original request.\n\n"
@@ -141,10 +153,11 @@ class OtpLoginTool(BaseTool):
                 f"Email: {user.get('email', 'N/A')}\n"
                 f"Phone: {user.get('phone', 'N/A')}"
             ),
-            structured_content={
+            structured_content=None if is_whatsapp else {
                 "session_id": session_id,
                 "user": user,
                 "session": result.get("session"),
                 "result": result,
-            }
+            },
+            whatsapp_response=whatsapp_response,
         )

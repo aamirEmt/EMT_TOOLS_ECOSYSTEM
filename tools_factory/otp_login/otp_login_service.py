@@ -151,3 +151,25 @@ class OtpLoginService:
                 "error": str(e),
                 "message": "An unexpected error occurred during OTP verification",
             }
+
+
+def build_whatsapp_send_otp_response(phone_or_email: str, message: str) -> Dict[str, Any]:
+    """Build WhatsApp-formatted response for send_otp action."""
+    return {
+        "type": "otp_sent",
+        "phone_or_email": phone_or_email,
+        "message": message,
+    }
+
+
+def build_whatsapp_verify_otp_response(user: Dict[str, Any], message: str) -> Dict[str, Any]:
+    """Build WhatsApp-formatted response for verify_otp action."""
+    return {
+        "type": "otp_verified",
+        "message": message,
+        "user": {
+            "name": user.get("name", "N/A"),
+            "email": user.get("email", "N/A"),
+            "phone": user.get("phone", "N/A"),
+        },
+    }
