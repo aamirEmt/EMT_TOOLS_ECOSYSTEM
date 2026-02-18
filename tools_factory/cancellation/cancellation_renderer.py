@@ -4305,6 +4305,172 @@ FLIGHT_BOOKING_TEMPLATE = """
   cursor: pointer;
 }
 
+/* File Upload Section */
+.flight-cancel-carousel .fc-file-upload-section {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.flight-cancel-carousel .fc-file-upload-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 6px;
+}
+
+.flight-cancel-carousel .fc-file-upload-description {
+  font-size: 11px;
+  color: #646d74;
+  margin-bottom: 12px;
+}
+
+.flight-cancel-carousel .fc-file-upload-wrapper {
+  margin-bottom: 12px;
+}
+
+.flight-cancel-carousel .fc-file-input {
+  display: none;
+}
+
+.flight-cancel-carousel .fc-file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #ef6614;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s;
+  border: none;
+}
+
+.flight-cancel-carousel .fc-file-upload-btn:hover {
+  background: #d55a12;
+}
+
+.flight-cancel-carousel .fc-file-upload-btn svg {
+  flex-shrink: 0;
+}
+
+.flight-cancel-carousel .fc-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.flight-cancel-carousel .fc-file-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 20px;
+}
+
+.flight-cancel-carousel .fc-file-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.flight-cancel-carousel .fc-file-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #202020;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.flight-cancel-carousel .fc-file-size {
+  font-size: 11px;
+  color: #646d74;
+}
+
+.flight-cancel-carousel .fc-file-remove {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%;
+  color: #646d74;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.flight-cancel-carousel .fc-file-remove:hover {
+  background: #fee;
+  border-color: #f44336;
+  color: #f44336;
+}
+
+.flight-cancel-carousel .fc-file-progress {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.flight-cancel-carousel .fc-file-progress-bar {
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 6px;
+  position: relative;
+}
+
+.flight-cancel-carousel .fc-file-progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  background: #ef6614;
+  transition: width 0.3s;
+  animation: progress-indeterminate 1.5s infinite;
+}
+
+@keyframes progress-indeterminate {
+  0% { left: -35%; right: 100%; }
+  60% { left: 100%; right: -90%; }
+  100% { left: 100%; right: -90%; }
+}
+
+.flight-cancel-carousel .fc-file-progress-text {
+  font-size: 11px;
+  color: #646d74;
+  text-align: center;
+}
+
+.flight-cancel-carousel .fc-file-error {
+  padding: 8px 12px;
+  background: #fee;
+  border: 1px solid #f44336;
+  border-radius: 6px;
+  color: #c62828;
+  font-size: 11px;
+}
+
 .flight-cancel-carousel .fc-pnr-info {
   display: flex;
   gap: 16px;
@@ -4568,6 +4734,50 @@ FLIGHT_BOOKING_TEMPLATE = """
 .flight-cancel-carousel.dark .fc-mode-label {
   color: #fff;
 }
+.flight-cancel-carousel.dark .fc-file-upload-section {
+  background: #000;
+  border-color: #373737;
+}
+.flight-cancel-carousel.dark .fc-file-upload-title {
+  color: #fff;
+}
+.flight-cancel-carousel.dark .fc-file-upload-description {
+  color: #bcbcbc;
+}
+.flight-cancel-carousel.dark .fc-file-preview {
+  background: #0a0a0a;
+  border-color: #373737;
+}
+.flight-cancel-carousel.dark .fc-file-icon {
+  background: #000;
+}
+.flight-cancel-carousel.dark .fc-file-name {
+  color: #fff;
+}
+.flight-cancel-carousel.dark .fc-file-size {
+  color: #bcbcbc;
+}
+.flight-cancel-carousel.dark .fc-file-remove {
+  background: #000;
+  border-color: #373737;
+  color: #bcbcbc;
+}
+.flight-cancel-carousel.dark .fc-file-remove:hover {
+  background: #3d0000;
+  border-color: #f44336;
+  color: #ff8a80;
+}
+.flight-cancel-carousel.dark .fc-file-progress {
+  background: #0a0a0a;
+}
+.flight-cancel-carousel.dark .fc-file-progress-bar {
+  background: #373737;
+}
+.flight-cancel-carousel.dark .fc-file-error {
+  background: #3d0000;
+  border-color: #f44336;
+  color: #ff8a80;
+}
 .flight-cancel-carousel.dark .fc-pnr-item { background: #0a1929; color: #64b5f6; }
 .flight-cancel-carousel.dark .hc-loading { background: rgba(0,0,0,0.85); }
 .flight-cancel-carousel.dark .hc-error-msg { background: #3d0000; color: #ff8a80; }
@@ -4770,6 +4980,42 @@ FLIGHT_BOOKING_TEMPLATE = """
       </div>
       {% endif %}
 
+      <!-- File Upload Section (Mode 2 Only) -->
+      <div class="fc-file-upload-section" style="display: none;">
+        <div class="fc-file-upload-title">Upload Cancellation Proof</div>
+        <div class="fc-file-upload-description">Please upload airline cancellation proof (JPEG, PNG, or PDF, max 5MB)</div>
+
+        <div class="fc-file-upload-wrapper">
+          <input type="file" id="fc-file-input-{{ instance_id }}" class="fc-file-input"
+                 accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" />
+          <label for="fc-file-input-{{ instance_id }}" class="fc-file-upload-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span class="fc-file-btn-text">Choose File</span>
+          </label>
+        </div>
+
+        <div class="fc-file-info" style="display: none;">
+          <div class="fc-file-preview">
+            <div class="fc-file-icon"></div>
+            <div class="fc-file-details">
+              <div class="fc-file-name"></div>
+              <div class="fc-file-size"></div>
+            </div>
+            <button type="button" class="fc-file-remove" aria-label="Remove file">×</button>
+          </div>
+          <div class="fc-file-progress" style="display: none;">
+            <div class="fc-file-progress-bar"></div>
+            <div class="fc-file-progress-text">Uploading...</div>
+          </div>
+        </div>
+
+        <div class="fc-file-error" style="display: none;"></div>
+      </div>
+
       <!-- Cancellation Policy (moved below, optional) -->
       {% if cancellation_policy %}
       <div class="fc-policy-section">
@@ -4935,8 +5181,11 @@ FLIGHT_BOOKING_TEMPLATE = """
     var hasPaxSelected = (selectedOutbound.length + selectedInbound.length) > 0;
     var hasModeSelected = selectedMode !== null;
     var hasModesAvailable = container.querySelectorAll('.fc-mode-radio').length > 0;
+    var requiresFile = selectedMode === '2';
+    var hasFile = uploadedFile !== null;
     // If modes available, require both; otherwise only passengers (backward compat)
-    btn.disabled = !hasPaxSelected || (hasModesAvailable && !hasModeSelected);
+    // If Mode 2 is selected, also require file upload
+    btn.disabled = !hasPaxSelected || (hasModesAvailable && !hasModeSelected) || (requiresFile && !hasFile);
   }
 
   /* Checkbox handlers */
@@ -4960,12 +5209,176 @@ FLIGHT_BOOKING_TEMPLATE = """
     });
   }
 
+  /* File Upload Variables */
+  var uploadedFile = null;
+  var uploadedFileUrl = null;
+  var fileInput = container.querySelector('.fc-file-input');
+  var fileUploadSection = container.querySelector('.fc-file-upload-section');
+  var fileInfo = container.querySelector('.fc-file-info');
+  var filePreview = container.querySelector('.fc-file-preview');
+  var fileProgress = container.querySelector('.fc-file-progress');
+  var fileError = container.querySelector('.fc-file-error');
+
   /* Mode radio button handler */
   var modeRadios = container.querySelectorAll('.fc-mode-radio');
   for (var i = 0; i < modeRadios.length; i++) {
     modeRadios[i].addEventListener('change', function() {
       selectedMode = this.value;
+      // Show file upload section only for Mode 2
+      if (fileUploadSection) {
+        if (this.value === '2') {
+          fileUploadSection.style.display = 'block';
+        } else {
+          fileUploadSection.style.display = 'none';
+          clearUploadedFile();
+        }
+      }
       updateProceedBtn();
+    });
+  }
+
+  /* File Upload Helper Functions */
+  function clearUploadedFile() {
+    uploadedFile = null;
+    uploadedFileUrl = null;
+    if (fileInput) fileInput.value = '';
+    if (fileInfo) fileInfo.style.display = 'none';
+    if (fileError) fileError.style.display = 'none';
+  }
+
+  function showFileError(msg) {
+    if (fileError) {
+      fileError.textContent = msg;
+      fileError.style.display = 'block';
+    }
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function getFileIcon(fileType) {
+    if (fileType.includes('pdf')) return '📄';
+    if (fileType.includes('image')) return '🖼️';
+    return '📎';
+  }
+
+  /* File Input Change Handler */
+  if (fileInput) {
+    fileInput.addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+
+      // Clear previous errors
+      if (fileError) fileError.style.display = 'none';
+
+      // Validate file type
+      var validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        showFileError('Invalid file type. Please upload JPEG, PNG, or PDF files only.');
+        fileInput.value = '';
+        return;
+      }
+
+      // Validate file size (5MB max)
+      var maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        showFileError('File size exceeds 5MB. Please choose a smaller file.');
+        fileInput.value = '';
+        return;
+      }
+
+      // Store file and show preview
+      uploadedFile = file;
+      uploadedFileUrl = null;
+
+      // Update preview
+      var fileName = container.querySelector('.fc-file-name');
+      var fileSize = container.querySelector('.fc-file-size');
+      var fileIcon = container.querySelector('.fc-file-icon');
+
+      if (fileName) fileName.textContent = file.name;
+      if (fileSize) fileSize.textContent = formatFileSize(file.size);
+      if (fileIcon) fileIcon.textContent = getFileIcon(file.type);
+      if (fileInfo) fileInfo.style.display = 'block';
+
+      updateProceedBtn();
+    });
+  }
+
+  /* Remove File Button Handler */
+  var removeFileBtn = container.querySelector('.fc-file-remove');
+  if (removeFileBtn) {
+    removeFileBtn.addEventListener('click', function() {
+      clearUploadedFile();
+      updateProceedBtn();
+    });
+  }
+
+  /* File Upload Function */
+  function uploadCancellationFile(file, headers) {
+    return new Promise(function(resolve, reject) {
+      if (fileProgress) fileProgress.style.display = 'block';
+      if (fileError) fileError.style.display = 'none';
+
+      // Generate timestamped filename
+      var now = new Date();
+      var day = String(now.getDate()).padStart(2, '0');
+      var month = String(now.getMonth() + 1).padStart(2, '0');
+      var year = now.getFullYear();
+      var hour = String(now.getHours()).padStart(2, '0');
+      var minute = String(now.getMinutes()).padStart(2, '0');
+      var second = String(now.getSeconds()).padStart(2, '0');
+
+      var nameParts = file.name.split('.');
+      var extension = nameParts.pop();
+      var baseName = nameParts.join('.');
+      var newFileName = baseName + '-' + day + month + year + hour + minute + second + '.' + extension;
+
+      // Upload to API
+      var uploadUrl = 'http://emtservice.easemytrip.com/emtapp.svc/UploadFileForFullCancellationforApp';
+
+      var uploadHeaders = {
+        'betid': headers.betid || '',
+        'UserName': 'EMT',
+        'Password': '123',
+        'paxidout': headers.paxidout || '',
+        'paxidin': headers.paxidin || '',
+        'possibleMode': '2',
+        'totalpaxout': headers.totalpaxout || '0',
+        'totalpaxin': headers.totalpaxin || '0',
+        'IscouponApply': 'false',
+        'UploadImageURL': newFileName,
+        'IsImage': 'false'
+      };
+
+      fetch(uploadUrl, {
+        method: 'POST',
+        headers: uploadHeaders,
+        body: file
+      })
+      .then(function(resp) {
+        if (!resp.ok) throw new Error('Upload failed with status ' + resp.status);
+        return resp.text();
+      })
+      .then(function(data) {
+        if (fileProgress) fileProgress.style.display = 'none';
+        try {
+          var result = JSON.parse(data);
+          uploadedFileUrl = result.fileUrl || result.FileUrl || newFileName;
+          resolve({ fileName: newFileName, fileUrl: uploadedFileUrl, response: result });
+        } catch (e) {
+          uploadedFileUrl = newFileName;
+          resolve({ fileName: newFileName, fileUrl: newFileName, response: data });
+        }
+      })
+      .catch(function(err) {
+        if (fileProgress) fileProgress.style.display = 'none';
+        showFileError('File upload failed: ' + (err.message || 'Unknown error'));
+        reject(err);
+      });
     });
   }
 
@@ -5143,8 +5556,36 @@ FLIGHT_BOOKING_TEMPLATE = """
   if (proceedBtn) {
     proceedBtn.addEventListener('click', function() {
       if (selectedOutbound.length + selectedInbound.length === 0) return;
-      updateSelectedLabel();
-      sendOtp().then(function(result) { if (result) showStep('otp'); });
+      hideAllErrors();
+
+      // Check if file upload is required and handle upload first
+      if (selectedMode === '2' && uploadedFile && !uploadedFileUrl) {
+        showLoading(true);
+
+        var uploadHeaders = {
+          betid: BOOKING_ID,
+          paxidout: selectedOutbound.join(','),
+          paxidin: selectedInbound.join(','),
+          totalpaxout: String(selectedOutbound.length),
+          totalpaxin: String(selectedInbound.length)
+        };
+
+        uploadCancellationFile(uploadedFile, uploadHeaders)
+          .then(function(result) {
+            showLoading(false);
+            // File uploaded successfully, now send OTP
+            updateSelectedLabel();
+            sendOtp().then(function(result) { if (result) showStep('otp'); });
+          })
+          .catch(function(err) {
+            showLoading(false);
+            showError('Failed to upload file. Please try again.');
+          });
+      } else {
+        // No file upload needed or already uploaded, proceed to OTP
+        updateSelectedLabel();
+        sendOtp().then(function(result) { if (result) showStep('otp'); });
+      }
     });
   }
 
