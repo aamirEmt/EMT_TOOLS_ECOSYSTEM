@@ -3,7 +3,7 @@ from typing import Dict, Any
 import logging
 
 from ..base import BaseTool, ToolMetadata
-from .flight_bookings_service import FlightBookingsService
+from .flight_bookings_service import FlightBookingsService, build_whatsapp_flight_bookings_response
 from .flight_bookings_renderer import render_flight_bookings
 from .booking_schema import GetBookingsInput
 from tools_factory.base_schema import ToolResponseFormat
@@ -42,6 +42,7 @@ class GetFlightBookingsTool(BaseTool):
             limit = kwargs.pop("_limit", None)
             user_type = kwargs.pop("_user_type", "website")
             render_html = user_type.lower() == "website"
+            is_whatsapp = user_type.lower() == "whatsapp"
 
             # Validate session_id is provided
             if not session_id:
@@ -72,13 +73,13 @@ class GetFlightBookingsTool(BaseTool):
                 )
 
             bookings = result.get("bookings", [])
-            uid = result.get("uid")
+            user_account = token_provider.get_email() or token_provider.get_phone() or result.get("uid")
 
             if not bookings:
                 return ToolResponseFormat(
-                    response_text=f"No flight bookings found for account {uid}.",
+                    response_text=f"No flight bookings found for account {user_account}.",
                     structured_content={
-                        "uid": uid,
+                        "account": user_account,
                         "total": 0,
                         "bookings": []
                     }
@@ -102,7 +103,7 @@ class GetFlightBookingsTool(BaseTool):
             
             response_text = (
                 f"Bookings found \\n\\n"
-                f"Account: {result.get('uid')}\n"
+                f"Account: {user_account}\n"
                 f"Total bookings: {len(bookings)}\n\n"
                 + "\n".join(lines)
             )
@@ -116,14 +117,20 @@ class GetFlightBookingsTool(BaseTool):
                 if flight_data:
                     html_content = render_flight_bookings(flight_data)
 
+            # Build WhatsApp response if needed
+            whatsapp_response = None
+            if is_whatsapp:
+                whatsapp_response = build_whatsapp_flight_bookings_response(bookings)
+
             return ToolResponseFormat(
                 response_text=response_text,
-                structured_content={
-                    "uid": uid,
+                structured_content=None if is_whatsapp else {
+                    "account": user_account,
                     "total": len(bookings),
                     "bookings": bookings,
                 },
                 html=html_content,
+                whatsapp_response=whatsapp_response,
             )
 
         except Exception as e:

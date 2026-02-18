@@ -93,5 +93,31 @@ class BusBookingsService:
                     "operator": d.get("TravelsOperator"),
                     "bus_type": d.get("BusType")
                 })
-        
+
         return results
+
+
+def build_whatsapp_bus_bookings_response(bookings: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Build WhatsApp-formatted response for bus bookings."""
+    items = []
+    for b in bookings:
+        route = b.get("route")
+        if not route and b.get("source") and b.get("destination"):
+            route = f"{b['source']} → {b['destination']}"
+
+        items.append({
+            "status": b.get("status"),
+            "booking_id": b.get("booking_id"),
+            "route": route,
+            "journey_date": b.get("journey_date"),
+            "departure": b.get("departure"),
+            "arrival": b.get("arrival"),
+            "operator": b.get("operator"),
+            "bus_type": b.get("bus_type"),
+        })
+
+    return {
+        "type": "bus_bookings",
+        "total": len(items),
+        "bookings": items,
+    }

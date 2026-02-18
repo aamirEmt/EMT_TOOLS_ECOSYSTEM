@@ -80,5 +80,29 @@ class FlightBookingsService:
                     "arrival": f.get("ArrivalTime"),
                     "flight_number": f.get("FlightNumber")
                 })
-        
+
         return results
+
+
+def build_whatsapp_flight_bookings_response(bookings: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Build WhatsApp-formatted response for flight bookings."""
+    items = []
+    for b in bookings:
+        route = None
+        if b.get("source") and b.get("destination"):
+            route = f"{b['source']} → {b['destination']}"
+
+        items.append({
+            "status": b.get("status"),
+            "booking_id": b.get("booking_id"),
+            "route": route,
+            "flight_number": b.get("flight_number"),
+            "departure": b.get("departure"),
+            "arrival": b.get("arrival"),
+        })
+
+    return {
+        "type": "flight_bookings",
+        "total": len(items),
+        "bookings": items,
+    }

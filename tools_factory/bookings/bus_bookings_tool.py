@@ -3,7 +3,7 @@ from typing import Dict, Any
 import logging
 
 from ..base import BaseTool, ToolMetadata
-from .bus_bookings_service import BusBookingsService
+from .bus_bookings_service import BusBookingsService, build_whatsapp_bus_bookings_response
 from .bus_bookings_renderer import render_bus_bookings
 from .booking_schema import GetBookingsInput
 from tools_factory.base_schema import ToolResponseFormat
@@ -73,13 +73,13 @@ class GetBusBookingsTool(BaseTool):
                 )
             
             bookings = result.get("bookings", [])
-            uid = result.get("uid")
+            user_account = token_provider.get_email() or token_provider.get_phone() or result.get("uid")
 
             if not bookings:
                 return ToolResponseFormat(
-                    response_text=f"No bus bookings found for account {uid}.",
+                    response_text=f"No bus bookings found for account {user_account}.",
                     structured_content={
-                        "uid": uid,
+                        "account": user_account,
                         "total": 0,
                         "bookings": []
                     },
@@ -114,7 +114,7 @@ class GetBusBookingsTool(BaseTool):
             
             response_text = (
                 f"Bookings found \\n\\n"
-                f"Account: {result.get('uid')}\n"
+                f"Account: {user_account}\n"
                 f"Total bookings: {len(bookings)}\n\n"
                 + "\n".join(lines)
             )
@@ -128,14 +128,20 @@ class GetBusBookingsTool(BaseTool):
                 if bus_data:
                     html_content = render_bus_bookings(bus_data)
 
+            # Build WhatsApp response if needed
+            whatsapp_response = None
+            if is_whatsapp:
+                whatsapp_response = build_whatsapp_bus_bookings_response(bookings)
+
             return ToolResponseFormat(
                 response_text=response_text,
-                structured_content={
-                    "uid": uid,
+                structured_content=None if is_whatsapp else {
+                    "account": user_account,
                     "total": len(bookings),
                     "bookings": bookings,
                 },
                 html=html_content,
+                whatsapp_response=whatsapp_response,
                 is_error=False
             )
         
