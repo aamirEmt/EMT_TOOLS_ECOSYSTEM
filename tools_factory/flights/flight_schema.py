@@ -46,7 +46,7 @@ class FlightSearchInput(BaseModel):
         alias="departureTimeWindow",
         description=(
             "Preferred departure time window in 24-hour format 'HH:MM-HH:MM'. "
-            "Accepts natural phrases (morning/afternoon/evening/night/early morning) or loose inputs like '6am-11am'. "
+            "Accepts natural phrases (morning/late morning/afternoon/evening/night/early morning) or loose inputs like '6am-11am'. "
             "Defaults to '00:00-24:00' (no restriction)."
         ),
     )
@@ -55,7 +55,7 @@ class FlightSearchInput(BaseModel):
         alias="arrivalTimeWindow",
         description=(
             "Preferred arrival time window in 24-hour format 'HH:MM-HH:MM'. "
-            "Accepts natural phrases (morning/afternoon/evening/night/early morning) or loose inputs like '5pm-9:30pm'. "
+            "Accepts natural phrases (morning/late morning/afternoon/evening/night/early morning) or loose inputs like '5pm-9:30pm'. "
             "Defaults to '00:00-24:00' (no restriction)."
         ),
     )
@@ -204,8 +204,8 @@ class FlightSearchInput(BaseModel):
             return default
 
         presets = {
-            "early morning": "03:00-06:00",
-            "morning": "06:00-12:00",
+            "early morning": "00:00-06:00",
+            "late morning": "06:00-12:00",
             "afternoon": "12:00-17:00",
             "evening": "17:00-21:00",
             "night": "21:00-03:00",

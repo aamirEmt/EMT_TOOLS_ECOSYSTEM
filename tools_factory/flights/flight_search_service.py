@@ -694,7 +694,7 @@ def build_roundtrip_combo_deep_link(
     onward_flight: Dict[str, Any],
     return_flight: Dict[str, Any],
     passengers: Dict[str, int],
-    referral_id: str = "EMTAI",
+    referral_id: str = "",
     language: str = "en",
     currency: str = "INR",
     pos_country: str = "IN",
