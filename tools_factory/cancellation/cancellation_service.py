@@ -693,6 +693,7 @@ class CancellationService:
         email: str,
         otp: str,
         pax_ids: list,
+        all_pax_ids:list,
         reservation_id: str,
         pnr_number: str,
         total_passenger: int,
@@ -717,6 +718,7 @@ class CancellationService:
                 otp=otp,
                 reservation_id=reservation_id,
                 pax_ids=pax_ids,
+                all_pax_ids =all_pax_ids,
                 total_passenger=total_passenger,
                 pnr_number=pnr_number,
             )
@@ -1328,7 +1330,7 @@ class CancellationService:
             else:
                 is_requested = response.get("isRequested", False)
                 is_cancelled = response.get("isCancelled", False)
-                is_success = is_requested or is_cancelled or response.get("Status", False)
+                is_success = is_requested or is_cancelled or response.get("isValidOTP", False)
                 msg = response.get("msg") or response.get("Message") or response.get("Msg") or ""
                 status_text = response.get("Status")
                 request_id = response.get("RequestId")

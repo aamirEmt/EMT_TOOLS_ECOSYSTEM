@@ -2576,6 +2576,9 @@ TRAIN_BOOKING_TEMPLATE = """
     showLoading(true);
     hideAllErrors();
     var paxIdPayload = selectedPaxIds.map(function(id) { return 'canidout(' + id + ')'; });
+    var allCbs = container.querySelectorAll('.tc-pax-cb');
+    var allPaxIds = [];
+    for (var i = 0; i < allCbs.length; i++) allPaxIds.push('canidout(' + allCbs[i].getAttribute('data-pax-id') + ')');
     return fetch(CANCEL_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2584,6 +2587,7 @@ TRAIN_BOOKING_TEMPLATE = """
         email: EMAIL,
         otp: otp,
         pax_ids: paxIdPayload,
+        all_pax_ids: allPaxIds,
         reservation_id: RESERVATION_ID,
         pnr_number: PNR_NUMBER,
         total_passenger: selectedPaxIds.length,
@@ -5338,7 +5342,7 @@ FLIGHT_BOOKING_TEMPLATE = """
       var newFileName = baseName + '-' + day + month + year + hour + minute + second + '.' + extension;
 
       // Upload to API
-      var uploadUrl = 'http://emtservice.easemytrip.com/emtapp.svc/UploadFileForFullCancellationforApp';
+      var uploadUrl = API_BASE + '/api/flight-cancel/upload-file';
 
       var uploadHeaders = {
         'betid': headers.betid || '',
@@ -5488,7 +5492,7 @@ FLIGHT_BOOKING_TEMPLATE = """
         }
         return { Status: true, message: data };
       }
-      var isSuccess = data.Status || data.isStatus || data.isRequested || data.isCancelled;
+      var isSuccess = data.isRequested || data.isCancelled || data.isValidOTP || (data.Status === true) || data.isStatus;
       if (!isSuccess) {
         var msg = data.LogMessage || data.Message || data.Msg || data.msg || '';
         var isOtpError = msg.toLowerCase().indexOf('otp') !== -1;

@@ -119,29 +119,39 @@ class MyBookingsApiClient:
         payload = {"EmtScreenID": screen_id}
         logger.info(f"Train OTP request payload: {payload}")
         return await self._post(url, payload)
-
+   
     async def cancel_train(
         self,
         bid: str,
         otp: str,
         reservation_id: str,
         pax_ids: list,
+        all_pax_ids:list,
         total_passenger: int,
         pnr_number: str,
     ) -> Dict[str, Any]:
         """POST /Train/CancelTrain"""
         url = f"{self.base_url}/Train/CancelTrain"
-        payload = {
-            "ArycheckedValue": ["Y"] * total_passenger,
-            "id": "",
-            "_reservationId": reservation_id,
-            "_PaxID": pax_ids,
-            "totalPassenger": total_passenger,
-            "PnrNumber": pnr_number,
-            "OTP": otp,
-            "bid": bid,
-        }
+        def build_payload(all_pax_ids, selected_ids):
+            ary = ["Y" if pid in selected_ids else "N"
+                for pid in all_pax_ids]
+
+            return {
+                "ArycheckedValue": ary,
+                "id": "",
+                "_reservationId": reservation_id,
+                "_PaxID": selected_ids,
+                "totalPassenger": len(all_pax_ids),
+                "PnrNumber": pnr_number,
+                "OTP": otp,
+                "bid": bid,
+            }
+        payload = build_payload(
+        all_pax_ids,
+        pax_ids)
+    
         logger.info(f"Train cancellation payload: {payload}")
+        print(f"Train cancellation payload: {payload}")
         return await self._post(url, payload)
 
     # ==================================================================
