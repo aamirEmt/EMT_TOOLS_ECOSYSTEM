@@ -64,6 +64,7 @@ class FlightSearchTool(BaseTool):
         # --------------------------
         # Extract runtime flags
         # --------------------------
+        session_id = kwargs.pop("_session_id", None)
         limit = kwargs.pop("_limit", 15)
         user_type = kwargs.pop("_user_type", "website")
         render_html = user_type.lower() == "website"
