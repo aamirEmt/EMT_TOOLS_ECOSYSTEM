@@ -28,7 +28,7 @@ class GetFlightBookingsTool(BaseTool):
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
             name="fetch_flight_booking_details",
-            description="Fetch all flight bookings (Upcoming, Completed, Cancelled, Rejected, Locked) for the logged-in user.",
+            description="Fetch all flight bookings (Upcoming, Completed, Cancelled, Rejected, Locked) for the logged-in user.If user is not logged in, tell them to provide their phone number or email to login via OTP.",
             input_schema=GetBookingsInput.model_json_schema(),
             output_template=None,
             category="bookings",
