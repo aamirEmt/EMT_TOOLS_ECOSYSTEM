@@ -18,7 +18,7 @@ _sessions: Dict[str, Tuple[FlightPostBookingService, float]] = {}
 _sessions_lock = asyncio.Lock()
 _SESSION_TTL_SECONDS = 1800  # 30 minutes
 
-POST_BOOKING_BASE_URL = "https://mybookings.easemytrip.com/MyBooking/FlightDetails"
+POST_BOOKING_BASE_URL = "https://mybookings.easemytrip.com/Mybooking"
 
 
 def _session_key(booking_id: str, email: str) -> str:
@@ -116,14 +116,16 @@ class FlightPostBookingTool(BaseTool):
                 is_error=True,
             )
 
-        # Persist BID on the service for later URL creation
+        # Persist BID and transaction type on the service for later URL creation
         service._bid = result.get("bid")
+        service._transaction_type = result.get("transaction_type") or "Flight"
 
         return ToolResponseFormat(
             response_text="OTP sent. Please verify to continue post-booking actions.",
             structured_content={
                 "otp_sent": result.get("is_otp_sent", True),
                 "bid": result.get("bid"),
+                "message": result.get("message"),
             },
         )
 
@@ -170,6 +172,6 @@ class FlightPostBookingTool(BaseTool):
                 "bid": bid,
                 "redirect_url": redirect_url,
                 "actions": ["add_seat", "add_meal", "add_baggage"],
+                "message": result.get("message"),
             },
         )
-
