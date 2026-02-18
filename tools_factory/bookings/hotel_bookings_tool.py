@@ -27,7 +27,7 @@ class GetHotelBookingsTool(BaseTool):
     
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
-            name="get_hotel_bookings",
+            name="fetch_hotel_booking_details",
             description="Fetch all hotel bookings (Upcoming, Completed, Cancelled, Pending) for the logged-in user.",
             input_schema=GetBookingsInput.model_json_schema(),
             output_template=None,
@@ -126,7 +126,6 @@ class GetHotelBookingsTool(BaseTool):
                     "uid": uid,
                     "total": len(bookings),
                     "bookings": bookings,
-                    "raw_response": raw_response,
                 },
                 html=html_content,
             )

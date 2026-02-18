@@ -27,7 +27,7 @@ class GetBusBookingsTool(BaseTool):
     
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
-            name="get_bus_bookings",
+            name="fetch_bus_booking_details",
             description="Fetch all bus bookings for the logged-in user.",
             input_schema=GetBookingsInput.model_json_schema(),
             output_template=None,
@@ -134,7 +134,6 @@ class GetBusBookingsTool(BaseTool):
                     "uid": uid,
                     "total": len(bookings),
                     "bookings": bookings,
-                    "raw_response": raw_response,
                 },
                 html=html_content,
                 is_error=False
