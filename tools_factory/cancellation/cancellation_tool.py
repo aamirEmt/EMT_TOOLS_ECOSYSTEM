@@ -199,6 +199,35 @@ class CancellationTool(BaseTool):
     async def _handle_start_hotel(
         self, input_data, login_result, bid, user_type, render_html, is_whatsapp, service
     ) -> ToolResponseFormat:
+        # WhatsApp: Stop after sending login OTP, don't fetch details yet
+        otp_sent = login_result.get("ids", {}).get("is_otp_send")
+        if is_whatsapp and otp_sent:
+            otp_text = (
+                "📧 An OTP has been sent to your registered email/phone.\n\n"
+                "🔐 Please enter the OTP to verify your identity and view booking details.\n\n"
+                "Type the OTP like: \"123456\" or \"My OTP is ABC123\""
+            )
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=otp_text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="otp_sent_for_login",
+                    message=otp_text,
+                    booking_id=input_data.booking_id,
+                    transaction_type="Hotel",
+                ),
+            )
+            return ToolResponseFormat(
+                response_text=otp_text,
+                structured_content={"login": login_result, "bid": bid, "transaction_type": "Hotel"},
+                whatsapp_response=whatsapp_response.model_dump(),
+            )
+
+        # Website/Chatbot: Continue with current flow (fetch details immediately)
         try:
             details_result = await service.fetch_booking_details(bid=bid)
         except Exception as exc:
@@ -358,6 +387,35 @@ class CancellationTool(BaseTool):
     async def _handle_start_train(
         self, input_data, login_result, bid, user_type, render_html, is_whatsapp, service
     ) -> ToolResponseFormat:
+        # WhatsApp: Stop after sending login OTP, don't fetch details yet
+        otp_sent = login_result.get("ids", {}).get("is_otp_send")
+        if is_whatsapp and otp_sent:
+            otp_text = (
+                "📧 An OTP has been sent to your registered email/phone.\n\n"
+                "🔐 Please enter the OTP to verify your identity and view booking details.\n\n"
+                "Type the OTP like: \"123456\" or \"My OTP is ABC123\""
+            )
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=otp_text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="otp_sent_for_login",
+                    message=otp_text,
+                    booking_id=input_data.booking_id,
+                    transaction_type="Train",
+                ),
+            )
+            return ToolResponseFormat(
+                response_text=otp_text,
+                structured_content={"login": login_result, "bid": bid, "transaction_type": "Train"},
+                whatsapp_response=whatsapp_response.model_dump(),
+            )
+
+        # Website/Chatbot: Continue with current flow (fetch details immediately)
         try:
             details_result = await service.fetch_train_booking_details(bid=bid)
         except Exception as exc:
@@ -558,32 +616,482 @@ class CancellationTool(BaseTool):
                 ),
             )
 
+        # For WhatsApp: After OTP verification, fetch and show booking details
+        if is_whatsapp:
+            tx_type = service._transaction_type
+            bid = service._bid
+
+            # Fetch booking details based on transaction type
+            try:
+                if tx_type == "Flight":
+                    return await self._fetch_and_show_flight_details(input_data, bid, service)
+                elif tx_type == "Train":
+                    return await self._fetch_and_show_train_details(input_data, bid, service)
+                elif tx_type == "Bus":
+                    return await self._fetch_and_show_bus_details(input_data, bid, service)
+                else:  # Hotel
+                    return await self._fetch_and_show_hotel_details(input_data, bid, service)
+            except Exception as exc:
+                logger.error(f"Error fetching details after OTP verification: {exc}", exc_info=True)
+                return ToolResponseFormat(
+                    response_text="OTP verified, but failed to fetch booking details. Please try again.",
+                    is_error=True,
+                )
+
+        # For Website/Chatbot: Just confirm OTP verification
         success_text = (
             f"✅ OTP verified successfully!\n\n"
             f"Your identity has been confirmed. Would you like to proceed with the cancellation?"
         )
-        whatsapp_response = None
-        if is_whatsapp:
-            from .cancellation_schema import (
-                WhatsappCancellationFormat,
-                WhatsappCancellationFinalResponse,
-            )
-            whatsapp_response = WhatsappCancellationFinalResponse(
-                response_text=success_text,
-                whatsapp_json=WhatsappCancellationFormat(
-                    type="cancellation",
-                    status="otp_verified",
-                    message=success_text,
-                    booking_id=input_data.booking_id,
-                ),
-            )
 
         return ToolResponseFormat(
             response_text=success_text,
             structured_content=result,
-            whatsapp_response=(
-                whatsapp_response.model_dump() if whatsapp_response else None
+        )
+
+    # ----------------------------------------------------------
+    # Helper methods to fetch and show booking details (for WhatsApp after OTP verification)
+    # ----------------------------------------------------------
+    async def _fetch_and_show_hotel_details(self, input_data, bid, service) -> ToolResponseFormat:
+        """Fetch and show hotel booking details for WhatsApp after OTP verification"""
+        details_result = await service.fetch_booking_details(bid=bid)
+
+        if not details_result["success"]:
+            return ToolResponseFormat(
+                response_text=f"OTP verified, but failed to fetch booking details: {details_result.get('error')}",
+                is_error=True,
+            )
+
+        rooms = details_result.get("rooms", [])
+        hotel_info = details_result.get("hotel_info", {})
+        guest_info = details_result.get("guest_info", [])
+
+        hotel_name = hotel_info.get("hotel_name", "your hotel")
+        check_in = hotel_info.get("check_in", "")
+        check_out = hotel_info.get("check_out", "")
+        duration = hotel_info.get("duration", "")
+        total_fare = hotel_info.get("total_fare", "")
+
+        def format_date(date_str):
+            if not date_str:
+                return ""
+            try:
+                from datetime import datetime
+                dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+                return dt.strftime("%d %b %Y")
+            except:
+                return date_str
+
+        check_in_formatted = format_date(check_in)
+        check_out_formatted = format_date(check_out)
+
+        guest_names = []
+        for guest in guest_info:
+            name = f"{guest.get('title', '')} {guest.get('first_name', '')} {guest.get('last_name', '')}".strip()
+            if name and name not in guest_names:
+                guest_names.append(name)
+
+        booking_summary = []
+        if check_in_formatted and check_out_formatted:
+            booking_summary.append(f"📅 Check-in: {check_in_formatted} | Check-out: {check_out_formatted}")
+        if duration:
+            booking_summary.append(f"🌙 Duration: {duration} nights")
+        if guest_names:
+            booking_summary.append(f"👤 Guests: {', '.join(guest_names)}")
+        if total_fare:
+            booking_summary.append(f"💰 Total Booking Amount: ₹{total_fare}")
+
+        room_descriptions = []
+        for idx, r in enumerate(rooms, 1):
+            room_type = r.get('room_type', 'Room')
+            room_no = r.get('room_no')
+            amount = r.get('amount')
+            policy = r.get('cancellation_policy', '')
+            adults = r.get('total_adults')
+
+            desc = f"\n{idx}. {room_type}"
+            if room_no:
+                desc += f" (Room {room_no})"
+            if adults:
+                desc += f" - {adults} Adult(s)"
+            if amount:
+                desc += f" - ₹{amount}"
+            room_descriptions.append(desc)
+
+            if policy:
+                for line in policy.split('\n'):
+                    if line.strip():
+                        room_descriptions.append(f"   {line}")
+
+        text = (
+            f"✅ OTP verified successfully!\n\n"
+            f"I've pulled up your booking details for {hotel_name}.\n\n"
+            + "\n".join(booking_summary) + "\n"
+            + "\n".join(room_descriptions)
+            + "\n\nWould you like to proceed with the cancellation?"
+        )
+
+        from .cancellation_schema import (
+            WhatsappCancellationFormat,
+            WhatsappCancellationFinalResponse,
+        )
+        whatsapp_response = WhatsappCancellationFinalResponse(
+            response_text=text,
+            whatsapp_json=WhatsappCancellationFormat(
+                type="cancellation",
+                status="booking_details",
+                message=text,
+                booking_id=input_data.booking_id,
+                transaction_type="Hotel",
+                rooms=[
+                    {
+                        "room_id": r.get("room_id"),
+                        "room_type": r.get("room_type"),
+                        "room_no": r.get("room_no"),
+                    }
+                    for r in rooms
+                ],
             ),
+        )
+
+        return ToolResponseFormat(
+            response_text=text,
+            structured_content={"booking_details": details_result, "bid": bid, "transaction_type": "Hotel"},
+            whatsapp_response=whatsapp_response.model_dump(),
+        )
+
+    async def _fetch_and_show_train_details(self, input_data, bid, service) -> ToolResponseFormat:
+        """Fetch and show train booking details for WhatsApp after OTP verification"""
+        details_result = await service.fetch_train_booking_details(bid=bid)
+
+        if not details_result["success"]:
+            return ToolResponseFormat(
+                response_text=f"OTP verified, but failed to fetch train details: {details_result.get('error')}",
+                is_error=True,
+            )
+
+        train_info = details_result.get("train_info", {})
+        passengers = details_result.get("passengers", [])
+        price_info = details_result.get("price_info", {})
+
+        train_name = train_info.get("train_name", "your train")
+        train_number = train_info.get("train_number", "")
+        from_station = train_info.get("from_station_name", train_info.get("from_station", ""))
+        to_station = train_info.get("to_station_name", train_info.get("to_station", ""))
+        departure_date = train_info.get("departure_date", "")
+        departure_time = train_info.get("departure_time", "")
+        arrival_date = train_info.get("arrival_date", "")
+        arrival_time = train_info.get("arrival_time", "")
+        duration = train_info.get("duration", "")
+        travel_class = train_info.get("travel_class", "")
+        pnr_number = details_result.get("pnr_number", "")
+        total_fare = price_info.get("total_fare", "")
+
+        booking_summary = []
+        if train_name and train_number:
+            booking_summary.append(f"🚆 {train_name} ({train_number})")
+        if from_station and to_station:
+            booking_summary.append(f"📍 {from_station} → {to_station}")
+        if departure_date and departure_time:
+            booking_summary.append(f"📅 Departure: {departure_date} at {departure_time}")
+        if arrival_date and arrival_time:
+            booking_summary.append(f"📅 Arrival: {arrival_date} at {arrival_time}")
+        if duration:
+            booking_summary.append(f"⏱️ Duration: {duration}")
+        if travel_class:
+            booking_summary.append(f"🎫 Class: {travel_class}")
+        if pnr_number:
+            booking_summary.append(f"🔢 PNR: {pnr_number}")
+        if total_fare:
+            booking_summary.append(f"💰 Total Fare: ₹{total_fare}")
+
+        pax_descriptions = []
+        for idx, pax in enumerate(passengers, 1):
+            name = f"{pax.get('title', '')} {pax.get('name', '')}".strip()
+            pax_type = pax.get('pax_type', '')
+            seat_no = pax.get('seat_no', '')
+            seat_type = pax.get('seat_type', '')
+            coach = pax.get('coach_number', '')
+            status = pax.get('booking_status', '')
+
+            desc = f"\n{idx}. {name}"
+            if pax_type:
+                desc += f" ({pax_type})"
+            if coach and seat_no and seat_no != "0":
+                desc += f" - Coach {coach}, Seat {seat_no}"
+                if seat_type:
+                    desc += f" ({seat_type})"
+            if status:
+                desc += f" - Status: {status}"
+            pax_descriptions.append(desc)
+
+        text = (
+            f"✅ OTP verified successfully!\n\n"
+            f"I've pulled up your train booking details.\n\n"
+            + "\n".join(booking_summary)
+            + "\n\n👥 Passengers:"
+            + "\n".join(pax_descriptions)
+            + "\n\nWould you like to proceed with the cancellation?"
+        )
+
+        from .cancellation_schema import (
+            WhatsappCancellationFormat,
+            WhatsappCancellationFinalResponse,
+        )
+        whatsapp_response = WhatsappCancellationFinalResponse(
+            response_text=text,
+            whatsapp_json=WhatsappCancellationFormat(
+                type="cancellation",
+                status="booking_details",
+                message=text,
+                booking_id=input_data.booking_id,
+                transaction_type="Train",
+                passengers=[
+                    {
+                        "pax_id": p.get("pax_id"),
+                        "name": f"{p.get('title', '')} {p.get('name', '')}".strip(),
+                        "pax_type": p.get("pax_type"),
+                        "seat_no": p.get("seat_no"),
+                        "status": p.get("booking_status"),
+                    }
+                    for p in passengers
+                ],
+            ),
+        )
+
+        return ToolResponseFormat(
+            response_text=text,
+            structured_content={"booking_details": details_result, "bid": bid, "transaction_type": "Train"},
+            whatsapp_response=whatsapp_response.model_dump(),
+        )
+
+    async def _fetch_and_show_bus_details(self, input_data, bid, service) -> ToolResponseFormat:
+        """Fetch and show bus booking details for WhatsApp after OTP verification"""
+        details_result = await service.fetch_bus_booking_details(bid=bid)
+
+        if not details_result["success"]:
+            return ToolResponseFormat(
+                response_text=f"OTP verified, but failed to fetch bus details: {details_result.get('error')}",
+                is_error=True,
+            )
+
+        bus_info = details_result.get("bus_info", {})
+        passengers = details_result.get("passengers", [])
+
+        source = bus_info.get("source", "")
+        destination = bus_info.get("destination", "")
+        journey_date = bus_info.get("date_of_journey", "")
+        departure_time = bus_info.get("departure_time", "")
+        bus_type = bus_info.get("bus_type", "")
+        operator = bus_info.get("travels_operator", "")
+        ticket_no = bus_info.get("ticket_no", "")
+        total_fare = bus_info.get("total_fare", "")
+
+        booking_summary = []
+        if operator:
+            booking_summary.append(f"🚌 {operator}")
+        if source and destination:
+            booking_summary.append(f"📍 {source} → {destination}")
+        if journey_date and departure_time:
+            booking_summary.append(f"📅 {journey_date} at {departure_time}")
+        if bus_type:
+            booking_summary.append(f"🎫 {bus_type.strip()}")
+        if ticket_no:
+            booking_summary.append(f"🔢 Ticket: {ticket_no}")
+        if total_fare:
+            booking_summary.append(f"💰 Total Fare: ₹{total_fare}")
+
+        pax_descriptions = []
+        for idx, pax in enumerate(passengers, 1):
+            name = f"{pax.get('title', '')} {pax.get('first_name', '')} {pax.get('last_name', '')}".strip()
+            seat = pax.get('seat_no', '')
+            fare = pax.get('fare', '')
+            status = pax.get('status', '')
+
+            desc = f"\n{idx}. {name}"
+            if seat:
+                desc += f" - Seat {seat}"
+            if fare:
+                desc += f" (₹{fare})"
+            if status:
+                desc += f" - {status}"
+            pax_descriptions.append(desc)
+
+        text = (
+            f"✅ OTP verified successfully!\n\n"
+            f"Here are the details for your bus booking **{input_data.booking_id}**:\n\n"
+            + "\n".join(booking_summary)
+            + "\n\n👥 **Passengers:**"
+            + "".join(pax_descriptions)
+            + "\n\nWould you like to proceed with the cancellation?"
+        )
+
+        from .cancellation_schema import (
+            WhatsappCancellationFormat,
+            WhatsappCancellationFinalResponse,
+        )
+        whatsapp_response = WhatsappCancellationFinalResponse(
+            response_text=text,
+            whatsapp_json=WhatsappCancellationFormat(
+                type="cancellation",
+                status="booking_details",
+                message=text,
+                booking_id=input_data.booking_id,
+                transaction_type="Bus",
+                seats=[
+                    {
+                        "seat_no": p.get("seat_no"),
+                        "name": f"{p.get('title', '')} {p.get('first_name', '')} {p.get('last_name', '')}".strip(),
+                        "fare": p.get("fare"),
+                        "status": p.get("status"),
+                    }
+                    for p in passengers
+                ],
+            ),
+        )
+
+        return ToolResponseFormat(
+            response_text=text,
+            structured_content={"booking_details": details_result, "bid": bid, "transaction_type": "Bus"},
+            whatsapp_response=whatsapp_response.model_dump(),
+        )
+
+    async def _fetch_and_show_flight_details(self, input_data, bid, service) -> ToolResponseFormat:
+        """Fetch and show flight booking details for WhatsApp after OTP verification"""
+        details_result = await service.fetch_flight_booking_details(bid=bid)
+
+        if not details_result["success"]:
+            return ToolResponseFormat(
+                response_text=f"OTP verified, but failed to fetch flight details: {details_result.get('error')}",
+                is_error=True,
+            )
+
+        # Store total cancellable for partial cancel computation
+        service._total_cancellable = details_result.get("total_cancellable", 0)
+
+        flight_segments = details_result.get("flight_segments", [])
+        outbound_pax = details_result.get("outbound_passengers", [])
+        inbound_pax = details_result.get("inbound_passengers", [])
+        price_info = details_result.get("price_info", {})
+        pnr_info = details_result.get("pnr_info", [])
+
+        booking_summary = []
+
+        # Flight segments info
+        for seg in flight_segments:
+            airline = seg.get("airline_name", "")
+            flight_no = seg.get("flight_number", "")
+            origin = seg.get("origin", "")
+            destination = seg.get("destination", "")
+            dep_date = seg.get("departure_date", "")
+            dep_time = seg.get("departure_time", "")
+            arr_time = seg.get("arrival_time", "")
+            duration = seg.get("duration", "")
+            cabin = seg.get("cabin_class", "")
+            bound = seg.get("bound_type", "")
+
+            bound_label = ""
+            if bound:
+                bound_lower = str(bound).lower()
+                if "out" in bound_lower:
+                    bound_label = "Outbound"
+                elif "in" in bound_lower:
+                    bound_label = "Inbound"
+
+            seg_line = f"✈️ {airline} {flight_no} — {origin} → {destination}"
+            if dep_date:
+                seg_line += f" | {dep_date}"
+            if dep_time and arr_time:
+                seg_line += f" ({dep_time} - {arr_time})"
+            if duration:
+                seg_line += f" | {duration}"
+            if cabin:
+                seg_line += f" | {cabin}"
+            if bound_label:
+                seg_line = f"[{bound_label}] {seg_line}"
+            booking_summary.append(seg_line)
+
+        # PNR info
+        for pnr in pnr_info:
+            airline_pnr = pnr.get("airline_pnr", "")
+            gds_pnr = pnr.get("gds_pnr", "")
+            if airline_pnr:
+                booking_summary.append(f"🔢 Airline PNR: {airline_pnr}")
+            if gds_pnr:
+                booking_summary.append(f"🔢 GDS PNR: {gds_pnr}")
+
+        # Price info
+        total_fare = price_info.get("total_fare", "")
+        if total_fare:
+            booking_summary.append(f"💰 Total Fare: ₹{total_fare}")
+
+        # Passengers
+        pax_descriptions = []
+        all_pax = []
+        for pax in outbound_pax:
+            all_pax.append({**pax, "_bound": "Outbound"})
+        for pax in inbound_pax:
+            all_pax.append({**pax, "_bound": "Inbound"})
+
+        for idx, pax in enumerate(all_pax, 1):
+            name = f"{pax.get('title', '')} {pax.get('first_name', '')} {pax.get('last_name', '')}".strip()
+            pax_type = pax.get("pax_type", "")
+            status = pax.get("status", "")
+            ticket = pax.get("ticket_number", "")
+            bound_label = pax.get("_bound", "")
+            charge = pax.get("cancellation_charge", "")
+
+            desc = f"\n{idx}. {name}"
+            if pax_type:
+                desc += f" ({pax_type})"
+            if bound_label:
+                desc += f" [{bound_label}]"
+            if ticket:
+                desc += f" - Ticket: {ticket}"
+            if status:
+                desc += f" - {status}"
+            if charge:
+                desc += f" - Cancel charge: ₹{charge}"
+            pax_descriptions.append(desc)
+
+        text = (
+            f"✅ OTP verified successfully!\n\n"
+            f"Here are the details for your flight booking **{input_data.booking_id}**:\n\n"
+            + "\n".join(booking_summary)
+            + "\n\n👥 **Passengers:**"
+            + "".join(pax_descriptions)
+            + "\n\nWould you like to proceed with the cancellation?"
+        )
+
+        from .cancellation_schema import (
+            WhatsappCancellationFormat,
+            WhatsappCancellationFinalResponse,
+        )
+        whatsapp_response = WhatsappCancellationFinalResponse(
+            response_text=text,
+            whatsapp_json=WhatsappCancellationFormat(
+                type="cancellation",
+                status="booking_details",
+                message=text,
+                booking_id=input_data.booking_id,
+                transaction_type="Flight",
+                flight_passengers=[
+                    {
+                        "pax_id": p.get("pax_id"),
+                        "name": f"{p.get('title', '')} {p.get('first_name', '')} {p.get('last_name', '')}".strip(),
+                        "pax_type": p.get("pax_type"),
+                        "status": p.get("status"),
+                        "bound_type": p.get("bound_type"),
+                    }
+                    for p in all_pax
+                ],
+            ),
+        )
+
+        return ToolResponseFormat(
+            response_text=text,
+            structured_content={"booking_details": details_result, "bid": bid, "transaction_type": "Flight"},
+            whatsapp_response=whatsapp_response.model_dump(),
         )
 
     # ----------------------------------------------------------
@@ -866,6 +1374,35 @@ class CancellationTool(BaseTool):
     async def _handle_start_bus(
         self, input_data, login_result, bid, user_type, render_html, is_whatsapp, service
     ) -> ToolResponseFormat:
+        # WhatsApp: Stop after sending login OTP, don't fetch details yet
+        otp_sent = login_result.get("ids", {}).get("is_otp_send")
+        if is_whatsapp and otp_sent:
+            otp_text = (
+                "📧 An OTP has been sent to your registered email/phone.\n\n"
+                "🔐 Please enter the OTP to verify your identity and view booking details.\n\n"
+                "Type the OTP like: \"123456\" or \"My OTP is ABC123\""
+            )
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=otp_text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="otp_sent_for_login",
+                    message=otp_text,
+                    booking_id=input_data.booking_id,
+                    transaction_type="Bus",
+                ),
+            )
+            return ToolResponseFormat(
+                response_text=otp_text,
+                structured_content={"login": login_result, "bid": bid, "transaction_type": "Bus"},
+                whatsapp_response=whatsapp_response.model_dump(),
+            )
+
+        # Website/Chatbot: Continue with current flow (fetch details immediately)
         try:
             details_result = await service.fetch_bus_booking_details(bid=bid)
         except Exception as exc:
@@ -1099,6 +1636,35 @@ class CancellationTool(BaseTool):
     async def _handle_start_flight(
         self, input_data, login_result, bid, user_type, render_html, is_whatsapp, service
     ) -> ToolResponseFormat:
+        # WhatsApp: Stop after sending login OTP, don't fetch details yet
+        otp_sent = login_result.get("ids", {}).get("is_otp_send")
+        if is_whatsapp and otp_sent:
+            otp_text = (
+                "📧 An OTP has been sent to your registered email/phone.\n\n"
+                "🔐 Please enter the OTP to verify your identity and view booking details.\n\n"
+                "Type the OTP like: \"123456\" or \"My OTP is ABC123\""
+            )
+            from .cancellation_schema import (
+                WhatsappCancellationFormat,
+                WhatsappCancellationFinalResponse,
+            )
+            whatsapp_response = WhatsappCancellationFinalResponse(
+                response_text=otp_text,
+                whatsapp_json=WhatsappCancellationFormat(
+                    type="cancellation",
+                    status="otp_sent_for_login",
+                    message=otp_text,
+                    booking_id=input_data.booking_id,
+                    transaction_type="Flight",
+                ),
+            )
+            return ToolResponseFormat(
+                response_text=otp_text,
+                structured_content={"login": login_result, "bid": bid, "transaction_type": "Flight"},
+                whatsapp_response=whatsapp_response.model_dump(),
+            )
+
+        # Website/Chatbot: Continue with current flow (fetch details immediately)
         try:
             details_result = await service.fetch_flight_booking_details(bid=bid)
         except Exception as exc:

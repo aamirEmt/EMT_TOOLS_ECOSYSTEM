@@ -87,7 +87,7 @@ class CancellationInput(BaseModel):
 # ============================================================
 class WhatsappCancellationFormat(BaseModel):
     type: str = "cancellation"
-    status: str  # "booking_details", "otp_verified", "otp_sent", "cancelled", "error"
+    status: str  # "otp_sent_for_login", "booking_details", "otp_verified", "otp_sent", "cancelled", "error"
     message: str
     booking_id: Optional[str] = None
     rooms: Optional[list] = None        # Hotel
