@@ -15,7 +15,7 @@ class FlightPostBookingInput(BaseModel):
         description="Flight booking reference or PNR.",
         min_length=3,
     )
-    email: EmailStr = Field(
+    email: str = Field(
         ...,
         description="Email address used for the booking.",
     )
