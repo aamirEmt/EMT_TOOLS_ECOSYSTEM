@@ -24,6 +24,7 @@ class OtpLoginTool(BaseTool):
                 "'send_otp' sends an OTP to the user's phone/email, "
                 "'verify_otp' verifies the OTP received by the user. "
                 "Call send_otp first, then ask the user for the OTP, then call verify_otp."
+                "After successful verification, the user is logged in and you can now prompt the user to continue with their original request, or check their bookings, or check availability for hotels, trains and buses."
             ),
             input_schema=OtpLoginInput.model_json_schema(),
             output_template=None,

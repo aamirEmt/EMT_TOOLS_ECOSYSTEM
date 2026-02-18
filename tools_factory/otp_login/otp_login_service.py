@@ -108,6 +108,7 @@ class OtpLoginService:
             uid = json_data.get("UID") or phone_or_email
             customer_id = json_data.get("CustomerId")
             message = json_data.get("Message", "")
+            message = message+" You can now continue looking your bookings, or check availability for hotels, trains and buses."
 
             if not auth_token:
                 return {
