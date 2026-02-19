@@ -304,7 +304,7 @@ HOTEL_BOOKINGS_TEMPLATE = """
   {% if tabs %}
   <div class="bkng-tabs">
     {% for tab in tabs %}
-    <button class="bkng-tab {% if tab.active %}active{% endif %}" data-status="{{ tab.key }}" onclick="var p=this.closest('.hotel-bookings');p.querySelectorAll('.bkng-tab').forEach(function(t){t.classList.remove('active')});this.classList.add('active');var s=this.dataset.status,v=0,idx=0;p.querySelectorAll('.bkng-card').forEach(function(c){var match=c.dataset.status===s;if(match){c.style.display=idx<3?'':'none';if(idx<3)v++;idx++}else{c.style.display='none'}});p.querySelectorAll('.show-more-btn').forEach(function(b){if(b.dataset.forStatus===s){var t=parseInt(b.dataset.total);b.style.display=t>3?'':'none';b.textContent='Show '+(t-3)+' More'}else{b.style.display='none'}});var e=p.querySelector('.bkng-empty');if(e)e.style.display=v?'none':''">
+    <button class="bkng-tab {% if tab.active %}active{% endif %}" data-status="{{ tab.key }}" onclick="var p=this.closest('.hotel-bookings');p.querySelectorAll('.bkng-tab').forEach(function(t){t.classList.remove('active')});this.classList.add('active');var s=this.dataset.status,v=0,idx=0;p.querySelectorAll('.bkng-card').forEach(function(c){var match=c.dataset.status===s;if(match){c.style.display=idx<3?'':'none';if(idx<3)v++;idx++}else{c.style.display='none'}});p.querySelectorAll('.show-more-btn').forEach(function(b){if(b.dataset.forStatus===s){var t=parseInt(b.dataset.total);b.style.display=t>3?'':'none';b.dataset.expanded='false';b.textContent='Show '+(t-3)+' More'}else{b.style.display='none'}});var e=p.querySelector('.bkng-empty');if(e)e.style.display=v?'none':''">
       {{ tab.label }} <span class="tab-count">({{ tab.count }})</span>
     </button>
     {% endfor %}
@@ -388,7 +388,7 @@ HOTEL_BOOKINGS_TEMPLATE = """
 
     {% for tab in tabs %}
     {% if tab.count > 3 %}
-    <button class="show-more-btn" data-for-status="{{ tab.key }}" data-total="{{ tab.count }}" {% if not tab.active %}style="display:none"{% endif %} onclick="var p=this.closest('.hotel-bookings');var s=this.dataset.forStatus;p.querySelectorAll('.bkng-card').forEach(function(c){if(c.dataset.status===s)c.style.display=''});this.style.display='none'">
+    <button class="show-more-btn" data-for-status="{{ tab.key }}" data-total="{{ tab.count }}" data-expanded="false" {% if not tab.active %}style="display:none"{% endif %} onclick="var p=this.closest('.hotel-bookings');var s=this.dataset.forStatus;var t=parseInt(this.dataset.total);if(this.dataset.expanded==='true'){var idx=0;p.querySelectorAll('.bkng-card').forEach(function(c){if(c.dataset.status===s){if(idx>=3)c.style.display='none';idx++}});this.dataset.expanded='false';this.textContent='Show '+(t-3)+' More'}else{p.querySelectorAll('.bkng-card').forEach(function(c){if(c.dataset.status===s)c.style.display=''});this.dataset.expanded='true';this.textContent='Show Less'}">
       Show {{ tab.count - 3 }} More
     </button>
     {% endif %}
