@@ -130,6 +130,7 @@ class FlightPostBookingTool(BaseTool):
         # Persist BID and transaction type on the service for later URL creation
         service._bid = result.get("bid")
         service._transaction_type = result.get("transaction_type") or "Flight"
+        service._download_requested = bool(input_data.download)
 
         return ToolResponseFormat(
             response_text="OTP sent. Please verify to continue post-booking actions.",
@@ -138,6 +139,7 @@ class FlightPostBookingTool(BaseTool):
                 "bid": result.get("bid"),
                 "transaction_type": result.get("transaction_type") or "Flight",
                 "message": result.get("message"),
+                "download": bool(input_data.download),
             },
         )
 
@@ -179,8 +181,9 @@ class FlightPostBookingTool(BaseTool):
 
         base_url = _resolve_post_booking_url(transaction_type)
         redirect_url = f"{base_url}?bid={bid}"
+        download_requested = getattr(service, "_download_requested", False)
         download_url = None
-        if input_data.download:
+        if download_requested:
             download_result = await service.fetch_download_url(bid, transaction_type)
             if not download_result.get("success"):
                 return ToolResponseFormat(
@@ -190,6 +193,7 @@ class FlightPostBookingTool(BaseTool):
                         "transaction_type": transaction_type,
                         "redirect_url": redirect_url,
                         "download_error": download_result,
+                        "download": download_requested,
                     },
                     is_error=True,
                 )
@@ -203,7 +207,7 @@ class FlightPostBookingTool(BaseTool):
                 "redirect_url": redirect_url,
                 "actions": ["add_seat", "add_meal", "add_baggage"],
                 "message": result.get("message"),
-                "download": input_data.download,
+                "download": download_requested,
                 "download_url": download_url,
             },
         )

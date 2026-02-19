@@ -25,7 +25,7 @@ class FlightPostBookingInput(BaseModel):
         min_length=4,
         max_length=10,
     )
-    download: bool = Field(
+    download: Optional[bool] = Field(
         False,
         description="Set to true when user wants to download ticket/invoice PDF.",
     )
