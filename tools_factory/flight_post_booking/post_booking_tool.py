@@ -75,11 +75,15 @@ class FlightPostBookingTool(BaseTool):
         return ToolMetadata(
             name="flight_post_booking",
             description=(
-                "Tool for add seat, meal, baggage, reschedule flight (post-booking actions.) "
-                "Takes booking ID and email to send OTP, then verifies OTP and returns a redirect URL with BID for post-booking management. "
-                "Send OTP for post-booking flight actions (add seat, meal, baggage), "
-                "verify it, and return a redirect URL containing the BID."
-                "send download if the original user query was to download the ticket else send false"
+               "Tool for handling post-booking actions such as adding seat, meal, baggage, or rescheduling a flight."
+                "Takes booking ID and email to start the flow by sending an OTP to the user."
+                "Verifies the OTP using booking ID, email, and OTP, and returns a redirect URL containing the BID for post-booking management."
+                "Supports two actions: 'start' to send OTP and 'verify_otp' to validate the OTP."
+                "After successful OTP verification, provides access to manage the booking (add-ons, reschedule, etc.)."
+                "If the user's original request is to view or download the ticket, set the 'download' field to true."
+                "If the user's intent is any other post-booking action (seat, meal, baggage, reschedule, etc.), set 'download' to false."
+                "The 'download' flag explicitly controls whether the flow is meant for ticket viewing/downloading or general post-booking management."
+                "Always send the correct booking ID (PNR) and email used for the booking in both steps of the workflow."
             ),
             input_schema=FlightPostBookingInput.model_json_schema(),
             output_template=None,
