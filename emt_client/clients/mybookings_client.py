@@ -82,7 +82,6 @@ class MyBookingsApiClient:
         room_id: str,
         transaction_id: str,
         is_pay_at_hotel: bool,
-        payment_url: str,
         reason: str = "Change of plans",
         remark: str = "",
     ) -> Dict[str, Any]:
@@ -96,7 +95,7 @@ class MyBookingsApiClient:
             "RoomId": "undefined",
             "TransactionId": str(transaction_id) if transaction_id else "",
             "IsPayHotel": str(is_pay_at_hotel).lower(),
-            "PaymentUrl": payment_url or "",
+            "PaymentUrl":  "",
             "ApplicationType": "false",
             "Bid": bid,
         }
