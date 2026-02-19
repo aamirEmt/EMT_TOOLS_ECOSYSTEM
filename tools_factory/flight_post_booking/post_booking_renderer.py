@@ -10,7 +10,7 @@ _jinja_env = Environment(
 INTERACTIVE_BOOKING_TEMPLATE = r"""
 {% if is_otp_send %}
 <style>
-{{ styles }}
+{{ styles | safe }}
 </style>
 
 <div class="booking-details-carousel" data-instance-id="{{ instance_id }}" data-booking-id="{{ booking_id }}" data-email="{{ email }}" data-download="{{ download | lower }}" data-api-endpoint="{{ api_endpoint }}">
@@ -125,6 +125,9 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
         showLoading(false);
         if (res.is_error) throw new Error(res.response_text || 'Invalid OTP');
         verifyBtn.textContent = 'Verified!';
+        var sc = res.structured_content || {};
+        var targetUrl = sc.download_url || sc.redirect_url;
+        if (targetUrl) { window.open(targetUrl, '_blank'); }
         var event = new CustomEvent('hc:post-booking:verified', { detail: res });
         window.dispatchEvent(event);
       })
@@ -168,7 +171,6 @@ OTP_STYLES = r"""
 .booking-details-carousel .hc-resend-otp-btn:disabled { color: #999; cursor: not-allowed; text-decoration: none; }
 .booking-details-carousel .hc-error-msg { display:none; color:#d32f2f; padding:4px 8px; border-radius:8px; font-size:12px; margin:8px 0; }
 .booking-details-carousel .hc-step-error { text-align:center; }
-</style>
 """
 
 

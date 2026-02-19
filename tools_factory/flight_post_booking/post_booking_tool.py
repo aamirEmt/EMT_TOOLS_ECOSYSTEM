@@ -51,7 +51,7 @@ async def get_user_service(booking_id: str, email: str) -> FlightPostBookingServ
     """Get or create a service instance for a booking/email pair."""
     key = _session_key(booking_id, email)
     async with _sessions_lock:
-        now = time.time()
+        now = time.monotonic()
         await _cleanup_expired_sessions(now)
 
         if key in _sessions:
