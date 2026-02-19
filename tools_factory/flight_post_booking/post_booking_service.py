@@ -21,6 +21,12 @@ class FlightPostBookingService:
         self._transaction_type: str | None = None
         # lock to avoid concurrent requests per service instance
         self._lock = asyncio.Lock()
+        self._download_endpoints = {
+            "flight": ("GET", "https://mybookings.easemytrip.com/MyBooking/GetdownLodingPdf"),
+            "train": ("GET", "https://mybookings.easemytrip.com/Train/DownloadPdf/"),
+            "hotels": ("GET", "https://mybookings.easemytrip.com/Hotels/DownloadPdf/"),
+            "bus": ("POST", "https://mybookings.easemytrip.com/Bus/GetPdf/"),
+        }
 
     async def send_otp(self, booking_id: str, email: str) -> Dict[str, Any]:
         """Call EMT guest login API to trigger OTP and retrieve BID."""
@@ -107,5 +113,49 @@ class FlightPostBookingService:
             "message": data.get("Message") or "OTP verified successfully.",
             "bid": self._bid,
             "transaction_type": self._transaction_type or "Flight",
+            "raw": data,
+        }
+
+    async def fetch_download_url(self, bid: str, transaction_type: str | None) -> Dict[str, Any]:
+        """Fetch download PDF link based on transaction type."""
+        tx = (transaction_type or "flight").strip().lower()
+        method, base_url = self._download_endpoints.get(tx, self._download_endpoints["flight"])
+
+        try:
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                if method == "GET":
+                    # endpoints accept bid as query parameter
+                    separator = "&" if "?" in base_url else "?"
+                    url = f"{base_url}{separator}bid={bid}"
+                    response = await client.get(url)
+                else:  # POST (bus)
+                    response = await client.post(base_url, json={"bid": bid})
+
+                response.raise_for_status()
+                data = response.json() if response.headers.get("content-type", "").startswith("application/json") else response.text
+        except httpx.HTTPError as exc:
+            logger.error("Download fetch failed for %s: %s", tx, exc, exc_info=True)
+            return {
+                "success": False,
+                "message": "Failed to fetch download link.",
+            }
+
+        # Some endpoints may directly return URL string; bus may return JSON with link
+        if isinstance(data, dict):
+            download_url = data.get("url") or data.get("Url") or data.get("download_url") or data.get("DownloadUrl")
+        else:
+            download_url = data
+
+        if not download_url:
+            # If no URL, still include raw for debugging
+            return {
+                "success": False,
+                "message": "Download link not found in response.",
+                "raw": data,
+            }
+
+        return {
+            "success": True,
+            "download_url": download_url,
             "raw": data,
         }

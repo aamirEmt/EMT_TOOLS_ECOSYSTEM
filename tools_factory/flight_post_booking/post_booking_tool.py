@@ -73,7 +73,7 @@ class FlightPostBookingTool(BaseTool):
         return ToolMetadata(
             name="flight_post_booking",
             description=(
-                "Tool for add seat, meal, baggage, reschedule flight, download ticket and invoice (post-booking actions.) "
+                "Tool for add seat, meal, baggage, reschedule flight (post-booking actions.) "
                 "Takes booking ID and email to send OTP, then verifies OTP and returns a redirect URL with BID for post-booking management. "
                 "Send OTP for post-booking flight actions (add seat, meal, baggage), "
                 "verify it, and return a redirect URL containing the BID."
@@ -179,6 +179,21 @@ class FlightPostBookingTool(BaseTool):
 
         base_url = _resolve_post_booking_url(transaction_type)
         redirect_url = f"{base_url}?bid={bid}"
+        download_url = None
+        if input_data.download:
+            download_result = await service.fetch_download_url(bid, transaction_type)
+            if not download_result.get("success"):
+                return ToolResponseFormat(
+                    response_text=f"OTP verified but failed to fetch download link: {download_result.get('message')}",
+                    structured_content={
+                        "bid": bid,
+                        "transaction_type": transaction_type,
+                        "redirect_url": redirect_url,
+                        "download_error": download_result,
+                    },
+                    is_error=True,
+                )
+            download_url = download_result.get("download_url")
 
         return ToolResponseFormat(
             response_text="OTP verified. Continue with seat/meal/baggage selection.",
@@ -188,5 +203,7 @@ class FlightPostBookingTool(BaseTool):
                 "redirect_url": redirect_url,
                 "actions": ["add_seat", "add_meal", "add_baggage"],
                 "message": result.get("message"),
+                "download": input_data.download,
+                "download_url": download_url,
             },
         )
