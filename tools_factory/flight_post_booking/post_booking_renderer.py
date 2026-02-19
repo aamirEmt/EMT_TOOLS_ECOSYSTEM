@@ -13,7 +13,7 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
 {{ styles }}
 </style>
 
-<div class="booking-details-carousel" id="{{ instance_id }}" data-booking-id="{{ booking_id }}" data-email="{{ email }}" data-download="{{ download | lower }}" data-api-endpoint="{{ api_endpoint }}">
+<div class="booking-details-carousel" data-instance-id="{{ instance_id }}" data-booking-id="{{ booking_id }}" data-email="{{ email }}" data-download="{{ download | lower }}" data-api-endpoint="{{ api_endpoint }}">
   <main>
     <div class="hc-loading"><div class="hc-spinner"></div></div>
     <div class="hc-error-msg"></div>
@@ -51,9 +51,10 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
 <script>
 (function() {
   'use strict';
-  var container = document.getElementById('{{ instance_id }}');
-  if (!container || container.dataset.initialized) return;
-  container.dataset.initialized = 'true';
+  var instanceId = '{{ instance_id }}';
+  var container = document.querySelector('[data-instance-id="' + instanceId + '"]');
+  if (!container || container.getAttribute('data-initialized') === 'true') return;
+  container.setAttribute('data-initialized', 'true');
 
   var bookingId = container.dataset.bookingId;
   var email = container.dataset.email;
@@ -82,60 +83,60 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
     }
   }
 
-  async function callTool(payload) {
-    const resp = await fetch(apiEndpoint, {
+  function callTool(payload) {
+    return fetch(apiEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    });
-    return resp.json();
+    }).then(function(resp) { return resp.json(); });
   }
 
-  async function handleResend() {
+  function handleResend() {
     if (!resendBtn) return;
     resendBtn.disabled = true;
     resendBtn.textContent = 'Sending...';
     showError('');
-    try {
-      const res = await callTool({ action: 'start', booking_id: bookingId, email, download });
-      if (res.is_error) throw new Error(res.response_text || 'Resend failed');
-      resendBtn.textContent = 'OTP Sent!';
-      setTimeout(() => { resendBtn.textContent = 'Resend OTP'; resendBtn.disabled = false; }, 3500);
-    } catch (err) {
-      showError(err.message || 'Resend failed');
-      resendBtn.textContent = 'Resend OTP';
-      resendBtn.disabled = false;
-    }
+    callTool({ action: 'start', booking_id: bookingId, email: email, download: download })
+      .then(function(res) {
+        if (res.is_error) throw new Error(res.response_text || 'Resend failed');
+        resendBtn.textContent = 'OTP Sent!';
+        setTimeout(function() { resendBtn.textContent = 'Resend OTP'; resendBtn.disabled = false; }, 3500);
+      })
+      .catch(function(err) {
+        showError(err && err.message ? err.message : 'Resend failed');
+        resendBtn.textContent = 'Resend OTP';
+        resendBtn.disabled = false;
+      });
   }
 
-  async function handleVerify() {
+  function handleVerify() {
     if (!verifyBtn) return;
     verifyBtn.disabled = true;
     showError('');
-    const otp = (otpInput && otpInput.value || '').trim();
+    var otp = otpInput && otpInput.value ? otpInput.value.trim() : '';
     if (!otp || otp.length < 4) {
       showError('Please enter a valid OTP.');
       verifyBtn.disabled = false;
       return;
     }
-
     showLoading(true);
-    try {
-      const res = await callTool({ action: 'verify_otp', booking_id: bookingId, email, otp, download });
-      showLoading(false);
-      if (res.is_error) throw new Error(res.response_text || 'Invalid OTP');
-      const event = new CustomEvent('hc:post-booking:verified', { detail: res });
-      window.dispatchEvent(event);
-      verifyBtn.textContent = 'Verified!';
-    } catch (err) {
-      showLoading(false);
-      showError(err.message || 'Verification failed');
-      verifyBtn.disabled = false;
-    }
+    callTool({ action: 'verify_otp', booking_id: bookingId, email: email, otp: otp, download: download })
+      .then(function(res) {
+        showLoading(false);
+        if (res.is_error) throw new Error(res.response_text || 'Invalid OTP');
+        verifyBtn.textContent = 'Verified!';
+        var event = new CustomEvent('hc:post-booking:verified', { detail: res });
+        window.dispatchEvent(event);
+      })
+      .catch(function(err) {
+        showLoading(false);
+        showError(err && err.message ? err.message : 'Verification failed');
+        verifyBtn.disabled = false;
+      });
   }
 
-  resendBtn && resendBtn.addEventListener('click', handleResend);
-  verifyBtn && verifyBtn.addEventListener('click', handleVerify);
+  if (resendBtn) resendBtn.addEventListener('click', handleResend);
+  if (verifyBtn) verifyBtn.addEventListener('click', handleVerify);
 })();
 </script>
 {% endif %}
