@@ -13,7 +13,7 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
 {{ styles | safe }}
 </style>
 
-<div class="booking-details-carousel" data-instance-id="{{ instance_id }}" data-booking-id="{{ booking_id }}" data-email="{{ email }}" data-download="{{ download | lower }}" data-api-endpoint="{{ api_endpoint }}">
+<div class="booking-details-carousel round-trip-selector" data-instance-id="{{ instance_id }}" data-booking-id="{{ booking_id }}" data-email="{{ email }}" data-download="{{ download | lower }}" data-api-endpoint="{{ api_endpoint }}">
   <main>
     <div class="hc-loading"><div class="hc-spinner"></div></div>
     <div class="hc-error-msg"></div>
