@@ -140,7 +140,13 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
         url = data.url;
       }
       if (url) {
-        window.open(url, '_blank');
+        var a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       } else {
         showError(data.response_text || data.message || 'Could not get download link. Please try again.');
       }
