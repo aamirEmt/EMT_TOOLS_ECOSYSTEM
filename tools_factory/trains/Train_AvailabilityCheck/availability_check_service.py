@@ -303,9 +303,24 @@ def build_whatsapp_availability_response(
     # Convert journey date to API format (DD-MM-YYYY -> DD/MM/YYYY)
     journey_date_api = journey_date.replace("-", "/")
 
+    # Filter classes to only show available, RAC, or waitlist statuses
+    def _is_bookable_status(status: str) -> bool:
+        """Check if status indicates seats are available, RAC, or waitlist."""
+        status_upper = status.upper()
+        # Include AVAILABLE, RAC, and any waitlist types (RLWL, GNWL, PQWL, etc.)
+        return (
+            ("AVAILABLE" in status_upper and "NOT AVAILABLE" not in status_upper)
+            or "RAC" in status_upper
+            or "WL" in status_upper
+        )
+
     # Format classes for WhatsApp (matching exact requirements format)
     whatsapp_classes = []
     for cls in classes:
+        # Skip classes that don't have bookable seats
+        if not _is_bookable_status(cls["status"]):
+            continue
+
         # Build booking link for this class
         booking_link = _build_book_url(
             train_no=train_info["train_no"],
@@ -328,6 +343,32 @@ def build_whatsapp_availability_response(
     # Format journey date for display (DD-MM-YYYY -> DD Mon YYYY)
     formatted_date = _format_date_display(journey_date)
 
+    # If no bookable seats found, return no availability message
+    if not whatsapp_classes:
+        # Map quota code to readable name
+        quota_names = {
+            "GN": "General",
+            "TQ": "Tatkal",
+            "LD": "Ladies",
+            "SS": "Senior Citizen",
+        }
+        quota_display = quota_names.get(quota, quota)
+
+        return {
+            "type": "all_class_availability",
+            "status": "RESULT",
+            "response_text": f"Sorry, there are no seats available for train {train_info['train_no']} ({train_info['train_name']}) with {quota_display} quota on {formatted_date}.",
+            "data": {
+                "train": {
+                    "train_no": train_info["train_no"],
+                    "train_name": train_info["train_name"],
+                    "from_station": from_station_display,
+                    "to_station": to_station_display,
+                },
+                "classes": [],
+            },
+        }
+
     # Build response matching exact requirements
     return {
         "type": "all_class_availability",
@@ -337,6 +378,8 @@ def build_whatsapp_availability_response(
             "train": {
                 "train_no": train_info["train_no"],
                 "train_name": train_info["train_name"],
+                "from_station": from_station_display,
+                "to_station": to_station_display,
             },
             "classes": whatsapp_classes,
         },

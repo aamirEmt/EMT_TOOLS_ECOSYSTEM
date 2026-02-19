@@ -1,5 +1,6 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+import re
 from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
 
 
@@ -29,12 +30,58 @@ class TrainSearchInput(BaseModel):
     travel_class: Optional[str] = Field(
         None,
         alias="travelClass",
-        description="Preferred travel class. MUST use exact codes only: '1A' (First AC), '2A' (AC 2 Tier), '3A' (Third AC), 'SL' (Sleeper Class), '2S' (Second Seating), 'CC' (AC Chair Car), 'EC' (Executive Class), '3E' (AC 3 Tier Economy), 'FC' (First Class), 'EV' (Vistadome AC), 'VS' (Vistadome Non-AC), 'EA' (Anubhuti Class), 'VC' (Vistadome Chair Car). Do not use full names like 'Chair Car' or variations like '3AC' - use only the exact codes.",
+        description=(
+            "Preferred travel class. MUST be set if the user mentions any class like "
+            "'3rd AC', 'third ac', 'sleeper', 'chair car', etc. "
+            "Use ONLY these exact codes: "
+            "'1A', '2A', '3A', 'SL', '2S', 'CC', 'EC', '3E', 'FC', 'EV', 'VS', 'EA', 'VC'. "
+            "Do NOT use full names or variants like '3AC'."
+        ),
     )
-    # quota: Optional[str] = Field(
-    #     "GN",
-    #     description="Booking quota (GN=General, TQ=Tatkal, SS=Senior Citizen, LD=Ladies)",
-    # )
+    departure_time_min: Optional[str] = Field(
+        None,
+        alias="departureTimeMin",
+        description=(
+            "Earliest departure time in HH:MM 24-hour format. "
+            "MUST be set if the user wants to LEAVE AFTER a certain time or later than a time. "
+            "Examples: 'leave after 2pm' -> '14:00', 'after 9' -> '09:00', "
+            "'evening trains' -> '16:00', 'night trains' -> '20:00'. "
+            "DO NOT set this if the user says 'before', 'by', or 'early'."
+        ),
+    )
+    departure_time_max: Optional[str] = Field(
+        None,
+        alias="departureTimeMax",
+        ddescription=(
+            "Latest departure time in HH:MM 24-hour format. "
+            "MUST be set if the user wants to LEAVE BY / BEFORE / NO LATER THAN a time, or says 'early'. "
+            "Examples: 'leave before 10am' -> '10:00', 'go by 6pm' -> '18:00', "
+            "'morning trains' -> '12:00', 'evening trains' -> '22:00', 'early trains' -> '10:00'. "
+            "DO NOT set this if the user says 'after'."
+        ),
+    )
+    arrival_time_min: Optional[str] = Field(
+        None,
+        description=(
+            "Earliest arrival time in HH:MM 24-hour format. "
+            "MUST be set if the user wants to ARRIVE / REACH AFTER a certain time. "
+            "Examples: 'arrive after 8am' -> '08:00', 'don’t want to arrive too early' -> '06:00'."
+        ),
+    )
+    arrival_time_max: Optional[str] = Field(
+        None,
+        alias="arrivalTimeMax",
+        description=(
+            "Latest arrival time in HH:MM 24-hour format. "
+            "MUST be set if the user wants to ARRIVE / REACH BY / BEFORE a certain time. "
+            "Examples: 'reach by 10pm' -> '22:00', 'arrive before 12' -> '12:00', 'reach by morning' -> '09:00'."
+        ),
+    )
+    quota: Optional[str] = Field(
+        "GN",
+        alias="quota",
+        description="Booking quota. Options: GN=General (default), TQ=Tatkal, SS=Senior Citizen, LD=Ladies.",
+    )
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -153,6 +200,67 @@ class TrainSearchInput(BaseModel):
 
         return matched_code
 
+    @field_validator("departure_time_min", "departure_time_max", "arrival_time_min", "arrival_time_max")
+    @classmethod
+    def validate_time_format(cls, v: Optional[str]) -> Optional[str]:
+        """Validate time is in HH:MM 24-hour format."""
+        if v is None:
+            return v
+
+        v = v.strip()
+
+        # Validate format: HH:MM (00-23:00-59)
+        if not re.match(r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$', v):
+            raise ValueError(
+                "Time must be in HH:MM 24-hour format (e.g., '14:30', '09:00'). "
+                "Hours: 00-23, Minutes: 00-59."
+            )
+
+        return v
+
+    @field_validator("quota")
+    @classmethod
+    def validate_quota(cls, v: Optional[str]) -> str:
+        """Validate and normalize quota code."""
+        if v is None:
+            return "GN"
+
+        v = v.strip().upper()
+
+        # Valid quota codes
+        valid_quotas = ["GN", "TQ", "SS", "LD"]
+
+        if v not in valid_quotas:
+            # Default to GN for invalid codes
+            return "GN"
+
+        return v
+
+    @model_validator(mode='after')
+    def validate_time_ranges(self) -> 'TrainSearchInput':
+        """Validate that min times are before or equal to max times."""
+        # Validate departure time range
+        if self.departure_time_min and self.departure_time_max:
+            min_time = datetime.strptime(self.departure_time_min, "%H:%M").time()
+            max_time = datetime.strptime(self.departure_time_max, "%H:%M").time()
+            if min_time > max_time:
+                raise ValueError(
+                    f"departureTimeMin ({self.departure_time_min}) must be before or equal to "
+                    f"departureTimeMax ({self.departure_time_max})"
+                )
+
+        # Validate arrival time range
+        if self.arrival_time_min and self.arrival_time_max:
+            min_time = datetime.strptime(self.arrival_time_min, "%H:%M").time()
+            max_time = datetime.strptime(self.arrival_time_max, "%H:%M").time()
+            if min_time > max_time:
+                raise ValueError(
+                    f"arrivalTimeMin ({self.arrival_time_min}) must be before or equal to "
+                    f"arrivalTimeMax ({self.arrival_time_max})"
+                )
+
+        return self
+
     # @field_validator("quota")
     # @classmethod
     # def validate_quota(cls, v: Optional[str]) -> str:
@@ -209,16 +317,19 @@ class WhatsappTrainFormat(BaseModel):
 
     @model_validator(mode='after')
     def validate_conditional_fields(self) -> 'WhatsappTrainFormat':
-        """Ensure correct fields are populated based on is_class_mentioned."""
+        """Ensure correct fields are populated based on is_class_mentioned.
+
+        Note: Empty lists are allowed (for "no trains found" scenarios).
+        """
         if self.is_class_mentioned:
-            if not self.trains:
+            if self.trains is None:
                 raise ValueError("trains list required when is_class_mentioned=True")
-            if self.options:
+            if self.options is not None:
                 raise ValueError("options should not be set when is_class_mentioned=True")
         else:
-            if not self.options:
+            if self.options is None:
                 raise ValueError("options list required when is_class_mentioned=False")
-            if self.trains:
+            if self.trains is not None:
                 raise ValueError("trains should not be set when is_class_mentioned=False")
         return self
 

@@ -3,7 +3,7 @@ import json
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-
+import re
 import aiohttp
 
 try:
@@ -323,6 +323,29 @@ def _normalize_rating(rating_value: Any) -> Optional[str]:
         
     except (ValueError, TypeError):
         return None
+
+def _clean_point_name(name: str) -> str:
+    """
+    Remove leading phone numbers from boarding/dropping point names.
+    
+    Examples:
+    - "8287009889 Kashmere Gate ISBT" -> "Kashmere Gate ISBT"
+    - "8287009889 Huda City Centre Metro Station (Pickup By Van)" -> "Huda City Centre Metro Station (Pickup By Van)"
+    - "Sindhi Camp" -> "Sindhi Camp" (no change)
+    
+    Args:
+        name: Raw point name from API
+        
+    Returns:
+        Cleaned point name without leading phone number
+    """
+    if not name:
+        return ""
+    # Remove leading digits (phone number) followed by space
+    # Pattern: starts with 10 digits followed by space
+    cleaned = re.sub(r'^\d{10}\s+', '', name.strip())
+    return cleaned
+
 
 def _parse_time_to_minutes(time_str: str) -> Optional[int]:
     """
@@ -849,33 +872,101 @@ async def search_buses(
 def extract_bus_summary(bus: Dict[str, Any]) -> Dict[str, Any]:
     """Extract summary information from a bus for WhatsApp response."""
     
-    fares = bus.get("fares", [])
+    # Use 'price' field first (this is the actual/discounted price shown on website)
+    # Fall back to minimum from 'fares' array only if price is not available
+    actual_price = None
     
-    cheapest_fare = None
-    for fare in fares:
-        try:
-            fare_val = float(fare)
-            if cheapest_fare is None or fare_val < cheapest_fare:
-                cheapest_fare = fare_val
-        except (ValueError, TypeError):
-            continue
-
-    if cheapest_fare is None:
-        try:
-            cheapest_fare = float(bus.get("price", 0))
-        except (ValueError, TypeError):
-            cheapest_fare = 0
+    # Try to get the price field first (actual price after discount)
+    try:
+        price_val = bus.get("price")
+        if price_val is not None and price_val != "" and price_val != "0":
+            actual_price = float(price_val)
+    except (ValueError, TypeError):
+        pass
+    
+    # If no price field, find minimum from fares array
+    if actual_price is None:
+        fares = bus.get("fares", [])
+        for fare in fares:
+            try:
+                fare_val = float(fare)
+                if actual_price is None or fare_val < actual_price:
+                    actual_price = fare_val
+            except (ValueError, TypeError):
+                continue
+    
+    # Final fallback
+    if actual_price is None:
+        actual_price = 0
 
     boarding_points = bus.get("boarding_points", [])
     dropping_points = bus.get("dropping_points", [])
     
-    first_boarding = ""
-    if boarding_points:
-        first_boarding = boarding_points[0].get("bd_long_name", "") or boarding_points[0].get("bd_point", "")
+    # first_boarding = ""
+    # if boarding_points:
+    #     first_boarding = boarding_points[0].get("bd_long_name", "") or boarding_points[0].get("bd_point", "")
     
-    first_dropping = ""
-    if dropping_points:
-        first_dropping = dropping_points[0].get("dp_name", "")
+    # first_dropping = ""
+    # if dropping_points:
+    #     first_dropping = dropping_points[0].get("dp_name", "")
+    
+    # # Process all boarding points for WhatsApp response
+    # all_boarding_points = []
+    # for bp in boarding_points:
+    #     bp_name = bp.get("bd_long_name", "") or bp.get("bd_point", "")
+    #     bp_time = bp.get("time", "")
+    #     bp_id = bp.get("bd_id", "")
+    #     if bp_name:
+    #         all_boarding_points.append({
+    #             "id": bp_id,
+    #             "name": bp_name,
+    #             "time": bp_time,
+    #         })
+    
+    # # Process all dropping points for WhatsApp response
+    # all_dropping_points = []
+    # for dp in dropping_points:
+    #     dp_name = dp.get("dp_name", "")
+    #     dp_time = dp.get("dp_time", "")
+    #     dp_id = dp.get("dp_id", "")
+    #     if dp_name:
+    #         all_dropping_points.append({
+    #             "id": dp_id,
+    #             "name": dp_name,
+    #             "time": dp_time,
+    #         })
+
+    # # Build comma-separated string of ALL boarding points
+    # all_boarding_names = []
+    # for bp in boarding_points:
+    #     bp_name = bp.get("bd_long_name", "") or bp.get("bd_point", "")
+    #     if bp_name:
+    #         all_boarding_names.append(bp_name)
+    # boarding_point_str = ", ".join(all_boarding_names) if all_boarding_names else ""
+    
+    # # Build comma-separated string of ALL dropping points
+    # all_dropping_names = []
+    # for dp in dropping_points:
+    #     dp_name = dp.get("dp_name", "")
+    #     if dp_name:
+    #         all_dropping_names.append(dp_name)
+    # dropping_point_str = ", ".join(all_dropping_names) if all_dropping_names else ""
+
+    # Build comma-separated string of ALL boarding points (with phone numbers removed)
+    all_boarding_names = []
+    for bp in boarding_points:
+        bp_name = bp.get("bd_long_name", "") or bp.get("bd_point", "")
+        if bp_name:
+            all_boarding_names.append(_clean_point_name(bp_name))
+    boarding_point_str = ", ".join(all_boarding_names) if all_boarding_names else ""
+    
+    # Build comma-separated string of ALL dropping points (with phone numbers removed)
+    all_dropping_names = []
+    for dp in dropping_points:
+        dp_name = dp.get("dp_name", "")
+        if dp_name:
+            all_dropping_names.append(_clean_point_name(dp_name))
+    dropping_point_str = ", ".join(all_dropping_names) if all_dropping_names else ""
 
     return {
         "bus_id": bus.get("bus_id"),
@@ -885,14 +976,21 @@ def extract_bus_summary(bus: Dict[str, Any]) -> Dict[str, Any]:
         "arrival_time": bus.get("arrival_time"),
         "duration": bus.get("duration"),
         "available_seats": bus.get("available_seats"),
-        "cheapest_fare": cheapest_fare,
+        "cheapest_fare": actual_price,
         "is_ac": bus.get("is_ac"),
+        "is_non_ac": bus.get("is_non_ac"),
+        "is_seater": bus.get("is_seater"),
+        "is_sleeper": bus.get("is_sleeper"),
         "is_volvo": bus.get("is_volvo"),
         "rating": bus.get("rating"),
         "live_tracking": bus.get("live_tracking_available"),
         "is_cancellable": bus.get("is_cancellable"),
-        "first_boarding_point": first_boarding,
-        "first_dropping_point": first_dropping,
+        # "first_boarding_point": first_boarding,
+        # "first_dropping_point": first_dropping,
+        # "all_boarding_points": all_boarding_points,
+        # "all_dropping_points": all_dropping_points,
+        "boarding_point_str": boarding_point_str,
+        "dropping_point_str": dropping_point_str,
         "amenities_count": len(bus.get("amenities", [])),
         "book_now": bus.get("book_now"),
     }
@@ -921,10 +1019,17 @@ def build_whatsapp_bus_response(
             "available_seats": summary["available_seats"],
             "fare": summary["cheapest_fare"],
             "is_ac": summary["is_ac"],
+            "is_non_ac": summary["is_non_ac"],
+            "is_seater": summary["is_seater"],
+            "is_sleeper": summary["is_sleeper"],
             "is_volvo": summary["is_volvo"],
             "rating": summary["rating"],
-            "boarding_point": summary["first_boarding_point"],
-            "dropping_point": summary["first_dropping_point"],
+            # "boarding_point": summary["first_boarding_point"],
+            # "dropping_point": summary["first_dropping_point"],
+            # "all_boarding_points": summary["all_boarding_points"],
+            # "all_dropping_points": summary["all_dropping_points"],
+            "boarding_point": summary["boarding_point_str"],
+            "dropping_point": summary["dropping_point_str"],
             "amenities_count": summary["amenities_count"],
             "book_now": summary["book_now"],
         })
