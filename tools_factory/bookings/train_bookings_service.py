@@ -78,5 +78,28 @@ class TrainBookingsService:
                 "departure": t.get("DepartureTime"),
                 "arrival": t.get("ArrivalTime")
             })
-        
         return results
+
+
+def build_whatsapp_train_bookings_response(bookings: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Build WhatsApp-formatted response for train bookings."""
+    items = []
+    for b in bookings:
+        route = None
+        if b.get("source") and b.get("destination"):
+            route = f"{b['source']} → {b['destination']}"
+
+        items.append({
+            "status": b.get("status"),
+            "booking_id": b.get("booking_id"),
+            "pnr": b.get("pnr"),
+            "route": route,
+            "departure": b.get("departure"),
+            "arrival": b.get("arrival"),
+        })
+
+    return {
+        "type": "train_bookings",
+        "total": len(items),
+        "bookings": items,
+    }

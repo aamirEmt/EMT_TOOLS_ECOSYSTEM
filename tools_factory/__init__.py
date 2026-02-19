@@ -5,7 +5,10 @@ from tools_factory.base import BaseTool
 from tools_factory.factory import ToolFactory, get_tool_factory
 from tools_factory.flights.flight_search_tool import FlightSearchTool
 from tools_factory.hotels.hotel_search_tool import HotelSearchTool
+from tools_factory.cancellation.cancellation_tool import CancellationTool
 from tools_factory.flight_post_booking.post_booking_tool import FlightPostBookingTool
+
+
 
 __version__ = "0.1.0"
 __all__ = [
@@ -15,4 +18,5 @@ __all__ = [
     "FlightSearchTool",
     "HotelSearchTool",
     "FlightPostBookingTool",
+    "CancellationTool"
 ]

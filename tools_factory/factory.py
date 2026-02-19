@@ -7,6 +7,7 @@ from tools_factory.trains.Train_AvailabilityCheck.availability_check_tool import
 from tools_factory.trains.Train_RouteCheck.route_check_tool import TrainRouteCheckTool
 from tools_factory.trains.Train_StatusCheck.train_status_tool import TrainStatusTool
 from tools_factory.login.login_tool import LoginTool
+from tools_factory.otp_login.otp_login_tool import OtpLoginTool
 from tools_factory.flight_post_booking.post_booking_tool import FlightPostBookingTool
 # from tools_factory.buses.bus_search_tool import BusSearchTool, BusSeatLayoutTool
 from tools_factory.buses.bus_search_tool import BusSearchTool
@@ -14,17 +15,22 @@ from tools_factory.bookings.flight_bookings_tool import GetFlightBookingsTool
 from tools_factory.bookings.hotel_bookings_tool import GetHotelBookingsTool
 from tools_factory.bookings.train_bookings_tool import GetTrainBookingsTool
 from tools_factory.bookings.bus_bookings_tool import GetBusBookingsTool
+from tools_factory.cancellation.cancellation_tool import CancellationTool
+from emt_client.auth.session_manager import SessionManager
 from typing import Dict, Optional, List
+
 
 class ToolFactory:
     """Central factory for managing and creating tools"""
-    
+
     def __init__(self):
         self._tools: Dict[str, BaseTool] = {}
+        self.session_manager = SessionManager()  # Per-user session isolation
         self._register_default_tools()
-    
+
     def _register_default_tools(self):
         """Register all available tools"""
+        # Search tools (no session needed)
         self.register_tool(FlightSearchTool())
         self.register_tool(HotelSearchTool())
         self.register_tool(BusSearchTool())
@@ -35,6 +41,8 @@ class ToolFactory:
         self.register_tool(TrainAvailabilityCheckTool())
         self.register_tool(TrainRouteCheckTool())
         self.register_tool(TrainStatusTool())
+        # Login tools with session manager for multi-user support
+        # login_tool = LoginTool(self.session_manager)
         self.register_tool(FlightPostBookingTool())
 
         # login_tool = LoginTool()
@@ -45,6 +53,16 @@ class ToolFactory:
         # self.register_tool(GetHotelBookingsTool(login_tool))
         # self.register_tool(GetTrainBookingsTool(login_tool))
         # self.register_tool(GetBusBookingsTool(login_tool))
+
+        # Cancellation (unified tool with action-based dispatch)
+        self.register_tool(CancellationTool())
+        self.register_tool(OtpLoginTool(self.session_manager))
+
+        # Booking tools with session manager (require session_id parameter)
+        self.register_tool(GetFlightBookingsTool(self.session_manager))
+        self.register_tool(GetHotelBookingsTool(self.session_manager))
+        self.register_tool(GetTrainBookingsTool(self.session_manager))
+        self.register_tool(GetBusBookingsTool(self.session_manager))
     
     def register_tool(self, tool: BaseTool):
         """Register a tool"""
@@ -78,6 +96,10 @@ class ToolFactory:
     def list_all_tools(self) -> List[BaseTool]:
         """Get all available tools"""
         return list(self._tools.values())
+
+    def get_session_manager(self) -> SessionManager:
+        """Get the session manager for direct session manipulation"""
+        return self.session_manager
 
 # ====================
 # TOOL REGISTRY (Singleton)

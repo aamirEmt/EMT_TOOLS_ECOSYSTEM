@@ -776,7 +776,7 @@ def build_roundtrip_combo_deep_link(
         for i, seg in enumerate(segment_strings)
         if seg
     )
-
+    print(f"{FLIGHT_DEEPLINK}?{query}&{segment_query}")
     return f"{FLIGHT_DEEPLINK}?{query}&{segment_query}"
 
 

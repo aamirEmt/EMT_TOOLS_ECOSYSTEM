@@ -7,6 +7,10 @@ from .flight_bookings_service import FlightBookingsService
 from .hotel_bookings_service import HotelBookingsService
 from .train_bookings_service import TrainBookingsService
 from .bus_bookings_service import BusBookingsService
+from .flight_bookings_renderer import render_flight_bookings
+from .bus_bookings_renderer import render_bus_bookings
+from .train_bookings_renderer import render_train_bookings
+from .hotel_bookings_renderer import render_hotel_bookings
 
 __all__ = [
     "GetFlightBookingsTool",
@@ -16,5 +20,9 @@ __all__ = [
     "FlightBookingsService",
     "HotelBookingsService",
     "TrainBookingsService",
-    "BusBookingsService"
+    "BusBookingsService",
+    "render_flight_bookings",
+    "render_bus_bookings",
+    "render_train_bookings",
+    "render_hotel_bookings",
 ]

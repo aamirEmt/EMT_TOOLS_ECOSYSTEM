@@ -80,5 +80,26 @@ class HotelBookingsService:
                     "rooms": h.get("NoOfRooms"),
                     "guests": h.get("NoOfGuests")
                 })
-        
+
         return results
+
+
+def build_whatsapp_hotel_bookings_response(bookings: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Build WhatsApp-formatted response for hotel bookings."""
+    items = []
+    for b in bookings:
+        items.append({
+            "status": b.get("status"),
+            "booking_id": b.get("booking_id"),
+            "hotel_name": b.get("hotel_name"),
+            "checkin": b.get("checkin"),
+            "checkout": b.get("checkout"),
+            "rooms": b.get("rooms"),
+            "guests": b.get("guests"),
+        })
+
+    return {
+        "type": "hotel_bookings",
+        "total": len(items),
+        "bookings": items,
+    }

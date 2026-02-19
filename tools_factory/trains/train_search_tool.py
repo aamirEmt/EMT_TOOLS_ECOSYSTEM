@@ -45,6 +45,7 @@ class TrainSearchTool(BaseTool):
         """Execute train search with provided parameters."""
 
         # Extract runtime flags
+        session_id = kwargs.pop("_session_id", None)
         limit = kwargs.pop("_limit", 15)  # Default limit: 15 trains per page
         user_type = kwargs.pop("_user_type", "website")
         is_whatsapp = user_type.lower() == "whatsapp"
