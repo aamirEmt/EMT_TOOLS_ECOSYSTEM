@@ -31,9 +31,10 @@ class TrainPnrStatusTool(BaseTool):
         """Execute PNR status check."""
 
         # Extract runtime flags
+        session_id = kwargs.pop("_session_id", None)
         user_type = kwargs.pop("_user_type", "website")
         is_whatsapp = user_type.lower() == "whatsapp"
-        limit = kwargs.pop("_limit")  
+        limit = kwargs.pop("_limit", None)  
 
         # Validate input
         try:
