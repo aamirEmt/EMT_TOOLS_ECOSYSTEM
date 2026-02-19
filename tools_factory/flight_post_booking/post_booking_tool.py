@@ -139,6 +139,7 @@ class FlightPostBookingTool(BaseTool):
             email=input_data.email,
             is_otp_send=result.get("is_otp_sent", True),
             download=bool(input_data.download),
+            api_endpoint="/tools/flight_post_booking",
         )
 
         return ToolResponseFormat(
