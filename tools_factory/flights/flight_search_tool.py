@@ -3,7 +3,7 @@ from tools_factory.base import BaseTool, ToolMetadata
 from pydantic import ValidationError
 
 from emt_client.utils import generate_short_link
-from .flight_scehma import FlightSearchInput,WhatsappFlightFinalResponse,WhatsappFlightFormat
+from .flight_schema import FlightSearchInput,WhatsappFlightFinalResponse,WhatsappFlightFormat
 from .flight_search_service import search_flights,build_whatsapp_flight_response,filter_domestic_roundtrip_flights
 from .flight_renderer import render_flight_results
 from tools_factory.base_schema import ToolResponseFormat 
@@ -49,7 +49,25 @@ class FlightSearchTool(BaseTool):
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
             name="search_flights",
-            description="Search for flights on EaseMyTrip with origin, destination, dates, and passengers",
+            description=(
+                "Purpose:\n"
+                "- Search for flights on EaseMyTrip with comprehensive filtering options including origin, destination, dates, passengers, cabin class, stops, time windows, and special fare types.\n"
+                "Parameters (Fields):\n"
+                "- origin (string, required): Origin airport IATA code. Examples: 'DEL' for Delhi, 'BOM' for Mumbai, 'BLR' for Bangalore.\n"
+                "- destination (string, required): Destination airport IATA code. Examples: 'BOM' for Mumbai, 'DEL' for Delhi, 'MAA' for Chennai.\n"
+                "- outboundDate (string, required): Outbound flight date in YYYY-MM-DD format. Example: '2024-12-25'.\n"
+                "- returnDate (string | null, optional): Return flight date in YYYY-MM-DD format for round-trip. Set null/omit for one-way. Example: '2024-12-30'.\n"
+                "- adults (integer, default: 1): Number of adults (12+). Range 1-9.\n"
+                "- children (integer, default: 0): Number of children (2-11). Range 0-8.\n"
+                "- infants (integer, default: 0): Number of infants (<2). Range 0-8; cannot exceed adults.\n"
+                "- cabin (string | null, optional): Cabin class 'economy', 'premium economy', 'business', 'first'.\n"
+                "- stops (integer | null, optional): Max stops: 0=non-stop, 1=max 1 stop, 2=max 2 stops. Omit for no preference.\n"
+                "- fastest (boolean | null, optional): true if user asks for fastest/shortest/quickest flights.\n"
+                "- refundable (boolean | null, optional): true to show only refundable options, false for non-refundable only; omit for all.\n"
+                "- departureTimeWindow (string, default '00:00-24:00'): Preferred departure range 'HH:MM-HH:MM'; accepts natural terms like morning/afternoon/evening/night/early morning or loose ranges like '6am-11am'.\n"
+                "- arrivalTimeWindow (string, default '00:00-24:00'): Preferred arrival range 'HH:MM-HH:MM'; accepts natural terms like morning/afternoon/evening/night/early morning or loose ranges like '5pm-9:30pm'.\n"
+                "- fareType (integer, default: 0): Special fare category. 0=Standard, 1=Defence/Armed Forces, 2=Student, 3=Senior Citizen (60+), 4=Doctor/Nurse."
+            ),
             input_schema=FlightSearchInput.model_json_schema(),
             output_template="ui://widget/flight-carousel.html",
             category="travel",
@@ -97,6 +115,13 @@ class FlightSearchTool(BaseTool):
             children=payload.children,
             infants=payload.infants,
             cabin=payload.cabin,
+            stops=payload.stops,
+            fastest=payload.fastest,
+            refundable=payload.refundable,
+            fare_type=payload.fare_type,
+            departure_time_window=payload.departure_time_window,
+            arrival_time_window=payload.arrival_time_window,
+            airline_names=payload.airline_names,
         )
         has_error = bool(flight_results.get("error")) 
         
@@ -108,6 +133,7 @@ class FlightSearchTool(BaseTool):
             "children": payload.children,
             "infants": payload.infants,
         }
+        flight_results["fastest"] = payload.fastest
         is_roundtrip = flight_results.get("is_roundtrip")
         is_international = flight_results.get("is_international")
         

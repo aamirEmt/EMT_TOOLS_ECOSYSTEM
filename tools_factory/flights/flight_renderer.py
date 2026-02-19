@@ -93,7 +93,7 @@ BASE_FLIGHT_STYLES = """
 }
 
 .flight-carousel .fltcard {
-  padding: 10px;
+  padding: 16px 14px 12px 10px; /* a bit more top/right room for the badge */
   border-radius: 12px;
   border: 1px solid #e0e0e0;
   min-width: 250px;
@@ -101,6 +101,8 @@ BASE_FLIGHT_STYLES = """
   display: flex;
   flex-direction: column;
   background: #fff;
+  position: relative;
+  overflow: visible; /* allow badges to peek outside */
 }
 
 .flight-carousel .ntfchdr {
@@ -267,6 +269,44 @@ BASE_FLIGHT_STYLES = """
   background: #2093ef;
   color: #fff;
   border-color: #2093ef;
+}
+
+.flight-carousel .bkbtn,
+.flight-carousel .bkbtnInternational {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.flight-carousel .bkbtn .btn-text,
+.flight-carousel .bkbtnInternational .btn-text {
+  display: inline-block;
+}
+
+.flight-carousel .bkbtn .btn-tag,
+.flight-carousel .bkbtnInternational .btn-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 6px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+  line-height: 1.1;
+}
+
+.flight-carousel .bkbtn .btn-tag.cheapest,
+.flight-carousel .bkbtnInternational .btn-tag.cheapest {
+  background: #e6f9ec;
+  color: #0f7a39;
+  border: 1px solid #b4e2c6;
+}
+
+.flight-carousel .bkbtn .btn-tag.fastest,
+.flight-carousel .bkbtnInternational .btn-tag.fastest {
+  background: #fff4d6;
+  color: #b26a00;
+  border: 1px solid #ffd995;
 }
 
 /* View All Card Styles */
@@ -643,7 +683,12 @@ ONEWAY_FLIGHT_TEMPLATE = """
               rel="noopener noreferrer"
               class="bkbtn"
             >
-              Book Now
+              <span class="btn-text">Book Now</span>
+              {% if flight.is_fastest %}
+              <span class="btn-tag fastest">Fastest</span>
+              {% elif flight.is_cheapest %}
+              <span class="btn-tag cheapest">Cheapest</span>
+              {% endif %}
             </a>
           </div>
         </div>
@@ -798,11 +843,11 @@ DOMESTIC_ROUNDTRIP_TEMPLATE = """
         {% for flight in return_flights %}
         <label class="selectable-flight" for="return-{{ unique_id }}-{{ loop.index0 }}" data-flight='{{ flight | tojson }}' data-leg="return">
 
-        <div class="selectable-flight__radio">
+          <div class="selectable-flight__radio">
           <input id="return-{{ unique_id }}-{{ loop.index0 }}" type="radio" name="return-flight-{{ unique_id }}" style="display: none;"/>
-          <span class="dtlchkmark" aria-hidden="true"></span>
-          <span class="selectable-flight__hint">Select Return</span>
-        </div>
+            <span class="dtlchkmark" aria-hidden="true"></span>
+            <span class="selectable-flight__hint">Select Return</span>
+          </div>
 
           <div class="fltcard">
             <div class="ntfchdr">
@@ -1380,7 +1425,12 @@ INTERNATIONAL_ROUNDTRIP_TEMPLATE = """
           </div>
 
           <a href="{{ combo.booking_link }}" target="_blank" rel="noopener noreferrer" class="bkbtnInternational">
-            Book Now
+            <span class="btn-text">Book Now</span>
+            {% if combo.is_fastest %}
+            <span class="btn-tag fastest">Fastest</span>
+            {% elif combo.is_cheapest %}
+            <span class="btn-tag cheapest">Cheapest</span>
+            {% endif %}
           </a>
         </div>
         {% endfor %}
@@ -1565,6 +1615,7 @@ def _normalize_flight_for_ui(flight: Dict[str, Any], trip_type: str = "Oneway") 
         'has_stops': total_stops > 0,
         'seats_label': _extract_seats_label(flight),
         'fare': _format_currency(fare_amount),
+        'fare_raw': float(fare_amount) if isinstance(fare_amount, (int, float)) or str(fare_amount).replace('.','',1).isdigit() else None,
         'booking_link': booking_link,
         'trip_type': trip_type,
         'departure_date': departure_date,
@@ -1637,6 +1688,7 @@ def _normalize_international_combo_for_ui(combo: Dict[str, Any]) -> Optional[Dic
 
     return {
         'fare': _format_currency(combo_fare),
+        'fare_raw': float(combo_fare) if combo_fare is not None else None,
         'booking_link': booking_link,
 
         'onward': {
@@ -1704,6 +1756,26 @@ def render_oneway_flights(flight_results: Dict[str, Any]) -> str:
     # Normalize flights
     flights_ui = [_normalize_flight_for_ui(flight, 'Oneway') for flight in flights]
     flights_ui = [f for f in flights_ui if f]
+
+    fastest_flag = bool(flight_results.get('fastest'))
+
+    def _cheapest_index(items: List[Dict[str, Any]]) -> Optional[int]:
+        best = None
+        idx = None
+        for i, it in enumerate(items):
+            fare = it.get('fare_raw')
+            if fare is None:
+                continue
+            if best is None or fare < best:
+                best = fare
+                idx = i
+        return idx
+
+    cheapest_idx = _cheapest_index(flights_ui)
+
+    for i, f in enumerate(flights_ui):
+        f['is_cheapest'] = (i == cheapest_idx)
+        f['is_fastest'] = fastest_flag and i == 0
 
     # Get departure date from search context only
     departure_date = _format_date(flight_results.get('outbound_date') or flight_results.get('departure_date'))
@@ -1794,6 +1866,7 @@ def render_domestic_roundtrip_flights(flight_results: Dict[str, Any], unique_id:
         language='ln-hi',
         currency='INR',
         pos_country='IN',
+        fastest=flight_results.get('fastest', False),
     )
 
 def render_international_roundtrip_flights(flight_results: Dict[str, Any]) -> str:
@@ -1801,6 +1874,26 @@ def render_international_roundtrip_flights(flight_results: Dict[str, Any]) -> st
 
     combos_ui = [_normalize_international_combo_for_ui(c) for c in combos]
     combos_ui = [c for c in combos_ui if c]
+
+    fastest_flag = bool(flight_results.get('fastest'))
+
+    def _cheapest_index(items: List[Dict[str, Any]]) -> Optional[int]:
+        best = None
+        idx = None
+        for i, it in enumerate(items):
+            fare = it.get('fare_raw')
+            if fare is None:
+                continue
+            if best is None or fare < best:
+                best = fare
+                idx = i
+        return idx
+
+    cheapest_idx = _cheapest_index(combos_ui)
+
+    for i, c in enumerate(combos_ui):
+        c['is_cheapest'] = (i == cheapest_idx)
+        c['is_fastest'] = fastest_flag and i == 0
 
     if not combos_ui:
         return "<div class='flight-carousel'><main><div class='emt-empty'>No roundtrip combinations found</div></main></div>"
