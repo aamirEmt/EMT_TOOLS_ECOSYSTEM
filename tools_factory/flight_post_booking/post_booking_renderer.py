@@ -43,6 +43,25 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
         <p class="hc-verify-footer">Didn't receive the OTP? <button type="button" class="hc-resend-otp-btn hc-resend-login-otp">Resend OTP</button></p>
       </div>
     </div>
+
+    <div class="hc-step" data-step="download-ticket">
+      <div class="hc-verify-card">
+        <div class="hc-verify-icon hc-success-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="hc-verify-title">Verified!</div>
+        <p class="hc-verify-desc">Your identity has been confirmed. Click the button below to download your ticket.</p>
+        <div class="hc-error-msg hc-step-error"></div>
+        <button type="button" class="hc-submit-btn hc-download-ticket-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+          </svg>
+          Download Ticket
+        </button>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -57,11 +76,16 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
   container.setAttribute('data-initialized', 'true');
 
   var API_BASE = '{{ api_base_url }}';
-  var VERIFY_OTP_URL = API_BASE + '/api/post-booking/verify-otp';
-  var RESEND_OTP_URL  = API_BASE + '/api/post-booking/resend-otp';
+  var VERIFY_OTP_URL       = API_BASE + '/api/post-booking/verify-otp';
+  var RESEND_OTP_URL       = API_BASE + '/api/post-booking/resend-otp';
+  var DOWNLOAD_TICKET_URL  = API_BASE + '/api/post-booking/download-ticket';
   var BOOKING_ID = '{{ booking_id }}';
   var EMAIL      = '{{ email }}';
   var DOWNLOAD   = {{ 'true' if download else 'false' }};
+
+  /* ---- state set after verification ---- */
+  var _bid             = null;
+  var _transactionType = null;
 
   /* ---- DOM references (scoped to container) ---- */
   var loadingOverlay = container.querySelector('.hc-loading');
@@ -86,7 +110,50 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
     loadingOverlay.style.display = show ? 'flex' : 'none';
   }
 
+  function switchStep(stepName) {
+    var steps = container.querySelectorAll('.hc-step');
+    for (var i = 0; i < steps.length; i++) {
+      steps[i].classList.remove('active');
+    }
+    var next = container.querySelector('[data-step="' + stepName + '"]');
+    if (next) next.classList.add('active');
+  }
+
   /* ---- API helpers ---- */
+  function downloadTicket() {
+    showLoading(true);
+    hideAllErrors();
+    return fetch(DOWNLOAD_TICKET_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bid: _bid, transaction_type: _transactionType })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      showLoading(false);
+      var url = null;
+      if (data.structured_content) {
+        url = data.structured_content.download_url || data.structured_content.redirect_url;
+      } else if (data.download_url) {
+        url = data.download_url;
+      } else if (data.url) {
+        url = data.url;
+      }
+      if (url) {
+        window.open(url, '_blank');
+      } else {
+        showError(data.response_text || data.message || 'Could not get download link. Please try again.');
+      }
+    })
+    .catch(function(err) {
+      showLoading(false);
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. Please try again.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
+    });
+  }
+
   function verifyOtp(otp) {
     showLoading(true);
     hideAllErrors();
@@ -152,15 +219,31 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
       verifyBtn.disabled = true;
       verifyOtp(otp).then(function(result) {
         if (result) {
-          verifyBtn.textContent = 'Verified!';
           var sc = result.structured_content || {};
-          var targetUrl = sc.download_url || sc.redirect_url;
-          if (targetUrl) { window.open(targetUrl, '_blank'); }
-          var event = new CustomEvent('hc:post-booking:verified', { detail: result });
-          window.dispatchEvent(event);
+          _bid             = sc.bid || null;
+          _transactionType = sc.transaction_type || null;
+          window.dispatchEvent(new CustomEvent('hc:post-booking:verified', { detail: result }));
+          switchStep('download-ticket');
         } else {
           verifyBtn.disabled = false;
         }
+      });
+    });
+  }
+
+  /* ---- Download Ticket button ---- */
+  var downloadBtn = container.querySelector('.hc-download-ticket-btn');
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', function() {
+      if (!_bid) {
+        showError('Booking ID not found. Please restart the verification.');
+        return;
+      }
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = 'Downloading...';
+      downloadTicket().then(function() {
+        downloadBtn.disabled = false;
+        downloadBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>Download Ticket';
       });
     });
   }
@@ -225,6 +308,7 @@ OTP_STYLES = r"""
 .booking-details-carousel .hc-step-error { text-align:center; }
 .booking-details-carousel .hc-step { display: none; }
 .booking-details-carousel .hc-step.active { display: block; }
+.booking-details-carousel .hc-success-icon { background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%); box-shadow: 0 4px 16px rgba(46, 125, 50, 0.25); }
 """
 
 
