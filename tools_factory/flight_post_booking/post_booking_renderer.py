@@ -225,9 +225,8 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
       verifyBtn.disabled = true;
       verifyOtp(otp).then(function(result) {
         if (result) {
-          var sc = result.structured_content || {};
-          _bid             = sc.bid || null;
-          _transactionType = sc.transaction_type || null;
+          _bid             = (result.structured_content && result.structured_content.bid) || result.bid || null;
+          _transactionType = (result.structured_content && result.structured_content.transaction_type) || result.transaction_type || null;
           window.dispatchEvent(new CustomEvent('hc:post-booking:verified', { detail: result }));
           switchStep('download-ticket');
         } else {
