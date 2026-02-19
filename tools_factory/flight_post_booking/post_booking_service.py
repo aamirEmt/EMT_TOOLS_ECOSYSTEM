@@ -4,13 +4,9 @@ import logging
 from typing import Dict, Any
 
 import httpx
+from emt_client.clients.mybookings_client import MyBookingsApiClient
 
 logger = logging.getLogger(__name__)
-
-
-# API endpoints (can be moved to config if reused elsewhere)
-LOGIN_GUEST_URL = "https://mybookings.easemytrip.com/Mybooking/LoginGuestUser?app=null"
-VERIFY_GUEST_URL = "https://mybookings.easemytrip.com/Mybooking/VerifyGuestLoginOtp"
 
 
 class FlightPostBookingService:
@@ -30,19 +26,12 @@ class FlightPostBookingService:
 
     async def send_otp(self, booking_id: str, email: str) -> Dict[str, Any]:
         """Call EMT guest login API to trigger OTP and retrieve BID."""
-        payload = {
-            "BetId": booking_id,
-            "Emailid": email,
-        }
-
         async with self._lock:
             try:
-                async with httpx.AsyncClient(timeout=20.0) as client:
-                    response = await client.post(LOGIN_GUEST_URL, json=payload)
-                    response.raise_for_status()
-                    data = response.json()
-            except httpx.HTTPError as exc:
-                logger.error("LoginGuestUser failed: %s", exc, exc_info=True)
+                async with MyBookingsApiClient() as client:
+                    data = await client.guest_login(booking_id, email)
+            except Exception as exc:
+                logger.error("guest_login failed: %s", exc, exc_info=True)
                 return {
                     "success": False,
                     "message": "Login API failed. Please try again.",
@@ -73,6 +62,22 @@ class FlightPostBookingService:
                 "raw": data,
             }
 
+    async def send_flight_post_booking_otp(self, booking_id: str, email: str) -> Dict[str, Any]:
+        """Send post-booking OTP for a flight booking."""
+        return await self.send_otp(booking_id, email)
+
+    async def send_bus_post_booking_otp(self, booking_id: str, email: str) -> Dict[str, Any]:
+        """Send post-booking OTP for a bus booking."""
+        return await self.send_otp(booking_id, email)
+
+    async def send_train_post_booking_otp(self, booking_id: str, email: str) -> Dict[str, Any]:
+        """Send post-booking OTP for a train booking."""
+        return await self.send_otp(booking_id, email)
+
+    async def send_hotel_post_booking_otp(self, booking_id: str, email: str) -> Dict[str, Any]:
+        """Send post-booking OTP for a hotel booking."""
+        return await self.send_otp(booking_id, email)
+
     async def verify_otp(self, otp: str) -> Dict[str, Any]:
         """Verify OTP using EMT verify API."""
         if not self._bid:
@@ -81,19 +86,13 @@ class FlightPostBookingService:
                 "message": "No BID stored. Please start the flow again.",
             }
 
-        payload = {
-            "BetId": self._bid,
-            "otp": otp,
-            "transactionType": self._transaction_type or "Flight",
-        }
-
         try:
-            async with httpx.AsyncClient(timeout=20.0) as client:
-                response = await client.post(VERIFY_GUEST_URL, json=payload)
-                response.raise_for_status()
-                data = response.json()
-        except httpx.HTTPError as exc:
-            logger.error("VerifyGuestLoginOtp failed: %s", exc, exc_info=True)
+            async with MyBookingsApiClient() as client:
+                data = await client.verify_guest_login_otp(
+                    self._bid, otp, self._transaction_type or "Flight"
+                )
+        except Exception as exc:
+            logger.error("verify_guest_login_otp failed: %s", exc, exc_info=True)
             return {
                 "success": False,
                 "message": "OTP verification failed. Please try again.",
@@ -124,7 +123,6 @@ class FlightPostBookingService:
         try:
             async with httpx.AsyncClient(timeout=20.0) as client:
                 if method == "GET":
-                    # endpoints accept bid as query parameter
                     separator = "&" if "?" in base_url else "?"
                     url = f"{base_url}{separator}bid={bid}"
                     response = await client.get(url)
@@ -140,14 +138,12 @@ class FlightPostBookingService:
                 "message": "Failed to fetch download link.",
             }
 
-        # Some endpoints may directly return URL string; bus may return JSON with link
         if isinstance(data, dict):
             download_url = data.get("url") or data.get("Url") or data.get("download_url") or data.get("DownloadUrl")
         else:
             download_url = data
 
         if not download_url:
-            # If no URL, still include raw for debugging
             return {
                 "success": False,
                 "message": "Download link not found in response.",

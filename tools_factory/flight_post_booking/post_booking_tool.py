@@ -79,6 +79,7 @@ class FlightPostBookingTool(BaseTool):
                 "Takes booking ID and email to send OTP, then verifies OTP and returns a redirect URL with BID for post-booking management. "
                 "Send OTP for post-booking flight actions (add seat, meal, baggage), "
                 "verify it, and return a redirect URL containing the BID."
+                "send download if the original user query was to download the ticket else send false"
             ),
             input_schema=FlightPostBookingInput.model_json_schema(),
             output_template=None,

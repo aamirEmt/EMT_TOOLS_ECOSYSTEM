@@ -58,8 +58,11 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
           </svg>
-          Download Ticket
+          Get Ticket Link
         </button>
+        <div class="hc-pdf-link-wrap" style="display:none; margin-top:14px;">
+          <a class="hc-pdf-link" href="#" target="_blank" rel="noopener noreferrer">View / Download Ticket PDF</a>
+        </div>
       </div>
     </div>
   </main>
@@ -82,6 +85,12 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
   var BOOKING_ID = '{{ booking_id }}';
   var EMAIL      = '{{ email }}';
   var DOWNLOAD   = {{ 'true' if download else 'false' }};
+  var POST_BOOKING_URLS = {
+    'flight': 'https://mybookings.easemytrip.com/MyBooking/FlightDetails',
+    'bus':    'https://mybookings.easemytrip.com/Bus/bookingDetail',
+    'train':  'https://mybookings.easemytrip.com/Train/Index',
+    'hotels': 'https://mybookings.easemytrip.com/Hotels/Detail'
+  };
 
   /* ---- state set after verification ---- */
   var _bid             = null;
@@ -133,20 +142,15 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
       showLoading(false);
       var url = null;
       if (data.structured_content) {
-        url = data.structured_content.download_url || data.structured_content.redirect_url;
-      } else if (data.download_url) {
-        url = data.download_url;
-      } else if (data.url) {
-        url = data.url;
+        url = data.structured_content.pdf_url || data.structured_content.download_url || data.structured_content.redirect_url;
+      } else {
+        url = data.pdf_url || data.download_url || data.url || null;
       }
       if (url) {
-        var a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        var linkWrap = container.querySelector('.hc-pdf-link-wrap');
+        var pdfLink  = container.querySelector('.hc-pdf-link');
+        pdfLink.href = url;
+        linkWrap.style.display = 'block';
       } else {
         showError(data.response_text || data.message || 'Could not get download link. Please try again.');
       }
@@ -229,6 +233,18 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
           _transactionType = (result.structured_content && result.structured_content.transaction_type) || result.transaction_type || null;
           window.dispatchEvent(new CustomEvent('hc:post-booking:verified', { detail: result }));
           switchStep('download-ticket');
+          if (!DOWNLOAD && _bid) {
+            var tx      = (_transactionType || 'flight').toLowerCase();
+            var baseUrl = POST_BOOKING_URLS[tx] || POST_BOOKING_URLS['flight'];
+            var redirectUrl = baseUrl + '?bid=' + encodeURIComponent(_bid);
+            var linkWrap = container.querySelector('.hc-pdf-link-wrap');
+            var pdfLink  = container.querySelector('.hc-pdf-link');
+            var dlBtn    = container.querySelector('.hc-download-ticket-btn');
+            pdfLink.href        = redirectUrl;
+            pdfLink.textContent = 'Manage Booking';
+            linkWrap.style.display = 'block';
+            if (dlBtn) dlBtn.style.display = 'none';
+          }
         } else {
           verifyBtn.disabled = false;
         }
@@ -245,10 +261,10 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
         return;
       }
       downloadBtn.disabled = true;
-      downloadBtn.textContent = 'Downloading...';
+      downloadBtn.textContent = 'Fetching link...';
       downloadTicket().then(function() {
         downloadBtn.disabled = false;
-        downloadBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>Download Ticket';
+        downloadBtn.textContent = 'Get Ticket Link';
       });
     });
   }
@@ -314,6 +330,8 @@ OTP_STYLES = r"""
 .booking-details-carousel .hc-step { display: none; }
 .booking-details-carousel .hc-step.active { display: block; }
 .booking-details-carousel .hc-success-icon { background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%); box-shadow: 0 4px 16px rgba(46, 125, 50, 0.25); }
+.booking-details-carousel .hc-pdf-link { display: inline-block; color: #ef6614; font-size: 13px; font-weight: 600; text-decoration: underline; word-break: break-all; }
+.booking-details-carousel .hc-pdf-link:hover { color: #c94e0a; }
 """
 
 
