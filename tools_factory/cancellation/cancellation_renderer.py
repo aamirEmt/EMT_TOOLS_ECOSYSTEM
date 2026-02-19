@@ -1073,7 +1073,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
@@ -1100,7 +1100,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
@@ -1149,7 +1149,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
@@ -2541,7 +2541,7 @@ TRAIN_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
@@ -2565,7 +2565,7 @@ TRAIN_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
@@ -2619,7 +2619,7 @@ TRAIN_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
@@ -3603,7 +3603,7 @@ BUS_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
@@ -3627,7 +3627,7 @@ BUS_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
@@ -3673,7 +3673,7 @@ BUS_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
@@ -5422,7 +5422,7 @@ FLIGHT_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
@@ -5456,7 +5456,7 @@ FLIGHT_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
@@ -5505,7 +5505,7 @@ FLIGHT_BOOKING_TEMPLATE = """
     .catch(function(err) {
       showLoading(false);
       var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        ? 'Something Went Wrong Please Try Again.'
         : 'Network error. Please check your connection and try again.';
       showError(msg);
       return null;
