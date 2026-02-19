@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cancellation UI Mock Tester</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a1a;
+    min-height: 100vh;
+  }
+
+  /* --- Top bar --- */
+  .topbar {
+    background: #2563eb;
+    color: #fff;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .topbar h1 { font-size: 18px; font-weight: 600; }
+  .topbar .badge {
+    background: rgba(255,255,255,0.2);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+
+  /* --- Layout --- */
+  .layout {
+    display: flex;
+    gap: 0;
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: calc(100vh - 52px);
+  }
+
+  /* --- Sidebar --- */
+  .sidebar {
+    width: 320px;
+    min-width: 320px;
+    background: #fff;
+    border-right: 1px solid #e0e0e0;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .sidebar h2 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    margin-bottom: 12px;
+  }
+  .scenario-group { margin-bottom: 20px; }
+  .scenario-group h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+  .scenario-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    color: #334155;
+    margin-bottom: 6px;
+    transition: all 0.15s;
+  }
+  .scenario-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+  .scenario-btn.active {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #2563eb;
+    font-weight: 600;
+  }
+  .scenario-btn .tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: 500;
+  }
+  .tag-success { background: #dcfce7; color: #166534; }
+  .tag-error { background: #fee2e2; color: #991b1b; }
+  .tag-warn { background: #fef9c3; color: #854d0e; }
+
+  /* --- Main content --- */
+  .main {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  /* --- Status bar --- */
+  .status-bar {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .status-bar .label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+  }
+  .status-bar .value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+  }
+  .status-bar .divider {
+    width: 1px;
+    height: 24px;
+    background: #e2e8f0;
+  }
+  .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  .status-indicator.connected { background: #22c55e; }
+  .status-indicator.disconnected { background: #ef4444; }
+  .status-indicator.loading { background: #f59e0b; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+
+  /* --- UI preview area --- */
+  .preview-area {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 24px;
+    min-height: 400px;
+    margin-bottom: 20px;
+  }
+  .preview-area.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 14px;
+  }
+
+  /* --- Call log --- */
+  .call-log {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .call-log-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .call-log-header h3 { font-size: 14px; font-weight: 600; color: #334155; }
+  .call-log-header button {
+    font-size: 12px;
+    padding: 4px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    color: #64748b;
+  }
+  .call-log-header button:hover { background: #f8fafc; }
+  .call-log-body {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+  .call-entry {
+    padding: 8px 18px;
+    font-size: 13px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .call-entry:last-child { border-bottom: none; }
+  .call-entry .method { color: #2563eb; font-weight: 600; min-width: 40px; }
+  .call-entry .url { color: #334155; flex: 1; }
+  .call-entry .status-ok { color: #16a34a; font-weight: 600; }
+  .call-entry .status-err { color: #dc2626; font-weight: 600; }
+  .call-entry .time { color: #94a3b8; font-size: 11px; }
+  .empty-log {
+    padding: 24px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Cancellation UI Mock Tester</h1>
+  <span class="badge">Mock Server: localhost:8899</span>
+</div>
+
+<div class="layout">
+  <!-- Sidebar: Scenario picker -->
+  <div class="sidebar">
+    <h2>Scenarios</h2>
+
+    <div class="scenario-group">
+      <h3>Hotel</h3>
+      <button class="scenario-btn active" data-scenario="hotel_happy_path">
+        Happy Path <span class="tag tag-success">success</span>
+      </button>
+      <button class="scenario-btn" data-scenario="hotel_multi_room">
+        Multi Room <span class="tag tag-success">success</span>
+      </button>
+      <button class="scenario-btn" data-scenario="hotel_already_cancelled">
+        Already Cancelled <span class="tag tag-warn">warn</span>
+      </button>
+      <button class="scenario-btn" data-scenario="hotel_invalid_otp">
+        Invalid OTP <span class="tag tag-error">error</span>
+      </button>
+      <button class="scenario-btn" data-scenario="hotel_cancel_fail">
+        Cancel Fail <span class="tag tag-error">error</span>
+      </button>
+      <button class="scenario-btn" data-scenario="hotel_otp_send_fail">
+        OTP Send Fail <span class="tag tag-error">error</span>
+      </button>
+    </div>
+
+    <div class="scenario-group">
+      <h3>Train</h3>
+      <button class="scenario-btn" data-scenario="train_happy_path">
+        Happy Path <span class="tag tag-success">success</span>
+      </button>
+      <button class="scenario-btn" data-scenario="train_already_cancelled">
+        Already Cancelled <span class="tag tag-warn">warn</span>
+      </button>
+      <button class="scenario-btn" data-scenario="train_invalid_otp">
+        Invalid OTP <span class="tag tag-error">error</span>
+      </button>
+      <button class="scenario-btn" data-scenario="train_cancel_fail">
+        Cancel Fail <span class="tag tag-error">error</span>
+      </button>
+    </div>
+
+    <div class="scenario-group">
+      <h3>Bus</h3>
+      <button class="scenario-btn" data-scenario="bus_happy_path">
+        Happy Path <span class="tag tag-success">success</span>
+      </button>
+      <button class="scenario-btn" data-scenario="bus_already_cancelled">
+        Already Cancelled <span class="tag tag-warn">warn</span>
+      </button>
+      <button class="scenario-btn" data-scenario="bus_invalid_otp">
+        Invalid OTP <span class="tag tag-error">error</span>
+      </button>
+      <button class="scenario-btn" data-scenario="bus_cancel_fail">
+        Cancel Fail <span class="tag tag-error">error</span>
+      </button>
+    </div>
+
+    <div class="scenario-group">
+      <h3>Flight</h3>
+      <button class="scenario-btn" data-scenario="flight_happy_path">
+        Happy Path <span class="tag tag-success">success</span>
+      </button>
+      <button class="scenario-btn" data-scenario="flight_round_trip">
+        Round Trip <span class="tag tag-success">success</span>
+      </button>
+      <button class="scenario-btn" data-scenario="flight_already_cancelled">
+        Already Cancelled <span class="tag tag-warn">warn</span>
+      </button>
+      <button class="scenario-btn" data-scenario="flight_invalid_otp">
+        Invalid OTP <span class="tag tag-error">error</span>
+      </button>
+      <button class="scenario-btn" data-scenario="flight_cancel_fail">
+        Cancel Fail <span class="tag tag-error">error</span>
+      </button>
+      <button class="scenario-btn" data-scenario="flight_no_otp_required">
+        No OTP Required <span class="tag tag-success">success</span>
+      </button>
+    </div>
+
+    <div class="scenario-group">
+      <h3>Cross-Module</h3>
+      <button class="scenario-btn" data-scenario="hotel_id_but_train">
+        Hotel ID → Train <span class="tag tag-warn">detect</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main: Preview + Log -->
+  <div class="main">
+    <div class="status-bar">
+      <div>
+        <span class="status-indicator disconnected" id="serverStatus"></span>
+        <span class="label">Server:</span>
+        <span class="value" id="serverStatusText">Checking...</span>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <span class="label">Scenario:</span>
+        <span class="value" id="currentScenario">hotel_happy_path</span>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <span class="label">Module:</span>
+        <span class="value" id="currentModule">Hotel</span>
+      </div>
+    </div>
+
+    <div class="preview-area empty" id="previewArea">
+      Select a scenario and click to load the cancellation UI
+    </div>
+
+    <div class="call-log">
+      <div class="call-log-header">
+        <h3>API Call Log</h3>
+        <button onclick="clearLog()">Clear</button>
+      </div>
+      <div class="call-log-body" id="callLogBody">
+        <div class="empty-log">No API calls yet. Load a scenario to start.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MOCK_BASE = 'http://localhost:8899';
+let activeScenario = 'hotel_happy_path';
+let callEntries = [];
+
+// ============================================================
+// Server connectivity check
+// ============================================================
+async function checkServer() {
+  const indicator = document.getElementById('serverStatus');
+  const text = document.getElementById('serverStatusText');
+  try {
+    const resp = await fetch(MOCK_BASE + '/api/mock/scenarios');
+    if (resp.ok) {
+      indicator.className = 'status-indicator connected';
+      text.textContent = 'Connected';
+      return true;
+    }
+  } catch (e) {}
+  indicator.className = 'status-indicator disconnected';
+  text.textContent = 'Not running — start with: python tests/mock_server.py';
+  return false;
+}
+
+// ============================================================
+// Scenario switching
+// ============================================================
+async function loadScenario(scenario) {
+  const ok = await checkServer();
+  if (!ok) return;
+
+  activeScenario = scenario;
+
+  // Update active button
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-scenario="${scenario}"]`)?.classList.add('active');
+  document.getElementById('currentScenario').textContent = scenario;
+
+  // Set scenario on server
+  const indicator = document.getElementById('serverStatus');
+  indicator.className = 'status-indicator loading';
+
+  try {
+    await fetch(MOCK_BASE + '/api/mock/set-scenario', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario }),
+    });
+
+    // Fetch rendered HTML
+    const resp = await fetch(MOCK_BASE + '/api/mock/booking-details-html');
+    const data = await resp.json();
+
+    if (data.error) {
+      showPreviewError(data.error);
+      return;
+    }
+
+    document.getElementById('currentModule').textContent = data.module || '?';
+
+    // Render HTML into preview
+    const preview = document.getElementById('previewArea');
+    preview.className = 'preview-area';
+    preview.innerHTML = data.html;
+
+    // Execute any <script> tags in the injected HTML
+    const scripts = preview.querySelectorAll('script');
+    scripts.forEach(oldScript => {
+      const newScript = document.createElement('script');
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
+      oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+
+    indicator.className = 'status-indicator connected';
+    logCall('GET', '/api/mock/booking-details-html', 200);
+
+  } catch (e) {
+    indicator.className = 'status-indicator disconnected';
+    showPreviewError('Failed to load: ' + e.message);
+  }
+}
+
+function showPreviewError(msg) {
+  const preview = document.getElementById('previewArea');
+  preview.className = 'preview-area empty';
+  preview.innerHTML = '<div style="color:#dc2626;">Error: ' + msg + '</div>';
+}
+
+// ============================================================
+// Intercept fetch to log API calls
+// ============================================================
+const originalFetch = window.fetch;
+window.fetch = async function(url, options) {
+  const urlStr = String(url);
+
+  // Only intercept calls to our mock server's cancellation endpoints
+  if (urlStr.includes('/api/hotel-cancel/')) {
+    const startTime = Date.now();
+    try {
+      const resp = await originalFetch.apply(this, arguments);
+      const elapsed = Date.now() - startTime;
+      const method = (options && options.method) || 'GET';
+      const path = new URL(urlStr).pathname;
+      logCall(method, path, resp.status, elapsed);
+      return resp;
+    } catch (e) {
+      const elapsed = Date.now() - startTime;
+      const method = (options && options.method) || 'GET';
+      const path = urlStr.includes('://') ? new URL(urlStr).pathname : urlStr;
+      logCall(method, path, 'ERR', elapsed);
+      throw e;
+    }
+  }
+
+  return originalFetch.apply(this, arguments);
+};
+
+// ============================================================
+// Call log
+// ============================================================
+function logCall(method, path, status, elapsed) {
+  callEntries.push({ method, path, status, elapsed: elapsed || 0, time: new Date() });
+  renderLog();
+}
+
+function clearLog() {
+  callEntries = [];
+  renderLog();
+}
+
+function renderLog() {
+  const body = document.getElementById('callLogBody');
+  if (callEntries.length === 0) {
+    body.innerHTML = '<div class="empty-log">No API calls yet. Load a scenario to start.</div>';
+    return;
+  }
+  body.innerHTML = callEntries.map(e => {
+    const statusClass = (e.status === 200 || e.status === 'ok') ? 'status-ok' : 'status-err';
+    const timeStr = e.time.toLocaleTimeString();
+    return `<div class="call-entry">
+      <span class="method">${e.method}</span>
+      <span class="url">${e.path}</span>
+      <span class="${statusClass}">${e.status}</span>
+      <span class="time">${e.elapsed}ms &middot; ${timeStr}</span>
+    </div>`;
+  }).join('');
+  body.scrollTop = body.scrollHeight;
+}
+
+// ============================================================
+// Init
+// ============================================================
+document.querySelectorAll('.scenario-btn').forEach(btn => {
+  btn.addEventListener('click', () => loadScenario(btn.dataset.scenario));
+});
+
+checkServer();
+// Auto-load default scenario
+setTimeout(() => loadScenario('hotel_happy_path'), 500);
+</script>
+
+</body>
+</html>

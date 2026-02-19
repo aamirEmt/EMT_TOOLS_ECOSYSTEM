@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Cancellation Renderer - UI Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .test-section {
+            max-width: 800px;
+            margin: 0 auto 40px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .test-header {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            color: #fff;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .test-header span {
+            font-size: 12px;
+            opacity: 0.7;
+            display: block;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+        .test-body {
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #1a237e;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .dark-toggle {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .dark-toggle button {
+            padding: 10px 24px;
+            border: 2px solid #1a237e;
+            background: #fff;
+            color: #1a237e;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .dark-toggle button:hover {
+            background: #1a237e;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Hotel Cancellation Renderer - UI Test</h1>
+
+<div class="dark-toggle">
+    <button onclick="document.querySelectorAll('.booking-details-carousel, .cancellation-success').forEach(el => el.classList.toggle('dark')); document.body.style.background = document.body.style.background === 'rgb(26, 26, 26)' ? '#f0f2f5' : '#1a1a1a';">
+        Toggle Dark Mode
+    </button>
+</div>
+
+<!-- Test 1: Single Room Booking Details -->
+<div class="test-section">
+    <div class="test-header">
+        Test 1: Booking Details - Single Room (Pay at Hotel)
+        <span>ZIP BY SPREE HOTELS BROOKEFIELD - 26 nights - 2 guests</span>
+    </div>
+    <div class="test-body">
+        
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+.booking-details-carousel {
+  font-family: poppins, sans-serif;
+  color: #202020;
+  background: rgba(255, 255, 255, 0.92);
+  position: relative;
+}
+
+.booking-details-carousel * {
+  font-family: inherit;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.booking-details-carousel main {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px 0 30px;
+}
+
+.booking-details-carousel .bkhd {
+  margin-bottom: 16px;
+}
+
+.booking-details-carousel .bkttl {
+  font-size: 18px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 4px;
+}
+
+.booking-details-carousel .bksub {
+  font-size: 12px;
+  color: #646d74;
+  margin-top: 4px;
+}
+
+.booking-details-carousel .hotel-info {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.booking-details-carousel .hotel-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.booking-details-carousel .hotel-name img {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.booking-details-carousel .hotel-address {
+  font-size: 12px;
+  color: #646d74;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.booking-details-carousel .hotel-address img {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.booking-details-carousel .book-now-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 15px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.booking-details-carousel .book-now-btn:hover {
+  opacity: 0.85;
+}
+
+.booking-details-carousel .hotel-dates {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #202020;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .date-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-details-carousel .date-label {
+  font-size: 10px;
+  color: #868686;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.booking-details-carousel .date-value {
+  font-weight: 600;
+}
+
+.booking-details-carousel .rooms-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 12px;
+}
+
+.booking-details-carousel .slider-shell {
+  position: relative;
+}
+
+.booking-details-carousel .rsltcvr {
+  width: 90%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: grab;
+}
+
+.booking-details-carousel .rsltcvr:active {
+  cursor: grabbing;
+}
+
+.booking-details-carousel .embla__container {
+  display: flex;
+  gap: 16px;
+}
+
+.booking-details-carousel .room-card {
+  width: 280px;
+  min-width: 280px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: #fff;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-details-carousel .room-header {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.booking-details-carousel .room-type {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 0px;
+}
+
+.booking-details-carousel .room-number {
+  font-size: 12px;
+  color: #646d74;
+  margin-bottom: 8px;
+}
+
+.booking-details-carousel .room-id {
+  font-size: 10px;
+  color: #868686;
+  font-family: monospace;
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.booking-details-carousel .room-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.booking-details-carousel .detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 12px;
+}
+
+.booking-details-carousel .detail-label {
+  color: #646d74;
+  font-weight: 500;
+}
+
+.booking-details-carousel .detail-value {
+  color: #202020;
+  font-weight: 600;
+  text-align: right;
+  max-width: 60%;
+}
+
+.booking-details-carousel .amount-highlight {
+  font-size: 16px;
+  font-family: inter, sans-serif;
+  color: #ef6614;
+}
+
+.booking-details-carousel .policy-text {
+  font-size: 11px;
+  color: #646d74;
+  background: #fff8e1;
+  padding: 8px;
+  border-radius: 6px;
+  border-left: 3px solid #ffc107;
+  margin-top: 8px;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.booking-details-carousel .refundable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #2e7d32;
+  background: #e8f5e9;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .refundable::before {
+  content: '✓';
+  font-weight: bold;
+}
+
+.booking-details-carousel .non-refundable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .non-refundable::before {
+  content: '✗';
+  font-weight: bold;
+}
+
+.booking-details-carousel .empty-state {
+  text-align: center;
+  color: #646d74;
+  padding: 60px 20px;
+  font-size: 14px;
+}
+
+/* Dark mode support */
+.booking-details-carousel.dark {
+  background: #000;
+  color: #fff;
+}
+
+.booking-details-carousel.dark .room-card,
+.booking-details-carousel.dark .hotel-info {
+  background: #000;
+  border-color: #373737;
+}
+
+.booking-details-carousel.dark .room-header {
+  border-color: #373737;
+}
+
+.booking-details-carousel.dark .bkttl,
+.booking-details-carousel.dark .hotel-name,
+.booking-details-carousel.dark .room-type,
+.booking-details-carousel.dark .date-value,
+.booking-details-carousel.dark .detail-value {
+  color: #fff;
+}
+
+.booking-details-carousel.dark .bksub,
+.booking-details-carousel.dark .hotel-address,
+.booking-details-carousel.dark .room-number,
+.booking-details-carousel.dark .date-label,
+.booking-details-carousel.dark .detail-label {
+  color: #bcbcbc;
+}
+
+.booking-details-carousel.dark .room-id {
+  background: #1a1a1a;
+  color: #bcbcbc;
+}
+</style>
+
+<div class="booking-details-carousel">
+  <main>
+    <div class="bkhd">
+      <div class="bkttl">Booking Details - EMT162477218</div>
+      <div class="bksub">27 Feb 2026 to 25 Mar 2026 • 26 nights • 1 room • Mr. Rahul Sharma, Mrs. Priya Sharma</div>
+    </div>
+
+    
+    <div class="hotel-info">
+      <div class="hotel-name"><img src="https://mybookings.easemytrip.com/Content/assest/img/hotel-blic.svg" alt="">ZIP BY SPREE HOTELS BROOKEFIELD</div>
+      
+      <div class="hotel-address"><img src="https://mybookings.easemytrip.com/Content/assest/img/ico-map.svg" alt="">Site 627, Aecs Layout, Kundalahalli, Brookefield, Bengaluru, Karnataka 560037</div>
+      
+      <div class="hotel-dates">
+        
+        <div class="date-item">
+          <div class="date-label">Check-in</div>
+          <div class="date-value">27 Feb 2026</div>
+        </div>
+        
+        
+        <div class="date-item">
+          <div class="date-label">Check-out</div>
+          <div class="date-value">25 Mar 2026</div>
+        </div>
+        
+      </div>
+    </div>
+    
+
+    
+    <div class="rooms-title">Rooms in this booking</div>
+    <div class="slider-shell">
+      <div class="rsltcvr">
+        <div class="embla__container">
+        
+          <div class="room-card">
+            <div class="room-header">
+              <div class="room-type">Deluxe King Or Twin Bed Room</div>
+            </div>
+
+            <div class="room-details">
+              
+              <div class="detail-row">
+                <span class="detail-label">Amount</span>
+                <span class="detail-value amount-highlight">₹59328.00</span>
+              </div>
+              
+
+              
+              <div class="detail-row">
+                <span class="detail-label">Payment</span>
+                <span class="detail-value"><a href="https://emt.bio/myeIn4" target="_blank" class="book-now-btn">Pay Now</a></span>
+              </div>
+              
+
+              
+              <div class="policy-text">• Free cancellation (Rs.0) before 26-Feb-2026
+• 100% Deduction From: 26-Feb-2026 till check-in</div>
+              
+
+              
+              <div class="refundable">Refundable</div>
+              
+            </div>
+          </div>
+        
+        </div>
+      </div>
+    </div>
+    
+  </main>
+</div>
+    </div>
+</div>
+
+<!-- Test 2: Multi Room Booking Details -->
+<div class="test-section">
+    <div class="test-header">
+        Test 2: Booking Details - Multiple Rooms (Prepaid)
+        <span>The Oberoi Grand - 4 nights - 1 Refundable + 1 Non-Refundable</span>
+    </div>
+    <div class="test-body">
+        
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+.booking-details-carousel {
+  font-family: poppins, sans-serif;
+  color: #202020;
+  background: rgba(255, 255, 255, 0.92);
+  position: relative;
+}
+
+.booking-details-carousel * {
+  font-family: inherit;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.booking-details-carousel main {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px 0 30px;
+}
+
+.booking-details-carousel .bkhd {
+  margin-bottom: 16px;
+}
+
+.booking-details-carousel .bkttl {
+  font-size: 18px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 4px;
+}
+
+.booking-details-carousel .bksub {
+  font-size: 12px;
+  color: #646d74;
+  margin-top: 4px;
+}
+
+.booking-details-carousel .hotel-info {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.booking-details-carousel .hotel-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.booking-details-carousel .hotel-name img {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.booking-details-carousel .hotel-address {
+  font-size: 12px;
+  color: #646d74;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.booking-details-carousel .hotel-address img {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.booking-details-carousel .book-now-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 15px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.booking-details-carousel .book-now-btn:hover {
+  opacity: 0.85;
+}
+
+.booking-details-carousel .hotel-dates {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #202020;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .date-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-details-carousel .date-label {
+  font-size: 10px;
+  color: #868686;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.booking-details-carousel .date-value {
+  font-weight: 600;
+}
+
+.booking-details-carousel .rooms-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 12px;
+}
+
+.booking-details-carousel .slider-shell {
+  position: relative;
+}
+
+.booking-details-carousel .rsltcvr {
+  width: 90%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: grab;
+}
+
+.booking-details-carousel .rsltcvr:active {
+  cursor: grabbing;
+}
+
+.booking-details-carousel .embla__container {
+  display: flex;
+  gap: 16px;
+}
+
+.booking-details-carousel .room-card {
+  width: 280px;
+  min-width: 280px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: #fff;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-details-carousel .room-header {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.booking-details-carousel .room-type {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 0px;
+}
+
+.booking-details-carousel .room-number {
+  font-size: 12px;
+  color: #646d74;
+  margin-bottom: 8px;
+}
+
+.booking-details-carousel .room-id {
+  font-size: 10px;
+  color: #868686;
+  font-family: monospace;
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.booking-details-carousel .room-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.booking-details-carousel .detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 12px;
+}
+
+.booking-details-carousel .detail-label {
+  color: #646d74;
+  font-weight: 500;
+}
+
+.booking-details-carousel .detail-value {
+  color: #202020;
+  font-weight: 600;
+  text-align: right;
+  max-width: 60%;
+}
+
+.booking-details-carousel .amount-highlight {
+  font-size: 16px;
+  font-family: inter, sans-serif;
+  color: #ef6614;
+}
+
+.booking-details-carousel .policy-text {
+  font-size: 11px;
+  color: #646d74;
+  background: #fff8e1;
+  padding: 8px;
+  border-radius: 6px;
+  border-left: 3px solid #ffc107;
+  margin-top: 8px;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.booking-details-carousel .refundable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #2e7d32;
+  background: #e8f5e9;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .refundable::before {
+  content: '✓';
+  font-weight: bold;
+}
+
+.booking-details-carousel .non-refundable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .non-refundable::before {
+  content: '✗';
+  font-weight: bold;
+}
+
+.booking-details-carousel .empty-state {
+  text-align: center;
+  color: #646d74;
+  padding: 60px 20px;
+  font-size: 14px;
+}
+
+/* Dark mode support */
+.booking-details-carousel.dark {
+  background: #000;
+  color: #fff;
+}
+
+.booking-details-carousel.dark .room-card,
+.booking-details-carousel.dark .hotel-info {
+  background: #000;
+  border-color: #373737;
+}
+
+.booking-details-carousel.dark .room-header {
+  border-color: #373737;
+}
+
+.booking-details-carousel.dark .bkttl,
+.booking-details-carousel.dark .hotel-name,
+.booking-details-carousel.dark .room-type,
+.booking-details-carousel.dark .date-value,
+.booking-details-carousel.dark .detail-value {
+  color: #fff;
+}
+
+.booking-details-carousel.dark .bksub,
+.booking-details-carousel.dark .hotel-address,
+.booking-details-carousel.dark .room-number,
+.booking-details-carousel.dark .date-label,
+.booking-details-carousel.dark .detail-label {
+  color: #bcbcbc;
+}
+
+.booking-details-carousel.dark .room-id {
+  background: #1a1a1a;
+  color: #bcbcbc;
+}
+</style>
+
+<div class="booking-details-carousel">
+  <main>
+    <div class="bkhd">
+      <div class="bkttl">Booking Details - EMT162499001</div>
+      <div class="bksub">10 Mar 2026 to 14 Mar 2026 • 4 nights • 2 rooms • Mr. Amit Patel</div>
+    </div>
+
+    
+    <div class="hotel-info">
+      <div class="hotel-name"><img src="https://mybookings.easemytrip.com/Content/assest/img/hotel-blic.svg" alt="">The Oberoi Grand, Kolkata</div>
+      
+      <div class="hotel-address"><img src="https://mybookings.easemytrip.com/Content/assest/img/ico-map.svg" alt="">15, Jawaharlal Nehru Road, Kolkata, West Bengal 700013</div>
+      
+      <div class="hotel-dates">
+        
+        <div class="date-item">
+          <div class="date-label">Check-in</div>
+          <div class="date-value">10 Mar 2026</div>
+        </div>
+        
+        
+        <div class="date-item">
+          <div class="date-label">Check-out</div>
+          <div class="date-value">14 Mar 2026</div>
+        </div>
+        
+      </div>
+    </div>
+    
+
+    
+    <div class="rooms-title">Rooms in this booking</div>
+    <div class="slider-shell">
+      <div class="rsltcvr">
+        <div class="embla__container">
+        
+          <div class="room-card">
+            <div class="room-header">
+              <div class="room-type">Premier Suite</div>
+            </div>
+
+            <div class="room-details">
+              
+              <div class="detail-row">
+                <span class="detail-label">Amount</span>
+                <span class="detail-value amount-highlight">₹28500.00</span>
+              </div>
+              
+
+              
+              <div class="detail-row">
+                <span class="detail-label">Payment</span>
+                <span class="detail-value">Prepaid</span>
+              </div>
+              
+
+              
+              <div class="policy-text">• Free cancellation before 08-Mar-2026
+• 50% charge from 08-Mar to 09-Mar-2026
+• 100% charge from 09-Mar-2026 onwards</div>
+              
+
+              
+              <div class="refundable">Refundable</div>
+              
+            </div>
+          </div>
+        
+          <div class="room-card">
+            <div class="room-header">
+              <div class="room-type">Deluxe Double Room</div>
+            </div>
+
+            <div class="room-details">
+              
+              <div class="detail-row">
+                <span class="detail-label">Amount</span>
+                <span class="detail-value amount-highlight">₹20000.00</span>
+              </div>
+              
+
+              
+              <div class="detail-row">
+                <span class="detail-label">Payment</span>
+                <span class="detail-value">Prepaid</span>
+              </div>
+              
+
+              
+              <div class="policy-text">• Non-refundable booking</div>
+              
+
+              
+              <div class="non-refundable">Non-Refundable</div>
+              
+            </div>
+          </div>
+        
+        </div>
+      </div>
+    </div>
+    
+  </main>
+</div>
+    </div>
+</div>
+
+<!-- Test 3: Cancellation Success with Refund -->
+<div class="test-section">
+    <div class="test-header">
+        Test 3: Cancellation Success - With Full Refund
+        <span>Shows refund amount, charges, and refund mode</span>
+    </div>
+    <div class="test-body">
+        
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+.cancellation-success {
+  font-family: poppins, sans-serif;
+  color: #202020;
+  background: rgba(255, 255, 255, 0.92);
+  position: relative;
+}
+
+.cancellation-success * {
+  font-family: inherit;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.cancellation-success main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.cancellation-success .success-container {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+  border: 2px solid #4caf50;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.cancellation-success .success-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+  animation: successPop 0.6s ease-out;
+}
+
+@keyframes successPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.cancellation-success .success-icon svg {
+  width: 48px;
+  height: 48px;
+  color: #fff;
+}
+
+.cancellation-success .success-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2e7d32;
+  margin-bottom: 12px;
+}
+
+.cancellation-success .details-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cancellation-success .details-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.cancellation-success .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.cancellation-success .detail-item:last-child {
+  border-bottom: none;
+}
+
+.cancellation-success .detail-label {
+  color: #646d74;
+  font-weight: 500;
+}
+
+.cancellation-success .detail-value {
+  color: #202020;
+  font-weight: 600;
+  text-align: right;
+}
+
+.cancellation-success .refund-highlight {
+  background: linear-gradient(135deg, #fff8e1 0%, #fffbea 100%);
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.cancellation-success .refund-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f57c00;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cancellation-success .refund-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ef6614;
+  font-family: inter, sans-serif;
+  margin-bottom: 8px;
+}
+
+.cancellation-success .refund-details {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.cancellation-success .footer-note {
+  font-size: 12px;
+  color: #868686;
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Dark mode support */
+.cancellation-success.dark {
+  background: #000;
+  color: #fff;
+}
+
+.cancellation-success.dark .success-container {
+  background: linear-gradient(135deg, #1a3a1a 0%, #1f2d1f 100%);
+  border-color: #4caf50;
+}
+
+.cancellation-success.dark .success-title {
+  color: #66bb6a;
+}
+
+.cancellation-success.dark .details-section {
+  background: #1a1a1a;
+  border-color: #373737;
+}
+
+.cancellation-success.dark .details-title {
+  color: #fff;
+  border-color: #373737;
+}
+
+.cancellation-success.dark .detail-label {
+  color: #bcbcbc;
+}
+
+.cancellation-success.dark .detail-value {
+  color: #fff;
+}
+
+.cancellation-success.dark .refund-highlight {
+  background: linear-gradient(135deg, #332a00 0%, #3d3200 100%);
+  border-color: #ffc107;
+}
+
+</style>
+
+<div class="cancellation-success">
+  <main>
+    <div class="success-container">
+      <div class="success-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+
+      <h1 class="success-title">Cancellation Confirmed!</h1>
+
+      <div class="details-section">
+        <div class="details-title">Cancellation Details</div>
+
+        
+        <div class="detail-item">
+          <span class="detail-label">Booking ID</span>
+          <span class="detail-value">EMT162477218</span>
+        </div>
+        
+
+        
+        <div class="detail-item">
+          <span class="detail-label">Hotel</span>
+          <span class="detail-value">ZIP BY SPREE HOTELS BROOKEFIELD</span>
+        </div>
+        
+
+        
+        <div class="detail-item">
+          <span class="detail-label">Room Type</span>
+          <span class="detail-value">Deluxe King Or Twin Bed Room</span>
+        </div>
+        
+
+        
+        <div class="detail-item">
+          <span class="detail-label">Cancelled On</span>
+          <span class="detail-value">10 Feb 2026, 02:38 PM</span>
+        </div>
+        
+      </div>
+
+      
+      <div class="refund-highlight">
+        <div class="refund-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+            <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+          </svg>
+          Refund Information
+        </div>
+        <div class="refund-amount">₹59328.00</div>
+        <div class="refund-details">
+          Cancellation charges: ₹0.00<br>
+          Refund mode: Original Payment Method
+        </div>
+      </div>
+      
+
+    </div>
+
+    <div class="footer-note">
+      Thank you for using EaseMyTrip. We hope to serve you again soon!
+    </div>
+  </main>
+</div>
+    </div>
+</div>
+
+<!-- Test 4: Cancellation Success without Refund -->
+<div class="test-section">
+    <div class="test-header">
+        Test 4: Cancellation Success - No Refund Info
+        <span>Non-refundable booking cancellation</span>
+    </div>
+    <div class="test-body">
+        
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+.cancellation-success {
+  font-family: poppins, sans-serif;
+  color: #202020;
+  background: rgba(255, 255, 255, 0.92);
+  position: relative;
+}
+
+.cancellation-success * {
+  font-family: inherit;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.cancellation-success main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.cancellation-success .success-container {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+  border: 2px solid #4caf50;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.cancellation-success .success-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+  animation: successPop 0.6s ease-out;
+}
+
+@keyframes successPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.cancellation-success .success-icon svg {
+  width: 48px;
+  height: 48px;
+  color: #fff;
+}
+
+.cancellation-success .success-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2e7d32;
+  margin-bottom: 12px;
+}
+
+.cancellation-success .details-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cancellation-success .details-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.cancellation-success .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.cancellation-success .detail-item:last-child {
+  border-bottom: none;
+}
+
+.cancellation-success .detail-label {
+  color: #646d74;
+  font-weight: 500;
+}
+
+.cancellation-success .detail-value {
+  color: #202020;
+  font-weight: 600;
+  text-align: right;
+}
+
+.cancellation-success .refund-highlight {
+  background: linear-gradient(135deg, #fff8e1 0%, #fffbea 100%);
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.cancellation-success .refund-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f57c00;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cancellation-success .refund-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ef6614;
+  font-family: inter, sans-serif;
+  margin-bottom: 8px;
+}
+
+.cancellation-success .refund-details {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.cancellation-success .footer-note {
+  font-size: 12px;
+  color: #868686;
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Dark mode support */
+.cancellation-success.dark {
+  background: #000;
+  color: #fff;
+}
+
+.cancellation-success.dark .success-container {
+  background: linear-gradient(135deg, #1a3a1a 0%, #1f2d1f 100%);
+  border-color: #4caf50;
+}
+
+.cancellation-success.dark .success-title {
+  color: #66bb6a;
+}
+
+.cancellation-success.dark .details-section {
+  background: #1a1a1a;
+  border-color: #373737;
+}
+
+.cancellation-success.dark .details-title {
+  color: #fff;
+  border-color: #373737;
+}
+
+.cancellation-success.dark .detail-label {
+  color: #bcbcbc;
+}
+
+.cancellation-success.dark .detail-value {
+  color: #fff;
+}
+
+.cancellation-success.dark .refund-highlight {
+  background: linear-gradient(135deg, #332a00 0%, #3d3200 100%);
+  border-color: #ffc107;
+}
+
+</style>
+
+<div class="cancellation-success">
+  <main>
+    <div class="success-container">
+      <div class="success-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+
+      <h1 class="success-title">Cancellation Confirmed!</h1>
+
+      <div class="details-section">
+        <div class="details-title">Cancellation Details</div>
+
+        
+        <div class="detail-item">
+          <span class="detail-label">Booking ID</span>
+          <span class="detail-value">EMT162499001</span>
+        </div>
+        
+
+        
+        <div class="detail-item">
+          <span class="detail-label">Hotel</span>
+          <span class="detail-value">The Oberoi Grand, Kolkata</span>
+        </div>
+        
+
+        
+        <div class="detail-item">
+          <span class="detail-label">Room Type</span>
+          <span class="detail-value">Deluxe Double Room</span>
+        </div>
+        
+
+        
+        <div class="detail-item">
+          <span class="detail-label">Cancelled On</span>
+          <span class="detail-value">10 Feb 2026, 02:38 PM</span>
+        </div>
+        
+      </div>
+
+      
+
+    </div>
+
+    <div class="footer-note">
+      Thank you for using EaseMyTrip. We hope to serve you again soon!
+    </div>
+  </main>
+</div>
+    </div>
+</div>
+
+</body>
+</html>
