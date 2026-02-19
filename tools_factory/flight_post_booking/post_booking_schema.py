@@ -27,5 +27,5 @@ class FlightPostBookingInput(BaseModel):
     )
     download: Optional[bool] = Field(
         False,
-        description="Necessary set this to True if user wants to or intends Download ticket after OTP verification. or ",
+        description="Set this to True if the user wants to download or view the ticket",
     )

@@ -8,6 +8,7 @@ from ..base import BaseTool, ToolMetadata
 from ..base_schema import ToolResponseFormat
 from .post_booking_schema import FlightPostBookingInput
 from .post_booking_service import FlightPostBookingService
+from .post_booking_renderer import render_otp_verification_view
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +133,14 @@ class FlightPostBookingTool(BaseTool):
         service._transaction_type = result.get("transaction_type") or "Flight"
         service._download_requested = bool(input_data.download)
 
+        # Build HTML for OTP entry UI
+        html = render_otp_verification_view(
+            booking_id=input_data.booking_id,
+            email=input_data.email,
+            is_otp_send=result.get("is_otp_sent", True),
+            download=bool(input_data.download),
+        )
+
         return ToolResponseFormat(
             response_text="OTP sent. Please verify to continue post-booking actions.",
             structured_content={
@@ -141,6 +150,7 @@ class FlightPostBookingTool(BaseTool):
                 "message": result.get("message"),
                 "download": bool(input_data.download),
             },
+            html=html,
         )
 
     # -----------------------
