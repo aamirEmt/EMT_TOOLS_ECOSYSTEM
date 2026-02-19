@@ -296,6 +296,25 @@ TRAIN_BOOKINGS_TEMPLATE = """
   padding: 40px 20px;
   font-size: 14px;
 }
+
+.train-bookings .show-more-btn {
+  width: 100%;
+  padding: 8px 16px;
+  background: #fff;
+  color: #ef6614;
+  border: 1px solid #f0c8a8;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: poppins, sans-serif;
+  transition: all 0.2s ease;
+}
+
+.train-bookings .show-more-btn:hover {
+  background: #fff5ee;
+  border-color: #ef6614;
+}
 </style>
 
 <div class="train-bookings" data-instance-id="train-bookings-{{ instance_id }}">
@@ -307,7 +326,7 @@ TRAIN_BOOKINGS_TEMPLATE = """
   {% if tabs %}
   <div class="bkng-tabs">
     {% for tab in tabs %}
-    <button class="bkng-tab {% if tab.active %}active{% endif %}" data-status="{{ tab.key }}" onclick="var p=this.closest('.train-bookings');p.querySelectorAll('.bkng-tab').forEach(function(t){t.classList.remove('active')});this.classList.add('active');var s=this.dataset.status,v=0;p.querySelectorAll('.bkng-card').forEach(function(c){var show=s==='all'||c.dataset.status===s;c.style.display=show?'':'none';if(show)v++});var e=p.querySelector('.bkng-empty');if(e)e.style.display=v?'none':''">
+    <button class="bkng-tab {% if tab.active %}active{% endif %}" data-status="{{ tab.key }}" onclick="var p=this.closest('.train-bookings');p.querySelectorAll('.bkng-tab').forEach(function(t){t.classList.remove('active')});this.classList.add('active');var s=this.dataset.status,v=0,idx=0;p.querySelectorAll('.bkng-card').forEach(function(c){var match=c.dataset.status===s;if(match){c.style.display=idx<3?'':'none';if(idx<3)v++;idx++}else{c.style.display='none'}});p.querySelectorAll('.show-more-btn').forEach(function(b){if(b.dataset.forStatus===s){var t=parseInt(b.dataset.total);b.style.display=t>3?'':'none';b.textContent='Show '+(t-3)+' More'}else{b.style.display='none'}});var e=p.querySelector('.bkng-empty');if(e)e.style.display=v?'none':''">
       {{ tab.label }} <span class="tab-count">({{ tab.count }})</span>
     </button>
     {% endfor %}
@@ -316,7 +335,7 @@ TRAIN_BOOKINGS_TEMPLATE = """
 
   <div class="bkng-cards">
     {% for booking in bookings %}
-    <div class="bkng-card" data-status="{{ booking.status_key }}" {% if not booking.visible %}style="display:none"{% endif %}>
+    <div class="bkng-card" data-status="{{ booking.status_key }}" {% if not booking.visible or booking.status_index >= 3 %}style="display:none"{% endif %}>
       <div class="card-top">
         <div class="card-top-left">
           <span class="status-badge {{ booking.status_class }}">{{ booking.status }}</span>
@@ -374,6 +393,14 @@ TRAIN_BOOKINGS_TEMPLATE = """
         </div>
       </div>
     </div>
+    {% endfor %}
+
+    {% for tab in tabs %}
+    {% if tab.count > 3 %}
+    <button class="show-more-btn" data-for-status="{{ tab.key }}" data-total="{{ tab.count }}" {% if not tab.active %}style="display:none"{% endif %} onclick="var p=this.closest('.train-bookings');p.querySelectorAll('.bkng-card[data-status=\''+this.dataset.forStatus+'\']').forEach(function(c){c.style.display=''});this.style.display='none'">
+      Show {{ tab.count - 3 }} More
+    </button>
+    {% endif %}
     {% endfor %}
 
     <div class="bkng-empty" style="display:none">No train bookings found for this category.</div>
@@ -525,11 +552,16 @@ def render_train_bookings(raw_data: Dict[str, Any]) -> str:
     if not tabs:
         return '<div class="train-bookings"><div class="bkng-empty">No train bookings found.</div></div>'
 
-    # Build bookings list
+    # Build bookings list with per-status index
     bookings = []
+    status_counters = {}
     for key in STATUS_KEYS:
         for booking in raw_data.get(key) or []:
-            bookings.append(_normalize_train_booking(booking, key, active_status))
+            normalized = _normalize_train_booking(booking, key, active_status)
+            idx = status_counters.get(key, 0)
+            normalized["status_index"] = idx
+            status_counters[key] = idx + 1
+            bookings.append(normalized)
 
     total = sum(t["count"] for t in tabs)
     title = "Your Train Bookings"
