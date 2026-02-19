@@ -113,7 +113,7 @@ FLIGHT_ATK_TOKEN = _get_config_value(
 CHATBOT_API_BASE_URL = _get_config_value(
     'CHATBOT_API_BASE_URL',
     'CHATBOT_API_BASE_URL',
-    default='https://bookish-waddle-pj55pjxp499gc7wxw-8000.app.github.dev'
+    default='https://n31b0wlc-8000.inc1.devtunnels.ms'
 )
 
 MYBOOKINGS_BASE_URL = _get_config_value(
