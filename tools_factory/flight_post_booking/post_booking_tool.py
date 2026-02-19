@@ -9,6 +9,7 @@ from ..base_schema import ToolResponseFormat
 from .post_booking_schema import FlightPostBookingInput
 from .post_booking_service import FlightPostBookingService
 from .post_booking_renderer import render_otp_verification_view
+from emt_client.config import CHATBOT_API_BASE_URL
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +140,7 @@ class FlightPostBookingTool(BaseTool):
             email=input_data.email,
             is_otp_send=result.get("is_otp_sent", True),
             download=bool(input_data.download),
-            api_endpoint="/tools/flight_post_booking",
+            api_base_url=CHATBOT_API_BASE_URL,
         )
 
         return ToolResponseFormat(
