@@ -383,7 +383,7 @@ BUS_BOOKINGS_TEMPLATE = """
 
     {% for tab in tabs %}
     {% if tab.count > 3 %}
-    <button class="show-more-btn" data-for-status="{{ tab.key }}" data-total="{{ tab.count }}" {% if not tab.active %}style="display:none"{% endif %} onclick="var p=this.closest('.bus-bookings');p.querySelectorAll('.bkng-card[data-status=\''+this.dataset.forStatus+'\']').forEach(function(c){c.style.display=''});this.style.display='none'">
+    <button class="show-more-btn" data-for-status="{{ tab.key }}" data-total="{{ tab.count }}" {% if not tab.active %}style="display:none"{% endif %} onclick="var p=this.closest('.bus-bookings');var s=this.dataset.forStatus;p.querySelectorAll('.bkng-card').forEach(function(c){if(c.dataset.status===s)c.style.display=''});this.style.display='none'">
       Show {{ tab.count - 3 }} More
     </button>
     {% endif %}
