@@ -73,17 +73,64 @@ class FlightPostBookingTool(BaseTool):
 
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
-            name="flight_post_booking",
+            name="post_booking_access_tool",
             description=(
-               "Tool for handling post-booking actions such as adding seat, meal, baggage, or rescheduling a flight."
-                "Takes booking ID and email to start the flow by sending an OTP to the user."
-                "Verifies the OTP using booking ID, email, and OTP, and returns a redirect URL containing the BID for post-booking management."
-                "Supports two actions: 'start' to send OTP and 'verify_otp' to validate the OTP."
-                "After successful OTP verification, provides access to manage the booking (add-ons, reschedule, etc.)."
-                "If the user's original request is to view or download the ticket, set the 'download' field to true."
-                "If the user's intent is any other post-booking action (seat, meal, baggage, reschedule, etc.), set 'download' to false."
-                "The 'download' flag explicitly controls whether the flow is meant for ticket viewing/downloading or general post-booking management."
-                "Always send the correct booking ID (PNR) and email used for the booking in both steps of the workflow."
+               """
+                Tool for handling secure post-booking access using OTP verification.
+
+                Supports all booking types:
+                - Flight
+                - Bus
+                - Train
+                - Hotel
+
+                Ticket viewing and downloading is supported for all booking types.
+
+                ⚠️ Advanced post-booking actions such as:
+                - Add seat
+                - Add meal
+                - Add baggage
+                - Reschedule
+
+                are supported **only for Flight bookings**.
+
+                ---
+
+                ## Core Capabilities
+
+                - Takes **Booking ID (PNR)** and **Email** to start the flow by sending an OTP to the user.
+                - Verifies the OTP using **Booking ID, Email, and OTP**.
+                - Returns a **redirect URL containing the BID** for post-booking management after successful verification.
+                - Provides secure access to manage the booking (add-ons, reschedule, etc.) after OTP verification.
+
+                ---
+
+                ## Supported Actions
+
+                The tool supports exactly two actions:
+
+                ### 1. `"start"`
+                - Sends OTP to the email associated with the booking.
+
+                ### 2. `"verify_otp"`
+                - Validates the OTP.
+                - Requires:
+                - Booking ID (PNR)
+                - Email
+                - OTP
+                - On success, returns redirect URL containing BID.
+
+                ---
+
+                ## Download Flag Behavior (Critical Instruction for LLM)
+
+                The `download` flag explicitly controls the intent of the flow.
+
+                ### ✅ Set:
+                ```json
+                {
+                "download": true
+                }"""
             ),
             input_schema=FlightPostBookingInput.model_json_schema(),
             output_template=None,

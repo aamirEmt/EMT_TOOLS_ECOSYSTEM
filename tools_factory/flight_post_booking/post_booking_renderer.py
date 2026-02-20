@@ -129,6 +129,18 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
   }
 
   /* ---- API helpers ---- */
+  function showManageBookingFallback(message) {
+    var tx      = (_transactionType || 'flight').toLowerCase();
+    var baseUrl = POST_BOOKING_URLS[tx] || POST_BOOKING_URLS['flight'];
+    var mgmtUrl = baseUrl + (_bid ? '?bid=' + encodeURIComponent(_bid) : '');
+    var linkWrap = container.querySelector('.hc-pdf-link-wrap');
+    var pdfLink  = container.querySelector('.hc-pdf-link');
+    pdfLink.href        = mgmtUrl;
+    pdfLink.textContent = 'Go to Manage Booking';
+    linkWrap.style.display = 'block';
+    showError(message + ' You can download your ticket from Manage Booking.');
+  }
+
   function downloadTicket() {
     showLoading(true);
     hideAllErrors();
@@ -152,15 +164,12 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
         pdfLink.href = url;
         linkWrap.style.display = 'block';
       } else {
-        showError(data.response_text || data.message || 'Could not get download link. Please try again.');
+        showManageBookingFallback('Something went wrong while fetching your ticket.');
       }
     })
     .catch(function(err) {
       showLoading(false);
-      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
-        ? 'Unable to reach the server. Please try again.'
-        : 'Network error. Please check your connection and try again.';
-      showError(msg);
+      showManageBookingFallback('Unable to reach the server.');
     });
   }
 
