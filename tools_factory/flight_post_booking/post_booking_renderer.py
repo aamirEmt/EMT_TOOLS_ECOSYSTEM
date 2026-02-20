@@ -147,7 +147,7 @@ INTERACTIVE_BOOKING_TEMPLATE = r"""
     return fetch(DOWNLOAD_TICKET_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bid: _bid, transaction_type: _transactionType })
+      body: JSON.stringify({ booking_id: BOOKING_ID, email: EMAIL, bid: _bid, transaction_type: _transactionType })
     })
     .then(function(resp) { return resp.json(); })
     .then(function(data) {

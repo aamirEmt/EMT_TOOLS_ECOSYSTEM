@@ -17,19 +17,15 @@ class FlightPostBookingService:
         self._transaction_type: str | None = None
         # lock to avoid concurrent requests per service instance
         self._lock = asyncio.Lock()
-        self._download_endpoints = {
-            "flight": ("GET", "https://mybookings.easemytrip.com/MyBooking/GetdownLodingPdf"),
-            "train": ("GET", "https://mybookings.easemytrip.com/Train/DownloadPdf/"),
-            "hotels": ("GET", "https://mybookings.easemytrip.com/Hotels/DownloadPdf/"),
-            "bus": ("POST", "https://mybookings.easemytrip.com/Bus/GetPdf/"),
-        }
+        self._eticket_url = "https://emtservice-ln.easemytrip.com/api/Partials/GetETicketByBETID"
+        # Persistent client with cookie jar — shared across send_otp, verify_otp, fetch_download_url
+        self.client = MyBookingsApiClient()
 
     async def send_otp(self, booking_id: str, email: str) -> Dict[str, Any]:
         """Call EMT guest login API to trigger OTP and retrieve BID."""
         async with self._lock:
             try:
-                async with MyBookingsApiClient() as client:
-                    data = await client.guest_login(booking_id, email)
+                data = await self.client.guest_login(booking_id, email)
             except Exception as exc:
                 logger.error("guest_login failed: %s", exc, exc_info=True)
                 return {
@@ -87,10 +83,9 @@ class FlightPostBookingService:
             }
 
         try:
-            async with MyBookingsApiClient() as client:
-                data = await client.verify_guest_login_otp(
-                    self._bid, otp, self._transaction_type or "Flight"
-                )
+            data = await self.client.verify_guest_login_otp(
+                self._bid, otp, self._transaction_type or "Flight"
+            )
         except Exception as exc:
             logger.error("verify_guest_login_otp failed: %s", exc, exc_info=True)
             return {
@@ -115,38 +110,30 @@ class FlightPostBookingService:
             "raw": data,
         }
 
-    async def fetch_download_url(self, bid: str, transaction_type: str | None) -> Dict[str, Any]:
-        """Fetch download PDF link based on transaction type."""
-        tx = (transaction_type or "flight").strip().lower()
-        method, base_url = self._download_endpoints.get(tx, self._download_endpoints["flight"])
-
+    async def fetch_download_url(self, bid: str, email: str) -> Dict[str, Any]:
+        """Fetch e-ticket PDF link using the unified EMT eticket API."""
         try:
-            async with httpx.AsyncClient(timeout=20.0) as client:
-                if method == "GET":
-                    separator = "&" if "?" in base_url else "?"
-                    url = f"{base_url}{separator}bid={bid}"
-                    response = await client.get(url)
-                else:  # POST (bus)
-                    response = await client.post(base_url, json={"bid": bid})
-
-                response.raise_for_status()
-                data = response.json() if response.headers.get("content-type", "").startswith("application/json") else response.text
+            response = await self.client.client.post(
+                self._eticket_url,
+                json={"bid": bid},
+                headers={"auth": email},
+            )
+            response.raise_for_status()
+            data = response.json()
         except httpx.HTTPError as exc:
-            logger.error("Download fetch failed for %s: %s", tx, exc, exc_info=True)
+            logger.error("E-ticket fetch failed: %s", exc, exc_info=True)
             return {
                 "success": False,
-                "message": "Failed to fetch download link.",
+                "message": "Failed to fetch e-ticket link.",
             }
 
-        if isinstance(data, dict):
-            download_url = data.get("url") or data.get("Url") or data.get("download_url") or data.get("DownloadUrl")
-        else:
-            download_url = data
+        is_success = data.get("Status") is True
+        download_url = data.get("Url") or data.get("url")
 
-        if not download_url:
+        if not is_success or not download_url:
             return {
                 "success": False,
-                "message": "Download link not found in response.",
+                "message": data.get("Error") or data.get("Msg") or "E-ticket link not found in response.",
                 "raw": data,
             }
 
