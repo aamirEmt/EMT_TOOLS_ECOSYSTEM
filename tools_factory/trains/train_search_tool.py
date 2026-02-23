@@ -35,6 +35,7 @@ class TrainSearchTool(BaseTool):
                 "'night' -> from 20:00. "
                 "Always use HH:MM 24-hour format. "
                 "Do not omit fields that are clearly implied by the user request."
+                "In Case Of Trains If the Station Does not Exist Then take nearest major station in the city as input and confirm with user before proceeding and Never Assume Nearby City Station and if the user provides station code then use that station code for search and never assume city"
             ),
             input_schema=TrainSearchInput.model_json_schema(),
             output_template="ui://widget/train-carousel.html",
