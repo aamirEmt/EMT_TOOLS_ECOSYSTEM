@@ -360,7 +360,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 }
 
 .train-carousel .class-refresh-btn {
-  margin-top: 6px;
+  margin-top: auto;
   padding: 7px 8px;
   background: #fff;
   color: #2093ef;
