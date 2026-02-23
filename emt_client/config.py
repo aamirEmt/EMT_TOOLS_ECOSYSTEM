@@ -162,7 +162,7 @@ PNR_ENCRYPTION_IV = b"8080808080808080"  # 16 bytes
 
 # 🔍 AUTOSUGGEST SERVICE URLS
 SOLR_BASE_URL = "https://solr.easemytrip.com"
-SOLR_AUTOSUGGEST_URL = f"{SOLR_BASE_URL}/v1/api/auto/GetHotelAutoSuggest_SolrUItest"
+SOLR_AUTOSUGGEST_URL = f"{SOLR_BASE_URL}/v1/api/auto/GetHotelAutoSuggest_SolrUI"
 TRAIN_AUTOSUGGEST_URL = f"{SOLR_BASE_URL}/api/auto/GetTrainAutoSuggest"
 
 # 🔗 DEEPLINK SERVICE URL
