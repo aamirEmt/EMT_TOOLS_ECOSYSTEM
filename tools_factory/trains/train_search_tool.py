@@ -23,6 +23,7 @@ class TrainSearchTool(BaseTool):
                 "You MUST extract all relevant constraints from the user query. "
                 "If the user mentions a travel class (e.g., '3rd AC', 'sleeper', 'chair car'), "
                 "you MUST set travelClass using the correct code (e.g., '3A', 'SL', 'CC'). "
+                "use only these quota options GN=General (default), TQ=Tatkal, SS=Senior Citizen, LD=Ladies. "
                 "If the user mentions any time preference (e.g., 'before 10 am', 'after 6 pm', 'early', "
                 "'morning', 'evening', 'night'), you MUST set the appropriate time field: "
                 "departureTimeMin, departureTimeMax, arrivalTimeMin, or arrivalTimeMax. "
