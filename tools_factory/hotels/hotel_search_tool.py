@@ -40,9 +40,12 @@ class HotelSearchTool(BaseTool):
         return ToolMetadata(
             name="search_hotels",
             description=(
-                "Search for hotels in a specific city with check-in and check-out dates. "
-                "Supports filtering by price range, star ratings, amenities, and sorting options. "
-                "Returns a list of available hotels with pricing, ratings, and booking links."
+                  "Search for hotels using the exact location provided by the user. "
+    "The location input may be a city name (e.g., 'Pune'), a specific area "
+    "(e.g., 'Viman Nagar, Pune'), or an exact hotel name (e.g., 'Taj Hotel Mumbai'). "
+    "Always use the location exactly as provided and never assume or infer nearby cities. "
+    "Supports filtering by price range, star ratings, amenities, and sorting options. "
+    "Returns a list of available hotels with pricing, ratings, and booking links."
             ),
             input_schema=HotelSearchInput.model_json_schema(),
             category="travel",
