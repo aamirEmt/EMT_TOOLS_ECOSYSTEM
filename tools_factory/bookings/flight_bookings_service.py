@@ -62,23 +62,28 @@ class FlightBookingsService:
     
     def extract_flights(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
         results = []
-        
+
         if not isinstance(data, dict):
             return results
-        
+
         flight = data.get("FlightDetails") or {}
         for status_key in ["Upcoming", "Completed", "Cancelled", "Rejected", "Locked"]:
             flights_list = flight.get(status_key) or []
             for f in flights_list:
+                ui_list = f.get("FlightDetailUI") or []
+                ui = ui_list[0] if ui_list else {}
+
                 results.append({
                     "type": "Flight",
-                    "status": status_key,
+                    "status": f.get("TripStatus") or status_key,
                     "booking_id": f.get("BookingRefNo"),
-                    "source": f.get("Source"),
-                    "destination": f.get("Destination"),
-                    "departure": f.get("DepartureTime"),
-                    "arrival": f.get("ArrivalTime"),
-                    "flight_number": f.get("FlightNumber")
+                    "source": f.get("SourceFullCityName") or ui.get("DepartureCity"),
+                    "destination": f.get("DestinationFullCityName") or ui.get("ArrivalCity"),
+                    "departure": ui.get("DepartureTime"),
+                    "arrival": ui.get("ArrivalTime"),
+                    "flight_number": ui.get("FlightNumber"),
+                    "travel_date": f.get("TravelDate"),
+                    "pnr": f.get("_bookingId") or ui.get("AirLinePnr"),
                 })
 
         return results
@@ -97,6 +102,7 @@ def build_whatsapp_flight_bookings_response(bookings: List[Dict[str, Any]]) -> D
             "booking_id": b.get("booking_id"),
             "route": route,
             "flight_number": b.get("flight_number"),
+            "travel_date": b.get("travel_date"),
             "departure": b.get("departure"),
             "arrival": b.get("arrival"),
         })
