@@ -14,6 +14,7 @@ from tools_factory.bookings.flight_bookings_tool import GetFlightBookingsTool
 from tools_factory.bookings.hotel_bookings_tool import GetHotelBookingsTool
 from tools_factory.bookings.train_bookings_tool import GetTrainBookingsTool
 from tools_factory.bookings.bus_bookings_tool import GetBusBookingsTool
+from tools_factory.cancellation.cancellation_tool import CancellationTool
 from emt_client.auth.session_manager import SessionManager
 from typing import Dict, Optional, List
 
@@ -42,6 +43,15 @@ class ToolFactory:
         # Login tools with session manager for multi-user support
         # login_tool = LoginTool(self.session_manager)
         # self.register_tool(login_tool)
+        
+        # Register booking tools with shared login token provider
+        # self.register_tool(GetFlightBookingsTool(login_tool))
+        # self.register_tool(GetHotelBookingsTool(login_tool))
+        # self.register_tool(GetTrainBookingsTool(login_tool))
+        # self.register_tool(GetBusBookingsTool(login_tool))
+
+        # Cancellation (unified tool with action-based dispatch)
+        self.register_tool(CancellationTool())
         self.register_tool(OtpLoginTool(self.session_manager))
 
         # Booking tools with session manager (require session_id parameter)

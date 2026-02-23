@@ -40,7 +40,7 @@ class BookingApiClient(EMTClient):
         }
 
         try:
-            async with httpx.AsyncClient(timeout=20.0) as client:
+            async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
                     BOOKINGS_URL,
                     json=payload,
