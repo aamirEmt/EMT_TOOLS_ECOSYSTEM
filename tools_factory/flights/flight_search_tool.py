@@ -54,6 +54,7 @@ class FlightSearchTool(BaseTool):
                 "- Search for flights on EaseMyTrip with comprehensive filtering options including origin, destination, dates, passengers, cabin class, stops, time windows, and special fare types.\n"
                 "Parameters (Fields):\n"
                 "- origin (string, required): Origin airport IATA code. Examples: 'DEL' for Delhi, 'BOM' for Mumbai, 'BLR' for Bangalore.\n"
+                "- If You Donot have Airport code Ask From user.\n"
                 "- destination (string, required): Destination airport IATA code. Examples: 'BOM' for Mumbai, 'DEL' for Delhi, 'MAA' for Chennai.\n"
                 "- outboundDate (string, required): Outbound flight date in YYYY-MM-DD format. Example: '2024-12-25'.\n"
                 "- returnDate (string | null, optional): Return flight date in YYYY-MM-DD format for round-trip. Set null/omit for one-way. Example: '2024-12-30'.\n"

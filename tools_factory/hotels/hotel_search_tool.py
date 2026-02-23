@@ -46,6 +46,7 @@ class HotelSearchTool(BaseTool):
                 "Always use the location exactly as provided and never assume or infer nearby cities. "
                 "Supports filtering by price range, star ratings, amenities, and sorting options. "
                 "Returns a list of available hotels with pricing, ratings, and booking links."
+                "Unless Mentioned Keep Sort type By Popularity"
             ),
             input_schema=HotelSearchInput.model_json_schema(),
             category="travel",
