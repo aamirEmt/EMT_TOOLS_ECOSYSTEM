@@ -391,7 +391,7 @@ class HotelSearchService:
             options=whatsapp_hotels,
             check_in_date=search_input.check_in_date,
             check_out_date=search_input.check_out_date,
-            currency=hotel.get("currency", "INR"),
+            currency=hotels[0].get("currency", "INR") if hotels else "INR",
             view_all_hotels_url=results.get("viewAll", ""),
         )
 
