@@ -67,30 +67,57 @@ class BusBookingsService:
             return results
         
         bus = data.get("BusDetails") or {}
-        completed_bus_list = bus.get("Completed") or []
-        for b in completed_bus_list:
-            d = b.get("Details") or {}
+        for status_key in ["Upcoming", "Completed", "Cancelled", "Rejected", "Locked"]:
+            bus_list = bus.get(status_key) or []
+            for b in bus_list:
+                d = b.get("Details") or {}
 
-            departure_date = d.get("DepartureDate") or b.get("DateOfJourney") or d.get("BdTime") or ""
-            departure_time = d.get("DepartureTime1") or d.get("DepartureTime") or d.get("BdTime") or ""
-            arrival_date = d.get("ArrivalDate") or ""
-            arrival_time = d.get("ArrivalTime") or d.get("Droptime") or ""
+                departure_date = d.get("DepartureDate") or b.get("DateOfJourney") or d.get("BdTime") or ""
+                departure_time = d.get("DepartureTime1") or d.get("DepartureTime") or d.get("BdTime") or ""
+                arrival_date = d.get("ArrivalDate") or ""
+                arrival_time = d.get("ArrivalTime") or d.get("Droptime") or ""
 
-            departure = f"{departure_date} {departure_time}".strip()
-            arrival = f"{arrival_date} {arrival_time}".strip()
+                departure = f"{departure_date} {departure_time}".strip()
+                arrival = f"{arrival_date} {arrival_time}".strip()
 
-            results.append({
-                "type": "Bus",
-                "status": b.get("Status") or "Completed",
-                "booking_id": b.get("BookingRefNo"),
-                "route": b.get("TripDetails") or d.get("Route"),
-                "journey_date": b.get("JourneyDate") or b.get("DateOfJourney"),
-                "source": d.get("Source"),
-                "destination": d.get("Destination"),
-                "departure": departure,
-                "arrival": arrival,
-                "operator": d.get("TravelsOperator"),
-                "bus_type": d.get("BusType")
-            })
-        
+                results.append({
+                    "type": "Bus",
+                    "status": b.get("Status") or status_key,
+                    "booking_id": b.get("BookingRefNo"),
+                    "route": b.get("TripDetails") or d.get("Route"),
+                    "journey_date": b.get("JourneyDate") or b.get("DateOfJourney"),
+                    "source": d.get("Source"),
+                    "destination": d.get("Destination"),
+                    "departure": departure,
+                    "arrival": arrival,
+                    "operator": d.get("TravelsOperator"),
+                    "bus_type": d.get("BusType")
+                })
+
         return results
+
+
+def build_whatsapp_bus_bookings_response(bookings: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Build WhatsApp-formatted response for bus bookings."""
+    items = []
+    for b in bookings:
+        route = b.get("route")
+        if not route and b.get("source") and b.get("destination"):
+            route = f"{b['source']} → {b['destination']}"
+
+        items.append({
+            "status": b.get("status"),
+            "booking_id": b.get("booking_id"),
+            "route": route,
+            "journey_date": b.get("journey_date"),
+            "departure": b.get("departure"),
+            "arrival": b.get("arrival"),
+            "operator": b.get("operator"),
+            "bus_type": b.get("bus_type"),
+        })
+
+    return {
+        "type": "bus_bookings",
+        "total": len(items),
+        "bookings": items,
+    }

@@ -12,11 +12,15 @@ class LoginTokenProvider(TokenProvider):
         self._auth: Optional[str] = None
         self._action2_token: Optional[str] = None
         self._cookc: Optional[str] = None
+        self._cookm: Optional[str] = None
         self._email: Optional[str] = None
         self._phone: Optional[str] = None
         self._uid: Optional[str] = None
         self._name: Optional[str] = None
-        self._ip: str = "49.249.40.58"  
+        self._ip: str = "49.249.40.58"
+        # OTP intermediate state (between send_otp and verify_otp)
+        self._otp_token: Optional[str] = None
+        self._otp_phone_or_email: Optional[str] = None
     
     async def get_tokens(self) -> dict:
         """Return tokens required for the service"""
@@ -35,17 +39,19 @@ class LoginTokenProvider(TokenProvider):
         uid: Optional[str] = None,
         name: Optional[str] = None,
         action2_token: Optional[str] = None,
-        cookc: Optional[str] = None
+        cookc: Optional[str] = None,
+        cookm: Optional[str] = None
     ) -> None:
         self._logged_in = True
         self._auth = auth_token
         self._action2_token = action2_token
         self._cookc = cookc
+        self._cookm = cookm
         self._email = email
         self._phone = phone
         self._uid = uid
         self._name = name
-        self._ip = "49.249.40.58"  
+        self._ip = "49.249.40.58"
     
     def get_session(self) -> dict:
         return {
@@ -53,6 +59,7 @@ class LoginTokenProvider(TokenProvider):
             "auth": self._auth,
             "action2_token": self._action2_token,
             "cookc": self._cookc,
+            "cookm": self._cookm,
             "email": self._email,
             "phone": self._phone,
             "uid": self._uid,
@@ -75,11 +82,14 @@ class LoginTokenProvider(TokenProvider):
         self._auth = None
         self._action2_token = None
         self._cookc = None
+        self._cookm = None
         self._email = None
         self._phone = None
         self._uid = None
         self._name = None
         self._ip = "49.249.40.58"
+        self._otp_token = None
+        self._otp_phone_or_email = None
     
     def is_authenticated(self) -> bool:
         return self._logged_in and self._auth is not None
@@ -111,3 +121,25 @@ class LoginTokenProvider(TokenProvider):
     def get_uid(self) -> Optional[str]:
         """Get UID (phone or email used for login)"""
         return self._uid
+
+    def get_cookm(self) -> Optional[str]:
+        """Get CookM token"""
+        return self._cookm
+
+    def set_otp_pending(self, otp_token: str, phone_or_email: str) -> None:
+        """Store intermediate OTP token from API 1 (between send and verify)."""
+        self._otp_token = otp_token
+        self._otp_phone_or_email = phone_or_email
+
+    def get_otp_token(self) -> Optional[str]:
+        """Get stored OTP token from API 1."""
+        return self._otp_token
+
+    def get_otp_phone_or_email(self) -> Optional[str]:
+        """Get phone/email used for OTP send."""
+        return self._otp_phone_or_email
+
+    def clear_otp_pending(self) -> None:
+        """Clear intermediate OTP state after verification completes."""
+        self._otp_token = None
+        self._otp_phone_or_email = None

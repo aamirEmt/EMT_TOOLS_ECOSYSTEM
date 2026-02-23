@@ -1,0 +1,999 @@
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Interactive Cancellation Test</title></head><body style="background:#f5f5f5;padding:20px;">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+.booking-details-carousel {
+  font-family: poppins, sans-serif;
+  color: #202020;
+  background: rgba(255, 255, 255, 0.92);
+  position: relative;
+}
+
+.booking-details-carousel * {
+  font-family: inherit;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.booking-details-carousel main {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px 0 30px;
+  position: relative;
+}
+
+.booking-details-carousel .bkhd {
+  margin-bottom: 16px;
+}
+
+.booking-details-carousel .bkttl {
+  font-size: 18px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 4px;
+}
+
+.booking-details-carousel .bksub {
+  font-size: 12px;
+  color: #646d74;
+  margin-top: 4px;
+}
+
+.booking-details-carousel .hotel-info {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.booking-details-carousel .hotel-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.booking-details-carousel .hotel-name img {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.booking-details-carousel .hotel-address {
+  font-size: 12px;
+  color: #646d74;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.booking-details-carousel .hotel-address img {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.booking-details-carousel .hotel-dates {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #202020;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .date-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-details-carousel .date-label {
+  font-size: 10px;
+  color: #868686;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.booking-details-carousel .date-value {
+  font-weight: 600;
+}
+
+.booking-details-carousel .rooms-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 12px;
+}
+
+.booking-details-carousel .slider-shell {
+  position: relative;
+}
+
+.booking-details-carousel .rsltcvr {
+  width: 90%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: grab;
+}
+
+.booking-details-carousel .rsltcvr:active {
+  cursor: grabbing;
+}
+
+.booking-details-carousel .embla__container {
+  display: flex;
+  gap: 16px;
+}
+
+.booking-details-carousel .room-card {
+  width: 280px;
+  min-width: 280px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: #fff;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-details-carousel .room-header {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.booking-details-carousel .room-type {
+  font-size: 15px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 0px;
+}
+
+.booking-details-carousel .room-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.booking-details-carousel .detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 12px;
+}
+
+.booking-details-carousel .detail-label {
+  color: #646d74;
+  font-weight: 500;
+}
+
+.booking-details-carousel .detail-value {
+  color: #202020;
+  font-weight: 600;
+  text-align: right;
+  max-width: 60%;
+}
+
+.booking-details-carousel .amount-highlight {
+  font-size: 16px;
+  font-family: inter, sans-serif;
+  color: #ef6614;
+}
+
+.booking-details-carousel .policy-text {
+  font-size: 11px;
+  color: #646d74;
+  background: #fff8e1;
+  padding: 8px;
+  border-radius: 6px;
+  border-left: 3px solid #ffc107;
+  margin-top: 8px;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.booking-details-carousel .refundable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #2e7d32;
+  background: #e8f5e9;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .refundable::before {
+  content: '✓';
+  font-weight: bold;
+}
+
+.booking-details-carousel .non-refundable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.booking-details-carousel .non-refundable::before {
+  content: '✗';
+  font-weight: bold;
+}
+
+/* ---- Interactive step styles ---- */
+
+.booking-details-carousel .hc-step {
+  display: none;
+}
+
+.booking-details-carousel .hc-step.active {
+  display: block;
+}
+
+.booking-details-carousel .hc-cancel-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: poppins, sans-serif;
+  transition: opacity 0.2s;
+}
+
+.booking-details-carousel .hc-cancel-btn:hover {
+  opacity: 0.85;
+}
+
+.booking-details-carousel .hc-form-group {
+  margin-bottom: 16px;
+}
+
+.booking-details-carousel .hc-form-group label {
+  display: block;
+  font-size: 12px;
+  color: #646d74;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.booking-details-carousel .hc-reason-select,
+.booking-details-carousel .hc-remark-textarea,
+.booking-details-carousel .hc-otp-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: poppins, sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+  background: #fff;
+  color: #202020;
+}
+
+.booking-details-carousel .hc-reason-select:focus,
+.booking-details-carousel .hc-remark-textarea:focus,
+.booking-details-carousel .hc-otp-input:focus {
+  border-color: #ef6614;
+}
+
+.booking-details-carousel .hc-loading {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.85);
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 12px;
+}
+
+.booking-details-carousel .hc-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #ef6614;
+  border-radius: 50%;
+  animation: hcSpin 0.8s linear infinite;
+}
+
+@keyframes hcSpin {
+  to { transform: rotate(360deg); }
+}
+
+.booking-details-carousel .hc-error-msg {
+  display: none;
+  background: #ffebee;
+  color: #d32f2f;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 12px;
+  border-left: 3px solid #d32f2f;
+}
+
+.booking-details-carousel .hc-back-btn {
+  background: none;
+  border: 1px solid #e0e0e0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #646d74;
+  font-family: poppins, sans-serif;
+  transition: border-color 0.2s;
+}
+
+.booking-details-carousel .hc-back-btn:hover {
+  border-color: #ef6614;
+  color: #ef6614;
+}
+
+.booking-details-carousel .hc-submit-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #ef6614 0%, #f58434 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: poppins, sans-serif;
+  transition: opacity 0.2s;
+}
+
+.booking-details-carousel .hc-submit-btn:hover {
+  opacity: 0.85;
+}
+
+.booking-details-carousel .hc-selected-room-badge {
+  background: #f5f5f5;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  border-left: 3px solid #ef6614;
+}
+
+.booking-details-carousel .hc-btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.booking-details-carousel .hc-otp-hint {
+  font-size: 13px;
+  color: #646d74;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* Success result styling */
+.booking-details-carousel .hc-success-box {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+  border: 2px solid #4caf50;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.booking-details-carousel .hc-success-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+  animation: hcSuccessPop 0.6s ease-out;
+}
+
+@keyframes hcSuccessPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.booking-details-carousel .hc-success-icon svg {
+  width: 36px;
+  height: 36px;
+  color: #fff;
+}
+
+.booking-details-carousel .hc-success-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2e7d32;
+  margin-bottom: 16px;
+}
+
+.booking-details-carousel .hc-refund-box {
+  background: linear-gradient(135deg, #fff8e1 0%, #fffbea 100%);
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+  text-align: left;
+}
+
+.booking-details-carousel .hc-refund-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f57c00;
+  margin-bottom: 10px;
+}
+
+.booking-details-carousel .hc-refund-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.booking-details-carousel .hc-refund-label {
+  color: #646d74;
+}
+
+.booking-details-carousel .hc-refund-value {
+  font-weight: 600;
+  color: #202020;
+}
+
+.booking-details-carousel .hc-refund-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ef6614;
+  font-family: inter, sans-serif;
+  margin-bottom: 8px;
+}
+
+.booking-details-carousel .hc-footer-note {
+  font-size: 12px;
+  color: #868686;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Dark mode support */
+.booking-details-carousel.dark {
+  background: #000;
+  color: #fff;
+}
+
+.booking-details-carousel.dark .room-card,
+.booking-details-carousel.dark .hotel-info {
+  background: #000;
+  border-color: #373737;
+}
+
+.booking-details-carousel.dark .room-header {
+  border-color: #373737;
+}
+
+.booking-details-carousel.dark .bkttl,
+.booking-details-carousel.dark .hotel-name,
+.booking-details-carousel.dark .room-type,
+.booking-details-carousel.dark .date-value,
+.booking-details-carousel.dark .detail-value {
+  color: #fff;
+}
+
+.booking-details-carousel.dark .bksub,
+.booking-details-carousel.dark .hotel-address,
+.booking-details-carousel.dark .room-number,
+.booking-details-carousel.dark .date-label,
+.booking-details-carousel.dark .detail-label {
+  color: #bcbcbc;
+}
+
+.booking-details-carousel.dark .hc-loading {
+  background: rgba(0,0,0,0.85);
+}
+
+.booking-details-carousel.dark .hc-reason-select,
+.booking-details-carousel.dark .hc-remark-textarea,
+.booking-details-carousel.dark .hc-otp-input {
+  background: #1a1a1a;
+  border-color: #373737;
+  color: #fff;
+}
+
+.booking-details-carousel.dark .hc-error-msg {
+  background: #3d0000;
+  color: #ff8a80;
+}
+
+.booking-details-carousel.dark .hc-back-btn {
+  border-color: #373737;
+  color: #bcbcbc;
+}
+
+.booking-details-carousel.dark .hc-selected-room-badge {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.booking-details-carousel.dark .hc-success-box {
+  background: linear-gradient(135deg, #1a3a1a 0%, #1f2d1f 100%);
+}
+
+.booking-details-carousel.dark .hc-success-title {
+  color: #66bb6a;
+}
+
+.booking-details-carousel.dark .hc-refund-box {
+  background: linear-gradient(135deg, #332a00 0%, #3d3200 100%);
+}
+
+.booking-details-carousel.dark .hc-refund-value {
+  color: #fff;
+}
+
+.booking-details-carousel.dark .hc-refund-label {
+  color: #bcbcbc;
+}
+</style>
+
+<div class="booking-details-carousel" data-instance-id="e15c0e86">
+  <main>
+    <!-- Loading overlay -->
+    <div class="hc-loading"><div class="hc-spinner"></div></div>
+
+    <!-- Error banner -->
+    <div class="hc-error-msg"></div>
+
+    <!-- Header -->
+    <div class="bkhd">
+      <div class="bkttl">Booking Details - EMT1624718</div>
+      <div class="bksub">15 Mar 2026 to 18 Mar 2026 • 3 nights • 2 rooms • Mr Rahul Sharma</div>
+    </div>
+
+    
+    <div class="hotel-info">
+      <div class="hotel-name"><img src="https://mybookings.easemytrip.com/Content/assest/img/hotel-blic.svg" alt="">Taj Palace Hotel</div>
+      
+      <div class="hotel-address"><img src="https://mybookings.easemytrip.com/Content/assest/img/ico-map.svg" alt="">1, Mansingh Road, New Delhi</div>
+      
+      <div class="hotel-dates">
+        
+        <div class="date-item">
+          <div class="date-label">Check-in</div>
+          <div class="date-value">15 Mar 2026</div>
+        </div>
+        
+        
+        <div class="date-item">
+          <div class="date-label">Check-out</div>
+          <div class="date-value">18 Mar 2026</div>
+        </div>
+        
+      </div>
+    </div>
+    
+
+    <!-- STEP 1: Room details + cancel buttons -->
+    <div class="hc-step active" data-step="details">
+      <div class="rooms-title">Select a room to cancel</div>
+      <div class="slider-shell">
+        <div class="rsltcvr">
+          <div class="embla__container">
+            
+            <div class="room-card">
+              <div class="room-header">
+                <div class="room-type">Deluxe Room</div>
+              </div>
+              <div class="room-details">
+                
+                <div class="detail-row">
+                  <span class="detail-label">Amount</span>
+                  <span class="detail-value amount-highlight">₹7500</span>
+                </div>
+                
+                
+                <div class="detail-row">
+                  <span class="detail-label">Adults</span>
+                  <span class="detail-value">2</span>
+                </div>
+                
+                
+                <div class="detail-row">
+                  <span class="detail-label">Payment</span>
+                  <span class="detail-value">Prepaid</span>
+                </div>
+                
+                
+                <div class="policy-text">Free cancellation before 12 Mar 2026.
+Charges apply after.</div>
+                
+                
+                <div class="refundable">Refundable</div>
+                
+              </div>
+              <button type="button" class="hc-cancel-btn" data-room-id="R001">Cancel This Room</button>
+            </div>
+            
+            <div class="room-card">
+              <div class="room-header">
+                <div class="room-type">Suite</div>
+              </div>
+              <div class="room-details">
+                
+                <div class="detail-row">
+                  <span class="detail-label">Amount</span>
+                  <span class="detail-value amount-highlight">₹7500</span>
+                </div>
+                
+                
+                <div class="detail-row">
+                  <span class="detail-label">Adults</span>
+                  <span class="detail-value">2</span>
+                </div>
+                
+                
+                <div class="detail-row">
+                  <span class="detail-label">Payment</span>
+                  <span class="detail-value">Pay at Hotel</span>
+                </div>
+                
+                
+                <div class="policy-text">Non-refundable booking.</div>
+                
+                
+                <div class="non-refundable">Non-Refundable</div>
+                
+              </div>
+              <button type="button" class="hc-cancel-btn" data-room-id="R002">Cancel This Room</button>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Reason + Send OTP -->
+    <div class="hc-step" data-step="reason">
+      <div class="hc-selected-room-badge">
+        Cancelling: <strong class="hc-selected-room-label"></strong>
+      </div>
+      <div class="hc-form-group">
+        <label>Reason for cancellation</label>
+        <select class="hc-reason-select">
+          <option value="Change of plans">Change of plans</option>
+          <option value="Found better deal">Found a better deal</option>
+          <option value="Travel dates changed">Travel dates changed</option>
+          <option value="Personal reasons">Personal reasons</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="hc-form-group">
+        <label>Additional remarks (optional)</label>
+        <textarea class="hc-remark-textarea" rows="3" placeholder="Any additional details..."></textarea>
+      </div>
+      <div class="hc-btn-row">
+        <button type="button" class="hc-back-btn" data-back-to="details">Back</button>
+        <button type="button" class="hc-submit-btn hc-send-otp-btn">Send OTP to Email</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: OTP input + Confirm -->
+    <div class="hc-step" data-step="otp">
+      <div class="hc-selected-room-badge">
+        Cancelling: <strong class="hc-selected-room-label"></strong>
+      </div>
+      <p class="hc-otp-hint">
+        An OTP has been sent to your registered email address. Please enter it below to confirm the cancellation.
+      </p>
+      <div class="hc-form-group">
+        <label>Enter OTP</label>
+        <input type="text" class="hc-otp-input" maxlength="10" placeholder="e.g., ABC123" autocomplete="one-time-code" />
+      </div>
+      <div class="hc-btn-row">
+        <button type="button" class="hc-back-btn" data-back-to="reason">Back</button>
+        <button type="button" class="hc-submit-btn hc-confirm-btn">Confirm Cancellation</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Result -->
+    <div class="hc-step" data-step="result">
+      <div class="hc-result-content"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var instanceId = 'e15c0e86';
+  var container = document.querySelector('[data-instance-id="' + instanceId + '"]');
+  if (!container) return;
+  if (container.hasAttribute('data-initialized')) return;
+  container.setAttribute('data-initialized', 'true');
+
+  /* ============================================
+     MOCK MODE — set to true for local UI testing
+     (no real API calls, fake responses returned)
+     Set to false to use real EaseMyTrip APIs.
+     ============================================ */
+  var MOCK_MODE = true;
+
+  var OTP_URL = 'https://mybookings.easemytrip.com/Hotels/CancellationOtp';
+  var CANCEL_URL = 'https://mybookings.easemytrip.com/Hotels/RequestCancellation';
+  var BID = 'TEST_BID_VALUE';
+  var BOOKING_ID = 'EMT1624718';
+  var EMAIL = 'rahul@test.com';
+  var ROOMS = [{"amount": "7500", "is_pay_at_hotel": false, "room_id": "R001", "room_no": "301", "room_type": "Deluxe Room", "transaction_id": "TXN001"}, {"amount": "7500", "is_pay_at_hotel": true, "room_id": "R002", "room_no": "502", "room_type": "Suite", "transaction_id": "TXN002"}];
+  var PAYMENT_URL = '';
+
+  var selectedRoom = null;
+
+  /* ---- DOM references (scoped to container) ---- */
+  var loadingOverlay = container.querySelector('.hc-loading');
+  var errorBanner = container.querySelector('.hc-error-msg');
+
+  /* ---- Utility functions ---- */
+  function showStep(stepName) {
+    var steps = container.querySelectorAll('.hc-step');
+    for (var i = 0; i < steps.length; i++) {
+      steps[i].classList.remove('active');
+    }
+    var target = container.querySelector('[data-step="' + stepName + '"]');
+    if (target) target.classList.add('active');
+    errorBanner.style.display = 'none';
+  }
+
+  function showLoading(show) {
+    loadingOverlay.style.display = show ? 'flex' : 'none';
+  }
+
+  function showError(message) {
+    errorBanner.textContent = message;
+    errorBanner.style.display = 'block';
+  }
+
+  function updateRoomLabels() {
+    if (!selectedRoom) return;
+    var labels = container.querySelectorAll('.hc-selected-room-label');
+    var text = selectedRoom.room_type;
+    if (selectedRoom.room_no) text += ' (Room ' + selectedRoom.room_no + ')';
+    if (selectedRoom.amount) text += ' — ₹' + selectedRoom.amount;
+    for (var i = 0; i < labels.length; i++) {
+      labels[i].textContent = text;
+    }
+  }
+
+  /* ---- Mock helper: simulate network delay ---- */
+  function mockDelay(data, ms) {
+    return new Promise(function(resolve) {
+      setTimeout(function() { resolve(data); }, ms || 1000);
+    });
+  }
+
+  /* ---- API helpers (direct EaseMyTrip calls — train pattern) ---- */
+  function sendOtp() {
+    showLoading(true);
+    errorBanner.style.display = 'none';
+
+    if (MOCK_MODE) {
+      return mockDelay({ isStatus: true, Msg: 'OTP has been sent to your registerd Mobile/Email.' }, 1000)
+        .then(function(data) { showLoading(false); return data; });
+    }
+
+    return fetch(OTP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ EmtScreenID: BID })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      showLoading(false);
+      if (!data.isStatus) {
+        showError(data.Msg || data.Message || 'Failed to send OTP. Please try again.');
+        return null;
+      }
+      return data;
+    })
+    .catch(function(err) {
+      showLoading(false);
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
+      return null;
+    });
+  }
+
+  function confirmCancellation(otp, reason, remark) {
+    showLoading(true);
+    errorBanner.style.display = 'none';
+
+    if (MOCK_MODE) {
+      var mockRoom = selectedRoom || {};
+      return mockDelay({
+        Status: true,
+        isStatus: true,
+        LogMessage: 'Your hotel booking has been cancelled successfully.',
+        RefundAmount: mockRoom.amount || '7500',
+        CancellationCharges: '750',
+        RefundMode: 'Original Payment Method',
+        Data: {
+          Text: 'Cancellation processed for ' + (mockRoom.room_type || 'Room') + '. Booking ID: ' + BOOKING_ID,
+          charge: '750',
+          currency: 'INR'
+        }
+      }, 1500).then(function(data) { showLoading(false); return data; });
+    }
+
+    return fetch(CANCEL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        Remark: remark || '',
+        Reason: reason || 'Change of plans',
+        OTP: otp,
+        RoomId: 'undefined',
+        TransactionId: selectedRoom ? String(selectedRoom.transaction_id) : '',
+        IsPayHotel: selectedRoom ? String(!!selectedRoom.is_pay_at_hotel) : 'false',
+        PaymentUrl: PAYMENT_URL || '',
+        ApplicationType: 'false',
+        Bid: BID
+      })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      showLoading(false);
+      if (typeof data === 'string') {
+        var success = data.toLowerCase().indexOf('success') !== -1;
+        if (!success) {
+          showError(data || 'Cancellation failed. Please try again.');
+          return null;
+        }
+        return { Status: true, message: data };
+      }
+      if (!data.Status && !data.isStatus) {
+        showError(data.LogMessage || data.Message || data.Msg || 'Cancellation failed. Please try again.');
+        return null;
+      }
+      return data;
+    })
+    .catch(function(err) {
+      showLoading(false);
+      var msg = (err && err.message && err.message.indexOf('Failed to fetch') !== -1)
+        ? 'Unable to reach the server. This may be a CORS issue in local testing — it should work in production.'
+        : 'Network error. Please check your connection and try again.';
+      showError(msg);
+      return null;
+    });
+  }
+
+  /* ---- Step 1: Room selection ---- */
+  var cancelBtns = container.querySelectorAll('.hc-cancel-btn');
+  for (var i = 0; i < cancelBtns.length; i++) {
+    cancelBtns[i].addEventListener('click', function() {
+      var roomId = this.getAttribute('data-room-id');
+      selectedRoom = null;
+      for (var j = 0; j < ROOMS.length; j++) {
+        if (ROOMS[j].room_id === roomId) {
+          selectedRoom = ROOMS[j];
+          break;
+        }
+      }
+      if (!selectedRoom) return;
+      updateRoomLabels();
+      showStep('reason');
+    });
+  }
+
+  /* ---- Step 2: Send OTP ---- */
+  var sendOtpBtn = container.querySelector('.hc-send-otp-btn');
+  if (sendOtpBtn) {
+    sendOtpBtn.addEventListener('click', function() {
+      sendOtp().then(function(result) {
+        if (result) showStep('otp');
+      });
+    });
+  }
+
+  /* ---- Step 3: Confirm cancellation ---- */
+  var confirmBtn = container.querySelector('.hc-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', function() {
+      var otpInput = container.querySelector('.hc-otp-input');
+      var otp = otpInput ? otpInput.value.trim() : '';
+      if (!otp || otp.length < 4) {
+        showError('Please enter a valid OTP.');
+        return;
+      }
+
+      var reasonSelect = container.querySelector('.hc-reason-select');
+      var remarkTextarea = container.querySelector('.hc-remark-textarea');
+
+      confirmCancellation(
+        otp,
+        reasonSelect ? reasonSelect.value : 'Change of plans',
+        remarkTextarea ? remarkTextarea.value : ''
+      ).then(function(result) {
+        if (result) {
+          renderResult(result);
+          showStep('result');
+        }
+      });
+    });
+  }
+
+  /* ---- Step 4: Render result (direct API response format) ---- */
+  function renderResult(data) {
+    var resultContainer = container.querySelector('.hc-result-content');
+
+    var html = '<div class="hc-success-box">';
+    html += '<div class="hc-success-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>';
+    html += '<div class="hc-success-title">Cancellation Confirmed!</div>';
+
+    /* Parse refund info from direct API response */
+    var refundAmount = data.RefundAmount;
+    var cancellationCharges = data.CancellationCharges;
+    var refundMode = data.RefundMode;
+    var detail = data.Data || {};
+
+    if (detail.charge) cancellationCharges = detail.charge;
+    if (detail.currency) refundMode = detail.currency;
+    if (detail.Text) {
+      html += '<p style="font-size:13px;color:#646d74;margin-bottom:12px;">' + detail.Text + '</p>';
+    }
+
+    if (refundAmount || cancellationCharges || refundMode) {
+      html += '<div class="hc-refund-box">';
+      html += '<div class="hc-refund-title">Refund Information</div>';
+      if (refundAmount) {
+        html += '<div class="hc-refund-amount">₹' + refundAmount + '</div>';
+      }
+      if (cancellationCharges) {
+        html += '<div class="hc-refund-row"><span class="hc-refund-label">Cancellation Charges</span><span class="hc-refund-value">₹' + cancellationCharges + '</span></div>';
+      }
+      if (refundMode) {
+        html += '<div class="hc-refund-row"><span class="hc-refund-label">Refund Mode</span><span class="hc-refund-value">' + refundMode + '</span></div>';
+      }
+      html += '</div>';
+    }
+
+    html += '</div>';
+    html += '<div class="hc-footer-note">You will receive a confirmation email shortly. Refund will be processed within 5-7 business days.</div>';
+
+    resultContainer.innerHTML = html;
+  }
+
+  /* ---- Back navigation ---- */
+  var backBtns = container.querySelectorAll('.hc-back-btn');
+  for (var i = 0; i < backBtns.length; i++) {
+    backBtns[i].addEventListener('click', function() {
+      var target = this.getAttribute('data-back-to');
+      showStep(target);
+    });
+  }
+
+})();
+</script></body></html>
