@@ -829,7 +829,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         </div>
       </div>
       {% endif %}
-      <div class="rooms-title">Select a room to cancel</div>
+      <div class="rooms-title">Room Details</div>
       <div class="slider-shell">
         <div class="rsltcvr">
           <div class="embla__container">
@@ -872,16 +872,14 @@ INTERACTIVE_BOOKING_TEMPLATE = """
                 <div class="non-refundable">Non-Refundable</div>
                 {% endif %}
               </div>
-              {% if room.is_cancelled %}
-              <button type="button" class="hc-cancel-btn" disabled style="background:#ccc;cursor:not-allowed;">Already Cancelled</button>
-              {% else %}
-              <button type="button" class="hc-cancel-btn" data-room-id="{{ room.room_id }}">Cancel This Room</button>
-              {% endif %}
             </div>
             {% endfor %}
           </div>
         </div>
       </div>
+      {% if not all_cancelled %}
+      <button type="button" class="hc-cancel-btn hc-single-cancel-btn" style="margin-top:16px;">Cancel</button>
+      {% endif %}
     </div>
 
     <!-- STEP 2: Reason + Send OTP -->
@@ -1202,14 +1200,13 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     });
   }
 
-  /* ---- Step 1: Room selection ---- */
-  var cancelBtns = container.querySelectorAll('.hc-cancel-btn');
-  for (var i = 0; i < cancelBtns.length; i++) {
-    cancelBtns[i].addEventListener('click', function() {
-      var roomId = this.getAttribute('data-room-id');
+  /* ---- Step 1: Single cancel button ---- */
+  var singleCancelBtn = container.querySelector('.hc-single-cancel-btn');
+  if (singleCancelBtn) {
+    singleCancelBtn.addEventListener('click', function() {
       selectedRoom = null;
       for (var j = 0; j < ROOMS.length; j++) {
-        if (ROOMS[j].room_id === roomId) {
+        if (!ROOMS[j].is_cancelled) {
           selectedRoom = ROOMS[j];
           break;
         }
