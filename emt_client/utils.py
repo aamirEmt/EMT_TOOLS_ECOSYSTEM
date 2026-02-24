@@ -98,15 +98,17 @@ async def resolve_city_name(raw_city: str) -> str:
         
         if isinstance(data, list) and len(data) > 0:
             normalized = data[0].get("name")
+            lat = data[0].get("lat")
+            lon = data[0].get("lon")
             if normalized:
-                return normalized
+                return (normalized, lat, lon)
         
         # Fallback: return original input
-        return raw_city
+        return (raw_city, None, None)
     
     except Exception as e:
         print(f"[CityResolver] Error: {e}. Using raw input: {raw_city}")
-        return raw_city
+        return (raw_city, None, None)
     
 def generate_hotel_search_key(
     city_code: str,
