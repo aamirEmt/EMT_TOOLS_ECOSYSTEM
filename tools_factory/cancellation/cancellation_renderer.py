@@ -878,7 +878,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         </div>
       </div>
       {% if not all_cancelled %}
-      <button type="button" class="hc-cancel-btn hc-single-cancel-btn" style="margin-top:16px;">Cancel</button>
+      <button type="button" class="hc-cancel-btn hc-single-cancel-btn" style="margin-top:16px;width:{{ '71%' if rooms|length == 1 else '90%' }};">Cancel</button>
       {% endif %}
     </div>
 
