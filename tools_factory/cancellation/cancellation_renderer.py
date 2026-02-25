@@ -4841,7 +4841,7 @@ FLIGHT_BOOKING_TEMPLATE = """
           {% if 'out' in seg.bound_type|lower %}Outbound{% elif 'in' in seg.bound_type|lower %}Inbound{% else %}{{ seg.bound_type }}{% endif %}
         </div>
         {% endif %}
-        <div class="fc-airline-row">{{ seg.airline_name }} {{ seg.flight_number }}</div>
+        <div class="fc-airline-row">{{ seg.airline_code or seg.airline_name }} {{ seg.flight_number }}</div>
         <div class="fc-route">
           <span>{{ seg.origin }}{% if seg.origin_airport %} ({{ seg.origin_airport | truncate_text(25) }}){% endif %}</span>
           <span class="fc-route-arrow">→</span>
