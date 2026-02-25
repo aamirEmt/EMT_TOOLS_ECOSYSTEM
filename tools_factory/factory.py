@@ -8,6 +8,7 @@ from tools_factory.trains.Train_RouteCheck.route_check_tool import TrainRouteChe
 from tools_factory.trains.Train_StatusCheck.train_status_tool import TrainStatusTool
 from tools_factory.login.login_tool import LoginTool
 from tools_factory.otp_login.otp_login_tool import OtpLoginTool
+from tools_factory.flight_post_booking.post_booking_tool import FlightPostBookingTool
 # from tools_factory.buses.bus_search_tool import BusSearchTool, BusSeatLayoutTool
 from tools_factory.buses.bus_search_tool import BusSearchTool
 from tools_factory.bookings.flight_bookings_tool import GetFlightBookingsTool
@@ -32,7 +33,7 @@ class ToolFactory:
         # Search tools (no session needed)
         self.register_tool(FlightSearchTool())
         self.register_tool(HotelSearchTool())
-        self.register_tool(BusSearchTool())
+        #self.register_tool(BusSearchTool())
         # self.register_tool(BusSeatLayoutTool())
         
         self.register_tool(TrainSearchTool())
@@ -42,6 +43,9 @@ class ToolFactory:
         self.register_tool(TrainStatusTool())
         # Login tools with session manager for multi-user support
         # login_tool = LoginTool(self.session_manager)
+        self.register_tool(FlightPostBookingTool())
+
+        # login_tool = LoginTool()
         # self.register_tool(login_tool)
         
         # Register booking tools with shared login token provider

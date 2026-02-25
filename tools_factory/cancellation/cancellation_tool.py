@@ -93,6 +93,7 @@ class CancellationTool(BaseTool):
         return ToolMetadata(
             name="cancellation",
             description=(
+                "NEVER ASK PNR ALWAYS ASK FOR EMT BOOKING ID."
                 "Booking cancellation tool for Hotel, Train, Bus, and Flight bookings. "
                 "Supports all EaseMyTrip booking types — the system auto-detects the module from the booking ID. "
                 "Use action='start' with booking_id and email to login and fetch booking details (login OTP is auto-sent). "
@@ -112,6 +113,7 @@ class CancellationTool(BaseTool):
     async def execute(self, **kwargs) -> ToolResponseFormat:
         user_type = kwargs.pop("_user_type", "chatbot")
         kwargs.pop("_limit", None)
+        kwargs.pop("_session_id", None)
 
         try:
             input_data = CancellationInput.model_validate(kwargs)
@@ -1017,7 +1019,7 @@ class CancellationTool(BaseTool):
 
         # Flight segments info
         for seg in flight_segments:
-            airline = seg.get("airline_name", "")
+            airline = seg.get("airline_code") or seg.get("airline_name", "")
             flight_no = seg.get("flight_number", "")
             origin = seg.get("origin", "")
             destination = seg.get("destination", "")
@@ -1821,7 +1823,7 @@ class CancellationTool(BaseTool):
 
         # Flight segments info
         for seg in flight_segments:
-            airline = seg.get("airline_name", "")
+            airline = seg.get("airline_code") or seg.get("airline_name", "")
             flight_no = seg.get("flight_number", "")
             origin = seg.get("origin", "")
             destination = seg.get("destination", "")

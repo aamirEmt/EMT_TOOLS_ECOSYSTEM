@@ -360,7 +360,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 }
 
 .train-carousel .class-refresh-btn {
-  margin-top: 6px;
+  margin-top: auto;
   padding: 7px 8px;
   background: #fff;
   color: #2093ef;
@@ -686,7 +686,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
                 {% set is_regret = 'REGRET' in cls.availability_status or 'NOT AVAILABLE' in cls.availability_status or 'TRAIN CANCELLED' in cls.availability_status %}
                 {% set is_bookable = 'AVAILABLE' in cls.availability_status or 'WL' in cls.availability_status or 'RAC' in cls.availability_status or cls.availability_status == 'Check Online' %}
                 {% set needs_refresh = cls.availability_status in ['N/A', 'Tap To Refresh', 'Check Online', ''] or not cls.availability_status %}
-                <div class="class-card" data-train-no="{{ train.train_number }}" data-class-code="{{ cls.class_code }}" data-from-code="{{ train.from_station_code }}" data-to-code="{{ train.to_station_code }}" data-quota="{{ quota }}" data-journey-date="{{ journey_date_api }}" data-from-display="{{ from_display }}" data-to-display="{{ to_display }}">
+                <div class="class-card" data-train-no="{{ train.train_number }}" data-class-code="{{ cls.class_code }}" data-from-code="{{ train.from_station_code }}" data-to-code="{{ train.to_station_code }}" data-quota="{{ quota }}" data-class-quota="{{ cls.quota }}" data-journey-date="{{ journey_date_api }}" data-from-display="{{ from_display }}" data-to-display="{{ to_display }}">
                   {% if not is_non_general_search %}
                   <button type="button" class="class-refresh-icon-btn" title="Refresh availability">
                     <img src="https://railways.easemytrip.com/img/refresh-icon.svg" alt="Refresh" />
@@ -701,9 +701,18 @@ TRAIN_CAROUSEL_TEMPLATE = """
                     {% if cls.fare != "0" %}
                     <div class="class-fare">₹{{ cls.fare }}</div>
                     {% endif %}
-                    <div class="class-availability {% if is_regret %}unavailable{% elif 'WL' in cls.availability_status %}waitlist{% elif 'RAC' in cls.availability_status %}rac{% elif 'AVAILABLE' in cls.availability_status %}available{% elif cls.availability_status == 'Check Online' %}{% else %}unavailable{% endif %}">
-                      {% if needs_refresh and cls.quota == 'TQ' %}Tatkal{% else %}{{ cls.availability_status | truncate_text(15) }}{% endif %}
+
+                    {% if not needs_refresh %}
+                    <div class="class-availability
+                        {% if is_regret %}unavailable
+                        {% elif 'WL' in cls.availability_status %}waitlist
+                        {% elif 'RAC' in cls.availability_status %}rac
+                        {% elif 'AVAILABLE' in cls.availability_status %}available
+                        {% else %}unavailable{% endif %}">
+                      {{ cls.availability_status | truncate_text(15) }}
                     </div>
+                    {% endif %}
+
                     {% if cls.fare != "0" and cls.fare_updated %}
                     <div class="class-fare-updated">{{ cls.fare_updated }}</div>
                     {% endif %}
@@ -945,8 +954,9 @@ async function refreshAvailability(btn) {
     if (!bookBtn) {
       const newBookBtn = document.createElement('a');
       newBookBtn.className = 'class-book-btn';
+      const classQuota = card.dataset.classQuota || 'GN';
       const quotaBookLabels = {'TQ': 'Book Tatkal', 'SS': 'Book Senior Citizen', 'LD': 'Book Ladies'};
-      newBookBtn.textContent = quotaBookLabels[quota] || 'Book Now';
+      newBookBtn.textContent = quotaBookLabels[classQuota] || 'Book Now';
       newBookBtn.target = '_blank';
       newBookBtn.rel = 'noopener noreferrer';
 

@@ -15,7 +15,7 @@ class TrainSearchInput(BaseModel):
     to_station: str = Field(
         ...,
         alias="toStation",
-        description="Destination station name with code (e.g., 'Vaishno Devi Katra (SVDK)', 'Chennai Central (MAS)')",
+        description="Destination station name with code (e.g., 'Bangalore City (SBC)', 'Chennai Central (MAS)')",
     )
     journey_date: str = Field(
         ...,

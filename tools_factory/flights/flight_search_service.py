@@ -952,7 +952,7 @@ async def search_flights(
     except (TypeError, ValueError):
         fare_type_code = 0
 
-    is_fare_family = fare_type_code != 1
+    is_fare_family = (fare_type_code >= 2)
     is_armed_force = fare_type_code == 1
 
     search_context = {
@@ -1071,6 +1071,41 @@ def process_flight_results(
             return int(value)
         except (TypeError, ValueError):
             return None
+
+    def _build_calendar_suggestions(calendar_data: Any) -> List[Dict[str, Any]]:
+        """Pick top 3 alternate airports from lstCalendarFareData."""
+        if not isinstance(calendar_data, list):
+            return []
+
+        def _to_float(val: Any) -> Optional[float]:
+            try:
+                return float(val)
+            except (TypeError, ValueError):
+                return None
+
+        suggestions: List[Dict[str, Any]] = []
+        for item in calendar_data:
+            if not isinstance(item, dict):
+                continue
+            dest_code = item.get("Destination") or item.get("destination")
+            if not dest_code:
+                continue
+            suggestions.append({
+                "destination": str(dest_code),
+                "destination_name": (item.get("destName") or item.get("destinationName") or item.get("dest_name")),
+                "distance": _to_float(item.get("DistanceArr") or item.get("Distance")),
+                "total_fare": _to_float(item.get("TotalFare")),
+                "departure_date": _parse_date_to_iso(str(item.get("newDate") or item.get("DepDate") or "")) if (item.get("newDate") or item.get("DepDate")) else None,
+            })
+
+        suggestions.sort(
+            key=lambda s: (
+                s["distance"] if s["distance"] is not None else float("inf"),
+                s["total_fare"] if s["total_fare"] is not None else float("inf"),
+            )
+        )
+
+        return suggestions[:3]
 
     def _parse_single_time(value: Any) -> Optional[int]:
         """Parse 'HH:MM' or 'HHMM' (24h)."""
@@ -1209,6 +1244,7 @@ def process_flight_results(
     airlines_map = search_response.get("C", {})
     flight_details_dict = search_response.get("dctFltDtl", {})
     journeys = search_response.get("j", [])
+    calendar_suggestions = _build_calendar_suggestions(search_response.get("lstCalendarFareData"))
 
     if not journeys or not isinstance(journeys, list):
         return {
@@ -1218,6 +1254,8 @@ def process_flight_results(
             "is_international": is_international,
             "international_combos": [],
             "viewAll": None,
+            "calendar_suggestions": calendar_suggestions,
+            "message": (search_response.get("err") or {}).get("desp") or "No flights available for the selected route/date.",
         }
 
     for journey_index, journey in enumerate(journeys):
@@ -1313,6 +1351,7 @@ def process_flight_results(
         "is_international": is_international,
         "international_combos": combos,
         "viewAll": view_all_link,
+        "calendar_suggestions": calendar_suggestions,
         }
 
 def process_segment(
