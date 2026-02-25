@@ -747,7 +747,7 @@ def _build_whatsapp_response_with_class(
             "search_id": search_id,
         },
         currency=train_results.get("currency", "INR"),
-        view_all_trains_url=train_results.get("view_all_link", ""),
+        view_all_trains_url=train_results.get("view_all_link") or  ""
     )
 
     # Build response text based on whether trains were found

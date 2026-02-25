@@ -1650,7 +1650,7 @@ def build_whatsapp_flight_response(
         trip_type=trip_type,
         journey_type="international" if is_international else "domestic",
         currency=flight_results.get("currency", "INR"),
-        view_all_flights_url=flight_results.get("viewAll", ""),
+        view_all_flights_url=flight_results.get("viewAll") or ""
     )
 
     return WhatsappFlightFinalResponse(
