@@ -952,7 +952,7 @@ async def search_flights(
     except (TypeError, ValueError):
         fare_type_code = 0
 
-    is_fare_family = fare_type_code != 1
+    is_fare_family = (fare_type_code >= 2)
     is_armed_force = fare_type_code == 1
 
     search_context = {
