@@ -3556,11 +3556,10 @@ BUS_BOOKING_TEMPLATE = """
   }
   for (var i = 0; i < activePaxCbs.length; i++) {
     activePaxCbs[i].addEventListener('change', function() {
+      var isChecked = this.checked;
+      for (var j = 0; j < activePaxCbs.length; j++) activePaxCbs[j].checked = isChecked;
+      if (selectAllCb) selectAllCb.checked = isChecked;
       updateProceedBtn();
-      if (selectAllCb) {
-        var allChecked = container.querySelectorAll('.bc-pax-cb:not(:disabled):checked').length === activePaxCbs.length;
-        selectAllCb.checked = allChecked;
-      }
     });
   }
 
@@ -4144,7 +4143,7 @@ FLIGHT_BOOKING_TEMPLATE = """
 
 .flight-cancel-carousel .fc-pax-table th {
   background: #f8f9fa;
-  padding: 7px 4px;
+  padding: 7px 2px;
   text-align: left;
   font-weight: 700;
   color: #646d74;
@@ -4842,7 +4841,7 @@ FLIGHT_BOOKING_TEMPLATE = """
           {% if 'out' in seg.bound_type|lower %}Outbound{% elif 'in' in seg.bound_type|lower %}Inbound{% else %}{{ seg.bound_type }}{% endif %}
         </div>
         {% endif %}
-        <div class="fc-airline-row">✈️ {{ seg.airline_name }} {{ seg.flight_number }}</div>
+        <div class="fc-airline-row">{{ seg.airline_name }} {{ seg.flight_number }}</div>
         <div class="fc-route">
           <span>{{ seg.origin }}{% if seg.origin_airport %} ({{ seg.origin_airport | truncate_text(25) }}){% endif %}</span>
           <span class="fc-route-arrow">→</span>
@@ -4876,7 +4875,7 @@ FLIGHT_BOOKING_TEMPLATE = """
           {% if seg.origin_terminal %}
           <div class="fc-detail-item">
             <div class="fc-detail-label">Terminal</div>
-            <div class="fc-detail-value">T{{ seg.origin_terminal }} → T{{ seg.destination_terminal }}</div>
+            <div class="fc-detail-value">{{ seg.origin_terminal }} → {{ seg.destination_terminal }}</div>
           </div>
           {% endif %}
           {% if seg.check_in_baggage %}
