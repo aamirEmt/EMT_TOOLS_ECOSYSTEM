@@ -1184,17 +1184,6 @@ def render_train_results(train_results: Dict[str, Any]) -> str:
 
     subtitle = " • ".join(subtitle_parts)
 
-    # Check if any trains are from nearby stations
-    has_nearby_stations = train_results.get("has_nearby_stations", False)
-    if not has_nearby_stations:
-        # Also check individual trains in case flag wasn't set at top level
-        has_nearby_stations = any(
-            t.get("is_nearby_station", False) for t in trains
-        )
-
-    if has_nearby_stations:
-        subtitle += " • No direct trains available, showing nearby station routes"
-
     # Normalize trains for UI
     trains_ui = [_normalize_train_for_ui(train, search_quota=quota) for train in trains]
 
