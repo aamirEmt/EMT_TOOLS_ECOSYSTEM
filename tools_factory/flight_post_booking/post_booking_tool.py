@@ -116,7 +116,7 @@ class FlightPostBookingTool(BaseTool):
                 ### 2. `"verify_otp"`
                 - Validates the OTP.
                 - Requires:
-                - Booking ID (PNR)
+                - Booking ID **NEVER ASK FOR PNR. ALWAYS ASK FOR EMT BOOKING ID.**
                 - Email
                 - OTP
                 - On success, returns redirect URL containing BID.
