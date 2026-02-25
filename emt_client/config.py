@@ -440,7 +440,7 @@ HOTEL_SEARCH_URL = getenv("HOTEL_SEARCH_URL", HOTEL_SEARCH_URL)
 BUS_SEARCH_URL = _get_config_value(
     'BUS_SEARCH_URL',
     'BUS_SEARCH_URL',
-    default='https://busservice-p.easemytrip.com/v1/services/search/search-bus/'
+    default='https://busservice.easemytrip.com/v1/api/Home/GetSearchResult/'
 )
 
 # Bus SeatBind API endpoint
