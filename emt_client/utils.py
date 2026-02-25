@@ -98,15 +98,17 @@ async def resolve_city_name(raw_city: str) -> str:
         
         if isinstance(data, list) and len(data) > 0:
             normalized = data[0].get("name")
+            lat = data[0].get("lat")
+            lon = data[0].get("lon")
             if normalized:
-                return normalized
+                return (normalized, lat, lon)
         
         # Fallback: return original input
-        return raw_city
+        return (raw_city, None, None)
     
     except Exception as e:
         print(f"[CityResolver] Error: {e}. Using raw input: {raw_city}")
-        return raw_city
+        return (raw_city, None, None)
     
 def generate_hotel_search_key(
     city_code: str,
@@ -328,3 +330,77 @@ def generate_short_link(
             # logger.warning("Short link failed for %s: %s", original_link, str(e))
 
     return results
+
+# ============================================================================
+# BUS UTILITIES
+# ============================================================================
+
+
+def build_bus_search_payload(
+    source_id: str,
+    destination_id: str,
+    date: str,
+    key: str,
+    is_vrl: str = "False",
+    is_volvo: str = "False",
+    is_android_ios_hit: bool = False,
+    agent_code: str = "",
+    country_code: str = "IN",
+    version: str = "1",
+) -> Dict[str, Any]:
+    """
+    Build payload for Bus Search API.
+    
+    POST http://busapi.easemytrip.com/v1/api/detail/List/
+    
+    Args:
+        source_id: Source city ID (e.g., "733" for Delhi)
+        destination_id: Destination city ID (e.g., "757" for Manali)
+        date: Journey date in dd-MM-yyyy format
+        key: API key
+        is_vrl: VRL filter ("True"/"False")
+        is_volvo: Volvo filter ("True"/"False")
+        is_android_ios_hit: Android/iOS flag
+        agent_code: Agent code (optional)
+        country_code: Country code (default "IN")
+        version: API version (default "1")
+        
+    Returns:
+        Dict payload for Bus Search API
+    """
+    return {
+        "sourceId": source_id,
+        "destinationId": destination_id,
+        "date": date,
+        "key": key,
+        "version": version,
+        "isVrl": is_vrl,
+        "isVolvo": is_volvo,
+        "IsAndroidIos_Hit": is_android_ios_hit,
+        "agentCode": agent_code,
+        "CountryCode": country_code,
+    }
+
+
+def build_bus_deeplink(
+    source_id: str,
+    destination_id: str,
+    journey_date: str,
+    bus_id: str,
+) -> str:
+    """
+    Build EaseMyTrip bus booking deeplink.
+    
+    Args:
+        source_id: Source city ID
+        destination_id: Destination city ID
+        journey_date: Journey date in dd-MM-yyyy format
+        bus_id: Bus ID from search results
+        
+    Returns:
+        Booking deeplink URL
+    """
+    return (
+        f"https://www.easemytrip.com/bus/booking/"
+        f"?src={source_id}&dest={destination_id}&date={journey_date}&busId={bus_id}"
+    )

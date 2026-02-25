@@ -35,6 +35,8 @@ class HotelSearchService:
             "checkoutDate",
             "Rooms",
             "pax",
+            "lat",
+            "lon",
         }
 
         filtered_params = {
@@ -60,14 +62,75 @@ class HotelSearchService:
     
 
     def __init__(self):
-        self.client = HotelApiClient()  # ✅ Use HotelApiClient
+        self.client = HotelApiClient()
+
+    def _build_room_details(self, search_input: HotelSearchInput) -> list:
+        """
+        Build RoomDetails array for the API.
+        Each element is one room with NoOfRooms as a 1-based index.
+        Max 2 adults per room.
+
+        If search_input.room_details is provided (LLM path), use it directly.
+        Otherwise, auto-distribute adults/children across num_rooms rooms.
+        """
+        # --- LLM-provided per-room breakdown ---
+        if search_input.room_details:
+            rooms = []
+            for idx, rd in enumerate(search_input.room_details, start=1):
+                rooms.append({
+                    "NoOfRooms": idx,
+                    "NoOfAdult": rd.num_adults,
+                    "NoOfChild": rd.num_children,
+                    "childAge": rd.child_ages if rd.num_children else "",
+                })
+            return rooms
+
+        # --- Auto-distribution fallback ---
+        num_rooms = search_input.num_rooms
+        total_adults = search_input.num_adults
+        total_children = search_input.num_children
+
+        # Collect child ages, defaulting to 1
+        all_child_ages = list(search_input.child_ages or [])
+        while len(all_child_ages) < total_children:
+            all_child_ages.append(1)
+        all_child_ages = all_child_ages[:total_children]
+
+        # Distribute adults: max 2 per room, spread evenly
+        adults_per_room = []
+        remaining_adults = total_adults
+        for i in range(num_rooms):
+            rooms_left = num_rooms - i
+            per_room = min(2, remaining_adults, -(-remaining_adults // rooms_left))  # ceil division, capped at 2
+            adults_per_room.append(per_room)
+            remaining_adults -= per_room
+
+        # Distribute children evenly across rooms
+        children_per_room = [0] * num_rooms
+        for i in range(total_children):
+            children_per_room[i % num_rooms] += 1
+
+        # Build the array
+        rooms = []
+        child_age_idx = 0
+        for i in range(num_rooms):
+            n_children = children_per_room[i]
+            ages_for_room = all_child_ages[child_age_idx:child_age_idx + n_children]
+            child_age_idx += n_children
+            rooms.append({
+                "NoOfRooms": i + 1,
+                "NoOfAdult": adults_per_room[i],
+                "NoOfChild": n_children,
+                "childAge": ",".join(str(a) for a in ages_for_room) if n_children else "",
+            })
+        return rooms
     
     async def search(self, search_input: HotelSearchInput) -> Dict[str, Any]:
         """Execute hotel search workflow"""
         
         try:
             # Step 1: Resolve city names
-            resolved_city = await resolve_city_name(search_input.city_name)
+            resolved_city, lat, lon = await resolve_city_name(search_input.city_name)
             
             # Step 2: Generate search key
             search_key = generate_hotel_search_key(
@@ -88,14 +151,9 @@ class HotelSearchService:
                 "HotelCount": search_input.hotel_count,
                 "PageNo": search_input.page_no,
                 "NoOfRooms": search_input.num_rooms,
-                "RoomDetails": [
-                    {
-                        "NoOfRooms": search_input.num_rooms,
-                        "NoOfAdult": search_input.num_adults,
-                        "NoOfChild": search_input.num_children,
-                        "childAge": "",
-                    }
-                ],
+                "RoomDetails": self._build_room_details(search_input),
+                "lat": lat,
+                "lon": lon,
                 "SearchKey": search_key,
                 "hotelid": [],
                 "maxPrice": search_input.max_price,
@@ -106,6 +164,9 @@ class HotelSearchService:
                 "selectedRating": search_input.rating or [],
                 "selectedTARating": search_input.user_rating or [],
             }
+
+            # print(f"DEBUG: Hotel API payload HotelCount: {payload.get('HotelCount')}")
+
             #print(payload)
             # Step 4: Call API (tokens injected automatically)
             response = await self.client.search(HOTEL_SEARCH_URL, payload)
@@ -133,8 +194,9 @@ class HotelSearchService:
                     "hotels": [],
                 }
             
+            
             # Step 6: Process response
-            return self._process_response(response, resolved_city, search_input, search_key)
+            return self._process_response(response, resolved_city, search_input, search_key,lat, lon)
             
         except Exception as e:
             # Return error with details
@@ -165,8 +227,13 @@ class HotelSearchService:
     response: Dict[str, Any],
     resolved_city: str,
     search_input: HotelSearchInput,
-    search_key: str
+    search_key: str,
+    lat: float = None,
+    lon: float = None
     ) -> Dict[str, Any]:
+
+        # print(f"DEBUG: API response keys: {response.keys()}")
+        # print(f"DEBUG: API response (excluding htllist): { {k: v for k, v in response.items() if k != 'htllist'} }")
 
         hotels = response.get("htllist", []) or []
         resolved_key = response.get("key") or response.get("SearchKey") or search_key
@@ -174,16 +241,19 @@ class HotelSearchService:
         results = []
         view_all_link = ""
 
+        room_details = self._build_room_details(search_input)
+
         for index, hotel in enumerate(hotels):
             deep_link_data = self._build_deep_link(
                 city_name=resolved_city,
                 check_in=search_input.check_in_date,
                 check_out=search_input.check_out_date,
                 num_rooms=search_input.num_rooms,
-                num_adults=search_input.num_adults,
-                num_children=search_input.num_children,
+                room_details=room_details,
                 emt_id=hotel.get("ecid", ""),
                 hotel_id=hotel.get("hid", ""),
+                lat=lat,
+                lon=lon,
             )
 
             if index == 0:
@@ -236,25 +306,48 @@ class HotelSearchService:
         }
                 
     
+    def _build_pax_string(self, room_details: list) -> str:
+        """
+        Build the pax query param from room_details.
+
+        Single room, no children:  "2"
+        Multi-room or children:    "2_0_?3_0_"  or  "2_2_5,8?3_1_6"
+
+        Format per room: {adults}_{children}_{childAges}
+        Rooms separated by '?'
+        """
+        if len(room_details) == 1:
+            rd = room_details[0]
+            if rd["NoOfChild"] == 0:
+                return str(rd["NoOfAdult"])
+            # Single room with children
+            return f"{rd['NoOfAdult']}_{rd['NoOfChild']}_{rd['childAge']}"
+
+        parts = []
+        for rd in room_details:
+            parts.append(f"{rd['NoOfAdult']}_{rd['NoOfChild']}_{rd['childAge']}")
+        return "?".join(parts)
+
     def _build_deep_link(self, **kwargs) -> Dict[str, str]:
         """Create the EMT hotel deep-link and trace id."""
         from emt_client.utils import gen_trace_id
         from emt_client.config import HOTEL_DEEPLINK
         from urllib.parse import quote
         from datetime import datetime
-        
+
         city_name = kwargs.get("city_name", "")
         check_in = kwargs.get("check_in", "")
         check_out = kwargs.get("check_out", "")
         num_rooms = kwargs.get("num_rooms", 1)
-        num_adults = kwargs.get("num_adults", 2)
-        num_children = kwargs.get("num_children", 0)
+        room_details = kwargs.get("room_details", [])
         emt_id = kwargs.get("emt_id", "")
         hotel_id = kwargs.get("hotel_id", "")
         trace_id = kwargs.get("trace_id")
-        
+        lat = kwargs.get("lat")
+        lon = kwargs.get("lon")
+
         link_trace_id = trace_id or gen_trace_id()
-        total_pax = max(1, num_adults + num_children)
+        pax_string = self._build_pax_string(room_details) if room_details else str(num_rooms)
         encoded_city = quote(city_name, safe="")
         check_in_fmt = datetime.strptime(check_in, "%Y-%m-%d").strftime("%d/%m/%Y")
         check_out_fmt = datetime.strptime(check_out, "%Y-%m-%d").strftime("%d/%m/%Y")
@@ -266,7 +359,9 @@ class HotelSearchService:
             f"checkinDate={check_in_fmt}&"
             f"checkoutDate={check_out_fmt}&"
             f"Rooms={num_rooms}&"
-            f"pax={total_pax}&"
+            f"pax={pax_string}&"
+            f"lat={lat}&"
+            f"lon={lon}&"
             f"emthid={emt_id}&"
             f"hid={hotel_id}&"
             f"tid={link_trace_id}"
@@ -308,11 +403,11 @@ class HotelSearchService:
             options=whatsapp_hotels,
             check_in_date=search_input.check_in_date,
             check_out_date=search_input.check_out_date,
-            currency=hotel.get("currency", "INR"),
+            currency=hotels[0].get("currency", "INR") if hotels else "INR",
             view_all_hotels_url=results.get("viewAll", ""),
         )
 
         return WhatsappHotelFinalResponse(
-            response_text=f"Here are the best hotel options in {search_input.city_name}",
+            response_text=f"Here are the best hotels options in {search_input.city_name}",
             whatsapp_json=whatsapp_json,
         )

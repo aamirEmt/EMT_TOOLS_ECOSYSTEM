@@ -43,6 +43,13 @@ class SortType(str, Enum):
 
 
 
+class RoomDetail(BaseModel):
+    """Per-room configuration provided by LLM"""
+    num_adults: int = Field(default=2, ge=1, le=3, description="Number of adults in this room (max 2)")
+    num_children: int = Field(default=0, ge=0, le=2, description="Number of children in this room")
+    child_ages: str = Field(default="1", description="Comma-separated ages of children in this room (e.g., '1,5'). Defaults to '1' if not provided.")
+
+
 class WhatsappHotelFormat(BaseModel):
     type: str = "hotel_collection"
     options: list
@@ -61,8 +68,13 @@ class HotelSearchInput(BaseModel):
     
     # Required fields
     city_name: str = Field(
-        description="City or area name (e.g., 'Pune', 'Viman Nagar, Pune')"
+    description=(
+        "City, area, or exact hotel name provided by the user. "
+        "Examples: 'Pune', 'Viman Nagar, Pune', 'Taj Hotel Mumbai'. "
+        "For hotels, always use the exact location or hotel name provided by the user. "
+        "Do NOT assume nearby cities or infer alternate locations."
     )
+)
     check_in_date: str = Field(
         description="Check-in date in YYYY-MM-DD format"
     )
@@ -71,14 +83,27 @@ class HotelSearchInput(BaseModel):
     )
     
     # Room configuration
-    num_rooms: int = Field(default=1, ge=1, le=10, description="Number of rooms")
-    num_adults: int = Field(default=2, ge=1, le=20, description="Number of adults")
-    num_children: int = Field(default=0, ge=0, le=10, description="Number of children")
+    num_rooms: int = Field(default=1, ge=1, le=10, description="Total number of rooms needed")
+    num_adults: int = Field(default=2, ge=1, le=20, description="Total number of adults across all rooms")
+    num_children: int = Field(default=0, ge=0, le=10, description="Total number of children across all rooms")
+    child_ages: Optional[List[int]] = Field(
+        default=None,
+        description="Ages of each child. If not provided, defaults to 1 for each child."
+    )
+    room_details: Optional[List["RoomDetail"]] = Field(
+        default=None,
+        description="Optional per-room breakdown. Each item has num_adults (max 2), num_children, and child_ages. If not provided, adults/children are auto-distributed across rooms."
+    )
     
     # Pagination
     page_no: int = Field(default=1, ge=1, description="Page number for results")
-    hotel_count: int = Field(default=30, ge=1, le=50, description="Max hotels per page")
-    
+    hotel_count: int = Field(default=50, ge=1, le=100, description="Max hotels per page")
+    page: int = Field(
+        default=1,
+        ge=1,
+        description="Page number for UI pagination. Default: 1",
+    )
+
     # Filters
     min_price: Optional[int] = Field(default=None, ge=1, description="Minimum price filter")
     max_price: int = Field(default=10_000_000, ge=1, description="Maximum price filter")

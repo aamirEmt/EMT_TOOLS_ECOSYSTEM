@@ -110,6 +110,18 @@ FLIGHT_ATK_TOKEN = _get_config_value(
     required=True  # This will error if not provided via injection or env
 )
 
+CHATBOT_API_BASE_URL = _get_config_value(
+    'CHATBOT_API_BASE_URL',
+    'CHATBOT_API_BASE_URL',
+    default='https://staging-aiml-chatbotapi.easemytrip.com'
+)
+
+MYBOOKINGS_BASE_URL = _get_config_value(
+    'MYBOOKINGS_BASE_URL',
+    'MYBOOKINGS_BASE_URL',
+    default='https://mybookings.easemytrip.com'
+)
+
 FLIGHT_DEEPLINK = _get_config_value(
     'FLIGHT_DEEPLINK',
     'FLIGHT_DEEPLINK',
@@ -125,7 +137,6 @@ FLIGHT_AMENITIES_URL = f"{FLIGHT_BASE_URL}/FlightStatus/FlightAmentiesByListing"
 # Load environment variables (only used if config not injected)
 if _injected_config is None:
     load_dotenv()
-
 # 🏨 HOTEL SERVICE BASE URL
 BASE_URL = "https://hotelservice.easemytrip.com/api"
 HOTEL_DEEPLINK = "https://www.easemytrip.com/hotel-new/details?"
@@ -140,6 +151,14 @@ TRAIN_BASE_URL = "https://railways.easemytrip.com"
 TRAIN_API_URL = f"{TRAIN_BASE_URL}/Train/_TrainBtwnStationList"
 TRAIN_LIST_INFO_URL = f"{TRAIN_BASE_URL}/TrainListInfo"
 TRAIN_BOOKING_URL = f"{TRAIN_BASE_URL}/TrainInfo"
+PNR_STATUS_URL = f"{TRAIN_BASE_URL}/Train/PnrchkStatus"
+TRAIN_ROUTE_API_URL = f"{TRAIN_BASE_URL}/Train/TrainScheduleEnquiry"
+TRAIN_NAME_API_URL = "https://autosuggest.easemytrip.com/api/auto/train_name?useby=popularu&key=jNUYK0Yj5ibO6ZVIkfTiFA=="
+
+# 🔐 PNR ENCRYPTION CONFIGURATION
+# AES-128 CBC encryption constants for PNR number encryption
+PNR_ENCRYPTION_KEY = b"8080808080808080"  # 16 bytes
+PNR_ENCRYPTION_IV = b"8080808080808080"  # 16 bytes
 
 # 🔍 AUTOSUGGEST SERVICE URLS
 SOLR_BASE_URL = "https://solr.easemytrip.com"
@@ -414,6 +433,59 @@ LOGIN_URL = getenv("LOGIN_URL", LOGIN_URL)
 HOTEL_SEARCH_URL = getenv("HOTEL_SEARCH_URL", HOTEL_SEARCH_URL)
 
 # ============================================================================
+# 🚌 BUS API CONFIGURATION
+# ============================================================================
+
+# Bus Search API endpoint
+BUS_SEARCH_URL = _get_config_value(
+    'BUS_SEARCH_URL',
+    'BUS_SEARCH_URL',
+    default='https://busservice.easemytrip.com/v1/api/Home/GetSearchResult/'
+)
+
+# Bus SeatBind API endpoint
+BUS_SEAT_BIND_URL = _get_config_value(
+    'BUS_SEAT_BIND_URL',
+    'BUS_SEAT_BIND_URL',
+    default='https://bus.easemytrip.com/Home/SeatBind/'
+)
+
+# Bus Deeplink base URL
+BUS_DEEPLINK_BASE = _get_config_value(
+    'BUS_DEEPLINK_BASE',
+    'BUS_DEEPLINK_BASE',
+    default='https://bus.easemytrip.com/home/list'
+)
+
+# Bus Autosuggest API endpoint
+BUS_AUTOSUGGEST_URL = _get_config_value(
+    'BUS_AUTOSUGGEST_URL',
+    'BUS_AUTOSUGGEST_URL',
+    default='https://autosuggest.easemytrip.com/api/auto/bus'
+)
+
+# Bus Autosuggest API Key
+BUS_AUTOSUGGEST_KEY = _get_config_value(
+    'BUS_AUTOSUGGEST_KEY',
+    'BUS_AUTOSUGGEST_KEY',
+    default='jNUYK0Yj5ibO6ZVIkfTiFA=='
+)
+
+# Bus Autosuggest Encrypted Header
+BUS_ENCRYPTED_HEADER = _get_config_value(
+    'BUS_ENCRYPTED_HEADER',
+    'BUS_ENCRYPTED_HEADER',
+    default='7ZTtohPgMEKTZQZk4/Cn1mpXnyNZDJIRcrdCFo5ahIk='
+)
+
+# Bus Decryption Key (from .env)
+BUS_DECRYPTION_KEY = _get_config_value(
+    'BUS_DECRYPTION_KEY',
+    'BUS_DECRYPTION_KEY',
+    default='TMTOO1vDhT9aWsV1'
+)
+
+# ============================================================================
 # 📦 EXPORT ALL CONFIGURATIONS
 # ============================================================================
 
@@ -441,11 +513,24 @@ __all__ = [
     "FLIGHT_AMENITIES_URL",
     "FLIGHT_ATK_TOKEN",
 
+    # Bus Configuration
+    "BUS_SEARCH_URL",
+    "BUS_SEAT_BIND_URL",
+    "BUS_DEEPLINK_BASE",
+    "BUS_AUTOSUGGEST_URL",
+    "BUS_AUTOSUGGEST_KEY",
+    "BUS_ENCRYPTED_HEADER",
+    "BUS_DECRYPTION_KEY",
     # Train Endpoints
     "TRAIN_API_URL",
     "TRAIN_LIST_INFO_URL",
     "TRAIN_BOOKING_URL",
+    "PNR_STATUS_URL",
+    "TRAIN_NAME_API_URL",
     "TRAIN_AUTOSUGGEST_URL",
+    "TRAIN_ROUTE_API_URL",
+    "PNR_ENCRYPTION_KEY",
+    "PNR_ENCRYPTION_IV",
 
     # Autosuggest Services
     "SOLR_BASE_URL",
