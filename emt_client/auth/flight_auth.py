@@ -29,7 +29,7 @@ class FlightTokenProvider(TokenProvider):
                 "Content-Type": "application/json",
             }
 
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=60.0) as client:
                 res = await client.post(FLIGHT_TOKEN_URL, headers=headers, json={})
                 res.raise_for_status()
                 data = res.json()

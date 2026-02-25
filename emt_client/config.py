@@ -222,7 +222,7 @@ DEFAULT_VID = VID
 # ============================================================================
 
 # HTTP Request Settings
-_api_timeout = getenv("API_TIMEOUT")
+_api_timeout = 60.0#getenv("API_TIMEOUT")
 if not _api_timeout:
     raise ValueError("Missing required environment variable: API_TIMEOUT")
 DEFAULT_TIMEOUT = float(_api_timeout)
