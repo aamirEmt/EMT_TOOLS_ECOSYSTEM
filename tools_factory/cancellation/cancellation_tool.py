@@ -1018,7 +1018,7 @@ class CancellationTool(BaseTool):
 
         # Flight segments info
         for seg in flight_segments:
-            airline = seg.get("airline_name", "")
+            airline = seg.get("airline_code") or seg.get("airline_name", "")
             flight_no = seg.get("flight_number", "")
             origin = seg.get("origin", "")
             destination = seg.get("destination", "")
@@ -1822,7 +1822,7 @@ class CancellationTool(BaseTool):
 
         # Flight segments info
         for seg in flight_segments:
-            airline = seg.get("airline_name", "")
+            airline = seg.get("airline_code") or seg.get("airline_name", "")
             flight_no = seg.get("flight_number", "")
             origin = seg.get("origin", "")
             destination = seg.get("destination", "")
