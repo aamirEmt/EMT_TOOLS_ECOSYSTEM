@@ -19,6 +19,8 @@ class TrainSearchTool(BaseTool):
         return ToolMetadata(
             name="search_trains",
             description=(
+                "Origin station - pass exactly what the user provides. If user gives a station code (e.g., 'NDLS'), pass the code. If user gives a station name (e.g., 'Delhi'), pass the full name with code in format 'Station Name (CODE)' (e.g., 'Delhi All Stations (NDLS)', 'Mumbai Central (MMCT)'). If the station is ambiguous or not found, do not guess - ask the user to clarify."
+                "Destination station - pass exactly what the user provides. If user gives a station code (e.g., 'NDLS'), pass the code. If user gives a station name (e.g., 'Delhi'), pass the full name with code in format 'Station Name (CODE)' (e.g., 'Delhi All Stations (NDLS)', 'Mumbai Central (MMCT)'). If the station is ambiguous or not found, do not guess - ask the user to clarify."
                 "Search for trains on EaseMyTrip using structured parameters. "
                 "You MUST extract all relevant constraints from the user query. "
                 "If the user mentions a travel class (e.g., '3rd AC', 'sleeper', 'chair car'), "

@@ -68,8 +68,13 @@ class HotelSearchInput(BaseModel):
     
     # Required fields
     city_name: str = Field(
-        description="City or area name (e.g., 'Pune', 'Viman Nagar, Pune')"
+    description=(
+        "City, area, or exact hotel name provided by the user. "
+        "Examples: 'Pune', 'Viman Nagar, Pune', 'Taj Hotel Mumbai'. "
+        "For hotels, always use the exact location or hotel name provided by the user. "
+        "Do NOT assume nearby cities or infer alternate locations."
     )
+)
     check_in_date: str = Field(
         description="Check-in date in YYYY-MM-DD format"
     )

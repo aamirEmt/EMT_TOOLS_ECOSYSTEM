@@ -54,6 +54,7 @@ class FlightSearchTool(BaseTool):
                 "- Search for flights on EaseMyTrip with comprehensive filtering options including origin, destination, dates, passengers, cabin class, stops, time windows, and special fare types.\n"
                 "Parameters (Fields):\n"
                 "- origin (string, required): Origin airport IATA code. Examples: 'DEL' for Delhi, 'BOM' for Mumbai, 'BLR' for Bangalore.\n"
+                "- If You Donot have Airport code Ask From user.\n"
                 "- destination (string, required): Destination airport IATA code. Examples: 'BOM' for Mumbai, 'DEL' for Delhi, 'MAA' for Chennai.\n"
                 "- outboundDate (string, required): Outbound flight date in YYYY-MM-DD format. Example: '2024-12-25'.\n"
                 "- returnDate (string | null, optional): Return flight date in YYYY-MM-DD format for round-trip. Set null/omit for one-way. Example: '2024-12-30'.\n"
@@ -146,6 +147,16 @@ class FlightSearchTool(BaseTool):
         all_outbound = flight_results.get("outbound_flights") or []
         all_return = flight_results.get("return_flights") or []
         all_combos = flight_results.get("international_combos") or []
+        calendar_suggestions = flight_results.get("calendar_suggestions") or []
+        suggestion_candidates = [
+            f"{item.get('destination')}" + (f" ({item.get('destination_name')})" if item.get("destination_name") else "")
+            for item in calendar_suggestions
+            if item.get("destination")
+        ]
+        suggestion_text = (
+            f"Alternate nearby airports you can try: {', '.join(suggestion_candidates[:3])}."
+            if suggestion_candidates else ""
+        )
         
         total_outbound_count = len(all_outbound)
         total_return_count = len(all_return)
@@ -240,9 +251,16 @@ class FlightSearchTool(BaseTool):
         # Response text
         # --------------------------------------------------
         if has_error:
-            text = f"No flights found. {flight_results.get('message', '')}"
+            base_message = f"No flights found. {flight_results.get('message', '')}".strip()
+            text = base_message or "No flights found."
+            if suggestion_text:
+                text = f"{text} {suggestion_text}"
         elif paginated_count == 0:
-            text = f"No more flights available. All {total_count} flights have been shown."
+            if suggestion_text:
+                base_no_flight = flight_results.get("message") or "No flights available for your selection."
+                text = f"{base_no_flight} {suggestion_text}".strip()
+            else:
+                text = f"No more flights available. All {total_count} flights have been shown."
         else:
             has_more = flight_results["pagination"]["has_next_page"]
             if is_international and is_roundtrip:
