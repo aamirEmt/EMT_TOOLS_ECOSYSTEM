@@ -10,12 +10,12 @@ class TrainSearchInput(BaseModel):
     from_station: str = Field(
         ...,
         alias="fromStation",
-        description="Origin station name with code (e.g., 'Delhi All Stations (NDLS)', 'Mumbai Central (MMCT)')",
+        description="Origin station - pass exactly what the user provides. If user gives a station code (e.g., 'NDLS'), pass the code. If user gives a station name (e.g., 'Delhi'), pass the full name with code in format 'Station Name (CODE)' (e.g., 'Delhi All Stations (NDLS)', 'Mumbai Central (MMCT)'). If the station is ambiguous or not found, do not guess - ask the user to clarify.",
     )
     to_station: str = Field(
         ...,
         alias="toStation",
-        description="Destination station name with code (e.g., 'Vaishno Devi Katra (SVDK)', 'Chennai Central (MAS)')",
+        description="Destination station - pass exactly what the user provides. If user gives a station code (e.g., 'NDLS'), pass the code. If user gives a station name (e.g., 'Delhi'), pass the full name with code in format 'Station Name (CODE)' (e.g., 'Delhi All Stations (NDLS)', 'Mumbai Central (MMCT)'). If the station is ambiguous or not found, do not guess - ask the user to clarify.",
     )
     journey_date: str = Field(
         ...,

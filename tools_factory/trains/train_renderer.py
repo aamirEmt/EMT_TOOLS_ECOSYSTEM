@@ -360,7 +360,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 }
 
 .train-carousel .class-refresh-btn {
-  margin-top: 6px;
+  margin-top: auto;
   padding: 7px 8px;
   background: #fff;
   color: #2093ef;
@@ -701,9 +701,18 @@ TRAIN_CAROUSEL_TEMPLATE = """
                     {% if cls.fare != "0" %}
                     <div class="class-fare">₹{{ cls.fare }}</div>
                     {% endif %}
-                    <div class="class-availability {% if is_regret %}unavailable{% elif 'WL' in cls.availability_status %}waitlist{% elif 'RAC' in cls.availability_status %}rac{% elif 'AVAILABLE' in cls.availability_status %}available{% elif cls.availability_status == 'Check Online' %}{% else %}unavailable{% endif %}">
-                      {% if needs_refresh and cls.quota == 'TQ' %}Tatkal{% else %}{{ cls.availability_status | truncate_text(15) }}{% endif %}
+
+                    {% if not needs_refresh %}
+                    <div class="class-availability
+                        {% if is_regret %}unavailable
+                        {% elif 'WL' in cls.availability_status %}waitlist
+                        {% elif 'RAC' in cls.availability_status %}rac
+                        {% elif 'AVAILABLE' in cls.availability_status %}available
+                        {% else %}unavailable{% endif %}">
+                      {{ cls.availability_status | truncate_text(15) }}
                     </div>
+                    {% endif %}
+
                     {% if cls.fare != "0" and cls.fare_updated %}
                     <div class="class-fare-updated">{{ cls.fare_updated }}</div>
                     {% endif %}

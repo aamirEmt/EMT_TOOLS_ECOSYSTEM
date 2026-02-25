@@ -19,10 +19,13 @@ class TrainSearchTool(BaseTool):
         return ToolMetadata(
             name="search_trains",
             description=(
+                "Origin station - pass exactly what the user provides. If user gives a station code (e.g., 'NDLS'), pass the code. If user gives a station name (e.g., 'Delhi'), pass the full name with code in format 'Station Name (CODE)' (e.g., 'Delhi All Stations (NDLS)', 'Mumbai Central (MMCT)'). If the station is ambiguous or not found, do not guess - ask the user to clarify."
+                "Destination station - pass exactly what the user provides. If user gives a station code (e.g., 'NDLS'), pass the code. If user gives a station name (e.g., 'Delhi'), pass the full name with code in format 'Station Name (CODE)' (e.g., 'Delhi All Stations (NDLS)', 'Mumbai Central (MMCT)'). If the station is ambiguous or not found, do not guess - ask the user to clarify."
                 "Search for trains on EaseMyTrip using structured parameters. "
                 "You MUST extract all relevant constraints from the user query. "
                 "If the user mentions a travel class (e.g., '3rd AC', 'sleeper', 'chair car'), "
                 "you MUST set travelClass using the correct code (e.g., '3A', 'SL', 'CC'). "
+                "use only these quota options GN=General (default), TQ=Tatkal, SS=Senior Citizen, LD=Ladies. "
                 "If the user mentions any time preference (e.g., 'before 10 am', 'after 6 pm', 'early', "
                 "'morning', 'evening', 'night'), you MUST set the appropriate time field: "
                 "departureTimeMin, departureTimeMax, arrivalTimeMin, or arrivalTimeMax. "
@@ -34,6 +37,7 @@ class TrainSearchTool(BaseTool):
                 "'night' -> from 20:00. "
                 "Always use HH:MM 24-hour format. "
                 "Do not omit fields that are clearly implied by the user request."
+                "In Case Of Trains If the Station Does not Exist Then take nearest major station in the city as input and confirm with user before proceeding and Never Assume Nearby City Station and if the user provides station code then use that station code for search and never assume city"
             ),
             input_schema=TrainSearchInput.model_json_schema(),
             output_template="ui://widget/train-carousel.html",

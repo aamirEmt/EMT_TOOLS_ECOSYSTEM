@@ -33,7 +33,7 @@ class ToolFactory:
         # Search tools (no session needed)
         self.register_tool(FlightSearchTool())
         self.register_tool(HotelSearchTool())
-        self.register_tool(BusSearchTool())
+        #self.register_tool(BusSearchTool())
         # self.register_tool(BusSeatLayoutTool())
         
         self.register_tool(TrainSearchTool())

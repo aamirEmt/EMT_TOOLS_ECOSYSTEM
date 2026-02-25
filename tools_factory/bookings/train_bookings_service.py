@@ -70,13 +70,16 @@ class TrainBookingsService:
         for t in train.get("trainJourneyDetails") or []:
             results.append({
                 "type": "Train",
-                "status": t.get("Status"),
+                "status": t.get("TripStatus"),
                 "booking_id": t.get("BookingRefNo"),
-                "pnr": t.get("PnrNumber"),
-                "source": t.get("Source"),
-                "destination": t.get("Destination"),
+                "pnr": t.get("_bookingId"),          # PNR comes from _bookingId
+                "source": t.get("FromStn"),
+                "destination": t.get("ToStn"),
+                "class": t.get("Class"),          
+                "quota": t.get("Quota"), 
+                "travel_date": t.get("TravelDate"),  
                 "departure": t.get("DepartureTime"),
-                "arrival": t.get("ArrivalTime")
+                "arrival": t.get("ArrivalTime"),
             })
         return results
 
@@ -94,8 +97,11 @@ def build_whatsapp_train_bookings_response(bookings: List[Dict[str, Any]]) -> Di
             "booking_id": b.get("booking_id"),
             "pnr": b.get("pnr"),
             "route": route,
+            "travel_date": b.get("travel_date"), 
             "departure": b.get("departure"),
             "arrival": b.get("arrival"),
+            "class": b.get("class"),
+            "quota": b.get("quota")
         })
 
     return {
