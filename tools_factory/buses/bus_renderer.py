@@ -918,6 +918,92 @@ BUS_CAROUSEL_STYLES = """
   color: #868686;
 }
 
+/* Price filter buttons */
+.bus-carousel .seat-price-filter {
+  margin-bottom: 12px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bus-carousel .price-btn {
+  padding: 4px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.bus-carousel .price-btn.active {
+  background: #ef6614;
+  color: #fff;
+  border-color: #ef6614;
+}
+
+.bus-carousel .price-btn:hover:not(.active) {
+  background: #f5f5f5;
+}
+
+.bus-carousel .seat .seat-name {
+  font-size: 9px;
+  font-weight: 600;
+  display: block;
+  line-height: 1.2;
+}
+
+.bus-carousel .seat .seat-fare {
+  font-size: 7px;
+  opacity: 0.8;
+  display: block;
+  line-height: 1;
+}
+
+.bus-carousel .seat-decks {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.bus-carousel .seat-deck {
+  flex: 1;
+  min-width: 200px;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.bus-carousel .deck-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 12px;
+  text-align: center;
+  padding: 6px;
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.bus-carousel .seat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.bus-carousel .seat-row {
+  display: flex;
+  gap: 4px;
+}
+
+.bus-carousel .seat-aisle {
+  width: 16px;
+}
+
 """
 # BUS_CAROUSEL_STYLES = """
 # @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
@@ -1553,6 +1639,8 @@ BUS_CAROUSEL_TEMPLATE = """
   let selectedBoardingPoint = null;
   let selectedDroppingPoint = null;
   let seatLayoutData = null;
+  let boardingPoints = [];
+  let droppingPoints = [];
   
   // Expose functions globally
   window.openSeatModal = openSeatModal;
@@ -1562,14 +1650,31 @@ BUS_CAROUSEL_TEMPLATE = """
   window.selectSeat = selectSeat;
   window.selectBoardingPoint = selectBoardingPoint;
   window.selectDroppingPoint = selectDroppingPoint;
+  window.filterByPrice = filterByPrice;
+  
+  // Generate unique IDs
+  function generateId() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  
+  function generateHexId() {
+    var result = '';
+    for (var i = 0; i < 32; i++) {
+      result += Math.floor(Math.random() * 16).toString(16);
+    }
+    return result;
+  }
   
   // Attach click handlers to all select seats buttons
   setTimeout(function() {
-    document.querySelectorAll('.select-seats-btn').forEach(btn => {
+    document.querySelectorAll('.select-seats-btn').forEach(function(btn) {
       btn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        const busData = {
+        var busData = {
           busId: this.dataset.busId,
           routeId: this.dataset.routeId,
           engineId: parseInt(this.dataset.engineId) || 0,
@@ -1595,97 +1700,291 @@ BUS_CAROUSEL_TEMPLATE = """
   
   function openSeatModal(busData) {
     currentBusData = busData;
+    currentBusData.sid = generateHexId();
+    currentBusData.vid = generateHexId();
+    currentBusData.traceId = generateId();
+    
     selectedSeats = [];
     selectedBoardingPoint = null;
     selectedDroppingPoint = null;
+    seatLayoutData = null;
     
     document.getElementById('modalBusOperator').textContent = busData.operatorName || 'Bus Operator';
     document.getElementById('modalBusType').textContent = busData.busType || '';
     document.getElementById('seatLayoutContainer').innerHTML = '<div class="seat-loading">Loading seat layout...</div>';
-    document.getElementById('boardingPointsList').innerHTML = '';
-    document.getElementById('droppingPointsList').innerHTML = '';
+    document.getElementById('boardingPointsList').innerHTML = '<div class="seat-loading">Loading...</div>';
+    document.getElementById('droppingPointsList').innerHTML = '<div class="seat-loading">Loading...</div>';
     document.getElementById('seatModalOverlay').classList.add('active');
     document.getElementById('continueBtn').style.display = 'block';
+    document.getElementById('continueBtn').disabled = true;
+    document.querySelector('.points-section').style.display = 'block';
     
     updateFooter();
-    
-    // For now, show redirect option since we need backend API call
-    showRedirectOption(busData);
-  }
-  
-  function showRedirectOption(busData) {
-    const container = document.getElementById('seatLayoutContainer');
-    container.innerHTML = `
-      <div style="text-align: center; padding: 40px 20px;">
-        <div style="margin-bottom: 20px;">
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#ef6614" stroke-width="1.5">
-            <rect x="3" y="8" width="18" height="12" rx="2"/>
-            <path d="M7 8V6a2 2 0 012-2h6a2 2 0 012 2v2"/>
-            <circle cx="7.5" cy="14" r="1.5"/>
-            <circle cx="16.5" cy="14" r="1.5"/>
-            <path d="M7 17h10"/>
-          </svg>
-        </div>
-        <h3 style="font-size: 16px; font-weight: 600; color: #202020; margin-bottom: 8px;">
-          ${busData.operatorName}
-        </h3>
-        <p style="font-size: 13px; color: #666; margin-bottom: 8px;">
-          ${busData.busType}
-        </p>
-        <p style="font-size: 14px; color: #868686; margin-bottom: 24px;">
-          ${busData.departureTime} → ${busData.arrivalTime} (${busData.duration})
-        </p>
-        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">
-          Click below to select seats and complete your booking on EaseMyTrip
-        </p>
-        <a href="${busData.bookingLink}" target="_blank" rel="noopener noreferrer" 
-           style="display: inline-block; padding: 14px 32px; background: #ef6614; color: #fff; 
-                  text-decoration: none; border-radius: 40px; font-weight: 600; font-size: 14px;
-                  transition: background 0.2s;"
-           onmouseover="this.style.background='#e75806'"
-           onmouseout="this.style.background='#ef6614'">
-          Select Seats & Book
-        </a>
-      </div>
-    `;
-    
-    // Hide footer continue button since we're showing redirect
-    document.getElementById('continueBtn').style.display = 'none';
-    
-    // Hide points section for redirect mode
-    document.querySelector('.points-section').style.display = 'none';
+    fetchSeatLayout(busData);
   }
   
   function closeSeatModal() {
     document.getElementById('seatModalOverlay').classList.remove('active');
-    // Reset points section visibility
     document.querySelector('.points-section').style.display = 'block';
     currentBusData = null;
     selectedSeats = [];
     selectedBoardingPoint = null;
     selectedDroppingPoint = null;
+    seatLayoutData = null;
   }
   
-  function switchPointsTab(tab) {
-    document.querySelectorAll('.points-tab').forEach(t => t.classList.remove('active'));
-    document.querySelector('.points-tab[data-tab="' + tab + '"]').classList.add('active');
+  function fetchSeatLayout(busData) {
+    var searchReq = busData.sourceId + '|' + busData.destinationId + '|' + busData.sourceName + '|' + busData.destinationName + '|' + busData.journeyDate;
     
-    document.getElementById('boardingPointsList').style.display = tab === 'boarding' ? 'block' : 'none';
-    document.getElementById('droppingPointsList').style.display = tab === 'dropping' ? 'block' : 'none';
+    var payload = {
+      Idproof: 0,
+      id: busData.busId,
+      engineId: busData.engineId,
+      sessionId: null,
+      seater: busData.isSeater,
+      sleeper: busData.isSleeper,
+      bustype: busData.busType,
+      travel: busData.operatorName,
+      ArrivalTime: busData.arrivalTime,
+      JourneyDate: busData.journeyDate,
+      DepartureTime: busData.departureTime,
+      searchReq: searchReq,
+      duration: busData.duration,
+      routeid: busData.routeId,
+      bpId: '',
+      dpId: '',
+      isBpdp: false,
+      Vid: busData.vid,
+      SeatPrice: 0,
+      stStatus: false,
+      agentType: 'NAN',
+      countryCode: null,
+      TraceID: busData.traceId,
+      Sid: busData.sid,
+      OperatorId: busData.operatorId
+    };
+    
+    fetch('https://bus.easemytrip.com/Home/SeatBind/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(response) {
+      if (!response.ok) throw new Error('API request failed');
+      return response.json();
+    })
+    .then(function(data) {
+      seatLayoutData = data;
+      seatLayoutData.Sid = busData.sid;
+      seatLayoutData.Vid = busData.vid;
+      seatLayoutData.TraceID = busData.traceId;
+      
+      if (data.error || (!data.Lower && !data.Upper && (!data.Seats || data.Seats.length === 0))) {
+        showFallbackRedirect(busData, data.error || 'Seat layout not available');
+        return;
+      }
+      
+      renderSeatLayout(data);
+      renderBoardingPoints(data.listBoardingPoint || []);
+      renderDroppingPoints(data.listDropPoint || []);
+    })
+    .catch(function(error) {
+      console.error('Seat layout fetch error:', error);
+      showFallbackRedirect(busData, 'Unable to load seat layout. Please try on website.');
+    });
   }
   
-  function selectSeat(seatElement, seatData) {
-    if (seatElement.classList.contains('booked')) return;
+  function showFallbackRedirect(busData, errorMsg) {
+    document.getElementById('seatLayoutContainer').innerHTML = 
+      '<div style="text-align:center;padding:40px 20px;">' +
+        '<div style="margin-bottom:20px;">' +
+          '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#ef6614" stroke-width="1.5">' +
+            '<rect x="3" y="8" width="18" height="12" rx="2"/>' +
+            '<path d="M7 8V6a2 2 0 012-2h6a2 2 0 012 2v2"/>' +
+          '</svg>' +
+        '</div>' +
+        '<p style="font-size:13px;color:#666;margin-bottom:8px;">' + (errorMsg || 'Seat layout not available') + '</p>' +
+        '<p style="font-size:12px;color:#868686;margin-bottom:20px;">Please select seats on EaseMyTrip website</p>' +
+        '<a href="' + busData.bookingLink + '" target="_blank" rel="noopener noreferrer" ' +
+           'style="display:inline-block;padding:12px 28px;background:#ef6614;color:#fff;' +
+                  'text-decoration:none;border-radius:40px;font-weight:600;font-size:13px;">' +
+          'Select Seats on Website</a>' +
+      '</div>';
+    document.getElementById('continueBtn').style.display = 'none';
+    document.querySelector('.points-section').style.display = 'none';
+  }
+  
+  function renderSeatLayout(data) {
+    var container = document.getElementById('seatLayoutContainer');
+    var html = '';
     
-    const isSelected = seatElement.classList.contains('selected');
+    // Price filter
+    if (data.setuniquefares && data.setuniquefares.length > 0) {
+      html += '<div class="seat-price-filter"><span style="font-size:11px;color:#666;margin-right:8px;">Price:</span>';
+      html += '<button type="button" class="price-btn active" onclick="filterByPrice(\'all\')">All</button>';
+      data.setuniquefares.forEach(function(f) {
+        html += '<button type="button" class="price-btn" onclick="filterByPrice(' + f.baseFare + ')">₹' + f.baseFare + '</button>';
+      });
+      html += '</div>';
+    }
+    
+    html += '<div class="seat-decks">';
+    
+    // Lower Deck
+    if (data.LowerShow && data.Lower) {
+      html += '<div class="seat-deck"><div class="deck-title">🚌 Lower Deck</div>';
+      html += '<div class="seat-grid">' + renderDeck(data.Lower) + '</div></div>';
+    }
+    
+    // Upper Deck
+    if (data.UpperShow && data.Upper) {
+      html += '<div class="seat-deck"><div class="deck-title">🛏️ Upper Deck</div>';
+      html += '<div class="seat-grid">' + renderDeck(data.Upper) + '</div></div>';
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+  }
+  
+  function renderDeck(deck) {
+    var columns = ['firstColumn', 'SecondColumn', 'ThirdColumn', 'FourthColumn', 'FifthColumn', 
+                   'SixthColumn', 'seventhColumn', 'eightColumn', 'ninethColumn', 'tenthColumn',
+                   'eleventhColumn', 'tevelthColumn', 'thirteenColumn', 'fourteenColumn'];
+    
+    var maxRows = 0;
+    columns.forEach(function(col) {
+      if (deck[col] && deck[col].length > maxRows) maxRows = deck[col].length;
+    });
+    
+    var html = '';
+    for (var rowIdx = 0; rowIdx < maxRows; rowIdx++) {
+      html += '<div class="seat-row">';
+      
+      columns.forEach(function(col, colIdx) {
+        if (!deck[col]) return;
+        var seat = deck[col][rowIdx];
+        if (!seat) return;
+        
+        if (colIdx === 2) html += '<div class="seat-aisle"></div>';
+        
+        if (seat.seatType === 'noseat' || !seat.name) {
+          html += '<div class="seat empty"></div>';
+        } else {
+          var isAvailable = seat.available && seat.seatType.indexOf('unavailable') === -1;
+          var isLadies = seat.ladiesSeat === 'True' || seat.ladiesSeat === true;
+          var isSleeper = seat.isSleeper || seat.seatStyle === 'SL';
+          
+          var seatClass = 'seat';
+          if (isSleeper) seatClass += ' sleeper';
+          if (isAvailable) {
+            seatClass += isLadies ? ' ladies' : ' available';
+          } else {
+            seatClass += ' booked';
+          }
+          
+          var fare = seat.fare || seat.actualfare || 0;
+          var baseFare = seat.baseFare || 0;
+          
+          var seatDataStr = JSON.stringify({
+            id: seat.id,
+            name: seat.name,
+            fare: fare,
+            baseFare: baseFare,
+            actualfare: seat.actualfare || fare,
+            encriSeat: seat.EncriSeat || '',
+            seatType: isSleeper ? 'SL' : 'ST'
+          }).replace(/"/g, '&quot;');
+          
+          var clickHandler = isAvailable ? ' onclick="selectSeat(this, ' + seatDataStr + ')"' : '';
+          
+          html += '<div class="' + seatClass + '" data-seat-id="' + seat.id + '" data-fare="' + baseFare + '"' + clickHandler + ' title="' + seat.name + ' - ₹' + fare + '">';
+          html += '<span class="seat-name">' + seat.name + '</span>';
+          html += '<span class="seat-fare">₹' + (baseFare > 0 ? baseFare : fare) + '</span>';
+          html += '</div>';
+        }
+      });
+      
+      html += '</div>';
+    }
+    return html;
+  }
+  
+  function renderBoardingPoints(points) {
+    boardingPoints = points;
+    var container = document.getElementById('boardingPointsList');
+    
+    if (!points || points.length === 0) {
+      container.innerHTML = '<div style="padding:20px;text-align:center;color:#868686;">No boarding points</div>';
+      return;
+    }
+    
+    var html = '';
+    points.forEach(function(point) {
+      var name = point.bdLongName || point.bdPoint || 'Unknown';
+      var time = point.time || '';
+      var location = point.landmark || point.bdlocation || '';
+      var pointDataStr = JSON.stringify({ 
+        id: point.bdid, 
+        name: name, 
+        time: time, 
+        bdPoint: point.bdPoint,
+        bdLongName: point.bdLongName,
+        bdlocation: point.bdlocation,
+        landmark: point.landmark,
+        contactNumber: point.contactNumber
+      }).replace(/"/g, '&quot;');
+      
+      html += '<div class="point-item" onclick="selectBoardingPoint(this, ' + pointDataStr + ')">';
+      html += '<div class="point-time">' + time + '</div>';
+      html += '<div class="point-name">' + name + '</div>';
+      if (location) html += '<div style="font-size:10px;color:#999;margin-top:2px;">' + location + '</div>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+  
+  function renderDroppingPoints(points) {
+    droppingPoints = points;
+    var container = document.getElementById('droppingPointsList');
+    
+    if (!points || points.length === 0) {
+      container.innerHTML = '<div style="padding:20px;text-align:center;color:#868686;">No dropping points</div>';
+      return;
+    }
+    
+    var html = '';
+    points.forEach(function(point) {
+      var name = point.dpName || 'Unknown';
+      var time = point.dpTime || '';
+      var pointDataStr = JSON.stringify({ 
+        id: point.dpId, 
+        name: name, 
+        time: time,
+        dpName: point.dpName,
+        dpTime: point.dpTime,
+        locatoin: point.locatoin
+      }).replace(/"/g, '&quot;');
+      
+      html += '<div class="point-item" onclick="selectDroppingPoint(this, ' + pointDataStr + ')">';
+      html += '<div class="point-time">' + time + '</div>';
+      html += '<div class="point-name">' + name + '</div>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+  
+  function selectSeat(element, seatData) {
+    if (element.classList.contains('booked')) return;
+    
+    var isSelected = element.classList.contains('selected');
     
     if (isSelected) {
-      seatElement.classList.remove('selected');
-      seatElement.classList.add('available');
-      selectedSeats = selectedSeats.filter(s => s.id !== seatData.id);
+      element.classList.remove('selected');
+      element.classList.add('available');
+      selectedSeats = selectedSeats.filter(function(s) { return s.id !== seatData.id; });
     } else {
-      seatElement.classList.remove('available');
-      seatElement.classList.add('selected');
+      element.classList.remove('available', 'ladies');
+      element.classList.add('selected');
       selectedSeats.push(seatData);
     }
     
@@ -1693,38 +1992,170 @@ BUS_CAROUSEL_TEMPLATE = """
   }
   
   function selectBoardingPoint(element, pointData) {
-    document.querySelectorAll('#boardingPointsList .point-item').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('#boardingPointsList .point-item').forEach(function(el) { el.classList.remove('selected'); });
     element.classList.add('selected');
     selectedBoardingPoint = pointData;
     updateFooter();
   }
   
   function selectDroppingPoint(element, pointData) {
-    document.querySelectorAll('#droppingPointsList .point-item').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('#droppingPointsList .point-item').forEach(function(el) { el.classList.remove('selected'); });
     element.classList.add('selected');
     selectedDroppingPoint = pointData;
     updateFooter();
   }
   
+  function switchPointsTab(tab) {
+    document.querySelectorAll('.points-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelector('.points-tab[data-tab="' + tab + '"]').classList.add('active');
+    
+    document.getElementById('boardingPointsList').style.display = tab === 'boarding' ? 'block' : 'none';
+    document.getElementById('droppingPointsList').style.display = tab === 'dropping' ? 'block' : 'none';
+  }
+  
   function updateFooter() {
-    const seatsDisplay = selectedSeats.length > 0 
-      ? selectedSeats.map(s => s.name).join(', ')
+    var seatsDisplay = selectedSeats.length > 0 
+      ? selectedSeats.map(function(s) { return s.name; }).join(', ')
       : 'None';
-    const totalFare = selectedSeats.reduce((sum, s) => sum + (parseFloat(s.fare) || 0), 0);
+    var totalFare = selectedSeats.reduce(function(sum, s) { return sum + (parseFloat(s.fare) || 0); }, 0);
     
     document.getElementById('selectedSeatsDisplay').textContent = seatsDisplay;
     document.getElementById('totalFareDisplay').textContent = totalFare.toLocaleString('en-IN');
     
-    const canContinue = selectedSeats.length > 0 && selectedBoardingPoint && selectedDroppingPoint;
+    var canContinue = selectedSeats.length > 0 && selectedBoardingPoint && selectedDroppingPoint;
     document.getElementById('continueBtn').disabled = !canContinue;
   }
   
-  function confirmAndRedirect() {
-    if (!currentBusData || selectedSeats.length === 0) return;
+  function filterByPrice(price) {
+    document.querySelectorAll('.price-btn').forEach(function(btn) {
+      btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
     
-    // Redirect to booking link with selected data
-    window.open(currentBusData.bookingLink, '_blank');
-    closeSeatModal();
+    document.querySelectorAll('.seat.available, .seat.ladies').forEach(function(seat) {
+      var seatFare = parseInt(seat.dataset.fare) || 0;
+      if (price === 'all' || seatFare === price) {
+        seat.style.opacity = '1';
+        seat.style.pointerEvents = 'auto';
+      } else {
+        seat.style.opacity = '0.3';
+        seat.style.pointerEvents = 'none';
+      }
+    });
+  }
+  
+  function confirmAndRedirect() {
+    if (!currentBusData || selectedSeats.length === 0 || !selectedBoardingPoint || !selectedDroppingPoint) {
+      alert('Please select seats, boarding point and dropping point');
+      return;
+    }
+    
+    // Build seats array for ConfirmSeats API
+    var seatsPayload = selectedSeats.map(function(s) {
+      return {
+        seatNo: s.name,
+        seatType: s.seatType || 'ST',
+        fare: s.fare,
+        seatId: null,
+        actualfare: s.actualfare || s.fare,
+        gender: 'M',
+        baseFare: s.baseFare || s.fare,
+        EncriSeat: s.encriSeat
+      };
+    });
+    
+    var totalFare = selectedSeats.reduce(function(sum, s) { return sum + (parseFloat(s.fare) || 0); }, 0);
+    
+    // Build boarding point object
+    var boardingPointObj = {
+      bdPoint: selectedBoardingPoint.bdPoint || selectedBoardingPoint.name,
+      bdLongName: selectedBoardingPoint.bdLongName || selectedBoardingPoint.name,
+      bdid: selectedBoardingPoint.id,
+      bdlocation: selectedBoardingPoint.bdlocation || '',
+      landmark: selectedBoardingPoint.landmark || '',
+      time: selectedBoardingPoint.time || '',
+      contactNumber: selectedBoardingPoint.contactNumber || '',
+      Count: 0
+    };
+    
+    // Build dropping point object
+    var droppingPointObj = {
+      dpId: selectedDroppingPoint.id,
+      dpName: selectedDroppingPoint.dpName || selectedDroppingPoint.name,
+      locatoin: selectedDroppingPoint.locatoin || null,
+      prime: null,
+      dpTime: selectedDroppingPoint.time || selectedDroppingPoint.dpTime || '',
+      Count: 0
+    };
+    
+    var confirmPayload = {
+      seats: seatsPayload,
+      sessionId: null,
+      totalFare: totalFare,
+      boardingId: selectedBoardingPoint.id,
+      boardingName: selectedBoardingPoint.name || '',
+      boardingPoint: boardingPointObj,
+      dropId: selectedDroppingPoint.id,
+      DropingPoint: droppingPointObj,
+      availableTripId: currentBusData.busId,
+      source: currentBusData.sourceName,
+      destination: currentBusData.destinationName,
+      busOperator: currentBusData.operatorName,
+      busType: currentBusData.busType,
+      routeId: currentBusData.routeId,
+      engineId: currentBusData.engineId,
+      operator_id: currentBusData.operatorId,
+      DepTime: currentBusData.departureTime,
+      arrivalDate: currentBusData.arrivalTime,
+      departureDate: null,
+      Discount: 0,
+      CashBack: 0,
+      serviceFee: 0,
+      STF: 0,
+      TDS: 0,
+      cpnCode: '',
+      agentCode: '',
+      agentType: '',
+      agentMarkUp: 0,
+      agentACBalance: 0,
+      Sid: currentBusData.sid || seatLayoutData?.Sid || '',
+      Vid: currentBusData.vid || seatLayoutData?.Vid || '',
+      TraceId: currentBusData.traceId || seatLayoutData?.TraceID || '',
+      cancelPolicyList: seatLayoutData?.cancelPolicyList || []
+    };
+    
+    // Call ConfirmSeats API
+    fetch('https://busservice.easemytrip.com/v1/api/bus/ConfirmSeats/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(confirmPayload)
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+      // Create hidden form and POST to payment page
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = 'https://bus.easemytrip.com/Home/BusPayment';
+      form.target = '_blank';
+      
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'userid';
+      input.value = 'Emt';
+      form.appendChild(input);
+      
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+      
+      closeSeatModal();
+    })
+    .catch(function(error) {
+      console.error('ConfirmSeats error:', error);
+      // Fallback: redirect to booking link
+      window.open(currentBusData.bookingLink, '_blank');
+      closeSeatModal();
+    });
   }
   
   // Close modal when clicking overlay
