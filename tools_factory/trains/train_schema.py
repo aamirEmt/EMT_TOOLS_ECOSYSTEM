@@ -298,6 +298,7 @@ class TrainInfo(BaseModel):
     arrival_date: str
     running_days: List[str]
     classes: List[TrainClassAvailability]
+    is_nearby_station: bool = False
 
 
 class WhatsappTrainFormat(BaseModel):

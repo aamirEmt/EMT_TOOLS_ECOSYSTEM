@@ -307,6 +307,10 @@ def _process_single_train(
     if classes is None or not classes:
         return None
 
+    # Check if this train is from a nearby station
+    nearby_station = train.get("NearByStation")
+    is_nearby = nearby_station is not None and nearby_station != "" and nearby_station != "null"
+
     return TrainInfo(
         train_number=train.get("trainNumber", ""),
         train_name=train.get("trainName", ""),
@@ -322,6 +326,7 @@ def _process_single_train(
         arrival_date=train.get("ArrivalDate", ""),
         running_days=_get_running_days(train),
         classes=classes,
+        is_nearby_station=is_nearby,
     )
 
 
@@ -359,6 +364,7 @@ def process_train_results(
             "total_count": 0,
         }
 
+    has_nearby_stations = False
     for train in train_list:
         processed_train = _process_single_train(
             train,
@@ -370,12 +376,15 @@ def process_train_results(
             arrival_time_max=arrival_time_max,
         )
         if processed_train:
+            if processed_train.is_nearby_station:
+                has_nearby_stations = True
             trains.append(processed_train.model_dump())
 
     return {
         "trains": trains,
         "quota_list": quota_list,
         "total_count": len(trains),
+        "has_nearby_stations": has_nearby_stations,
     }
 
 
@@ -749,6 +758,9 @@ def _build_whatsapp_response_with_class(
     else:
         response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date} in {travel_class}."
 
+    if train_results.get("has_nearby_stations"):
+        response_text += " Note: No Trains Available for This Route, showing nearby station routes."
+
     if tatkal_note:
         response_text += tatkal_note
 
@@ -819,6 +831,9 @@ def _build_whatsapp_response_without_class(
         response_text = f"No trains found from {payload.from_station} to {payload.to_station} on {payload.journey_date}."
     else:
         response_text = f"Here are trains from {payload.from_station} to {payload.to_station} on {payload.journey_date}."
+
+    if train_results.get("has_nearby_stations"):
+        response_text += " Note: No Trains Available for This Route, showing nearby station routes."
 
     if tatkal_note:
         response_text += tatkal_note

@@ -128,6 +128,19 @@ TRAIN_CAROUSEL_TEMPLATE = """
   margin-top: 4px;
 }
 
+.train-carousel .trn-nearby-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  color: #e65100;
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
 .train-carousel .trn-number {
     font-weight: 500;
     font-size: 14px;
@@ -615,6 +628,12 @@ TRAIN_CAROUSEL_TEMPLATE = """
   color: #bcbcbc;
 }
 
+.train-carousel.dark .trn-nearby-badge {
+  color: #ffb74d;
+  background: #3e2723;
+  border-color: #6d4c41;
+}
+
 .train-carousel.dark .trn-timing {
   background: #1a1a1a;
 }
@@ -647,7 +666,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
               <div class="trn-info">
                 <div class="trn-details">
                   <div class="trn-name">{{ train.train_name | truncate_text(22) }}</div>
-                  <div class="trn-route">{{ train.from_station_code }} → {{ train.to_station_code }}</div>
+                  <div class="trn-route">{{ train.from_station_code }} → {{ train.to_station_code }}{% if train.is_nearby_station %} <span class="trn-nearby-badge">Nearby Station</span>{% endif %}</div>
                 </div>
                 <div class="trn-number">{{ train.train_number }}</div>
               </div>
@@ -1086,6 +1105,7 @@ def _normalize_train_for_ui(train: Dict[str, Any], search_quota: str = "GN") -> 
         "arrival_date": train.get("arrival_date", ""),
         "running_days": train.get("running_days", []),
         "classes": classes,
+        "is_nearby_station": train.get("is_nearby_station", False),
     }
 
 
@@ -1163,6 +1183,17 @@ def render_train_results(train_results: Dict[str, Any]) -> str:
         subtitle_parts.append(quota_text)
 
     subtitle = " • ".join(subtitle_parts)
+
+    # Check if any trains are from nearby stations
+    has_nearby_stations = train_results.get("has_nearby_stations", False)
+    if not has_nearby_stations:
+        # Also check individual trains in case flag wasn't set at top level
+        has_nearby_stations = any(
+            t.get("is_nearby_station", False) for t in trains
+        )
+
+    if has_nearby_stations:
+        subtitle += " • No direct trains available, showing nearby station routes"
 
     # Normalize trains for UI
     trains_ui = [_normalize_train_for_ui(train, search_quota=quota) for train in trains]
