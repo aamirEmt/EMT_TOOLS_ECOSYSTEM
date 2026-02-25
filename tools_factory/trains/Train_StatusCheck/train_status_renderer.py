@@ -1285,7 +1285,7 @@ TRAIN_DATES_TEMPLATE = """
         (!isLive || (isLive && currentIdx === null) ? '<div class="not-started-banner"><span class="not-started-dot"></span>Train has not started yet</div>' : '') +
         progressHtml +
         '<div class="status-timeline">' +
-          '<div class="hidden-stops visible" id="' + id + '-hidden">' + timelineHtml + '</div>' +
+          '<div class="hidden-stops" id="' + id + '-hidden">' + timelineHtml + '</div>' +
         '</div>' +
         showBtnHtml +
         '<div class="status-footer">' +

@@ -98,7 +98,7 @@ class FlightPostBookingTool(BaseTool):
 
                 ## Core Capabilities
 
-                - Takes **Booking ID (PNR)** and **Email** to start the flow by sending an OTP to the user.
+                - Takes **Booking ID (EMT1234)** and **Email** to start the flow by sending an OTP to the user.
                 - Verifies the OTP using **Booking ID, Email, and OTP**.
                 - Returns a **redirect URL containing the BID** for post-booking management after successful verification.
                 - Provides secure access to manage the booking (add-ons, reschedule, etc.) after OTP verification.

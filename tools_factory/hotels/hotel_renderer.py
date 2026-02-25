@@ -535,7 +535,8 @@ HOTEL_CAROUSEL_TEMPLATE = """
         {% for hotel in hotels %}
           <div class="htlcard">
             <div class="img-top">
-              <img src="{{ hotel.image }}" alt="{{ hotel.name }}">
+              <img src="{{ hotel.image or 'https://www.easemytrip.com/hotels/images/no-image-available.png' }}" 
+                    alt="{{ hotel.name }}">
             </div>
             <div class="htlcrdbdy">
               <div class="nmeorc">
