@@ -147,6 +147,16 @@ class FlightSearchTool(BaseTool):
         all_outbound = flight_results.get("outbound_flights") or []
         all_return = flight_results.get("return_flights") or []
         all_combos = flight_results.get("international_combos") or []
+        calendar_suggestions = flight_results.get("calendar_suggestions") or []
+        suggestion_candidates = [
+            f"{item.get('destination')}" + (f" ({item.get('destination_name')})" if item.get("destination_name") else "")
+            for item in calendar_suggestions
+            if item.get("destination")
+        ]
+        suggestion_text = (
+            f"Alternate nearby airports you can try: {', '.join(suggestion_candidates[:3])}."
+            if suggestion_candidates else ""
+        )
         
         total_outbound_count = len(all_outbound)
         total_return_count = len(all_return)
@@ -241,9 +251,16 @@ class FlightSearchTool(BaseTool):
         # Response text
         # --------------------------------------------------
         if has_error:
-            text = f"No flights found. {flight_results.get('message', '')}"
+            base_message = f"No flights found. {flight_results.get('message', '')}".strip()
+            text = base_message or "No flights found."
+            if suggestion_text:
+                text = f"{text} {suggestion_text}"
         elif paginated_count == 0:
-            text = f"No more flights available. All {total_count} flights have been shown."
+            if suggestion_text:
+                base_no_flight = flight_results.get("message") or "No flights available for your selection."
+                text = f"{base_no_flight} {suggestion_text}".strip()
+            else:
+                text = f"No more flights available. All {total_count} flights have been shown."
         else:
             has_more = flight_results["pagination"]["has_next_page"]
             if is_international and is_roundtrip:
