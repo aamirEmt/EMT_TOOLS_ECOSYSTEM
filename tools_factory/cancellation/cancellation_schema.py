@@ -14,7 +14,7 @@ class CancellationInput(BaseModel):
     )
     booking_id: str = Field(
         ...,
-        description="Booking reference ID (e.g., 'EMT1624718')",
+        description="Booking reference ID (e.g., 'EMT1624718') NEVER ASK FOR PNR. ALWAYS ASK FOR EMT BOOKING ID.",
     )
     email: str = Field(
         ...,
