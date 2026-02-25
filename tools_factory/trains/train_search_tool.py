@@ -195,6 +195,10 @@ class TrainSearchTool(BaseTool):
             else:
                 text = f"Found {train_count} trains from {payload.from_station} to {payload.to_station}{filter_text}!"
 
+            # Add nearby station note if applicable
+            if train_results.get("has_nearby_stations"):
+                text += " Note: No Trains Available for This Route, showing nearby station routes."
+
         if tatkal_note:
             text += tatkal_note
 

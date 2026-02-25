@@ -93,6 +93,7 @@ class CancellationTool(BaseTool):
         return ToolMetadata(
             name="cancellation",
             description=(
+                "NEVER ASK PNR ALWAYS ASK FOR EMT BOOKING ID."
                 "Booking cancellation tool for Hotel, Train, Bus, and Flight bookings. "
                 "Supports all EaseMyTrip booking types — the system auto-detects the module from the booking ID. "
                 "Use action='start' with booking_id and email to login and fetch booking details (login OTP is auto-sent). "

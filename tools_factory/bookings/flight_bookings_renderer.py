@@ -39,12 +39,6 @@ FLIGHT_BOOKINGS_TEMPLATE = """
   color: #202020;
 }
 
-.flight-bookings .bkng-subtitle {
-  font-size: 12px;
-  color: #646d74;
-  margin-top: 4px;
-}
-
 .flight-bookings .bkng-tabs {
   display: flex;
   gap: 8px;
@@ -417,7 +411,6 @@ FLIGHT_BOOKINGS_TEMPLATE = """
 <div class="flight-bookings" data-instance-id="flight-bookings-{{ instance_id }}">
   <div class="bkng-header">
     <div class="bkng-title">{{ title }}</div>
-    <div class="bkng-subtitle">{{ subtitle }}</div>
   </div>
 
   {% if tabs %}

@@ -12,7 +12,7 @@ class FlightPostBookingInput(BaseModel):
     )
     booking_id: str = Field(
         ...,
-        description="Flight booking reference or PNR.",
+        description="Flight booking reference number (EMT Booking ID, e.g., 'EMT1234'). **NEVER ASK FOR PNR. ALWAYS ASK FOR EMT BOOKING ID.**",
         min_length=3,
     )
     email: str = Field(

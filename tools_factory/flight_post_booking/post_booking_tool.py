@@ -99,6 +99,7 @@ class FlightPostBookingTool(BaseTool):
                 ## Core Capabilities
 
                 - Takes **Booking ID (EMT1234)** and **Email** to start the flow by sending an OTP to the user.
+                **NEVER ASK FOR PNR. ALWAYS ASK FOR EMT BOOKING ID.**
                 - Verifies the OTP using **Booking ID, Email, and OTP**.
                 - Returns a **redirect URL containing the BID** for post-booking management after successful verification.
                 - Provides secure access to manage the booking (add-ons, reschedule, etc.) after OTP verification.
@@ -115,7 +116,7 @@ class FlightPostBookingTool(BaseTool):
                 ### 2. `"verify_otp"`
                 - Validates the OTP.
                 - Requires:
-                - Booking ID (PNR)
+                - Booking ID **NEVER ASK FOR PNR. ALWAYS ASK FOR EMT BOOKING ID.**
                 - Email
                 - OTP
                 - On success, returns redirect URL containing BID.

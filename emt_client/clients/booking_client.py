@@ -16,14 +16,15 @@ class BookingApiClient(EMTClient):
         self,
         action2_token: str,
         uid: str,
-        ip: str
+        ip: str,
+        process_type: int = 45
     ) -> Dict[str, Any]:
         
         payload = {
             "Auth": action2_token,
             "EmailId": uid,
             "Password": "android",
-            "ProcessType": 45,
+            "ProcessType": process_type,
             "Authentication": {
                 "AgentCode": 1003,
                 "UserName": "android",
