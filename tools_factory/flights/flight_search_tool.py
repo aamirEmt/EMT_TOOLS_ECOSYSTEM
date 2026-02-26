@@ -4,7 +4,7 @@ from pydantic import ValidationError
 
 from emt_client.utils import generate_short_link
 from .flight_schema import FlightSearchInput,WhatsappFlightFinalResponse,WhatsappFlightFormat
-from .flight_search_service import search_flights,build_whatsapp_flight_response,filter_domestic_roundtrip_flights
+from .flight_search_service import search_flights,build_whatsapp_flight_response,filter_domestic_roundtrip_flights,build_suggestion_text
 from .flight_renderer import render_flight_results
 from tools_factory.base_schema import ToolResponseFormat 
 
@@ -148,15 +148,7 @@ class FlightSearchTool(BaseTool):
         all_return = flight_results.get("return_flights") or []
         all_combos = flight_results.get("international_combos") or []
         calendar_suggestions = flight_results.get("calendar_suggestions") or []
-        suggestion_candidates = [
-            f"{item.get('destination')}" + (f" ({item.get('destination_name')})" if item.get("destination_name") else "")
-            for item in calendar_suggestions
-            if item.get("destination")
-        ]
-        suggestion_text = (
-            f"Alternate nearby airports you can try: {', '.join(suggestion_candidates[:3])}."
-            if suggestion_candidates else ""
-        )
+        suggestion_text = build_suggestion_text(calendar_suggestions)
         
         total_outbound_count = len(all_outbound)
         total_return_count = len(all_return)
