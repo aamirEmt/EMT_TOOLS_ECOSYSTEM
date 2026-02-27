@@ -4255,7 +4255,7 @@ FLIGHT_BOOKING_TEMPLATE = """
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 7px 6px;
   font-size: 13px;
   font-weight: 500;
   color: #646d74;
@@ -4379,7 +4379,6 @@ FLIGHT_BOOKING_TEMPLATE = """
 /* Content */
 .flight-cancel-carousel .fc-pol-tl-content {
   flex: 1;
-  padding-bottom: 20px;
   min-width: 0;
 }
 
@@ -5879,7 +5878,15 @@ FLIGHT_BOOKING_TEMPLATE = """
 
     var msg = data.msg || data.Message || data.Msg || data.message || '';
     var requestId = data.RequestId || data.requestId || '';
-    if (msg) html += '<p style="font-size:13px;color:#646d74;margin-bottom:12px;">' + msg + '</p>';
+    var msgLower = msg ? msg.toLowerCase() : '';
+    var isErrorPhrase = msg && (
+      msgLower.indexOf('wrong') !== -1 ||
+      msgLower.indexOf('invalid') !== -1 ||
+      msgLower.indexOf('transaction id') !== -1 ||
+      msgLower.indexOf('failed') !== -1 ||
+      msgLower.indexOf('incorrect') !== -1
+    );
+    if (msg && !isErrorPhrase) html += '<p style="font-size:13px;color:#646d74;margin-bottom:12px;">' + msg + '</p>';
     if (requestId) html += '<p style="font-size:12px;color:#868686;margin-bottom:12px;">Request ID: ' + requestId + '</p>';
 
     var refundAmount = data.RefundAmount;

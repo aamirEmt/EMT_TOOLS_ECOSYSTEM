@@ -1186,6 +1186,7 @@ class CancellationService:
             all_pax = outbound_passengers + inbound_passengers
             cancellable_pax = [p for p in all_pax if p.get("is_cancellable")]
             all_cancelled = bool(all_pax) and all(p.get("is_cancelled") for p in all_pax)
+            self._total_pax = len(all_pax)  # total incl. already-cancelled, for is_partial
 
             return {
                 "success": True,
@@ -1317,16 +1318,18 @@ class CancellationService:
                     "raw_response": {},
                 }
 
-            # Compute isPartialCancel: "true" if not all cancellable passengers selected
+            # Compute isPartialCancel: "true" if not cancelling ALL passengers in the booking
+            # Uses _total_pax (all pax incl. already-cancelled) so that cancelling the last
+            # remaining passenger after prior partial cancellations still sends "true".
             all_selected_ids = set()
             if outbound_pax_ids:
                 all_selected_ids.update(outbound_pax_ids.split(","))
             if inbound_pax_ids:
                 all_selected_ids.update(inbound_pax_ids.split(","))
-            outbound_pax_ids = "-".join(outbound_pax_ids.split(","))
-            inbound_pax_ids = "-".join(inbound_pax_ids.split(","))
-            total_cancellable = getattr(self, "_total_cancellable", 0)
-            is_partial = "true" if len(all_selected_ids) < total_cancellable else "false"
+            outbound_pax_ids = "-".join(outbound_pax_ids.split(",")) if outbound_pax_ids else "0"
+            inbound_pax_ids = "-".join(inbound_pax_ids.split(",")) if inbound_pax_ids else "0"
+            total_pax = getattr(self, "_total_pax", 0)
+            is_partial = "true" if len(all_selected_ids) < total_pax else "false"
 
             response = await self.client.cancel_flight(
                 transaction_screen_id=self._flight_transaction_screen_id,
@@ -1351,6 +1354,12 @@ class CancellationService:
                 msg = response.get("msg") or response.get("Message") or response.get("Msg") or ""
                 status_text = response.get("Status")
                 request_id = response.get("RequestId")
+
+                # Suppress error-like messages when the overall cancellation succeeded
+                if is_success and msg:
+                    _error_keywords = ("wrong", "invalid", "error", "transaction id", "failed", "incorrect")
+                    if any(kw in msg.lower() for kw in _error_keywords):
+                        msg = ""
 
                 if request_id and not msg:
                     msg = f"Cancellation request submitted (Request ID: {request_id})"
