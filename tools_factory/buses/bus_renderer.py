@@ -1429,7 +1429,7 @@ BUS_CAROUSEL_TEMPLATE = """
 {{ styles }}
 </style>
 
-<div class="bus-carousel  round-trip-selector" id="bus-{{ instance_id }} ">
+<div class="bus-carousel  round-trip-selector" data-instance-id="{{ unique_id }}">
   <main>
     <div class="rslttp rslt-heading">
       <div class="busctl">
