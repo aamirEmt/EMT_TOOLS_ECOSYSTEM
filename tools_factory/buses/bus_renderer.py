@@ -1668,7 +1668,6 @@ BUS_CAROUSEL_TEMPLATE = """
 
 <script>
 (function() {
-  // State management
   let currentBusData = null;
   let selectedSeats = [];
   let selectedBoardingPoint = null;
@@ -1678,7 +1677,6 @@ BUS_CAROUSEL_TEMPLATE = """
   let droppingPoints = [];
   let currentStep = 1;
   
-  // Expose functions globally
   window.openSeatModal = openSeatModal;
   window.closeSeatModal = closeSeatModal;
   window.confirmAndRedirect = confirmAndRedirect;
@@ -2249,7 +2247,6 @@ BUS_CAROUSEL_TEMPLATE = """
     })
     .then(function(response) { return response.json(); })
     .then(function(data) {
-      // Create hidden form and POST to payment page
       var form = document.createElement('form');
       form.method = 'POST';
       form.action = 'https://bus.easemytrip.com/Home/BusPayment';
