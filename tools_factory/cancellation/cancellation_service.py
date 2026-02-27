@@ -1074,7 +1074,15 @@ class CancellationService:
             # Parse outbound passengers
             outbound_passengers = []
             outbond_data = booked_passanger.get("outbond") or {}
-            pax_list_out = outbond_data.get("outBondTypePass") or []
+            pax_list_out = list(outbond_data.get("outBondTypePass") or [])
+            # Fallback: lstOutbond structure (list of groups with bookedPaxs)
+            if not pax_list_out:
+                for src in [flt_details, passenger_details, response]:
+                    lst_outbound = src.get("lstOutbond") or []
+                    if lst_outbound:
+                        for grp in lst_outbound:
+                            pax_list_out.extend(grp.get("bookedPaxs") or [])
+                        break
             for pax in pax_list_out:
                 is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
                 status = pax.get("paxstatus") or pax.get("Status") or pax.get("status") or ""
@@ -1097,7 +1105,15 @@ class CancellationService:
             # Parse inbound passengers (round-trip)
             inbound_passengers = []
             inbond_data = booked_passanger.get("inbond") or {}
-            pax_list_in = inbond_data.get("inBondTypePass") or inbond_data.get("outBondTypePass") or []
+            pax_list_in = list(inbond_data.get("inBondTypePass") or inbond_data.get("outBondTypePass") or [])
+            # Fallback: lstInbound structure (list of groups with bookedPaxs)
+            if not pax_list_in:
+                for src in [flt_details, passenger_details, response]:
+                    lst_inbound = src.get("lstInbound") or []
+                    if lst_inbound:
+                        for grp in lst_inbound:
+                            pax_list_in.extend(grp.get("bookedPaxs") or [])
+                        break
             for pax in pax_list_in:
                 is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
                 status = pax.get("paxstatus") or pax.get("Status") or pax.get("status") or ""
