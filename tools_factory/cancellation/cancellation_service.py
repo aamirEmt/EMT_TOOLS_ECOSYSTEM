@@ -1027,7 +1027,7 @@ class CancellationService:
                 f"bookedPassanger keys={list(booked_passanger.keys())}, "
                 f"FlightDetail count={len(passenger_details.get('FlightDetail') or [])}, "
                 f"outbond pax count={len((booked_passanger.get('outbond') or {}).get('outBondTypePass') or [])}, "
-                f"inbond pax count={len((booked_passanger.get('inbond') or {}).get('inBondTypePass') or [])}"
+                f"inbond pax count={len((booked_passanger.get('inbound') or {}).get('bookedPaxs') or [])}"
             )
 
             # Store transaction IDs for OTP and cancellation
@@ -1104,8 +1104,8 @@ class CancellationService:
 
             # Parse inbound passengers (round-trip)
             inbound_passengers = []
-            inbond_data = booked_passanger.get("inbond") or {}
-            pax_list_in = list(inbond_data.get("inBondTypePass") or inbond_data.get("outBondTypePass") or [])
+            inbond_data = booked_passanger.get("inbound") or {}
+            pax_list_in = list(inbond_data.get("bookedPaxs") or [])# or inbond_data.get("outBondTypePass") or [])
             # Fallback: lstInbound structure (list of groups with bookedPaxs)
             if not pax_list_in:
                 for src in [flt_details, passenger_details, response]:
