@@ -3013,7 +3013,7 @@ def render_bus_results_with_limit(
     
     # Always show View All card if link exists and show_view_all is True
     should_show_view_all = show_view_all and view_all_link
-    
+    instance_id = uuid.uuid4().hex[:8]
     template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
     return template.render(
         styles=BUS_CAROUSEL_STYLES,
@@ -3027,6 +3027,7 @@ def render_bus_results_with_limit(
         view_all_link=view_all_link,
         show_view_all_card=should_show_view_all,
         total_bus_count=total_bus_count,  # Use total for View All card
+        instance_id=instance_id,
     )
 
 def _get_seat_status_class(seat: Dict[str, Any]) -> str:
