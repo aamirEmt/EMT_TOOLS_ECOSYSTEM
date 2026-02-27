@@ -1,5 +1,6 @@
 from typing import Dict, Any, List, Optional
 from jinja2 import Environment, BaseLoader
+import uuid
 
 _jinja_env = Environment(
     loader=BaseLoader(),
@@ -1428,7 +1429,7 @@ BUS_CAROUSEL_TEMPLATE = """
 {{ styles }}
 </style>
 
-<div class="bus-carousel">
+<div class="bus-carousel  round-trip-selector" id="bus-{{ instance_id }} ">
   <main>
     <div class="rslttp rslt-heading">
       <div class="busctl">
@@ -2910,7 +2911,7 @@ def render_bus_results(bus_results: Dict[str, Any]) -> str:
     
     # Get raw journey date for API calls
     journey_date_raw = bus_results.get("journey_date", "")
-    
+    instance_id = uuid.uuid4().hex[:8]
     template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
     return template.render(
         styles=BUS_CAROUSEL_STYLES,
@@ -2927,6 +2928,7 @@ def render_bus_results(bus_results: Dict[str, Any]) -> str:
         view_all_link=bus_results.get("view_all_link"),
         show_view_all_card=False,
         total_bus_count=bus_count,
+        instance_id=instance_id,
     )
 
 
