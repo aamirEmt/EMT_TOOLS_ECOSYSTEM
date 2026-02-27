@@ -77,7 +77,6 @@ class BusSearchInput(BaseModel):
     @classmethod
     def model_json_schema(cls, **kwargs):
         schema = super().model_json_schema(**kwargs)
-        # Remove nullable fields from required if they have None defaults
         if "required" in schema:
             schema["required"] = [f for f in schema.get("required", []) 
                                   if f not in ["min_price", "max_price", "minPrice", "maxPrice"]]
@@ -114,7 +113,7 @@ class DroppingPoint(BaseModel):
     
     dp_id: str = Field(..., alias="dpId")
     dp_name: str = Field("", alias="dpName")
-    location: Optional[str] = Field(None, alias="locatoin")  # Note: API has typo "locatoin"
+    location: Optional[str] = Field(None, alias="locatoin")  
     dp_time: Optional[str] = Field(None, alias="dpTime")
     contact_number: Optional[str] = Field(None, alias="contactNumber")
     landmark: Optional[str] = None
@@ -360,7 +359,6 @@ class SeatLayoutResponse(BaseModel):
 
 
 class SeatSelectionInput(BaseModel):
-    """Input for selecting seats and getting seat layout"""
     
     source_id: str = Field(..., alias="sourceId", description="Source city ID")
     destination_id: str = Field(..., alias="destinationId", description="Destination city ID")
@@ -386,7 +384,6 @@ class SeatSelectionInput(BaseModel):
 
 
 class SelectedSeat(BaseModel):
-    """Single selected seat details"""
     
     seat_no: str = Field(..., alias="seatNo", description="Seat number/name")
     seat_type: str = Field(..., alias="seatType", description="Seat type (ST/SL)")
@@ -401,15 +398,12 @@ class SelectedSeat(BaseModel):
 
 
 class ConfirmSeatsInput(BaseModel):
-    """Input for confirming selected seats"""
     
-    # Bus identification
     available_trip_id: str = Field(..., alias="availableTripId", description="Bus trip ID")
     engine_id: int = Field(..., alias="engineId", description="Engine ID")
     route_id: str = Field(..., alias="routeId", description="Route ID")
     operator_id: str = Field(..., alias="operator_id", description="Operator ID")
     
-    # Journey details
     source: str = Field(..., description="Source city name")
     destination: str = Field(..., description="Destination city name")
     bus_operator: str = Field(..., alias="busOperator", description="Bus operator name")
@@ -417,25 +411,20 @@ class ConfirmSeatsInput(BaseModel):
     departure_time: str = Field(..., alias="DepTime", description="Departure time")
     arrival_date: str = Field(..., alias="arrivalDate", description="Arrival time")
     
-    # Selected seats
     seats: List[SelectedSeat] = Field(..., description="List of selected seats")
     
-    # Boarding point
     boarding_id: str = Field(..., alias="boardingId", description="Boarding point ID")
     boarding_name: str = Field("", alias="boardingName", description="Boarding point name")
     boarding_point: Dict[str, Any] = Field(..., alias="boardingPoint", description="Full boarding point details")
     
-    # Dropping point
     drop_id: str = Field(..., alias="dropId", description="Dropping point ID")
     dropping_point: Dict[str, Any] = Field(..., alias="DropingPoint", description="Full dropping point details")
     
-    # Session info
     session_id: Optional[str] = Field(None, alias="sessionId", description="Session ID")
     sid: str = Field(..., alias="Sid", description="Session ID")
     vid: str = Field(..., alias="Vid", description="Visitor ID")
     trace_id: str = Field(..., alias="TraceId", description="Trace ID")
     
-    # Fare details
     total_fare: float = Field(0, alias="totalFare", description="Total fare")
     discount: float = Field(0, alias="Discount", description="Discount amount")
     cash_back: float = Field(0, alias="CashBack", description="Cashback amount")
@@ -443,7 +432,6 @@ class ConfirmSeatsInput(BaseModel):
     stf: float = Field(0, alias="STF", description="STF")
     tds: float = Field(0, alias="TDS", description="TDS")
     
-    # Other
     coupon_code: str = Field("", alias="cpnCode", description="Coupon code")
     agent_code: str = Field("", alias="agentCode", description="Agent code")
     agent_type: str = Field("", alias="agentType", description="Agent type")
@@ -453,17 +441,3 @@ class ConfirmSeatsInput(BaseModel):
     cancel_policy_list: List[Dict[str, Any]] = Field([], alias="cancelPolicyList", description="Cancellation policy")
     
     model_config = ConfigDict(populate_by_name=True, extra="forbid")
-
-
-# class SeatLayoutResponse(BaseModel):
-#     """Response from seat layout API"""
-    
-#     success: bool
-#     message: str
-#     layout: Optional[SeatLayoutInfo] = None
-#     boarding_points: List[Dict[str, Any]] = []
-#     dropping_points: List[Dict[str, Any]] = []
-#     session_id: Optional[str] = None
-#     visitor_id: Optional[str] = None
-#     trace_id: Optional[str] = None
-#     raw_response: Optional[Dict[str, Any]] = None

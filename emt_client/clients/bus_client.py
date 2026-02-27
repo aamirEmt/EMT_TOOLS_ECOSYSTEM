@@ -10,7 +10,6 @@ from ..config import (
 
 
 class BusApiClient:
-    """Bus API client for EaseMyTrip bus service."""
     
     def __init__(self):
         self.search_url = BUS_SEARCH_URL
@@ -20,7 +19,6 @@ class BusApiClient:
         self.encrypted_header = BUS_ENCRYPTED_HEADER
 
     async def search(self, payload: dict) -> dict:
-        """Search buses between cities."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 self.search_url,
@@ -33,7 +31,6 @@ class BusApiClient:
                 return await response.json()
 
     async def get_seat_layout(self, payload: dict) -> dict:
-        """Get seat layout for a specific bus."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 self.seat_bind_url,
@@ -46,7 +43,6 @@ class BusApiClient:
                 return await response.json()
 
     async def get_city_suggestions(self, encrypted_payload: dict) -> str:
-        """Get city suggestions from autosuggest API."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 f"{self.autosuggest_url}?useby=popularu&key={self.autosuggest_key}",
@@ -59,15 +55,7 @@ class BusApiClient:
                 return await response.text()
             
     async def confirm_seats(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Confirm selected seats via the ConfirmSeats API.
-        
-        Args:
-            payload: Seat confirmation payload
-            
-        Returns:
-            API response data
-        """
+
         from emt_client.config import BUS_CONFIRM_SEATS_URL
         
         headers = {

@@ -1,18 +1,9 @@
 from tools_factory.base import BaseTool, ToolMetadata
 from pydantic import ValidationError
-# from .bus_schema import BusSearchInput, SeatBindInput
-# from .bus_search_service import search_buses, build_whatsapp_bus_response, get_seat_layout
-# from tools_factory.base_schema import ToolResponseFormat
-# from .bus_renderer import render_bus_results, render_bus_results_with_limit, render_seat_layout
-# from .bus_schema import BusSearchInput
 from .bus_schema import BusSearchInput, SeatBindInput
 from .bus_search_service import search_buses, build_whatsapp_bus_response, get_seat_layout
 from tools_factory.base_schema import ToolResponseFormat
 from .bus_renderer import render_bus_results_with_limit, render_seat_layout
-# from .bus_search_service import search_buses, build_whatsapp_bus_response
-# from tools_factory.base_schema import ToolResponseFormat
-# from .bus_renderer import render_bus_results_with_limit
-
 
 class BusSearchTool(BaseTool):
     
@@ -62,7 +53,7 @@ class BusSearchTool(BaseTool):
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
         session_id = kwargs.pop("_session_id", None)
-        limit = kwargs.pop("_limit", 15)  # Default limit: 15 buses per page
+        limit = kwargs.pop("_limit", 15)  
         user_type = kwargs.pop("_user_type", "website")
         display_limit = kwargs.pop("_display_limit", 15)
         is_whatsapp = user_type.lower() == "whatsapp"
@@ -117,19 +108,15 @@ class BusSearchTool(BaseTool):
 
         has_error = bool(bus_results.get("error"))
 
-        # Store original total count BEFORE pagination
         total_bus_count = len(bus_results.get("buses", []))
 
-        # Get all buses for rendering (DO NOT MODIFY bus_results["buses"])
         all_buses = bus_results.get("buses", [])
         
-        # Create paginated version for structured_content ONLY
         page = payload.page
         offset = (page - 1) * limit
         end = offset + limit
         paginated_buses = all_buses[offset:end] if not has_error else []
         
-        # Create limited_bus_results as a COPY with paginated buses
         limited_bus_results = bus_results.copy()
         limited_bus_results["buses"] = paginated_buses
         limited_bus_results["pagination"] = {
@@ -145,37 +132,22 @@ class BusSearchTool(BaseTool):
         
         bus_count = len(paginated_buses)
 
-        # Build WhatsApp response if needed
         whatsapp_response = None
         if is_whatsapp and not has_error:
             whatsapp_response = build_whatsapp_bus_response(payload, limited_bus_results)
 
-        # # Render HTML for website
-        # # Pass FULL bus_results (not limited) so View All card shows correct total
-        # html_output = None
-        # if not has_error and not is_whatsapp and total_bus_count > 0:
-        #     html_output = render_bus_results_with_limit(
-        #         bus_results,
-        #         display_limit=display_limit,
-        #         show_view_all=True,
-        #     )
-
-        # Render HTML for website
-        # Create render data with paginated buses but preserve total count for header/View All
         html_output = None
         if not has_error and not is_whatsapp and total_bus_count > 0:
-            # Build render data: paginated buses + original metadata for header
             render_data = bus_results.copy()
-            render_data["buses"] = paginated_buses  # Only buses for this page
+            render_data["buses"] = paginated_buses  
             
             html_output = render_bus_results_with_limit(
                 render_data,
-                display_limit=len(paginated_buses),  # Show all paginated buses (no further slicing)
+                display_limit=len(paginated_buses),  
                 show_view_all=True,
-                total_bus_count=total_bus_count,  # Pass original total for header & View All card
+                total_bus_count=total_bus_count, 
             )
 
-        # Build response text
         source_display = bus_results.get("source_name") or payload.source_id or payload.source_name
         dest_display = bus_results.get("destination_name") or payload.destination_id or payload.destination_name
 
@@ -204,77 +176,3 @@ class BusSearchTool(BaseTool):
             ),
             is_error=has_error,
         )
-
-
-# class BusSeatLayoutTool(BaseTool):
-
-#     def get_metadata(self) -> ToolMetadata:
-#         return ToolMetadata(
-#             name="get_bus_seat_layout",
-#             description="Get seat layout for a specific bus with boarding/dropping points. Shows available and booked seats.",
-#             input_schema=SeatBindInput.model_json_schema(),
-#             output_template="ui://widget/bus-seat-layout.html",
-#             category="travel",
-#             tags=["bus", "seat", "layout", "booking"],
-#         )
-
-#     async def execute(self, **kwargs) -> ToolResponseFormat:
-#         user_type = kwargs.pop("_user_type", "website")
-#         is_whatsapp = user_type.lower() == "whatsapp"
-
-#         # Validate input
-#         try:
-#             payload = SeatBindInput.model_validate(kwargs)
-#         except ValidationError as exc:
-#             return ToolResponseFormat(
-#                 response_text="Invalid seat layout input",
-#                 structured_content={
-#                     "error": "VALIDATION_ERROR",
-#                     "details": exc.errors(),
-#                 },
-#                 is_error=True,
-#             )
-
-#         # Get seat layout from API
-#         layout_response = await get_seat_layout(
-#             source_id=payload.source_id,
-#             destination_id=payload.destination_id,
-#             journey_date=payload.journey_date,
-#             bus_id=payload.bus_id,
-#             route_id=payload.route_id,
-#             engine_id=payload.engine_id,
-#             boarding_point_id=payload.boarding_point_id,
-#             dropping_point_id=payload.dropping_point_id,
-#             source_name=payload.source_name or "",
-#             destination_name=payload.destination_name or "",
-#             operator_id=payload.operator_id or "",
-#             operator_name=payload.operator_name or "",
-#             bus_type=payload.bus_type or "",
-#             departure_time=payload.departure_time or "",
-#             arrival_time=payload.arrival_time or "",
-#             duration=payload.duration or "",
-#             trace_id=payload.trace_id or "",
-#             is_seater=payload.is_seater if payload.is_seater is not None else True,
-#             is_sleeper=payload.is_sleeper if payload.is_sleeper is not None else True,
-#         )
-
-#         has_error = not layout_response.get("success")
-
-#         # Render HTML for website
-#         html_output = None
-#         if not is_whatsapp:
-#             html_output = render_seat_layout(layout_response)
-
-#         # Build response text
-#         if has_error:
-#             text = f"Failed to load seat layout: {layout_response.get('message', 'Unknown error')}"
-#         else:
-#             layout = layout_response.get("layout", {})
-#             text = f"Seat layout loaded: {layout.get('available_seats', 0)} seats available out of {layout.get('total_seats', 0)}"
-
-#         return ToolResponseFormat(
-#             response_text=text,
-#             structured_content=layout_response,
-#             html=html_output,
-#             is_error=has_error,
-#         )
