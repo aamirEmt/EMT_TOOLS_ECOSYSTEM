@@ -1026,8 +1026,8 @@ class CancellationService:
                 f"Flight parsing: PassengerDetails keys={list(passenger_details.keys())}, "
                 f"bookedPassanger keys={list(booked_passanger.keys())}, "
                 f"FlightDetail count={len(passenger_details.get('FlightDetail') or [])}, "
-                f"lstOutbond count={len(booked_passanger.get('lstOutbond') or [])}, "
-                f"lstInbound count={len(booked_passanger.get('lstInbound') or [])}"
+                f"outbond pax count={len((booked_passanger.get('outbond') or {}).get('outBondTypePass') or [])}, "
+                f"inbond pax count={len((booked_passanger.get('inbond') or {}).get('inBondTypePass') or [])}"
             )
 
             # Store transaction IDs for OTP and cancellation
@@ -1073,51 +1073,49 @@ class CancellationService:
 
             # Parse outbound passengers
             outbound_passengers = []
-            lst_outbound = booked_passanger.get("lstOutbond") or []
-            for group in lst_outbound:
-                pax_list = group.get("outBondTypePass") or []
-                for pax in pax_list:
-                    is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
-                    status = pax.get("Status") or pax.get("status") or ""
-                    is_cancelled = str(status).lower() in ("cancelled", "cancel")
-                    outbound_passengers.append({
-                        "pax_id": pax.get("paxId"),
-                        "title": pax.get("title"),
-                        "first_name": pax.get("FirstName") or pax.get("firstName"),
-                        "last_name": pax.get("lastName"),
-                        "pax_type": pax.get("paxType"),
-                        "ticket_number": pax.get("ticketNumber"),
-                        "status": status,
-                        "is_cancellable": is_cancellable,
-                        "is_cancelled": is_cancelled,
-                        "cancellation_charge": pax.get("cancellationCharge"),
-                        "bound_type": pax.get("tripType") or pax.get("boundType"),
-                        "possible_mode": pax.get("possiblemode") or pax.get("possibleMode"),
-                    })
+            outbond_data = booked_passanger.get("outbond") or {}
+            pax_list_out = outbond_data.get("outBondTypePass") or []
+            for pax in pax_list_out:
+                is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
+                status = pax.get("paxstatus") or pax.get("Status") or pax.get("status") or ""
+                is_cancelled = str(status).lower() in ("cancelled", "cancel")
+                outbound_passengers.append({
+                    "pax_id": pax.get("paxId"),
+                    "title": pax.get("title"),
+                    "first_name": pax.get("FirstName") or pax.get("firstName"),
+                    "last_name": pax.get("lastName"),
+                    "pax_type": pax.get("paxType"),
+                    "ticket_number": pax.get("ticketNumber"),
+                    "status": status,
+                    "is_cancellable": is_cancellable,
+                    "is_cancelled": is_cancelled,
+                    "cancellation_charge": pax.get("cancellationCharge"),
+                    "bound_type": pax.get("tripType") or pax.get("boundType"),
+                    "possible_mode": pax.get("possiblemode") or pax.get("possibleMode"),
+                })
 
             # Parse inbound passengers (round-trip)
             inbound_passengers = []
-            lst_inbound = booked_passanger.get("lstInbound") or []
-            for group in lst_inbound:
-                pax_list = group.get("inBoundTypePass") or group.get("outBondTypePass") or []
-                for pax in pax_list:
-                    is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
-                    status = pax.get("Status") or pax.get("status") or ""
-                    is_cancelled = str(status).lower() in ("cancelled", "cancel")
-                    inbound_passengers.append({
-                        "pax_id": pax.get("paxId"),
-                        "title": pax.get("title"),
-                        "first_name": pax.get("FirstName") or pax.get("firstName"),
-                        "last_name": pax.get("lastName"),
-                        "pax_type": pax.get("paxType"),
-                        "ticket_number": pax.get("ticketNumber"),
-                        "status": status,
-                        "is_cancellable": is_cancellable,
-                        "is_cancelled": is_cancelled,
-                        "cancellation_charge": pax.get("cancellationCharge"),
-                        "bound_type": pax.get("tripType") or pax.get("boundType"),
-                        "possible_mode": pax.get("possiblemode") or pax.get("possibleMode"),
-                    })
+            inbond_data = booked_passanger.get("inbond") or {}
+            pax_list_in = inbond_data.get("inBondTypePass") or inbond_data.get("outBondTypePass") or []
+            for pax in pax_list_in:
+                is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
+                status = pax.get("paxstatus") or pax.get("Status") or pax.get("status") or ""
+                is_cancelled = str(status).lower() in ("cancelled", "cancel")
+                inbound_passengers.append({
+                    "pax_id": pax.get("paxId"),
+                    "title": pax.get("title"),
+                    "first_name": pax.get("FirstName") or pax.get("firstName"),
+                    "last_name": pax.get("lastName"),
+                    "pax_type": pax.get("paxType"),
+                    "ticket_number": pax.get("ticketNumber"),
+                    "status": status,
+                    "is_cancellable": is_cancellable,
+                    "is_cancelled": is_cancelled,
+                    "cancellation_charge": pax.get("cancellationCharge"),
+                    "bound_type": pax.get("tripType") or pax.get("boundType"),
+                    "possible_mode": pax.get("possiblemode") or pax.get("possibleMode"),
+                })
 
             # Parse price info
             price_details = passenger_details.get("FlightPriceDetails") or {}
@@ -1154,10 +1152,13 @@ class CancellationService:
                         "policy_text": pol.get("PolicyText") or pol.get("Time"),
                         "is_refundable": pol.get("Refundable"),
                         "is_cancellation": pol.get("IsCancellation"),
+                        "policy_detail": pol.get("policydtl") or pol.get("PolicyDetail") or pol.get("Description"),
                     })
                 cancellation_policy.append({
                     "sector_name": sector.get("SectorName") or sector.get("Sector"),
                     "bound_type": sector.get("Boundtype"),
+                    "departure_date": sector.get("DepartureDate"),
+                    "flight_image": sector.get("FlightImage"),
                     "policies": policy_items,
                 })
 
