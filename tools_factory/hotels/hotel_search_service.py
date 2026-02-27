@@ -68,7 +68,7 @@ class HotelSearchService:
         """
         Build RoomDetails array for the API.
         Each element is one room with NoOfRooms as a 1-based index.
-        Max 2 adults per room.
+        Max 4 adults per room, max 2 children per room.
 
         If search_input.room_details is provided (LLM path), use it directly.
         Otherwise, auto-distribute adults/children across num_rooms rooms.
@@ -101,7 +101,7 @@ class HotelSearchService:
         remaining_adults = total_adults
         for i in range(num_rooms):
             rooms_left = num_rooms - i
-            per_room = min(2, remaining_adults, -(-remaining_adults // rooms_left))  # ceil division, capped at 2
+            per_room = min(4, remaining_adults, -(-remaining_adults // rooms_left))  # ceil division, capped at 4
             adults_per_room.append(per_room)
             remaining_adults -= per_room
 
@@ -404,7 +404,7 @@ class HotelSearchService:
             check_in_date=search_input.check_in_date,
             check_out_date=search_input.check_out_date,
             currency=hotels[0].get("currency", "INR") if hotels else "INR",
-            view_all_hotels_url=results.get("viewAll", ""),
+            view_all_hotels_url=results.get("viewAll") or ""
         )
 
         return WhatsappHotelFinalResponse(

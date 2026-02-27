@@ -39,12 +39,6 @@ HOTEL_BOOKINGS_TEMPLATE = """
   color: #202020;
 }
 
-.hotel-bookings .bkng-subtitle {
-  font-size: 12px;
-  color: #646d74;
-  margin-top: 4px;
-}
-
 .hotel-bookings .bkng-tabs {
   display: flex;
   gap: 8px;
@@ -298,7 +292,6 @@ HOTEL_BOOKINGS_TEMPLATE = """
 <div class="hotel-bookings" data-instance-id="hotel-bookings-{{ instance_id }}">
   <div class="bkng-header">
     <div class="bkng-title">{{ title }}</div>
-    <div class="bkng-subtitle">{{ subtitle }}</div>
   </div>
 
   {% if tabs %}

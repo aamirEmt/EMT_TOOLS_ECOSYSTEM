@@ -28,7 +28,7 @@ class GetTrainBookingsTool(BaseTool):
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
             name="fetch_train_booking_details",
-            description="Fetch all train bookings for the logged-in user. If user is not logged in, tell them to provide their phone number or email to login via OTP.",
+    description="Fetch all train bookings for the logged-in user. If user is not logged in, tell them to provide their phone number or email to login via OTP. NEVER ASK FOR PNR, ALWAYS ASK FOR EMT BOOKING ID.",
             input_schema=GetBookingsInput.model_json_schema(),
             output_template=None,
             category="bookings",

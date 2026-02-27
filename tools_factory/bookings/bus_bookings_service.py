@@ -37,7 +37,7 @@ class BusBookingsService:
                     "error": "INVALID_SESSION"
                 }
             
-            result = await self.client.fetch_bookings(action2_token, uid, ip)
+            result = await self.client.fetch_bookings(action2_token, uid, ip, process_type=2)
             
             if not result.get("success"):
                 return result
