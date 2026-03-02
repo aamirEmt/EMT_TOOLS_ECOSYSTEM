@@ -1026,8 +1026,8 @@ class CancellationService:
                 f"Flight parsing: PassengerDetails keys={list(passenger_details.keys())}, "
                 f"bookedPassanger keys={list(booked_passanger.keys())}, "
                 f"FlightDetail count={len(passenger_details.get('FlightDetail') or [])}, "
-                f"lstOutbond count={len(booked_passanger.get('lstOutbond') or [])}, "
-                f"lstInbound count={len(booked_passanger.get('lstInbound') or [])}"
+                f"outbond pax count={len((booked_passanger.get('outbond') or {}).get('outBondTypePass') or [])}, "
+                f"inbond pax count={len((booked_passanger.get('inbound') or {}).get('bookedPaxs') or [])}"
             )
 
             # Store transaction IDs for OTP and cancellation
@@ -1073,51 +1073,65 @@ class CancellationService:
 
             # Parse outbound passengers
             outbound_passengers = []
-            lst_outbound = booked_passanger.get("lstOutbond") or []
-            for group in lst_outbound:
-                pax_list = group.get("outBondTypePass") or []
-                for pax in pax_list:
-                    is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
-                    status = pax.get("Status") or pax.get("status") or ""
-                    is_cancelled = str(status).lower() in ("cancelled", "cancel")
-                    outbound_passengers.append({
-                        "pax_id": pax.get("paxId"),
-                        "title": pax.get("title"),
-                        "first_name": pax.get("FirstName") or pax.get("firstName"),
-                        "last_name": pax.get("lastName"),
-                        "pax_type": pax.get("paxType"),
-                        "ticket_number": pax.get("ticketNumber"),
-                        "status": status,
-                        "is_cancellable": is_cancellable,
-                        "is_cancelled": is_cancelled,
-                        "cancellation_charge": pax.get("cancellationCharge"),
-                        "bound_type": pax.get("tripType") or pax.get("boundType"),
-                        "possible_mode": pax.get("possiblemode") or pax.get("possibleMode"),
-                    })
+            outbond_data = booked_passanger.get("outbond") or {}
+            pax_list_out = list(outbond_data.get("outBondTypePass") or [])
+            # Fallback: lstOutbond structure (list of groups with bookedPaxs)
+            if not pax_list_out:
+                for src in [flt_details, passenger_details, response]:
+                    lst_outbound = src.get("lstOutbond") or []
+                    if lst_outbound:
+                        for grp in lst_outbound:
+                            pax_list_out.extend(grp.get("bookedPaxs") or [])
+                        break
+            for pax in pax_list_out:
+                is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
+                status = pax.get("paxstatus") or pax.get("Status") or pax.get("status") or ""
+                is_cancelled = str(status).lower() in ("cancelled", "cancel")
+                outbound_passengers.append({
+                    "pax_id": pax.get("paxId"),
+                    "title": pax.get("title"),
+                    "first_name": pax.get("FirstName") or pax.get("firstName"),
+                    "last_name": pax.get("lastName"),
+                    "pax_type": pax.get("paxType"),
+                    "ticket_number": pax.get("ticketNumber"),
+                    "status": status,
+                    "is_cancellable": is_cancellable,
+                    "is_cancelled": is_cancelled,
+                    "cancellation_charge": pax.get("cancellationCharge"),
+                    "bound_type": pax.get("tripType") or pax.get("boundType"),
+                    "possible_mode": pax.get("possiblemode") or pax.get("possibleMode"),
+                })
 
             # Parse inbound passengers (round-trip)
             inbound_passengers = []
-            lst_inbound = booked_passanger.get("lstInbound") or []
-            for group in lst_inbound:
-                pax_list = group.get("inBoundTypePass") or group.get("outBondTypePass") or []
-                for pax in pax_list:
-                    is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
-                    status = pax.get("Status") or pax.get("status") or ""
-                    is_cancelled = str(status).lower() in ("cancelled", "cancel")
-                    inbound_passengers.append({
-                        "pax_id": pax.get("paxId"),
-                        "title": pax.get("title"),
-                        "first_name": pax.get("FirstName") or pax.get("firstName"),
-                        "last_name": pax.get("lastName"),
-                        "pax_type": pax.get("paxType"),
-                        "ticket_number": pax.get("ticketNumber"),
-                        "status": status,
-                        "is_cancellable": is_cancellable,
-                        "is_cancelled": is_cancelled,
-                        "cancellation_charge": pax.get("cancellationCharge"),
-                        "bound_type": pax.get("tripType") or pax.get("boundType"),
-                        "possible_mode": pax.get("possiblemode") or pax.get("possibleMode"),
-                    })
+            inbond_data = booked_passanger.get("inbound") or {}
+            pax_list_in = list(inbond_data.get("bookedPaxs") or [])# or inbond_data.get("outBondTypePass") or [])
+            # Fallback: lstInbound structure (list of groups with bookedPaxs)
+            if not pax_list_in:
+                for src in [flt_details, passenger_details, response]:
+                    lst_inbound = src.get("lstInbound") or []
+                    if lst_inbound:
+                        for grp in lst_inbound:
+                            pax_list_in.extend(grp.get("bookedPaxs") or [])
+                        break
+            for pax in pax_list_in:
+                is_cancellable = str(pax.get("isCancellable", "")).lower() == "true"
+                status = pax.get("paxstatus") or pax.get("Status") or pax.get("status") or ""
+                is_cancelled = str(status).lower() in ("cancelled", "cancel")
+                inbound_passengers.append({
+                    "pax_id": pax.get("paxId"),
+                    "title": pax.get("title"),
+                    "first_name": pax.get("FirstName") or pax.get("firstName"),
+                    "last_name": pax.get("lastName"),
+                    "pax_type": pax.get("paxType"),
+                    "ticket_number": pax.get("ticketNumber"),
+                    "status": status,
+                    "is_cancellable": is_cancellable,
+                    "is_cancelled": is_cancelled,
+                    "cancellation_charge": pax.get("cancellationCharge"),
+                    "bound_type": pax.get("tripType") or pax.get("boundType"),
+                    "possible_mode": pax.get("possiblemode") or pax.get("possibleMode"),
+                })
 
             # Parse price info
             price_details = passenger_details.get("FlightPriceDetails") or {}
@@ -1154,10 +1168,13 @@ class CancellationService:
                         "policy_text": pol.get("PolicyText") or pol.get("Time"),
                         "is_refundable": pol.get("Refundable"),
                         "is_cancellation": pol.get("IsCancellation"),
+                        "policy_detail": pol.get("policydtl") or pol.get("PolicyDetail") or pol.get("Description"),
                     })
                 cancellation_policy.append({
                     "sector_name": sector.get("SectorName") or sector.get("Sector"),
                     "bound_type": sector.get("Boundtype"),
+                    "departure_date": sector.get("DepartureDate"),
+                    "flight_image": sector.get("FlightImage"),
                     "policies": policy_items,
                 })
 
@@ -1169,6 +1186,7 @@ class CancellationService:
             all_pax = outbound_passengers + inbound_passengers
             cancellable_pax = [p for p in all_pax if p.get("is_cancellable")]
             all_cancelled = bool(all_pax) and all(p.get("is_cancelled") for p in all_pax)
+            self._total_pax = len(all_pax)  # total incl. already-cancelled, for is_partial
 
             return {
                 "success": True,
@@ -1300,16 +1318,18 @@ class CancellationService:
                     "raw_response": {},
                 }
 
-            # Compute isPartialCancel: "true" if not all cancellable passengers selected
+            # Compute isPartialCancel: "true" if not cancelling ALL passengers in the booking
+            # Uses _total_pax (all pax incl. already-cancelled) so that cancelling the last
+            # remaining passenger after prior partial cancellations still sends "true".
             all_selected_ids = set()
             if outbound_pax_ids:
                 all_selected_ids.update(outbound_pax_ids.split(","))
             if inbound_pax_ids:
                 all_selected_ids.update(inbound_pax_ids.split(","))
-            outbound_pax_ids = "-".join(outbound_pax_ids.split(","))
-            inbound_pax_ids = "-".join(inbound_pax_ids.split(","))
-            total_cancellable = getattr(self, "_total_cancellable", 0)
-            is_partial = "true" if len(all_selected_ids) < total_cancellable else "false"
+            outbound_pax_ids = "-".join(outbound_pax_ids.split(",")) if outbound_pax_ids else "0"
+            inbound_pax_ids = "-".join(inbound_pax_ids.split(",")) if inbound_pax_ids else "0"
+            total_pax = getattr(self, "_total_pax", 0)
+            is_partial = "true" if len(all_selected_ids) < total_pax else "false"
 
             response = await self.client.cancel_flight(
                 transaction_screen_id=self._flight_transaction_screen_id,
@@ -1334,6 +1354,12 @@ class CancellationService:
                 msg = response.get("msg") or response.get("Message") or response.get("Msg") or ""
                 status_text = response.get("Status")
                 request_id = response.get("RequestId")
+
+                # Suppress error-like messages when the overall cancellation succeeded
+                if is_success and msg:
+                    _error_keywords = ("wrong", "invalid", "error", "transaction id", "failed", "incorrect")
+                    if any(kw in msg.lower() for kw in _error_keywords):
+                        msg = ""
 
                 if request_id and not msg:
                     msg = f"Cancellation request submitted (Request ID: {request_id})"
