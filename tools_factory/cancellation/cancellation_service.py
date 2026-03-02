@@ -1326,8 +1326,8 @@ class CancellationService:
                 all_selected_ids.update(outbound_pax_ids.split(","))
             if inbound_pax_ids:
                 all_selected_ids.update(inbound_pax_ids.split(","))
-            outbound_pax_ids = "-".join(outbound_pax_ids.split(",")) if outbound_pax_ids else "0"
-            inbound_pax_ids = "-".join(inbound_pax_ids.split(",")) if inbound_pax_ids else "0"
+            outbound_pax_ids = "-".join(outbound_pax_ids.split(",")) if outbound_pax_ids else ""
+            inbound_pax_ids = "-".join(inbound_pax_ids.split(",")) if inbound_pax_ids else ""
             total_pax = getattr(self, "_total_pax", 0)
             is_partial = "true" if len(all_selected_ids) < total_pax else "false"
 
