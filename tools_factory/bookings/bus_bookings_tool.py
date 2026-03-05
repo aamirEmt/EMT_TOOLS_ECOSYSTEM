@@ -43,7 +43,14 @@ class GetBusBookingsTool(BaseTool):
             user_type = kwargs.pop("_user_type", "website")
             render_html = user_type.lower() == "website"
             is_whatsapp = user_type.lower() == "whatsapp"
-
+            token = kwargs.pop("_token", "")  
+            
+            if not token:
+                return ToolResponseFormat(
+                    response_text="Token-based access is not supported for fetching bus bookings. Please login via OTP to get a session_id and use that for authentication.",
+                    is_error=True,
+                    is_login_required=True
+                )
             # Validate session_id is provided
             if not session_id:
                 return ToolResponseFormat(
