@@ -279,6 +279,23 @@ HOTEL_CAROUSEL_TEMPLATE = """
   cursor: pointer;
 }
 
+.hotel-carousel .pay-zero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #04a77a;
+}
+
+.hotel-carousel .pay-zero img {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
 .hotel-carousel .hotel-carousel__empty {
   text-align: center;
   color: #646d74;
@@ -565,6 +582,12 @@ HOTEL_CAROUSEL_TEMPLATE = """
               <a class="bkbtn-link" href="{{ hotel.deepLink }}" target="_blank" rel="noopener noreferrer">
                 <button class="bkbtn" type="button">Book Now</button>
               </a>
+              {% if hotel.isPayZero %}
+              <div class="pay-zero">
+                <img src="https://www.easemytrip.com/hotel-new/images/green-circlchek.svg" alt="check">
+                <span>Book with ₹0</span>
+              </div>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
@@ -793,6 +816,7 @@ def _normalize_hotel_for_ui(hotel: Dict[str, Any], check_in=None, check_out=None
         "amenities": amenities,
         "usp": usp,
         "deepLink": hotel.get('deepLink') or hotel.get('booking_url') or hotel.get('url'),
+        "isPayZero": bool(hotel.get('isPayZero')),
     }
 
 # =====================================================================

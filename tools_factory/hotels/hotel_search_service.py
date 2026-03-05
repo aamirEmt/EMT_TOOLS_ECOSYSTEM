@@ -289,6 +289,7 @@ class HotelSearchService:
                 "hotelImage": hotel.get("imgU"),
                 "deepLink": deep_link_data["deepLink"],
                 "traceId": deep_link_data["traceId"],
+                "isPayZero": hotel.get("isPayZero"),
             })
 
         return {
