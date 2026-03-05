@@ -82,7 +82,7 @@ class HotelTokenProvider(TokenProvider):
         }
         
         try:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=60.0) as client:
                 res = await client.post(HOTEL_LOGIN_URL, headers=headers, json=payload)
                 res.raise_for_status()
                 

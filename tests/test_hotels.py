@@ -50,16 +50,16 @@ def dummy_hotel_with_filters():
     checkout = (today + timedelta(days=16)).strftime("%Y-%m-%d")
     
     return {
-        "city_name": "Goa",
-        "check_in_date": checkin,
-        "check_out_date": checkout,
-        "num_rooms": 1,
-        "num_adults": 2,
-        "num_children": 0,
-        "min_price": 2000,
-        "max_price": 1000000,
-        "rating": ["4", "5"],
-        "amenities": ["Swimming Pool"]
+        "city_name": "puri",
+        "check_in_date": "2026-03-02",
+        "check_out_date": "2026-03-04",
+        "num_rooms": 2,
+        "num_adults": 4,
+        # "num_children": 0,
+        # "min_price": 2000,
+        # "max_price": 1000000,
+        # "rating": ["4", "5"],
+        # "amenities": ["Swimming Pool"]
     }
 
 
@@ -136,9 +136,9 @@ async def test_hotel_search_with_filters_real_api(dummy_hotel_with_filters):
     
     hotels = data.get("hotels", data.get("results", []))
     print(f"✅ Found {len(hotels)} hotels with filters")
-    print(f"   City: {dummy_hotel_with_filters['city_name']}")
-    print(f"   Rating filter: {dummy_hotel_with_filters['rating']}")
-    print(f"   Amenities: {dummy_hotel_with_filters['amenities']}")
+    # print(f"   City: {dummy_hotel_with_filters['city_name']}")
+    # print(f"   Rating filter: {dummy_hotel_with_filters['rating']}")
+    # print(f"   Amenities: {dummy_hotel_with_filters['amenities']}")
 
 
 @pytest.mark.asyncio
@@ -726,7 +726,7 @@ async def test_hotel_search_with_specific_amenities():
 # HOTEL WHATSAPP JSON RESPONSE TEST - REAL API
 # ============================================================================
 @pytest.mark.asyncio
-async def test_hotel_search_whatsapp_real_api(dummy_hotel_basic):
+async def test_hotel_search_whatsapp_real_api(dummy_hotel_with_filters):
     """
     Test hotel search with real API call for WhatsApp JSON response.
     Verifies:
@@ -738,13 +738,13 @@ async def test_hotel_search_whatsapp_real_api(dummy_hotel_basic):
     factory = get_tool_factory()
     tool = factory.get_tool("search_hotels")
 
-    print(f"\n🔍 Searching hotels for WhatsApp JSON: {dummy_hotel_basic}")
+    print(f"\n🔍 Searching hotels for WhatsApp JSON: {dummy_hotel_with_filters}")
 
     # Make the real API call
     result = await tool.execute(
-        **dummy_hotel_basic,
+        **dummy_hotel_with_filters,
         _user_type="whatsapp",
-        _limit=3  # optional: limit to first 10 hotels for faster response
+        _limit=15  # optional: limit to first 10 hotels for faster response
     )
 
     # Extract WhatsApp response
