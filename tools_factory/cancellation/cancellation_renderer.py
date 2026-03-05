@@ -1105,7 +1105,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     });
   }
 
-  function confirmCancellation(otp, reason, remark) {
+  function confirmCancellation(otp, reason, remark, sessionId) {
     showLoading(true);
     hideAllErrors();
     return fetch(CANCEL_URL, {
@@ -1119,7 +1119,8 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         remark: remark || '',
         room_id: selectedRoom ? String(selectedRoom.room_id) : '',
         transaction_id: selectedRoom ? String(selectedRoom.transaction_id) : '',
-        is_pay_at_hotel: selectedRoom ? !!selectedRoom.is_pay_at_hotel : false
+        is_pay_at_hotel: selectedRoom ? !!selectedRoom.is_pay_at_hotel : false,
+        session_id: sessionId || ''
       })
     })
     .then(function(resp) { return resp.json(); })
@@ -1240,11 +1241,13 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 
       var reasonSelect = container.querySelector('.hc-reason-select');
       var remarkTextarea = container.querySelector('.hc-remark-textarea');
+      var sessionId = container.getAttribute('data-instance-id');
 
       confirmCancellation(
         otp,
         reasonSelect ? reasonSelect.value : 'Change of plans',
-        remarkTextarea ? remarkTextarea.value : ''
+        remarkTextarea ? remarkTextarea.value : '',
+        sessionId
       ).then(function(result) {
         if (result) {
           renderResult(result);
@@ -1365,6 +1368,7 @@ def render_booking_details(
     bid: str = "",
     api_base_url: str = "",
     is_otp_send: bool = False,
+    session_id: str = "",
 ) -> str:
     """
     Render booking details as interactive HTML with cancellation flow.
@@ -1379,7 +1383,8 @@ def render_booking_details(
         bid: Encrypted booking ID from guest login (used as EmtScreenID/Bid in API calls)
         api_base_url: Base URL of the chatbot API (e.g. 'http://localhost:8000')
         is_otp_send: Whether a login OTP was auto-sent (shows verify OTP step first)
-
+        session_id: Chat session ID for AI message delivery
+        
     Returns:
         HTML string with rendered interactive booking details
     """
@@ -1456,7 +1461,7 @@ def render_booking_details(
 
     # Render interactive template with embedded JS for full cancel flow
     import uuid
-    instance_id = str(uuid.uuid4())[:8]
+    instance_id = session_id
 
     # Prepare room data for JS embedding
     rooms_json = [
@@ -1488,6 +1493,7 @@ def render_booking_details(
         api_base_url=api_base_url,
         is_otp_send=is_otp_send,
         all_cancelled=all_cancelled,
+        session_id=session_id,
     )
 
 
@@ -2219,7 +2225,7 @@ TRAIN_BOOKING_TEMPLATE = """
 
 </style>
 
-<div class="train-cancel-carousel round-trip-selector" data-instance-id="{{ instance_id }}">
+<div class="train-cancel-carousel round-trip-selector" data-instance-id="{{ session_id }}">
   <main>
     <div class="hc-loading"><div class="hc-spinner"></div></div>
     <div class="hc-error-msg"></div>
@@ -2419,7 +2425,7 @@ TRAIN_BOOKING_TEMPLATE = """
 (function() {
   'use strict';
 
-  var instanceId = '{{ instance_id }}';
+  var instanceId = '{{ session_id }}';
   var container = document.querySelector('[data-instance-id="' + instanceId + '"]');
   if (!container) return;
   if (container.hasAttribute('data-initialized')) return;
@@ -2569,7 +2575,7 @@ TRAIN_BOOKING_TEMPLATE = """
     });
   }
 
-  function confirmCancellation(otp) {
+  function confirmCancellation(otp, sessionId) {
     showLoading(true);
     hideAllErrors();
     var paxIdPayload = selectedPaxIds.map(function(id) { return 'canidout(' + id + ')'; });
@@ -2588,7 +2594,8 @@ TRAIN_BOOKING_TEMPLATE = """
         reservation_id: RESERVATION_ID,
         pnr_number: PNR_NUMBER,
         total_passenger: selectedPaxIds.length,
-        transaction_type: 'Train'
+        transaction_type: 'Train',
+        session_id: sessionId || ''
       })
     })
     .then(function(resp) { return resp.json(); })
@@ -2683,7 +2690,8 @@ TRAIN_BOOKING_TEMPLATE = """
       var otpInput = container.querySelector('.hc-otp-input');
       var otp = otpInput ? otpInput.value.trim() : '';
       if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
-      confirmCancellation(otp).then(function(result) {
+      var sessionId = container.getAttribute('data-instance-id');
+      confirmCancellation(otp, sessionId).then(function(result) {
         if (result) { renderResult(result); showStep('result'); }
       });
     });
@@ -2754,6 +2762,7 @@ def render_train_booking_details(
     bid: str = "",
     api_base_url: str = "",
     is_otp_send: bool = False,
+    session_id: str = "",
 ) -> str:
     """
     Render train booking details as interactive HTML with cancellation flow.
@@ -2765,6 +2774,7 @@ def render_train_booking_details(
         bid: Encrypted booking ID from guest login
         api_base_url: Base URL of the chatbot API
         is_otp_send: Whether a login OTP was auto-sent
+        session_id: Chat session ID for AI message delivery
 
     Returns:
         HTML string with rendered interactive train booking details
@@ -2800,7 +2810,7 @@ def render_train_booking_details(
     subtitle = " • ".join(subtitle_parts)
 
     import uuid
-    instance_id = str(uuid.uuid4())[:8]
+    instance_id = session_id
 
     # Prepare passenger data for JS
     passengers_json = [
@@ -2837,6 +2847,7 @@ def render_train_booking_details(
         api_base_url=api_base_url,
         is_otp_send=is_otp_send,
         all_cancelled=all_cancelled,
+        session_id=session_id,
     )
 
 
@@ -3630,7 +3641,7 @@ BUS_BOOKING_TEMPLATE = """
     });
   }
 
-  function confirmCancellation(otp) {
+  function confirmCancellation(otp, sessionId) {
     showLoading(true);
     hideAllErrors();
     return fetch(CANCEL_URL, {
@@ -3641,7 +3652,8 @@ BUS_BOOKING_TEMPLATE = """
         email: EMAIL,
         otp: otp,
         seats: selectedSeats.join(','),
-        transaction_type: 'Bus'
+        transaction_type: 'Bus',
+        session_id: sessionId || ''
       })
     })
     .then(function(resp) { return resp.json(); })
@@ -3734,9 +3746,10 @@ BUS_BOOKING_TEMPLATE = """
   if (confirmBtn) {
     confirmBtn.addEventListener('click', function() {
       var otpInput = container.querySelector('.hc-otp-input');
+      var sessionId = container.getAttribute('data-instance-id');
       var otp = otpInput ? otpInput.value.trim() : '';
       if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
-      confirmCancellation(otp).then(function(result) {
+      confirmCancellation(otp, sessionId).then(function(result) {
         if (result) { renderResult(result); showStep('result'); }
       });
     });
@@ -3797,6 +3810,7 @@ def render_bus_booking_details(
     bid: str = "",
     api_base_url: str = "",
     is_otp_send: bool = False,
+    session_id: str = "",
 ) -> str:
     """
     Render bus booking details as interactive HTML with cancellation flow.
@@ -3808,6 +3822,7 @@ def render_bus_booking_details(
         bid: Encrypted booking ID from guest login
         api_base_url: Base URL of the chatbot API
         is_otp_send: Whether a login OTP was auto-sent
+        session_id: Chat session ID for AI message delivery
 
     Returns:
         HTML string with rendered interactive bus booking details
@@ -3841,7 +3856,7 @@ def render_bus_booking_details(
     subtitle = " • ".join(subtitle_parts)
 
     import uuid
-    instance_id = str(uuid.uuid4())[:8]
+    instance_id = session_id
 
     # Prepare passenger data for JS
     passengers_json = [
@@ -3872,6 +3887,7 @@ def render_bus_booking_details(
         api_base_url=api_base_url,
         is_otp_send=is_otp_send,
         all_cancelled=all_cancelled,
+        session_id=session_id,
     )
 
 
@@ -5707,7 +5723,7 @@ FLIGHT_BOOKING_TEMPLATE = """
     });
   }
 
-  function confirmCancellation(otp) {
+  function confirmCancellation(otp,sessionId) {
     showLoading(true);
     hideAllErrors();
     return fetch(CANCEL_URL, {
@@ -5720,6 +5736,7 @@ FLIGHT_BOOKING_TEMPLATE = """
         outbound_pax_ids: selectedOutbound.join(','),
         inbound_pax_ids: selectedInbound.join(','),
         transaction_type: 'Flight',
+        session_id: sessionId || '',
         mode: selectedMode || '1'  // Default to '1' for backward compatibility
       })
     })
@@ -5844,7 +5861,8 @@ FLIGHT_BOOKING_TEMPLATE = """
       var otpInput = container.querySelector('.hc-otp-input');
       var otp = otpInput ? otpInput.value.trim() : '';
       if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
-      confirmCancellation(otp).then(function(result) {
+      var sessionId = container.getAttribute('data-instance-id');
+      confirmCancellation(otp, sessionId).then(function(result) {
         if (result) { renderResult(result); showStep('result'); }
       });
     });
@@ -5939,6 +5957,7 @@ def render_flight_booking_details(
     bid: str = "",
     api_base_url: str = "",
     is_otp_send: bool = False,
+    session_id: str = "",
 ) -> str:
     """
     Render flight booking details as interactive HTML with cancellation flow.
@@ -5950,6 +5969,7 @@ def render_flight_booking_details(
         bid: Encrypted booking ID from guest login
         api_base_url: Base URL of the chatbot API
         is_otp_send: Whether a login OTP was auto-sent
+        session_id: Chat session ID for AI message delivery
 
     Returns:
         HTML string with rendered interactive flight booking details
@@ -6002,7 +6022,7 @@ def render_flight_booking_details(
     subtitle = " • ".join(subtitle_parts)
 
     import uuid
-    instance_id = str(uuid.uuid4())[:8]
+    instance_id = session_id
 
     all_cancelled = booking_details.get("all_cancelled", False)
 
@@ -6025,4 +6045,5 @@ def render_flight_booking_details(
         all_cancelled=all_cancelled,
         possible_modes=possible_modes,
         mode_labels=FLIGHT_CANCELLATION_MODE_LABELS,
+        session_id=session_id,
     )
