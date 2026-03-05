@@ -101,7 +101,6 @@ HOTEL_CAROUSEL_TEMPLATE = """
   padding: 10px;
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .hotel-carousel .img-top {
@@ -133,6 +132,7 @@ HOTEL_CAROUSEL_TEMPLATE = """
   gap: 12px;
   border-bottom: 1px solid #e0e0e0;
   padding-bottom: 8px;
+  min-height: 76px;
 }
 
 .hotel-carousel .htlinfo {
