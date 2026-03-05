@@ -282,17 +282,18 @@ HOTEL_CAROUSEL_TEMPLATE = """
 .hotel-carousel .pay-zero {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 5px;
-  margin-top: 6px;
-  font-size: 11px;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 10px;
   font-weight: 600;
   color: #04a77a;
+  white-space: nowrap;
 }
 
 .hotel-carousel .pay-zero img {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   flex-shrink: 0;
 }
 
@@ -570,6 +571,12 @@ HOTEL_CAROUSEL_TEMPLATE = """
                   <div class="sbttl">{{ hotel.pricePrefix }}</div>
                   <div class="htlprc">{{ hotel.priceLabel }}</div>
                   <div class="sbttl">{{ hotel.nightlySubtitle }}</div>
+                  {% if hotel.isPayZero %}
+                  <div class="pay-zero">
+                    <img src="https://www.easemytrip.com/hotel-new/images/green-circlchek.svg" alt="check">
+                    <span>Book with ₹0</span>
+                  </div>
+                  {% endif %}
                 </div>
               </div>
 
@@ -582,12 +589,6 @@ HOTEL_CAROUSEL_TEMPLATE = """
               <a class="bkbtn-link" href="{{ hotel.deepLink }}" target="_blank" rel="noopener noreferrer">
                 <button class="bkbtn" type="button">Book Now</button>
               </a>
-              {% if hotel.isPayZero %}
-              <div class="pay-zero">
-                <img src="https://www.easemytrip.com/hotel-new/images/green-circlchek.svg" alt="check">
-                <span>Book with ₹0</span>
-              </div>
-              {% endif %}
             </div>
           </div>
         {% endfor %}
