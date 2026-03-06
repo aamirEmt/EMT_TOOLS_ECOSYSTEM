@@ -292,6 +292,9 @@ class HotelSearchService:
                 "isPayZero": hotel.get("isPayZero"),
             })
 
+        if search_input.book_with_zero:
+            results = [h for h in results if h.get("isPayZero")]
+
         return {
             "searchKey": resolved_key,
             "city": resolved_city,

@@ -126,6 +126,10 @@ class HotelSearchInput(BaseModel):
         - '4' : Very Good (3.5+) - when user wants very good/great rated hotels
         - '3' : Good (3+) - when user wants good/decent rated hotels"""
     )
+    book_with_zero: Optional[bool] = Field(
+        default=None,
+        description="Filter hotels by 'Book with Zero' feature. Set True when user wants zero upfront payment hotels."
+    )
     
     @field_validator("sort_type", mode="before")
     @classmethod
