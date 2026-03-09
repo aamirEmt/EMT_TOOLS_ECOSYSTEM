@@ -1,5 +1,6 @@
 """Bus Bookings Tool"""
 from typing import Dict, Any
+import json
 import logging
 
 from ..base import BaseTool, ToolMetadata
@@ -8,6 +9,8 @@ from .bus_bookings_renderer import render_bus_bookings
 from .booking_schema import GetBookingsInput
 from tools_factory.base_schema import ToolResponseFormat
 from emt_client.auth.session_manager import SessionManager
+from emt_client.auth.login_auth import LoginTokenProvider
+from emt_client.clients.login_client import DecryptStringAES_BOT
 
 logger = logging.getLogger(__name__)
 
@@ -43,21 +46,42 @@ class GetBusBookingsTool(BaseTool):
             user_type = kwargs.pop("_user_type", "website")
             render_html = user_type.lower() == "website"
             is_whatsapp = user_type.lower() == "whatsapp"
+            token = kwargs.pop("_token", None)
 
-            # Validate session_id is provided
-            if not session_id:
-                return ToolResponseFormat(
-                    response_text="session_id is required. Please login first to get a session_id.",
-                    is_error=True
+            if token:
+                # Token-based auth: decrypt and reconstruct LoginTokenProvider
+                try:
+                    session_data = json.loads(DecryptStringAES_BOT(token))
+                except Exception:
+                    return ToolResponseFormat(
+                        response_text="Invalid or expired token. Please login again.",
+                        is_error=True,
+                        is_login_required=True
+                    )
+                token_provider = LoginTokenProvider()
+                token_provider.set_auth_token(
+                    auth_token=session_data.get("auth", ""),
+                    email=session_data.get("email", ""),
+                    phone=session_data.get("phone", ""),
+                    uid=session_data.get("uid"),
+                    name=session_data.get("name"),
+                    action2_token=session_data.get("action2_token"),
+                    cookc=session_data.get("cookc"),
+                    cookm=session_data.get("cookm"),
                 )
-
-            # Get session-specific token provider
-            token_provider = self.session_manager.get_session(session_id)
-
-            if not token_provider:
+            elif session_id:
+                # Session-based auth: look up via session_manager
+                token_provider = self.session_manager.get_session(session_id)
+                if not token_provider:
+                    return ToolResponseFormat(
+                        response_text="Invalid or expired session. Please login again.",
+                        is_error=True
+                    )
+            else:
                 return ToolResponseFormat(
-                    response_text="Invalid or expired session. Please login again.",
-                    is_error=True
+                    response_text="Authentication required. Please login first.",
+                    is_error=True,
+                    is_login_required=True
                 )
 
             # Create service with session-specific provider
