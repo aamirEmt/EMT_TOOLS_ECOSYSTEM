@@ -1105,7 +1105,7 @@ INTERACTIVE_BOOKING_TEMPLATE = """
     });
   }
 
-  function confirmCancellation(otp, reason, remark) {
+  function confirmCancellation(otp, reason, remark, sessionId) {
     showLoading(true);
     hideAllErrors();
     return fetch(CANCEL_URL, {
@@ -1119,7 +1119,8 @@ INTERACTIVE_BOOKING_TEMPLATE = """
         remark: remark || '',
         room_id: selectedRoom ? String(selectedRoom.room_id) : '',
         transaction_id: selectedRoom ? String(selectedRoom.transaction_id) : '',
-        is_pay_at_hotel: selectedRoom ? !!selectedRoom.is_pay_at_hotel : false
+        is_pay_at_hotel: selectedRoom ? !!selectedRoom.is_pay_at_hotel : false,
+        session_id: sessionId || ''
       })
     })
     .then(function(resp) { return resp.json(); })
@@ -1240,11 +1241,13 @@ INTERACTIVE_BOOKING_TEMPLATE = """
 
       var reasonSelect = container.querySelector('.hc-reason-select');
       var remarkTextarea = container.querySelector('.hc-remark-textarea');
+      var sessionId = container.getAttribute('data-instance-id');
 
       confirmCancellation(
         otp,
         reasonSelect ? reasonSelect.value : 'Change of plans',
-        remarkTextarea ? remarkTextarea.value : ''
+        remarkTextarea ? remarkTextarea.value : '',
+        sessionId
       ).then(function(result) {
         if (result) {
           renderResult(result);
@@ -1365,6 +1368,7 @@ def render_booking_details(
     bid: str = "",
     api_base_url: str = "",
     is_otp_send: bool = False,
+    session_id: str = "",
 ) -> str:
     """
     Render booking details as interactive HTML with cancellation flow.
@@ -1379,7 +1383,8 @@ def render_booking_details(
         bid: Encrypted booking ID from guest login (used as EmtScreenID/Bid in API calls)
         api_base_url: Base URL of the chatbot API (e.g. 'http://localhost:8000')
         is_otp_send: Whether a login OTP was auto-sent (shows verify OTP step first)
-
+        session_id: Chat session ID for AI message delivery
+        
     Returns:
         HTML string with rendered interactive booking details
     """
@@ -1456,7 +1461,7 @@ def render_booking_details(
 
     # Render interactive template with embedded JS for full cancel flow
     import uuid
-    instance_id = str(uuid.uuid4())[:8]
+    instance_id = session_id
 
     # Prepare room data for JS embedding
     rooms_json = [
@@ -1488,6 +1493,7 @@ def render_booking_details(
         api_base_url=api_base_url,
         is_otp_send=is_otp_send,
         all_cancelled=all_cancelled,
+        session_id=session_id,
     )
 
 
@@ -2219,7 +2225,7 @@ TRAIN_BOOKING_TEMPLATE = """
 
 </style>
 
-<div class="train-cancel-carousel round-trip-selector" data-instance-id="{{ instance_id }}">
+<div class="train-cancel-carousel round-trip-selector" data-instance-id="{{ session_id }}">
   <main>
     <div class="hc-loading"><div class="hc-spinner"></div></div>
     <div class="hc-error-msg"></div>
@@ -2419,7 +2425,7 @@ TRAIN_BOOKING_TEMPLATE = """
 (function() {
   'use strict';
 
-  var instanceId = '{{ instance_id }}';
+  var instanceId = '{{ session_id }}';
   var container = document.querySelector('[data-instance-id="' + instanceId + '"]');
   if (!container) return;
   if (container.hasAttribute('data-initialized')) return;
@@ -2569,7 +2575,7 @@ TRAIN_BOOKING_TEMPLATE = """
     });
   }
 
-  function confirmCancellation(otp) {
+  function confirmCancellation(otp, sessionId) {
     showLoading(true);
     hideAllErrors();
     var paxIdPayload = selectedPaxIds.map(function(id) { return 'canidout(' + id + ')'; });
@@ -2588,7 +2594,8 @@ TRAIN_BOOKING_TEMPLATE = """
         reservation_id: RESERVATION_ID,
         pnr_number: PNR_NUMBER,
         total_passenger: selectedPaxIds.length,
-        transaction_type: 'Train'
+        transaction_type: 'Train',
+        session_id: sessionId || ''
       })
     })
     .then(function(resp) { return resp.json(); })
@@ -2683,7 +2690,8 @@ TRAIN_BOOKING_TEMPLATE = """
       var otpInput = container.querySelector('.hc-otp-input');
       var otp = otpInput ? otpInput.value.trim() : '';
       if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
-      confirmCancellation(otp).then(function(result) {
+      var sessionId = container.getAttribute('data-instance-id');
+      confirmCancellation(otp, sessionId).then(function(result) {
         if (result) { renderResult(result); showStep('result'); }
       });
     });
@@ -2754,6 +2762,7 @@ def render_train_booking_details(
     bid: str = "",
     api_base_url: str = "",
     is_otp_send: bool = False,
+    session_id: str = "",
 ) -> str:
     """
     Render train booking details as interactive HTML with cancellation flow.
@@ -2765,6 +2774,7 @@ def render_train_booking_details(
         bid: Encrypted booking ID from guest login
         api_base_url: Base URL of the chatbot API
         is_otp_send: Whether a login OTP was auto-sent
+        session_id: Chat session ID for AI message delivery
 
     Returns:
         HTML string with rendered interactive train booking details
@@ -2800,7 +2810,7 @@ def render_train_booking_details(
     subtitle = " • ".join(subtitle_parts)
 
     import uuid
-    instance_id = str(uuid.uuid4())[:8]
+    instance_id = session_id
 
     # Prepare passenger data for JS
     passengers_json = [
@@ -2837,6 +2847,7 @@ def render_train_booking_details(
         api_base_url=api_base_url,
         is_otp_send=is_otp_send,
         all_cancelled=all_cancelled,
+        session_id=session_id,
     )
 
 
@@ -3630,7 +3641,7 @@ BUS_BOOKING_TEMPLATE = """
     });
   }
 
-  function confirmCancellation(otp) {
+  function confirmCancellation(otp, sessionId) {
     showLoading(true);
     hideAllErrors();
     return fetch(CANCEL_URL, {
@@ -3641,7 +3652,8 @@ BUS_BOOKING_TEMPLATE = """
         email: EMAIL,
         otp: otp,
         seats: selectedSeats.join(','),
-        transaction_type: 'Bus'
+        transaction_type: 'Bus',
+        session_id: sessionId || ''
       })
     })
     .then(function(resp) { return resp.json(); })
@@ -3734,9 +3746,10 @@ BUS_BOOKING_TEMPLATE = """
   if (confirmBtn) {
     confirmBtn.addEventListener('click', function() {
       var otpInput = container.querySelector('.hc-otp-input');
+      var sessionId = container.getAttribute('data-instance-id');
       var otp = otpInput ? otpInput.value.trim() : '';
       if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
-      confirmCancellation(otp).then(function(result) {
+      confirmCancellation(otp, sessionId).then(function(result) {
         if (result) { renderResult(result); showStep('result'); }
       });
     });
@@ -3797,6 +3810,7 @@ def render_bus_booking_details(
     bid: str = "",
     api_base_url: str = "",
     is_otp_send: bool = False,
+    session_id: str = "",
 ) -> str:
     """
     Render bus booking details as interactive HTML with cancellation flow.
@@ -3808,6 +3822,7 @@ def render_bus_booking_details(
         bid: Encrypted booking ID from guest login
         api_base_url: Base URL of the chatbot API
         is_otp_send: Whether a login OTP was auto-sent
+        session_id: Chat session ID for AI message delivery
 
     Returns:
         HTML string with rendered interactive bus booking details
@@ -3841,7 +3856,7 @@ def render_bus_booking_details(
     subtitle = " • ".join(subtitle_parts)
 
     import uuid
-    instance_id = str(uuid.uuid4())[:8]
+    instance_id = session_id
 
     # Prepare passenger data for JS
     passengers_json = [
@@ -3872,6 +3887,7 @@ def render_bus_booking_details(
         api_base_url=api_base_url,
         is_otp_send=is_otp_send,
         all_cancelled=all_cancelled,
+        session_id=session_id,
     )
 
 
@@ -4221,25 +4237,228 @@ FLIGHT_BOOKING_TEMPLATE = """
   color: #ef6614;
 }
 
+/* Cancellation Policy - Tabbed Timeline */
 .flight-cancel-carousel .fc-policy-section {
-  background: #fffbf0;
+  background: #fff;
   border-radius: 12px;
-  padding: 14px;
   margin-bottom: 16px;
-  border: 1px solid #ffe0b2;
+  border: 1px solid #e8eaf0;
+  overflow: hidden;
+}
+
+.flight-cancel-carousel .fc-policy-header {
+  padding: 12px 16px 0;
 }
 
 .flight-cancel-carousel .fc-policy-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: #e65100;
-  margin-bottom: 8px;
+  color: #202020;
+  margin-bottom: 0;
+  display: block;
 }
 
-.flight-cancel-carousel .fc-policy-item {
+/* Tab bar */
+.flight-cancel-carousel .fc-pol-tabs {
+  display: flex;
+  border-bottom: 2px solid #e8eaf0;
+  padding: 0 16px;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.flight-cancel-carousel .fc-pol-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #646d74;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  border-radius: 4px 4px 0 0;
+  font-family: inherit;
+}
+
+.flight-cancel-carousel .fc-pol-tab.fc-pol-tab-active {
+  color: #1a1a2e;
+  border-bottom-color: #1a73e8;
+  font-weight: 600;
+}
+
+/* Tab panel */
+.flight-cancel-carousel .fc-pol-panel {
+  display: none;
+  padding: 16px;
+}
+
+.flight-cancel-carousel .fc-pol-panel.fc-pol-panel-active {
+  display: block;
+}
+
+/* Timeline */
+.flight-cancel-carousel .fc-pol-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.flight-cancel-carousel .fc-pol-tl-item {
+  display: flex;
+  align-items: stretch;
+  min-height: 80px;
+}
+
+/* Sidebar with rotated label */
+.flight-cancel-carousel .fc-pol-tl-sidebar {
+  width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 4px;
+  margin-right: 8px;
+}
+
+.flight-cancel-carousel .fc-pol-tl-sidebar span {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+}
+
+.flight-cancel-carousel .fc-pol-refundable .fc-pol-tl-sidebar {
+  background: #e8f5e9;
+}
+
+.flight-cancel-carousel .fc-pol-refundable .fc-pol-tl-sidebar span {
+  color: #2e7d32;
+}
+
+.flight-cancel-carousel .fc-pol-nonrefundable .fc-pol-tl-sidebar {
+  background: #ffebee;
+}
+
+.flight-cancel-carousel .fc-pol-nonrefundable .fc-pol-tl-sidebar span {
+  color: #c62828;
+}
+
+/* Track: dot + vertical line */
+.flight-cancel-carousel .fc-pol-tl-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 16px;
+  flex-shrink: 0;
+  margin-right: 12px;
+  padding-top: 2px;
+}
+
+.flight-cancel-carousel .fc-pol-tl-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.flight-cancel-carousel .fc-pol-tl-line {
+  width: 2px;
+  flex: 1;
+  min-height: 20px;
+}
+
+.flight-cancel-carousel .fc-pol-refundable .fc-pol-tl-dot {
+  background: #43a047;
+  box-shadow: 0 0 0 3px #e8f5e9;
+}
+
+.flight-cancel-carousel .fc-pol-refundable .fc-pol-tl-line {
+  background: #81c784;
+}
+
+.flight-cancel-carousel .fc-pol-nonrefundable .fc-pol-tl-dot {
+  background: #e53935;
+  box-shadow: 0 0 0 3px #ffebee;
+}
+
+.flight-cancel-carousel .fc-pol-nonrefundable .fc-pol-tl-line {
+  background: #ef9a9a;
+}
+
+/* Content */
+.flight-cancel-carousel .fc-pol-tl-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.flight-cancel-carousel .fc-pol-period-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.flight-cancel-carousel .fc-pol-refundable .fc-pol-period-title {
+  color: #2e7d32;
+}
+
+.flight-cancel-carousel .fc-pol-nonrefundable .fc-pol-period-title {
+  color: #c62828;
+}
+
+.flight-cancel-carousel .fc-pol-dates {
+  font-size: 12px;
+  font-weight: 600;
+  color: #202020;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.flight-cancel-carousel .fc-pol-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.flight-cancel-carousel .fc-pol-badge-refundable {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.flight-cancel-carousel .fc-pol-badge-nonrefundable {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.flight-cancel-carousel .fc-pol-desc {
   font-size: 12px;
   color: #646d74;
-  padding: 3px 0;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.flight-cancel-carousel .fc-pol-charge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e65100;
+  margin-top: 4px;
+}
+
+.flight-cancel-carousel .fc-pol-empty {
+  font-size: 12px;
+  color: #646d74;
+  padding: 8px 0;
 }
 
 /* Cancellation Mode Selection */
@@ -5016,16 +5235,61 @@ FLIGHT_BOOKING_TEMPLATE = """
         <div class="fc-file-error" style="display: none;"></div>
       </div>
 
-      <!-- Cancellation Policy (moved below, optional) -->
+      <!-- Cancellation Policy -->
       {% if cancellation_policy %}
       <div class="fc-policy-section">
-        <div class="fc-policy-title">Cancellation Policy</div>
-        {% for sector in cancellation_policy %}
-          {% for pol in sector.policies %}
-          <div class="fc-policy-item">
-            {% if pol.policy_text %}{{ pol.policy_text }}{% else %}{{ pol.charge_type }}: ₹{{ pol.charge_value }}{% if pol.from_date %} ({{ pol.from_date }} - {{ pol.to_date }}){% endif %}{% endif %}
-          </div>
+        <div class="fc-policy-header">
+          <span class="fc-policy-title">Cancellation Policy</span>
+        </div>
+        <!-- Sector tabs -->
+        <div class="fc-pol-tabs">
+          {% for sector in cancellation_policy %}
+          <button class="fc-pol-tab {% if loop.first %}fc-pol-tab-active{% endif %}" data-pol-tab="{{ loop.index0 }}">
+            ✈ {{ sector.sector_name }}
+          </button>
           {% endfor %}
+        </div>
+        <!-- Tab panels -->
+        {% for sector in cancellation_policy %}
+        <div class="fc-pol-panel {% if loop.first %}fc-pol-panel-active{% endif %}" data-pol-panel="{{ loop.index0 }}">
+          {% if sector.policies %}
+          <div class="fc-pol-timeline">
+            {% for pol in sector.policies %}
+            {% set refundable = pol.is_refundable | string | lower == 'true' %}
+            <div class="fc-pol-tl-item {% if refundable %}fc-pol-refundable{% else %}fc-pol-nonrefundable{% endif %}">
+              <div class="fc-pol-tl-sidebar">
+                <span>{% if refundable %}Refundable{% else %}Non Refundable{% endif %}</span>
+              </div>
+              <div class="fc-pol-tl-track">
+                <div class="fc-pol-tl-dot"></div>
+                <div class="fc-pol-tl-line"></div>
+              </div>
+              <div class="fc-pol-tl-content">
+                {% if pol.policy_text %}
+                <div class="fc-pol-period-title">{{ pol.policy_text }}</div>
+                {% endif %}
+                {% if sector.departure_date %}
+                <div class="fc-pol-dates">Booking Date till {{ sector.departure_date }} (Departure City Time)</div>
+                {% elif pol.from_date or pol.to_date %}
+                <div class="fc-pol-dates">{% if pol.from_date %}{{ pol.from_date }}{% endif %}{% if pol.to_date %} – {{ pol.to_date }}{% endif %}</div>
+                {% endif %}
+                <span class="fc-pol-badge {% if refundable %}fc-pol-badge-refundable{% else %}fc-pol-badge-nonrefundable{% endif %}">
+                  {% if refundable %}Refundable{% else %}Non Refundable{% endif %}
+                </span>
+                {% if pol.policy_detail %}
+                <div class="fc-pol-desc">{{ pol.policy_detail }}</div>
+                {% endif %}
+                {% if pol.charge_value %}
+                <div class="fc-pol-charge">Cancellation Charge: ₹{{ pol.charge_value }}</div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="fc-pol-empty">No policy details available for this sector.</div>
+          {% endif %}
+        </div>
         {% endfor %}
       </div>
       {% endif %}
@@ -5459,7 +5723,7 @@ FLIGHT_BOOKING_TEMPLATE = """
     });
   }
 
-  function confirmCancellation(otp) {
+  function confirmCancellation(otp,sessionId) {
     showLoading(true);
     hideAllErrors();
     return fetch(CANCEL_URL, {
@@ -5472,6 +5736,7 @@ FLIGHT_BOOKING_TEMPLATE = """
         outbound_pax_ids: selectedOutbound.join(','),
         inbound_pax_ids: selectedInbound.join(','),
         transaction_type: 'Flight',
+        session_id: sessionId || '',
         mode: selectedMode || '1'  // Default to '1' for backward compatibility
       })
     })
@@ -5596,7 +5861,8 @@ FLIGHT_BOOKING_TEMPLATE = """
       var otpInput = container.querySelector('.hc-otp-input');
       var otp = otpInput ? otpInput.value.trim() : '';
       if (!otp || otp.length < 4) { showError('Please enter a valid OTP.'); return; }
-      confirmCancellation(otp).then(function(result) {
+      var sessionId = container.getAttribute('data-instance-id');
+      confirmCancellation(otp, sessionId).then(function(result) {
         if (result) { renderResult(result); showStep('result'); }
       });
     });
@@ -5630,7 +5896,15 @@ FLIGHT_BOOKING_TEMPLATE = """
 
     var msg = data.msg || data.Message || data.Msg || data.message || '';
     var requestId = data.RequestId || data.requestId || '';
-    if (msg) html += '<p style="font-size:13px;color:#646d74;margin-bottom:12px;">' + msg + '</p>';
+    var msgLower = msg ? msg.toLowerCase() : '';
+    var isErrorPhrase = msg && (
+      msgLower.indexOf('wrong') !== -1 ||
+      msgLower.indexOf('invalid') !== -1 ||
+      msgLower.indexOf('transaction id') !== -1 ||
+      msgLower.indexOf('failed') !== -1 ||
+      msgLower.indexOf('incorrect') !== -1
+    );
+    if (msg && !isErrorPhrase) html += '<p style="font-size:13px;color:#646d74;margin-bottom:12px;">' + msg + '</p>';
     if (requestId) html += '<p style="font-size:12px;color:#868686;margin-bottom:12px;">Request ID: ' + requestId + '</p>';
 
     var refundAmount = data.RefundAmount;
@@ -5656,6 +5930,21 @@ FLIGHT_BOOKING_TEMPLATE = """
     backBtns[i].addEventListener('click', function() { showStep(this.getAttribute('data-back-to')); });
   }
 
+  /* Policy tabs */
+  var polTabs = container.querySelectorAll('.fc-pol-tab');
+  for (var i = 0; i < polTabs.length; i++) {
+    polTabs[i].addEventListener('click', function() {
+      var panelIdx = this.getAttribute('data-pol-tab');
+      var allPolTabs = container.querySelectorAll('.fc-pol-tab');
+      var allPolPanels = container.querySelectorAll('.fc-pol-panel');
+      for (var j = 0; j < allPolTabs.length; j++) allPolTabs[j].classList.remove('fc-pol-tab-active');
+      for (var j = 0; j < allPolPanels.length; j++) allPolPanels[j].classList.remove('fc-pol-panel-active');
+      this.classList.add('fc-pol-tab-active');
+      var target = container.querySelector('.fc-pol-panel[data-pol-panel="' + panelIdx + '"]');
+      if (target) target.classList.add('fc-pol-panel-active');
+    });
+  }
+
 })();
 </script>
 """
@@ -5668,6 +5957,7 @@ def render_flight_booking_details(
     bid: str = "",
     api_base_url: str = "",
     is_otp_send: bool = False,
+    session_id: str = "",
 ) -> str:
     """
     Render flight booking details as interactive HTML with cancellation flow.
@@ -5679,6 +5969,7 @@ def render_flight_booking_details(
         bid: Encrypted booking ID from guest login
         api_base_url: Base URL of the chatbot API
         is_otp_send: Whether a login OTP was auto-sent
+        session_id: Chat session ID for AI message delivery
 
     Returns:
         HTML string with rendered interactive flight booking details
@@ -5718,8 +6009,8 @@ def render_flight_booking_details(
     subtitle_parts = []
     if flight_segments:
         seg = flight_segments[0]
-        if seg.get("airline_name"):
-            subtitle_parts.append(f"{seg['airline_name']} {seg.get('flight_number', '')}")
+        if seg.get("airline_code") or seg.get("airline_name"):
+            subtitle_parts.append(f"{seg.get('airline_code') or seg['airline_name']} {seg.get('flight_number', '')}")
         if seg.get("origin") and seg.get("destination"):
             subtitle_parts.append(f"{seg['origin']} → {seg['destination']}")
     total_pax = len(outbound_passengers) + len(inbound_passengers)
@@ -5731,7 +6022,7 @@ def render_flight_booking_details(
     subtitle = " • ".join(subtitle_parts)
 
     import uuid
-    instance_id = str(uuid.uuid4())[:8]
+    instance_id = session_id
 
     all_cancelled = booking_details.get("all_cancelled", False)
 
@@ -5754,4 +6045,5 @@ def render_flight_booking_details(
         all_cancelled=all_cancelled,
         possible_modes=possible_modes,
         mode_labels=FLIGHT_CANCELLATION_MODE_LABELS,
+        session_id=session_id,
     )

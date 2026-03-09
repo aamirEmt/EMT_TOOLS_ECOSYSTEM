@@ -1653,10 +1653,26 @@ def build_whatsapp_flight_response(
         view_all_flights_url=flight_results.get("viewAll") or ""
     )
 
+    suggestion_text = build_suggestion_text(flight_results.get("calendar_suggestions"))
+    base_text = f"Here are the best flights options from {payload.origin} to {payload.destination}"
+    response_text = f"{base_text} {suggestion_text}".strip() if suggestion_text else base_text
+
     return WhatsappFlightFinalResponse(
-        response_text=f"Here are the best flights options from {payload.origin} to {payload.destination}",
+        response_text=response_text,
         whatsapp_json=whatsapp_json,
     )
+
+def build_suggestion_text(calendar_suggestions: Optional[List[Dict[str, Any]]]) -> str:
+    """Build alternate airport suggestion text from calendar suggestions."""
+    candidates = [
+        f"{item.get('destination')}" + (f" ({item.get('destination_name')})" if item.get("destination_name") else "")
+        for item in (calendar_suggestions or [])
+        if item.get("destination")
+    ]
+    if candidates:
+        return f"Alternate nearby airports you can try: {', '.join(candidates[:3])}."
+    return ""
+
 
 def normalize_time(time_str: Optional[str]) -> Optional[str]:
     """

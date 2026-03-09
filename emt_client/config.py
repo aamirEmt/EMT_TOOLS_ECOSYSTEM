@@ -113,7 +113,8 @@ FLIGHT_ATK_TOKEN = _get_config_value(
 CHATBOT_API_BASE_URL = _get_config_value(
     'CHATBOT_API_BASE_URL',
     'CHATBOT_API_BASE_URL',
-    default='https://aiml-chatbotapi.easemytrip.com')
+    default='https://aiml-chatbotapi.easemytrip.com'
+)
 
 MYBOOKINGS_BASE_URL = _get_config_value(
     'MYBOOKINGS_BASE_URL',

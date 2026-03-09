@@ -113,7 +113,7 @@ class CancellationTool(BaseTool):
     async def execute(self, **kwargs) -> ToolResponseFormat:
         user_type = kwargs.pop("_user_type", "chatbot")
         kwargs.pop("_limit", None)
-        kwargs.pop("_session_id", None)
+        self._session_id = kwargs.pop("_session_id", None) or ""
 
         try:
             input_data = CancellationInput.model_validate(kwargs)
@@ -265,6 +265,7 @@ class CancellationTool(BaseTool):
                 bid=bid,
                 api_base_url=api_base_url,
                 is_otp_send=is_otp_send,
+                session_id=self._session_id,
             )
             return ToolResponseFormat(
                 response_text=f"Booking details for {input_data.booking_id}",
@@ -452,6 +453,7 @@ class CancellationTool(BaseTool):
                 bid=bid,
                 api_base_url=api_base_url,
                 is_otp_send=is_otp_send,
+                session_id=self._session_id,
             )
             return ToolResponseFormat(
                 response_text=f"Train booking details for {input_data.booking_id}",
@@ -1521,6 +1523,7 @@ class CancellationTool(BaseTool):
                 bid=bid,
                 api_base_url=api_base_url,
                 is_otp_send=is_otp_send,
+                session_id=self._session_id,
             )
             return ToolResponseFormat(
                 response_text=f"Bus booking details for {input_data.booking_id}",
@@ -1801,6 +1804,7 @@ class CancellationTool(BaseTool):
                 bid=bid,
                 api_base_url=api_base_url,
                 is_otp_send=is_otp_send,
+                session_id=self._session_id,
             )
             return ToolResponseFormat(
                 response_text=f"Flight booking details for {input_data.booking_id}",
