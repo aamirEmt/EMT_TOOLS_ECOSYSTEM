@@ -61,21 +61,22 @@ async def test_bookings_require_login():
     train_tool = factory.get_tool("get_train_bookings")
     bus_tool = factory.get_tool("get_bus_bookings")
     
-    # Should fail without login
+    # Should fail without login (no _session_id or _user_identifier provided)
     flight_result = await flight_tool.execute()
-    assert flight_result.structured_content["success"] is False
-    assert "USER_NOT_LOGGED_IN" in flight_result.structured_content["error"]
-    
+    assert flight_result.is_error is True
+    assert flight_result.is_login_required is True
+
     hotel_result = await hotel_tool.execute()
-    assert hotel_result.structured_content["success"] is False
-    assert "USER_NOT_LOGGED_IN" in hotel_result.structured_content["error"]
-    
+    assert hotel_result.is_error is True
+    assert hotel_result.is_login_required is True
+
     train_result = await train_tool.execute()
-    assert train_result.structured_content["success"] is False
-    assert "USER_NOT_LOGGED_IN" in train_result.structured_content["error"] 
+    assert train_result.is_error is True
+    assert train_result.is_login_required is True
+
     bus_result = await bus_tool.execute()
-    assert bus_result.structured_content["success"] is False
-    assert "USER_NOT_LOGGED_IN" in bus_result.structured_content["error"]
+    assert bus_result.is_error is True
+    assert bus_result.is_login_required is True
 
 @pytest.mark.asyncio
 async def test_bookings_tools_category():

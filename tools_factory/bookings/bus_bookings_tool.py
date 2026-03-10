@@ -1,6 +1,4 @@
 """Bus Bookings Tool"""
-from typing import Dict, Any
-import json
 import logging
 
 from ..base import BaseTool, ToolMetadata
@@ -8,9 +6,8 @@ from .bus_bookings_service import BusBookingsService, build_whatsapp_bus_booking
 from .bus_bookings_renderer import render_bus_bookings
 from .booking_schema import GetBookingsInput
 from tools_factory.base_schema import ToolResponseFormat
+from tools_factory.login.login_service import LoginService
 from emt_client.auth.session_manager import SessionManager
-from emt_client.auth.login_auth import LoginTokenProvider
-from emt_client.clients.login_client import DecryptStringAES_BOT
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +28,7 @@ class GetBusBookingsTool(BaseTool):
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
             name="fetch_bus_booking_details",
-            description="Fetch all bus bookings for the logged-in user.If user is not logged in, tell them to provide their phone number or email to login via OTP",
+            description="Fetch all bus bookings for the user. The user is automatically logged in using their phone number or email.",
             input_schema=GetBookingsInput.model_json_schema(),
             output_template=None,
             category="bookings",
@@ -46,42 +43,47 @@ class GetBusBookingsTool(BaseTool):
             user_type = kwargs.pop("_user_type", "website")
             render_html = user_type.lower() == "website"
             is_whatsapp = user_type.lower() == "whatsapp"
-            token = kwargs.pop("_token", None)
+            user_identifier = kwargs.pop("_user_identifier", None)
 
-            if token:
-                # Token-based auth: decrypt and reconstruct LoginTokenProvider
-                try:
-                    session_data = json.loads(DecryptStringAES_BOT(token))
-                except Exception:
-                    return ToolResponseFormat(
-                        response_text="Invalid or expired token. Please login again.",
-                        is_error=True,
-                        is_login_required=True
-                    )
-                token_provider = LoginTokenProvider()
-                token_provider.set_auth_token(
-                    auth_token=session_data.get("auth", ""),
-                    email=session_data.get("email", ""),
-                    phone=session_data.get("phone", ""),
-                    uid=session_data.get("uid"),
-                    name=session_data.get("name"),
-                    action2_token=session_data.get("action2_token"),
-                    cookc=session_data.get("cookc"),
-                    cookm=session_data.get("cookm"),
-                )
-            elif session_id:
-                # Session-based auth: look up via session_manager
+            # Resolve authentication (session or auto-login)
+            if session_id:
                 token_provider = self.session_manager.get_session(session_id)
-                if not token_provider:
+                if token_provider and token_provider.is_authenticated():
+                    pass  # reuse existing authenticated session
+                elif token_provider and user_identifier:
+                    login_result = await LoginService(token_provider).authenticate_user(user_identifier)
+                    if not login_result.get("success"):
+                        return ToolResponseFormat(
+                            response_text=f"Auto-login failed: {login_result.get('message', 'Unknown error')}",
+                            is_error=True, is_login_required=True
+                        )
+                else:
+                    # session expired/missing and no identifier
+                    if user_identifier:
+                        session_id, token_provider = self.session_manager.get_or_create_session()
+                        login_result = await LoginService(token_provider).authenticate_user(user_identifier)
+                        if not login_result.get("success"):
+                            return ToolResponseFormat(
+                                response_text=f"Auto-login failed: {login_result.get('message', 'Unknown error')}",
+                                is_error=True, is_login_required=True
+                            )
+                    else:
+                        return ToolResponseFormat(
+                            response_text="Authentication required. Please provide your phone number or email.",
+                            is_error=True, is_login_required=True
+                        )
+            elif user_identifier:
+                session_id, token_provider = self.session_manager.get_or_create_session()
+                login_result = await LoginService(token_provider).authenticate_user(user_identifier)
+                if not login_result.get("success"):
                     return ToolResponseFormat(
-                        response_text="Invalid or expired session. Please login again.",
-                        is_error=True
+                        response_text=f"Auto-login failed: {login_result.get('message', 'Unknown error')}",
+                        is_error=True, is_login_required=True
                     )
             else:
                 return ToolResponseFormat(
-                    response_text="Authentication required. Please login first.",
-                    is_error=True,
-                    is_login_required=True
+                    response_text="Authentication required. Please provide your phone number or email.",
+                    is_error=True, is_login_required=True
                 )
 
             # Create service with session-specific provider
