@@ -40,6 +40,7 @@ class LoginTool(BaseTool):
         try:
             # Extract runtime flags (internal)
             session_id = kwargs.pop("_session_id", None)
+            kwargs.pop("_user_identifier", None)
 
             phone_number = kwargs.get("phone_number")
 

@@ -61,6 +61,7 @@ class BusSearchTool(BaseTool):
         limit = kwargs.pop("_limit", 15)  # Default limit: 15 buses per page
         user_type = kwargs.pop("_user_type", "website")
         display_limit = kwargs.pop("_display_limit", 15)
+        kwargs.pop("_user_identifier", None)
         is_whatsapp = user_type.lower() == "whatsapp"
 
         try:

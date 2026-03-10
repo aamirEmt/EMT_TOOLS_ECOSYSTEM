@@ -38,6 +38,7 @@ class OtpLoginTool(BaseTool):
             session_id = kwargs.pop("_session_id", None) or kwargs.pop("session_id", None)
             action = kwargs.pop("action", None)
             user_type = kwargs.pop("_user_type", "website")
+            kwargs.pop("_user_identifier", None)
             is_whatsapp = user_type.lower() == "whatsapp"
 
             if not action or action not in ("send_otp", "verify_otp"):

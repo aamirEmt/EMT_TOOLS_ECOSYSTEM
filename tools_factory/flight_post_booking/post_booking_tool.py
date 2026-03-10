@@ -140,6 +140,7 @@ class FlightPostBookingTool(BaseTool):
         )
 
     async def execute(self, **kwargs) -> ToolResponseFormat:
+        kwargs.pop("_user_identifier", None)
         try:
             input_data = FlightPostBookingInput(**kwargs)
         except Exception as exc:

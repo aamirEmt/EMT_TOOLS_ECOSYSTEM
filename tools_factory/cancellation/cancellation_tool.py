@@ -114,6 +114,7 @@ class CancellationTool(BaseTool):
         user_type = kwargs.pop("_user_type", "chatbot")
         kwargs.pop("_limit", None)
         self._session_id = kwargs.pop("_session_id", None) or ""
+        kwargs.pop("_user_identifier", None)
 
         try:
             input_data = CancellationInput.model_validate(kwargs)

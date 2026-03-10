@@ -104,6 +104,7 @@ class HotelCancellationTool(BaseTool):
     async def execute(self, **kwargs) -> ToolResponseFormat:
         user_type = kwargs.pop("_user_type", "chatbot")
         kwargs.pop("_limit", None)
+        kwargs.pop("_user_identifier", None)
 
         try:
             input_data = HotelCancellationInput.model_validate(kwargs)
