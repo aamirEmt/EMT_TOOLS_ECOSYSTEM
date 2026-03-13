@@ -8,6 +8,7 @@ class ToolResponseFormat(BaseModel):
     whatsapp_response: Optional[dict] = None
     is_error: bool = False
     is_login_required: bool = False
+    handoffToCustomerAgent: bool = False
 
 
 
