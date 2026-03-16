@@ -27,8 +27,17 @@ class BusApiClient:
                 timeout=aiohttp.ClientTimeout(total=60),
             ) as response:
                 if response.status != 200:
+                    error_text = await response.text()
+                    print(f"[BUS_SEARCH] HTTP {response.status}: {error_text[:500]}")
                     return {"error": f"API returned status {response.status}"}
-                return await response.json()
+                data = await response.json(content_type=None)
+                # Debug: log top-level keys and Response sub-keys
+                resp_obj = data.get("Response", {}) if isinstance(data, dict) else {}
+                print(f"[BUS_SEARCH] Top-level keys: {list(data.keys()) if isinstance(data, dict) else type(data)}")
+                print(f"[BUS_SEARCH] Response keys: {list(resp_obj.keys()) if isinstance(resp_obj, dict) else resp_obj}")
+                trips = resp_obj.get("AvailableTrips") if isinstance(resp_obj, dict) else None
+                print(f"[BUS_SEARCH] AvailableTrips count: {len(trips) if trips else 0}")
+                return data
 
     async def get_seat_layout(self, payload: dict) -> dict:
         async with aiohttp.ClientSession() as session:
