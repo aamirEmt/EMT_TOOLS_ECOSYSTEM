@@ -1289,42 +1289,7 @@ BUS_CAROUSEL_TEMPLATE = """
   }
   
   function attachHandlers() {
-    var buttons = document.querySelectorAll('.select-seats-btn');
-    buttons.forEach(function(btn) {
-      btn.onclick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var busData = {
-          busId: this.dataset.busId || '',
-          routeId: this.dataset.routeId || '',
-          engineId: parseInt(this.dataset.engineId) || 0,
-          operatorId: this.dataset.operatorId || '',
-          operatorName: this.dataset.operatorName || '',
-          busType: this.dataset.busType || '',
-          departureTime: this.dataset.departureTime || '',
-          arrivalTime: this.dataset.arrivalTime || '',
-          duration: this.dataset.duration || '',
-          isSeater: this.dataset.isSeater === 'true',
-          isSleeper: this.dataset.isSleeper === 'true',
-          bookingLink: this.dataset.bookingLink || '',
-          sourceId: this.dataset.sourceId || '',
-          destinationId: this.dataset.destinationId || '',
-          sourceName: this.dataset.sourceName || '',
-          destinationName: this.dataset.destinationName || '',
-          journeyDate: this.dataset.journeyDate || ''
-        };
-        openSeatModal(busData);
-      };
-    });
-  }
-  
-  setTimeout(attachHandlers, 100);
-  setTimeout(attachHandlers, 500);
-  setTimeout(attachHandlers, 1000);
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', attachHandlers);
-  } else {
-    attachHandlers();
+    // Handled via event delegation on document click below
   }
   
   function updateStepIndicator(step) {
@@ -1465,7 +1430,7 @@ BUS_CAROUSEL_TEMPLATE = """
       OperatorId: busData.operatorId
     };
     
-    fetch('/api/bus/seat-layout', {
+    fetch((window.__BUS_API_BASE || '') + '/api/bus/seat-layout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -1826,7 +1791,7 @@ BUS_CAROUSEL_TEMPLATE = """
     document.getElementById('bookNowBtn').disabled = true;
     document.getElementById('bookNowBtn').textContent = 'Processing...';
     
-    fetch('/api/bus/confirm-seats', {
+    fetch((window.__BUS_API_BASE || '') + '/api/bus/confirm-seats', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(confirmPayload)
@@ -1846,7 +1811,7 @@ BUS_CAROUSEL_TEMPLATE = """
       
       document.body.appendChild(form);
       form.submit();
-      document.body.removeChild(form);
+      setTimeout(function() { document.body.removeChild(form); }, 100);
       
       closeSeatModal();
     })
@@ -1863,6 +1828,32 @@ BUS_CAROUSEL_TEMPLATE = """
     var overlay = document.getElementById('seatModalOverlay');
     if (e.target === overlay) {
       closeSeatModal();
+      return;
+    }
+    var btn = e.target.closest('.select-seats-btn');
+    if (btn) {
+      e.preventDefault();
+      e.stopPropagation();
+      var busData = {
+        busId: btn.dataset.busId || '',
+        routeId: btn.dataset.routeId || '',
+        engineId: parseInt(btn.dataset.engineId) || 0,
+        operatorId: btn.dataset.operatorId || '',
+        operatorName: btn.dataset.operatorName || '',
+        busType: btn.dataset.busType || '',
+        departureTime: btn.dataset.departureTime || '',
+        arrivalTime: btn.dataset.arrivalTime || '',
+        duration: btn.dataset.duration || '',
+        isSeater: btn.dataset.isSeater === 'true',
+        isSleeper: btn.dataset.isSleeper === 'true',
+        bookingLink: btn.dataset.bookingLink || '',
+        sourceId: btn.dataset.sourceId || '',
+        destinationId: btn.dataset.destinationId || '',
+        sourceName: btn.dataset.sourceName || '',
+        destinationName: btn.dataset.destinationName || '',
+        journeyDate: btn.dataset.journeyDate || ''
+      };
+      openSeatModal(busData);
     }
   });
 })();
