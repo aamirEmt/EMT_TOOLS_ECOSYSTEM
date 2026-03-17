@@ -6,6 +6,7 @@ from ..config import (
     BUS_AUTOSUGGEST_URL,
     BUS_AUTOSUGGEST_KEY,
     BUS_ENCRYPTED_HEADER,
+    BUS_SECRET_KEY,
 )
 
 
@@ -17,39 +18,37 @@ class BusApiClient:
         self.autosuggest_url = BUS_AUTOSUGGEST_URL
         self.autosuggest_key = BUS_AUTOSUGGEST_KEY
         self.encrypted_header = BUS_ENCRYPTED_HEADER
+        self.secret_key = BUS_SECRET_KEY
 
     async def search(self, payload: dict) -> dict:
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 self.search_url,
                 json=payload,
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Content-Type": "application/json",
+                    "x-client-secret-key": self.secret_key,
+                },
                 timeout=aiohttp.ClientTimeout(total=60),
             ) as response:
                 if response.status != 200:
-                    error_text = await response.text()
-                    print(f"[BUS_SEARCH] HTTP {response.status}: {error_text[:500]}")
                     return {"error": f"API returned status {response.status}"}
-                data = await response.json(content_type=None)
-                # Debug: log top-level keys and Response sub-keys
-                resp_obj = data.get("Response", {}) if isinstance(data, dict) else {}
-                print(f"[BUS_SEARCH] Top-level keys: {list(data.keys()) if isinstance(data, dict) else type(data)}")
-                print(f"[BUS_SEARCH] Response keys: {list(resp_obj.keys()) if isinstance(resp_obj, dict) else resp_obj}")
-                trips = resp_obj.get("AvailableTrips") if isinstance(resp_obj, dict) else None
-                print(f"[BUS_SEARCH] AvailableTrips count: {len(trips) if trips else 0}")
-                return data
+                return await response.json(content_type=None)
 
     async def get_seat_layout(self, payload: dict) -> dict:
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 self.seat_bind_url,
                 json=payload,
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Content-Type": "application/json",
+                    "x-client-secret-key": self.secret_key,
+                },
                 timeout=aiohttp.ClientTimeout(total=30),
             ) as response:
                 if response.status != 200:
                     return {"error": f"API returned status {response.status}"}
-                return await response.json()
+                return await response.json(content_type=None)
 
     async def get_city_suggestions(self, encrypted_payload: dict) -> str:
         async with aiohttp.ClientSession() as session:

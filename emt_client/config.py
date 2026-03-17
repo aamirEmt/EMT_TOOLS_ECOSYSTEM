@@ -485,6 +485,13 @@ BUS_DECRYPTION_KEY = _get_config_value(
     default='TMTOO1vDhT9aWsV1'
 )
 
+# Bus API Secret Key (required header for search/seat endpoints)
+BUS_SECRET_KEY = _get_config_value(
+    'BUS_SECRET_KEY',
+    'BUS_SECRET_KEY',
+    default='rk-e34e1825-eae4-488b-a947-cba66987cd1b-service-emt'
+)
+
 # Bus Confirm Seats API endpoint
 BUS_CONFIRM_SEATS_URL = _get_config_value(
     'BUS_CONFIRM_SEATS_URL',
@@ -537,6 +544,7 @@ __all__ = [
     "BUS_PAYMENT_URL",
     "BUS_ENCRYPTED_HEADER",
     "BUS_DECRYPTION_KEY",
+    "BUS_SECRET_KEY",
     # Train Endpoints
     "TRAIN_API_URL",
     "TRAIN_LIST_INFO_URL",
