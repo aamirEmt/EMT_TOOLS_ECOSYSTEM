@@ -417,7 +417,7 @@ def _process_single_bus(
     
     cancellation_policy = _process_cancellation_policy(bus.get("cancelPolicyList", []))
 
-    fares = bus.get("fares", [])
+    fares = [str(int(f)) if isinstance(f, float) and f == int(f) else str(f) for f in bus.get("fares", [])]
     if not fares:
         price = bus.get("price", "0")
         fares = [str(price)] if price else ["0"]
