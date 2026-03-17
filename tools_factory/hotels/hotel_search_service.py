@@ -37,6 +37,7 @@ class HotelSearchService:
             "pax",
             "lat",
             "lon",
+            "stype",
         }
 
         filtered_params = {
@@ -130,7 +131,7 @@ class HotelSearchService:
         
         try:
             # Step 1: Resolve city names
-            resolved_city, lat, lon = await resolve_city_name(search_input.city_name)
+            resolved_city, lat, lon, stype = await resolve_city_name(search_input.city_name)
             
             # Step 2: Generate search key
             search_key = generate_hotel_search_key(
@@ -163,6 +164,7 @@ class HotelSearchService:
                 "selectedAmen": search_input.amenities or [],
                 "selectedRating": search_input.rating or [],
                 "selectedTARating": search_input.user_rating or [],
+                "searchType":stype,
             }
 
             # print(f"DEBUG: Hotel API payload HotelCount: {payload.get('HotelCount')}")
@@ -196,7 +198,7 @@ class HotelSearchService:
             
             
             # Step 6: Process response
-            return self._process_response(response, resolved_city, search_input, search_key,lat, lon)
+            return self._process_response(response, resolved_city, search_input, search_key,lat, lon,stype)
             
         except Exception as e:
             # Return error with details
@@ -229,7 +231,8 @@ class HotelSearchService:
     search_input: HotelSearchInput,
     search_key: str,
     lat: float = None,
-    lon: float = None
+    lon: float = None,
+    stype: str = None,
     ) -> Dict[str, Any]:
 
         # print(f"DEBUG: API response keys: {response.keys()}")
@@ -254,6 +257,7 @@ class HotelSearchService:
                 hotel_id=hotel.get("hid", ""),
                 lat=lat,
                 lon=lon,
+                stype=stype,
             )
 
             if index == 0:
@@ -345,6 +349,7 @@ class HotelSearchService:
         trace_id = kwargs.get("trace_id")
         lat = kwargs.get("lat")
         lon = kwargs.get("lon")
+        stype=kwargs.get("stype")
 
         link_trace_id = trace_id or gen_trace_id()
         pax_string = self._build_pax_string(room_details) if room_details else str(num_rooms)
@@ -365,6 +370,7 @@ class HotelSearchService:
             f"emthid={emt_id}&"
             f"hid={hotel_id}&"
             f"tid={link_trace_id}"
+            f"&stype={stype}"
         )
 
         return {"deepLink": deep_link, "traceId": link_trace_id}
