@@ -67,8 +67,10 @@ class BusApiClient:
         from emt_client.config import BUS_CONFIRM_SEATS_URL
         
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Content-Type": "application/json; charset=UTF-8",
+            "Accept": "application/json, text/plain, */*",
+            "x-requested-with": "XMLHttpRequest",
+            "access-control-allow-origin": "true",
         }
         
         try:
@@ -80,7 +82,7 @@ class BusApiClient:
                     timeout=aiohttp.ClientTimeout(total=30),
                 ) as response:
                     if response.status == 200:
-                        return await response.json()
+                        return await response.json(content_type=None)
                     else:
                         return {
                             "error": f"HTTP {response.status}: {await response.text()}"
