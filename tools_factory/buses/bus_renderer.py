@@ -2,6 +2,7 @@ from typing import Dict, Any, List, Optional
 from jinja2 import Environment, BaseLoader
 import uuid
 import os
+import base64
 from urllib.parse import quote as _url_quote
 from dotenv import load_dotenv
 load_dotenv()
@@ -1553,9 +1554,27 @@ BUS_CAROUSEL_TEMPLATE = """
   });
 })();
 </textarea>
-<img src="x" style="display:none" alt="" onerror="(function(el){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.value))();}catch(ex){console.error('BusModal init:',ex);}s.remove();}el.remove();})(this)">
-<svg style="display:none;position:absolute;width:0;height:0" onload="(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.value))();}catch(ex){console.error('BusModal init:',ex);}s.remove();}})()"><rect width="0" height="0"/></svg>
+<img src="x" style="display:none" alt="" onerror="(function(el){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(atob(s.getAttribute('data-c'))))();}catch(ex){console.error('BusModal init:',ex);}s.remove();}el.remove();})(this)">
+<svg style="display:none;position:absolute;width:0;height:0" onload="(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(atob(s.getAttribute('data-c'))))();}catch(ex){console.error('BusModal init:',ex);}s.remove();}})()"><rect width="0" height="0"/></svg>
 """
+
+
+def _make_bus_template_with_b64(tpl: str) -> str:
+    """Replace the textarea IIFE block with a base64-encoded data attribute on a <div>.
+    This avoids HTML-entity decoding and widget.js script-tag processing."""
+    import re
+    m = re.search(
+        r'<textarea\s+id="__busInit_\{\{[^}]*\}\}"[^>]*>(.*?)</textarea>',
+        tpl, re.DOTALL
+    )
+    if not m:
+        return tpl
+    b64 = base64.b64encode(m.group(1).encode('utf-8')).decode('ascii')
+    div = '<div id="__busInit_{{ instance_id }}" style="display:none" data-c="' + b64 + '"></div>'
+    return tpl[:m.start()] + div + tpl[m.end():]
+
+
+BUS_CAROUSEL_TEMPLATE = _make_bus_template_with_b64(BUS_CAROUSEL_TEMPLATE)
 
 
 SEAT_LAYOUT_STYLES = """
