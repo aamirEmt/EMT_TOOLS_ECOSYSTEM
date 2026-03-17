@@ -1182,116 +1182,100 @@ BUS_CAROUSEL_TEMPLATE = """
     <div class="emt-empty">No buses found for this route</div>
     {% endif %}
   </main>
-  <!-- Seat Selection Modal -->
-<div class="seat-modal-overlay" id="seatModalOverlay">
-  <div class="seat-modal">
-    <div class="seat-modal-header">
-      <div>
-        <div class="seat-modal-title" id="modalBusOperator">Loading...</div>
-        <div class="seat-modal-subtitle" id="modalBusType"></div>
-      </div>
-      <button type="button" class="seat-modal-close" onclick="closeSeatModal()">×</button>
-    </div>
-    
-    <!-- Step Indicator -->
-    <div class="step-indicator" style="display:flex;justify-content:center;gap:8px;padding:8px 12px;background:#f8f9fa;border-bottom:1px solid #e0e0e0;">
-      <div class="step active" id="step1" style="display:flex;align-items:center;gap:4px;font-size:10px;color:#ef6614;font-weight:600;">
-        <span style="width:18px;height:18px;border-radius:50%;background:#ef6614;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;">1</span>
-        Seats
-      </div>
-      <div style="color:#ccc;">→</div>
-      <div class="step" id="step2" style="display:flex;align-items:center;gap:4px;font-size:10px;color:#999;">
-        <span style="width:18px;height:18px;border-radius:50%;background:#e0e0e0;color:#666;display:flex;align-items:center;justify-content:center;font-size:9px;">2</span>
-        Boarding
-      </div>
-      <div style="color:#ccc;">→</div>
-      <div class="step" id="step3" style="display:flex;align-items:center;gap:4px;font-size:10px;color:#999;">
-        <span style="width:18px;height:18px;border-radius:50%;background:#e0e0e0;color:#666;display:flex;align-items:center;justify-content:center;font-size:9px;">3</span>
-        Dropping
-      </div>
-    </div>
-    
-    <div class="seat-modal-body">
-      <!-- Step 1: Seat Selection -->
-      <div class="modal-step" id="seatStep" style="display:block;">
-        <div class="seat-layout-section">
-          <div class="seat-legend">
-            <div class="legend-item"><div class="legend-box available"></div>Available</div>
-            <div class="legend-item"><div class="legend-box selected"></div>Selected</div>
-            <div class="legend-item"><div class="legend-box booked"></div>Booked</div>
-            <div class="legend-item"><div class="legend-box ladies"></div>Ladies</div>
-          </div>
-          <div id="seatLayoutContainer" class="seat-loading">Loading seat layout...</div>
-        </div>
-      </div>
-      
-      <!-- Step 2: Boarding Points -->
-      <div class="modal-step" id="boardingStep" style="display:none;">
-        <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#202020;">Select Boarding Point</div>
-        <div id="boardingPointsList" class="points-list" style="max-height:280px;overflow-y:auto;"></div>
-      </div>
-      
-      <!-- Step 3: Dropping Points -->
-      <div class="modal-step" id="droppingStep" style="display:none;">
-        <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#202020;">Select Dropping Point</div>
-        <div id="droppingPointsList" class="points-list" style="max-height:280px;overflow-y:auto;"></div>
-      </div>
-    </div>
-    
-    <div class="seat-modal-footer">
-      <div class="selected-info">
-        <div>Seats: <strong id="selectedSeatsDisplay">None</strong></div>
-        <div class="total-fare">₹<span id="totalFareDisplay">0</span></div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button type="button" class="continue-btn" id="backBtn" style="display:none;background:#666;" onclick="goToPrevStep()">← Back</button>
-        <button type="button" class="continue-btn" id="nextBtn" disabled onclick="goToNextStep()">Next →</button>
-        <button type="button" class="continue-btn" id="bookNowBtn" style="display:none;background:#00a664;" onclick="confirmAndRedirect()">Book Now</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
+  <!-- Bus Seat Modal Bootstrap: script executes via img onerror (innerHTML context) or inline script (direct context) -->
+<script id="__busInit_{{ instance_id }}" type="text/plain">
 (function() {
-  let currentBusData = null;
-  let selectedSeats = [];
-  let selectedBoardingPoint = null;
-  let selectedDroppingPoint = null;
-  let seatLayoutData = null;
-  let boardingPoints = [];
-  let droppingPoints = [];
-  let currentStep = 1;
-  
-  window.openSeatModal = openSeatModal;
-  window.closeSeatModal = closeSeatModal;
-  window.confirmAndRedirect = confirmAndRedirect;
-  window.selectSeat = selectSeat;
-  window.selectBoardingPoint = selectBoardingPoint;
-  window.selectDroppingPoint = selectDroppingPoint;
-  window.filterByPrice = filterByPrice;
-  window.goToNextStep = goToNextStep;
-  window.goToPrevStep = goToPrevStep;
-  
+  if (window.__busChatbotModal) return;
+  window.__busChatbotModal = true;
+
+  // Build modal DOM and append to document.body so position:fixed works
+  // even when the chatbot container uses CSS transform
+  if (!document.getElementById('seatModalOverlay')) {
+    var d = document.createElement('div');
+    d.id = 'seatModalOverlay';
+    d.className = 'seat-modal-overlay';
+    d.innerHTML =
+      '<div class="seat-modal">' +
+        '<div class="seat-modal-header">' +
+          '<div>' +
+            '<div class="seat-modal-title" id="modalBusOperator">Loading...</div>' +
+            '<div class="seat-modal-subtitle" id="modalBusType"></div>' +
+          '</div>' +
+          '<button type="button" class="seat-modal-close" id="seatModalCloseBtn">\u00d7</button>' +
+        '</div>' +
+        '<div class="step-indicator" style="display:flex;justify-content:center;gap:8px;padding:8px 12px;background:#f8f9fa;border-bottom:1px solid #e0e0e0;">' +
+          '<div class="step active" id="step1" style="display:flex;align-items:center;gap:4px;font-size:10px;color:#ef6614;font-weight:600;">' +
+            '<span style="width:18px;height:18px;border-radius:50%;background:#ef6614;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;">1</span>Seats' +
+          '</div>' +
+          '<div style="color:#ccc;">\u2192</div>' +
+          '<div class="step" id="step2" style="display:flex;align-items:center;gap:4px;font-size:10px;color:#999;">' +
+            '<span style="width:18px;height:18px;border-radius:50%;background:#e0e0e0;color:#666;display:flex;align-items:center;justify-content:center;font-size:9px;">2</span>Boarding' +
+          '</div>' +
+          '<div style="color:#ccc;">\u2192</div>' +
+          '<div class="step" id="step3" style="display:flex;align-items:center;gap:4px;font-size:10px;color:#999;">' +
+            '<span style="width:18px;height:18px;border-radius:50%;background:#e0e0e0;color:#666;display:flex;align-items:center;justify-content:center;font-size:9px;">3</span>Dropping' +
+          '</div>' +
+        '</div>' +
+        '<div class="seat-modal-body">' +
+          '<div class="modal-step" id="seatStep" style="display:block;">' +
+            '<div class="seat-layout-section">' +
+              '<div class="seat-legend">' +
+                '<div class="legend-item"><div class="legend-box available"></div>Available</div>' +
+                '<div class="legend-item"><div class="legend-box selected"></div>Selected</div>' +
+                '<div class="legend-item"><div class="legend-box booked"></div>Booked</div>' +
+                '<div class="legend-item"><div class="legend-box ladies"></div>Ladies</div>' +
+              '</div>' +
+              '<div id="seatLayoutContainer" class="seat-loading">Loading seat layout...</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="modal-step" id="boardingStep" style="display:none;">' +
+            '<div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#202020;">Select Boarding Point</div>' +
+            '<div id="boardingPointsList" class="points-list" style="max-height:280px;overflow-y:auto;"></div>' +
+          '</div>' +
+          '<div class="modal-step" id="droppingStep" style="display:none;">' +
+            '<div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#202020;">Select Dropping Point</div>' +
+            '<div id="droppingPointsList" class="points-list" style="max-height:280px;overflow-y:auto;"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="seat-modal-footer">' +
+          '<div class="selected-info">' +
+            '<div>Seats: <strong id="selectedSeatsDisplay">None</strong></div>' +
+            '<div class="total-fare">\u20b9<span id="totalFareDisplay">0</span></div>' +
+          '</div>' +
+          '<div style="display:flex;gap:8px;">' +
+            '<button type="button" class="continue-btn" id="backBtn" style="display:none;background:#666;">\u2190 Back</button>' +
+            '<button type="button" class="continue-btn" id="nextBtn" disabled>Next \u2192</button>' +
+            '<button type="button" class="continue-btn" id="bookNowBtn" style="display:none;background:#00a664;">Book Now</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(d);
+    document.getElementById('seatModalCloseBtn').addEventListener('click', closeSeatModal);
+    document.getElementById('backBtn').addEventListener('click', goToPrevStep);
+    document.getElementById('nextBtn').addEventListener('click', goToNextStep);
+    document.getElementById('bookNowBtn').addEventListener('click', confirmAndRedirect);
+  }
+
+  var currentBusData = null;
+  var selectedSeats = [];
+  var selectedBoardingPoint = null;
+  var selectedDroppingPoint = null;
+  var seatLayoutData = null;
+  var currentStep = 1;
+
   function generateHexId() {
     var result = '';
-    for (var i = 0; i < 32; i++) {
-      result += Math.floor(Math.random() * 16).toString(16);
-    }
+    for (var i = 0; i < 32; i++) result += Math.floor(Math.random() * 16).toString(16);
     return result;
   }
-  
+
   function generateId() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
   }
-  
-  function attachHandlers() {
-    // Handled via event delegation on document click below
-  }
-  
+
   function updateStepIndicator(step) {
     currentStep = step;
     for (var i = 1; i <= 3; i++) {
@@ -1299,95 +1283,67 @@ BUS_CAROUSEL_TEMPLATE = """
       if (stepEl) {
         var span = stepEl.querySelector('span');
         if (i === step) {
-          stepEl.style.color = '#ef6614';
-          stepEl.style.fontWeight = '600';
+          stepEl.style.color = '#ef6614'; stepEl.style.fontWeight = '600';
           if (span) { span.style.background = '#ef6614'; span.style.color = '#fff'; }
         } else if (i < step) {
-          stepEl.style.color = '#00a664';
-          stepEl.style.fontWeight = '500';
+          stepEl.style.color = '#00a664'; stepEl.style.fontWeight = '500';
           if (span) { span.style.background = '#00a664'; span.style.color = '#fff'; }
         } else {
-          stepEl.style.color = '#999';
-          stepEl.style.fontWeight = '400';
+          stepEl.style.color = '#999'; stepEl.style.fontWeight = '400';
           if (span) { span.style.background = '#e0e0e0'; span.style.color = '#666'; }
         }
       }
     }
-    
     document.getElementById('seatStep').style.display = step === 1 ? 'block' : 'none';
     document.getElementById('boardingStep').style.display = step === 2 ? 'block' : 'none';
     document.getElementById('droppingStep').style.display = step === 3 ? 'block' : 'none';
-    
     document.getElementById('backBtn').style.display = step > 1 ? 'inline-block' : 'none';
     document.getElementById('nextBtn').style.display = step < 3 ? 'inline-block' : 'none';
     document.getElementById('bookNowBtn').style.display = step === 3 ? 'inline-block' : 'none';
-    
     updateButtonStates();
   }
-  
+
   function updateButtonStates() {
     var nextBtn = document.getElementById('nextBtn');
     var bookNowBtn = document.getElementById('bookNowBtn');
-    
-    if (currentStep === 1) {
-      nextBtn.disabled = selectedSeats.length === 0;
-    } else if (currentStep === 2) {
-      nextBtn.disabled = !selectedBoardingPoint;
-    } else if (currentStep === 3) {
-      bookNowBtn.disabled = !selectedDroppingPoint;
-    }
+    if (currentStep === 1) nextBtn.disabled = selectedSeats.length === 0;
+    else if (currentStep === 2) nextBtn.disabled = !selectedBoardingPoint;
+    else if (currentStep === 3) bookNowBtn.disabled = !selectedDroppingPoint;
   }
-  
+
   function goToNextStep() {
-    if (currentStep === 1 && selectedSeats.length === 0) {
-      alert('Please select at least one seat');
-      return;
-    }
-    if (currentStep === 2 && !selectedBoardingPoint) {
-      alert('Please select a boarding point');
-      return;
-    }
-    if (currentStep < 3) {
-      updateStepIndicator(currentStep + 1);
-    }
+    if (currentStep === 1 && selectedSeats.length === 0) { alert('Please select at least one seat'); return; }
+    if (currentStep === 2 && !selectedBoardingPoint) { alert('Please select a boarding point'); return; }
+    if (currentStep < 3) updateStepIndicator(currentStep + 1);
   }
-  
+
   function goToPrevStep() {
-    if (currentStep > 1) {
-      updateStepIndicator(currentStep - 1);
-    }
+    if (currentStep > 1) updateStepIndicator(currentStep - 1);
   }
-  
+
   function openSeatModal(busData) {
     currentBusData = busData;
     currentBusData.sid = generateHexId();
     currentBusData.vid = generateHexId();
     currentBusData.traceId = generateId();
-    
     selectedSeats = [];
     selectedBoardingPoint = null;
     selectedDroppingPoint = null;
     seatLayoutData = null;
     currentStep = 1;
-    
     var overlay = document.getElementById('seatModalOverlay');
-    if (!overlay) {
-      alert('Modal not found. Please refresh the page.');
-      return;
-    }
-    
+    if (!overlay) return;
     document.getElementById('modalBusOperator').textContent = busData.operatorName || 'Bus Operator';
     document.getElementById('modalBusType').textContent = busData.busType || '';
     document.getElementById('seatLayoutContainer').innerHTML = '<div class="seat-loading">Loading seat layout...</div>';
     document.getElementById('boardingPointsList').innerHTML = '<div class="seat-loading">Loading...</div>';
     document.getElementById('droppingPointsList').innerHTML = '<div class="seat-loading">Loading...</div>';
-    
     overlay.classList.add('active');
     updateStepIndicator(1);
     updateFooter();
     fetchSeatLayout(busData);
   }
-  
+
   function closeSeatModal() {
     var overlay = document.getElementById('seatModalOverlay');
     if (overlay) overlay.classList.remove('active');
@@ -1398,466 +1354,331 @@ BUS_CAROUSEL_TEMPLATE = """
     seatLayoutData = null;
     currentStep = 1;
   }
-  
+
   function fetchSeatLayout(busData) {
     var searchReq = busData.sourceId + '|' + busData.destinationId + '|' + busData.sourceName + '|' + busData.destinationName + '|' + busData.journeyDate;
-    
     var payload = {
-      Idproof: 0,
-      id: busData.busId,
-      engineId: busData.engineId,
-      sessionId: null,
-      seater: busData.isSeater,
-      sleeper: busData.isSleeper,
-      bustype: busData.busType,
-      travel: busData.operatorName,
-      ArrivalTime: busData.arrivalTime,
-      JourneyDate: busData.journeyDate,
-      DepartureTime: busData.departureTime,
-      searchReq: searchReq,
-      duration: busData.duration,
-      routeid: busData.routeId,
-      bpId: '',
-      dpId: '',
-      isBpdp: false,
-      Vid: busData.vid,
-      SeatPrice: 0,
-      stStatus: false,
-      agentType: 'NAN',
-      countryCode: null,
-      TraceID: busData.traceId,
-      Sid: busData.sid,
-      OperatorId: busData.operatorId
+      Idproof: 0, id: busData.busId, engineId: busData.engineId, sessionId: null,
+      seater: busData.isSeater, sleeper: busData.isSleeper, bustype: busData.busType,
+      travel: busData.operatorName, ArrivalTime: busData.arrivalTime, JourneyDate: busData.journeyDate,
+      DepartureTime: busData.departureTime, searchReq: searchReq, duration: busData.duration,
+      routeid: busData.routeId, bpId: '', dpId: '', isBpdp: false, Vid: busData.vid,
+      SeatPrice: 0, stStatus: false, agentType: 'NAN', countryCode: null,
+      TraceID: busData.traceId, Sid: busData.sid, OperatorId: busData.operatorId
     };
-    
     fetch((window.__BUS_API_BASE || '') + '/api/bus/seat-layout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-    .then(function(response) {
-      if (!response.ok) throw new Error('API request failed: ' + response.status);
-      return response.json();
-    })
+    .then(function(r) { if (!r.ok) throw new Error('API error: ' + r.status); return r.json(); })
     .then(function(data) {
       seatLayoutData = data;
       seatLayoutData.Sid = busData.sid;
       seatLayoutData.Vid = busData.vid;
       seatLayoutData.TraceID = busData.traceId;
-      
-      if (data.error || (!data.Lower && !data.Upper && (!data.Seats || data.Seats.length === 0))) {
+      if (data.error || (!data.Lower && !data.Upper)) {
         showFallbackRedirect(busData, data.error || 'Seat layout not available');
         return;
       }
-      
       renderSeatLayout(data);
       renderBoardingPoints(data.listBoardingPoint || []);
       renderDroppingPoints(data.listDropPoint || []);
     })
-    .catch(function(error) {
-      console.error('Seat layout fetch error:', error);
+    .catch(function(err) {
+      console.error('Seat layout error:', err);
       showFallbackRedirect(busData, 'Unable to load seat layout');
     });
   }
-  
+
   function showFallbackRedirect(busData, errorMsg) {
-    document.getElementById('seatLayoutContainer').innerHTML = 
+    document.getElementById('seatLayoutContainer').innerHTML =
       '<div style="text-align:center;padding:30px 15px;">' +
         '<p style="font-size:12px;color:#666;margin-bottom:15px;">' + (errorMsg || 'Seat layout not available') + '</p>' +
         '<a href="' + (busData.bookingLink || '#') + '" target="_blank" rel="noopener noreferrer" ' +
-           'style="display:inline-block;padding:10px 24px;background:#ef6614;color:#fff;' +
-                  'text-decoration:none;border-radius:20px;font-weight:600;font-size:12px;">' +
-          'Select on Website</a>' +
+           'style="display:inline-block;padding:10px 24px;background:#ef6614;color:#fff;text-decoration:none;border-radius:20px;font-weight:600;font-size:12px;">Select on Website</a>' +
       '</div>';
     document.getElementById('nextBtn').style.display = 'none';
     document.getElementById('bookNowBtn').style.display = 'none';
   }
-  
+
   function renderSeatLayout(data) {
     var container = document.getElementById('seatLayoutContainer');
     var html = '';
-    
     if (data.setuniquefares && data.setuniquefares.length > 0) {
       html += '<div class="seat-price-filter" style="margin-bottom:8px;display:flex;gap:4px;flex-wrap:wrap;">';
-      html += '<button type="button" class="price-btn active" onclick="filterByPrice(\'all\')" style="padding:3px 8px;font-size:9px;">All</button>';
+      html += '<button type="button" class="price-btn active" data-busaction="pricefilter" data-price="all" style="padding:3px 8px;font-size:9px;">All</button>';
       data.setuniquefares.forEach(function(f) {
-        html += '<button type="button" class="price-btn" onclick="filterByPrice(' + f.baseFare + ')" style="padding:3px 8px;font-size:9px;">₹' + f.baseFare + '</button>';
+        html += '<button type="button" class="price-btn" data-busaction="pricefilter" data-price="' + f.baseFare + '" style="padding:3px 8px;font-size:9px;">\u20b9' + f.baseFare + '</button>';
       });
       html += '</div>';
     }
-    
     html += '<div class="seat-decks" style="display:flex;gap:8px;flex-wrap:wrap;">';
-    
     if (data.LowerShow && data.Lower) {
       html += '<div class="seat-deck" style="flex:1;min-width:140px;padding:8px;"><div class="deck-title" style="font-size:10px;padding:4px;">Lower Deck</div>';
       html += '<div class="seat-grid">' + renderDeck(data.Lower) + '</div></div>';
     }
-    
     if (data.UpperShow && data.Upper) {
       html += '<div class="seat-deck" style="flex:1;min-width:140px;padding:8px;"><div class="deck-title" style="font-size:10px;padding:4px;">Upper Deck</div>';
       html += '<div class="seat-grid">' + renderDeck(data.Upper) + '</div></div>';
     }
-    
     html += '</div>';
     container.innerHTML = html;
   }
-  
+
   function renderDeck(deck) {
     if (!deck) return '';
-    
-    var columns = ['firstColumn', 'SecondColumn', 'ThirdColumn', 'FourthColumn', 'FifthColumn', 
-                   'SixthColumn', 'seventhColumn', 'eightColumn', 'ninethColumn', 'tenthColumn',
-                   'eleventhColumn', 'tevelthColumn', 'thirteenColumn', 'fourteenColumn'];
-    
+    var columns = ['firstColumn','SecondColumn','ThirdColumn','FourthColumn','FifthColumn',
+                   'SixthColumn','seventhColumn','eightColumn','ninethColumn','tenthColumn',
+                   'eleventhColumn','tevelthColumn','thirteenColumn','fourteenColumn'];
     var maxRows = 0;
-    columns.forEach(function(col) {
-      if (deck[col] && deck[col].length > maxRows) maxRows = deck[col].length;
-    });
-    
+    columns.forEach(function(col) { if (deck[col] && deck[col].length > maxRows) maxRows = deck[col].length; });
     if (maxRows === 0) return '';
-    
     var html = '';
     for (var rowIdx = 0; rowIdx < maxRows; rowIdx++) {
       html += '<div class="seat-row" style="display:flex;gap:2px;justify-content:center;">';
-      
       columns.forEach(function(col, colIdx) {
         if (!deck[col]) return;
         var seat = deck[col][rowIdx];
         if (!seat) return;
-        
         if (colIdx === 2) html += '<div style="width:8px;"></div>';
-        
         if (seat.seatType === 'noseat' || !seat.name) {
           html += '<div class="seat empty" style="width:24px;height:24px;visibility:hidden;"></div>';
         } else {
           var isAvailable = seat.available && String(seat.seatType).indexOf('unavailable') === -1;
-          var isLadies = seat.ladiesSeat === 'True' || seat.ladiesSeat === true;
+          var isLadies = seat.ladiesSeat === 'True' || seat.ladiesSeat === true || seat.ladiesSeat === 'true';
           var isSleeper = seat.isSleeper || seat.seatStyle === 'SL';
-          
-          var seatClass = 'seat';
-          if (isSleeper) seatClass += ' sleeper';
-          if (isAvailable) {
-            seatClass += isLadies ? ' ladies' : ' available';
-          } else {
-            seatClass += ' booked';
-          }
-          
+          var seatClass = 'seat' + (isSleeper ? ' sleeper' : '') + (isAvailable ? (isLadies ? ' ladies' : ' available') : ' booked');
           var fare = seat.fare || seat.actualfare || 0;
           var baseFare = seat.baseFare || 0;
-          
-          var seatDataStr = JSON.stringify({
-            id: seat.id,
-            name: seat.name,
-            fare: fare,
-            baseFare: baseFare,
-            actualfare: seat.actualfare || fare,
-            encriSeat: seat.EncriSeat || '',
-            seatType: isSleeper ? 'SL' : 'ST'
-          }).replace(/"/g, '&quot;');
-          
-          var clickHandler = isAvailable ? ' onclick="selectSeat(this, ' + seatDataStr + ')"' : '';
           var width = isSleeper ? '48px' : '24px';
-          
-          html += '<div class="' + seatClass + '" data-seat-id="' + seat.id + '" data-fare="' + baseFare + '"' + clickHandler + 
-                  ' style="width:' + width + ';height:24px;font-size:7px;border-radius:3px;display:flex;align-items:center;justify-content:center;" title="' + seat.name + ' - ₹' + fare + '">';
-          html += seat.name;
-          html += '</div>';
+          if (isAvailable) {
+            var seatInfo = JSON.stringify({
+              id: seat.id, name: seat.name, fare: fare, baseFare: baseFare,
+              actualfare: seat.actualfare || fare, gender: seat.gender || 'M',
+              encriSeat: seat.EncriSeat || '', seatType: isSleeper ? 'SL' : 'ST',
+              bookingFee: seat.bookingFee || 0, concession: seat.concession || 0,
+              convenienceCharge: seat.convenienceCharge || 0, srtfee: seat.srtfee || 0,
+              tollfee: seat.tollfee || 0, serviceFee: seat.serviceFee || 0
+            }).replace(/"/g, '&quot;');
+            html += '<div class="' + seatClass + '" data-seat-id="' + (seat.id || seat.name) + '" data-fare="' + baseFare + '" data-busaction="selectseat" data-seatinfo="' + seatInfo + '" style="width:' + width + ';height:24px;font-size:7px;border-radius:3px;display:flex;align-items:center;justify-content:center;cursor:pointer;" title="' + seat.name + ' - \u20b9' + fare + '">' + seat.name + '</div>';
+          } else {
+            html += '<div class="' + seatClass + '" style="width:' + width + ';height:24px;font-size:7px;border-radius:3px;display:flex;align-items:center;justify-content:center;" title="' + seat.name + ' - Booked">' + seat.name + '</div>';
+          }
         }
       });
-      
       html += '</div>';
     }
     return html;
   }
-  
+
   function renderBoardingPoints(points) {
-    boardingPoints = points || [];
     var container = document.getElementById('boardingPointsList');
-    
     if (!points || points.length === 0) {
       container.innerHTML = '<div style="padding:15px;text-align:center;color:#868686;font-size:11px;">No boarding points</div>';
       return;
     }
-    
     var html = '';
     points.forEach(function(point) {
       var name = point.bdLongName || point.bdPoint || 'Unknown';
       var time = point.time || '';
-      var pointDataStr = JSON.stringify({ 
-        id: point.bdid, 
-        name: name, 
-        time: time, 
-        bdPoint: point.bdPoint,
-        bdLongName: point.bdLongName,
-        bdlocation: point.bdlocation,
-        landmark: point.landmark,
-        contactNumber: point.contactNumber
-      }).replace(/"/g, '&quot;');
-      
-      html += '<div class="point-item" onclick="selectBoardingPoint(this, ' + pointDataStr + ')" style="padding:8px;border:1px solid #e0e0e0;border-radius:4px;margin-bottom:6px;cursor:pointer;font-size:10px;">';
+      var pInfo = JSON.stringify({ id: point.bdid, name: name, time: time, bdPoint: point.bdPoint,
+        bdLongName: point.bdLongName, bdlocation: point.bdlocation, landmark: point.landmark,
+        contactNumber: point.contactNumber }).replace(/"/g, '&quot;');
+      html += '<div class="point-item" data-busaction="selectboarding" data-pointinfo="' + pInfo + '" style="padding:8px;border:1px solid #e0e0e0;border-radius:4px;margin-bottom:6px;cursor:pointer;font-size:10px;">';
       html += '<div style="font-weight:600;">' + time + '</div>';
-      html += '<div style="color:#666;margin-top:2px;">' + name + '</div>';
-      html += '</div>';
+      html += '<div style="color:#666;margin-top:2px;">' + name + '</div></div>';
     });
     container.innerHTML = html;
   }
-  
+
   function renderDroppingPoints(points) {
-    droppingPoints = points || [];
     var container = document.getElementById('droppingPointsList');
-    
     if (!points || points.length === 0) {
       container.innerHTML = '<div style="padding:15px;text-align:center;color:#868686;font-size:11px;">No dropping points</div>';
       return;
     }
-    
     var html = '';
     points.forEach(function(point) {
       var name = point.dpName || 'Unknown';
       var time = point.dpTime || '';
-      var pointDataStr = JSON.stringify({ 
-        id: point.dpId, 
-        name: name, 
-        time: time,
-        dpName: point.dpName,
-        dpTime: point.dpTime,
-        locatoin: point.locatoin
-      }).replace(/"/g, '&quot;');
-      
-      html += '<div class="point-item" onclick="selectDroppingPoint(this, ' + pointDataStr + ')" style="padding:8px;border:1px solid #e0e0e0;border-radius:4px;margin-bottom:6px;cursor:pointer;font-size:10px;">';
+      var pInfo = JSON.stringify({ id: point.dpId, name: name, time: time, dpName: point.dpName,
+        dpTime: point.dpTime, locatoin: point.locatoin }).replace(/"/g, '&quot;');
+      html += '<div class="point-item" data-busaction="selectdropping" data-pointinfo="' + pInfo + '" style="padding:8px;border:1px solid #e0e0e0;border-radius:4px;margin-bottom:6px;cursor:pointer;font-size:10px;">';
       html += '<div style="font-weight:600;">' + time + '</div>';
-      html += '<div style="color:#666;margin-top:2px;">' + name + '</div>';
-      html += '</div>';
+      html += '<div style="color:#666;margin-top:2px;">' + name + '</div></div>';
     });
     container.innerHTML = html;
   }
-  
+
   function selectSeat(element, seatData) {
     if (element.classList.contains('booked')) return;
-    
     var isSelected = element.classList.contains('selected');
-    
     if (isSelected) {
       element.classList.remove('selected');
-      element.classList.add('available');
-      element.style.background = '#e8f5e9';
-      element.style.borderColor = '#4caf50';
-      element.style.color = '#2e7d32';
-      selectedSeats = selectedSeats.filter(function(s) { return s.id !== seatData.id; });
+      element.classList.add(seatData.isLadies ? 'ladies' : 'available');
+      element.style.background = ''; element.style.borderColor = ''; element.style.color = '';
+      selectedSeats = selectedSeats.filter(function(s) { return !(s.id === seatData.id && s.name === seatData.name); });
     } else {
       element.classList.remove('available', 'ladies');
       element.classList.add('selected');
-      element.style.background = '#fff3e0';
-      element.style.borderColor = '#ef6614';
-      element.style.color = '#e65100';
+      element.style.background = '#fff3e0'; element.style.borderColor = '#ef6614'; element.style.color = '#e65100';
       selectedSeats.push(seatData);
     }
-    
     updateFooter();
     updateButtonStates();
   }
-  
+
   function selectBoardingPoint(element, pointData) {
-    document.querySelectorAll('#boardingPointsList .point-item').forEach(function(el) { 
-      el.classList.remove('selected'); 
-      el.style.borderColor = '#e0e0e0';
-      el.style.background = '#fff';
+    document.querySelectorAll('#boardingPointsList .point-item').forEach(function(el) {
+      el.classList.remove('selected'); el.style.borderColor = '#e0e0e0'; el.style.background = '#fff';
     });
-    element.classList.add('selected');
-    element.style.borderColor = '#2093ef';
-    element.style.background = '#e3f2fd';
+    element.classList.add('selected'); element.style.borderColor = '#2093ef'; element.style.background = '#e3f2fd';
     selectedBoardingPoint = pointData;
-    updateFooter();
-    updateButtonStates();
+    updateFooter(); updateButtonStates();
   }
-  
+
   function selectDroppingPoint(element, pointData) {
-    document.querySelectorAll('#droppingPointsList .point-item').forEach(function(el) { 
-      el.classList.remove('selected'); 
-      el.style.borderColor = '#e0e0e0';
-      el.style.background = '#fff';
+    document.querySelectorAll('#droppingPointsList .point-item').forEach(function(el) {
+      el.classList.remove('selected'); el.style.borderColor = '#e0e0e0'; el.style.background = '#fff';
     });
-    element.classList.add('selected');
-    element.style.borderColor = '#2093ef';
-    element.style.background = '#e3f2fd';
+    element.classList.add('selected'); element.style.borderColor = '#2093ef'; element.style.background = '#e3f2fd';
     selectedDroppingPoint = pointData;
-    updateFooter();
-    updateButtonStates();
+    updateFooter(); updateButtonStates();
   }
-  
+
   function updateFooter() {
-    var seatsDisplay = selectedSeats.length > 0 
-      ? selectedSeats.map(function(s) { return s.name; }).join(', ')
-      : 'None';
+    var seatsDisplay = selectedSeats.length > 0 ? selectedSeats.map(function(s) { return s.name; }).join(', ') : 'None';
     var totalFare = selectedSeats.reduce(function(sum, s) { return sum + (parseFloat(s.fare) || 0); }, 0);
-    
     document.getElementById('selectedSeatsDisplay').textContent = seatsDisplay;
     document.getElementById('totalFareDisplay').textContent = totalFare.toLocaleString('en-IN');
   }
-  
-  function filterByPrice(price) {
-    document.querySelectorAll('.price-btn').forEach(function(btn) { btn.classList.remove('active'); });
-    if (event && event.target) event.target.classList.add('active');
-    
+
+  function filterByPrice(btn, price) {
+    document.querySelectorAll('.price-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
     document.querySelectorAll('.seat.available, .seat.ladies').forEach(function(seat) {
       var seatFare = parseInt(seat.dataset.fare) || 0;
-      if (price === 'all' || seatFare === price) {
-        seat.style.opacity = '1';
-        seat.style.pointerEvents = 'auto';
-      } else {
-        seat.style.opacity = '0.3';
-        seat.style.pointerEvents = 'none';
-      }
+      var show = price === 'all' || seatFare === parseInt(price);
+      seat.style.opacity = show ? '1' : '0.3';
+      seat.style.pointerEvents = show ? 'auto' : 'none';
     });
   }
-  
+
   function confirmAndRedirect() {
     if (!currentBusData || selectedSeats.length === 0 || !selectedBoardingPoint || !selectedDroppingPoint) {
-      alert('Please complete all selections');
-      return;
+      alert('Please complete all selections'); return;
     }
-    
     var seatsPayload = selectedSeats.map(function(s) {
       return {
-        seatNo: s.name,
-        seatType: s.seatType || 'ST',
-        fare: s.fare,
-        seatId: null,
+        seatNo: s.name, seatType: s.seatType || 'ST', fare: s.fare,
+        seatId: s.id || s.name,
         actualfare: s.actualfare || s.fare,
-        gender: 'M',
+        gender: s.gender || 'M',
         baseFare: s.baseFare || s.fare,
-        EncriSeat: s.encriSeat
+        EncriSeat: s.encriSeat || '',
+        bookingFee: s.bookingFee || 0, concession: s.concession || 0,
+        convenienceCharge: s.convenienceCharge || 0, srtfee: s.srtfee || 0,
+        tollfee: s.tollfee || 0, serviceFee: s.serviceFee || 0
       };
     });
-    
     var totalFare = selectedSeats.reduce(function(sum, s) { return sum + (parseFloat(s.fare) || 0); }, 0);
-    
-    var boardingPointObj = {
-      bdPoint: selectedBoardingPoint.bdPoint || selectedBoardingPoint.name,
-      bdLongName: selectedBoardingPoint.bdLongName || selectedBoardingPoint.name,
-      bdid: selectedBoardingPoint.id,
-      bdlocation: selectedBoardingPoint.bdlocation || '',
-      landmark: selectedBoardingPoint.landmark || '',
-      time: selectedBoardingPoint.time || '',
-      contactNumber: selectedBoardingPoint.contactNumber || '',
-      Count: 0
-    };
-    
-    var droppingPointObj = {
-      dpId: selectedDroppingPoint.id,
-      dpName: selectedDroppingPoint.dpName || selectedDroppingPoint.name,
-      locatoin: selectedDroppingPoint.locatoin || null,
-      prime: null,
-      dpTime: selectedDroppingPoint.time || selectedDroppingPoint.dpTime || '',
-      Count: 0
-    };
-    
     var confirmPayload = {
-      seats: seatsPayload,
-      sessionId: null,
-      totalFare: totalFare,
-      boardingId: selectedBoardingPoint.id,
-      boardingName: selectedBoardingPoint.name || '',
-      boardingPoint: boardingPointObj,
+      seats: seatsPayload, sessionId: null, totalFare: totalFare,
+      boardingId: selectedBoardingPoint.id, boardingName: selectedBoardingPoint.name || '',
+      boardingPoint: {
+        bdPoint: selectedBoardingPoint.bdPoint || selectedBoardingPoint.name,
+        bdLongName: selectedBoardingPoint.bdLongName || selectedBoardingPoint.name,
+        bdid: selectedBoardingPoint.id, bdlocation: selectedBoardingPoint.bdlocation || '',
+        landmark: selectedBoardingPoint.landmark || '', time: selectedBoardingPoint.time || '',
+        contactNumber: selectedBoardingPoint.contactNumber || '', Count: 0
+      },
       dropId: selectedDroppingPoint.id,
-      DropingPoint: droppingPointObj,
-      availableTripId: currentBusData.busId,
-      source: currentBusData.sourceName,
-      destination: currentBusData.destinationName,
-      busOperator: currentBusData.operatorName,
-      busType: currentBusData.busType,
-      routeId: currentBusData.routeId,
-      engineId: currentBusData.engineId,
-      operator_id: currentBusData.operatorId,
-      DepTime: currentBusData.departureTime,
-      arrivalDate: currentBusData.arrivalTime,
-      departureDate: null,
-      Discount: 0,
-      CashBack: 0,
-      serviceFee: 0,
-      STF: 0,
-      TDS: 0,
-      cpnCode: '',
-      agentCode: '',
-      agentType: '',
-      agentMarkUp: 0,
-      agentACBalance: 0,
+      DropingPoint: {
+        dpId: selectedDroppingPoint.id,
+        dpName: selectedDroppingPoint.dpName || selectedDroppingPoint.name,
+        locatoin: selectedDroppingPoint.locatoin || null, prime: null,
+        dpTime: selectedDroppingPoint.time || selectedDroppingPoint.dpTime || '', Count: 0
+      },
+      availableTripId: currentBusData.busId, source: currentBusData.sourceName,
+      destination: currentBusData.destinationName, busOperator: currentBusData.operatorName,
+      busType: currentBusData.busType, routeId: currentBusData.routeId,
+      engineId: currentBusData.engineId, operator_id: currentBusData.operatorId,
+      DepTime: currentBusData.departureTime, arrivalDate: currentBusData.arrivalTime,
+      departureDate: null, Discount: 0, CashBack: 0, serviceFee: 0, STF: 0, TDS: 0,
+      cpnCode: '', agentCode: '', agentType: '', agentMarkUp: 0, agentACBalance: 0,
       Sid: currentBusData.sid || (seatLayoutData && seatLayoutData.Sid) || '',
       Vid: currentBusData.vid || (seatLayoutData && seatLayoutData.Vid) || '',
       TraceId: currentBusData.traceId || (seatLayoutData && seatLayoutData.TraceID) || '',
       cancelPolicyList: (seatLayoutData && seatLayoutData.cancelPolicyList) || []
     };
-    
-    document.getElementById('bookNowBtn').disabled = true;
-    document.getElementById('bookNowBtn').textContent = 'Processing...';
-    
+    var bookBtn = document.getElementById('bookNowBtn');
+    bookBtn.disabled = true; bookBtn.textContent = 'Processing...';
     fetch((window.__BUS_API_BASE || '') + '/api/bus/confirm-seats', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(confirmPayload)
     })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
+    .then(function(r) { return r.json(); })
+    .then(function() {
       var form = document.createElement('form');
-      form.method = 'POST';
-      form.action = 'https://bus.easemytrip.com/Home/BusPayment';
-      form.target = '_blank';
-      
-      var input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'userid';
-      input.value = 'Emt';
-      form.appendChild(input);
-      
+      form.method = 'POST'; form.action = 'https://bus.easemytrip.com/Home/BusPayment'; form.target = '_blank';
+      var inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = 'userid'; inp.value = 'Emt';
+      form.appendChild(inp);
       document.body.appendChild(form);
       form.submit();
-      setTimeout(function() { document.body.removeChild(form); }, 100);
-      
+      setTimeout(function() { if (form.parentNode) form.parentNode.removeChild(form); }, 100);
       closeSeatModal();
     })
-    .catch(function(error) {
-      console.error('ConfirmSeats error:', error);
-      if (currentBusData && currentBusData.bookingLink) {
-        window.open(currentBusData.bookingLink, '_blank');
-      }
-      closeSeatModal();
+    .catch(function(err) {
+      console.error('ConfirmSeats error:', err);
+      bookBtn.disabled = false; bookBtn.textContent = 'Book Now';
+      if (currentBusData && currentBusData.bookingLink) window.open(currentBusData.bookingLink, '_blank');
     });
   }
-  
-  document.addEventListener('click', function(e) {
-    var overlay = document.getElementById('seatModalOverlay');
-    if (e.target === overlay) {
-      closeSeatModal();
-      return;
-    }
-    var btn = e.target.closest('.select-seats-btn');
-    if (btn) {
-      e.preventDefault();
-      e.stopPropagation();
-      var busData = {
-        busId: btn.dataset.busId || '',
-        routeId: btn.dataset.routeId || '',
-        engineId: parseInt(btn.dataset.engineId) || 0,
-        operatorId: btn.dataset.operatorId || '',
-        operatorName: btn.dataset.operatorName || '',
-        busType: btn.dataset.busType || '',
-        departureTime: btn.dataset.departureTime || '',
-        arrivalTime: btn.dataset.arrivalTime || '',
-        duration: btn.dataset.duration || '',
-        isSeater: btn.dataset.isSeater === 'true',
-        isSleeper: btn.dataset.isSleeper === 'true',
-        bookingLink: btn.dataset.bookingLink || '',
-        sourceId: btn.dataset.sourceId || '',
-        destinationId: btn.dataset.destinationId || '',
-        sourceName: btn.dataset.sourceName || '',
-        destinationName: btn.dataset.destinationName || '',
-        journeyDate: btn.dataset.journeyDate || ''
-      };
-      openSeatModal(busData);
-    }
-  });
+
+  // Single delegated click handler — all interactions go through data-busaction attributes
+  // This avoids global function calls that break when script runs via new Function()
+  if (!window.__busClickDelegated) {
+    window.__busClickDelegated = true;
+    document.addEventListener('click', function(e) {
+      var overlay = document.getElementById('seatModalOverlay');
+      if (e.target === overlay) { closeSeatModal(); return; }
+
+      var seatEl = e.target.closest('[data-busaction="selectseat"]');
+      if (seatEl) { try { selectSeat(seatEl, JSON.parse(seatEl.dataset.seatinfo)); } catch(ex) {} return; }
+
+      var bdEl = e.target.closest('[data-busaction="selectboarding"]');
+      if (bdEl) { try { selectBoardingPoint(bdEl, JSON.parse(bdEl.dataset.pointinfo)); } catch(ex) {} return; }
+
+      var dpEl = e.target.closest('[data-busaction="selectdropping"]');
+      if (dpEl) { try { selectDroppingPoint(dpEl, JSON.parse(dpEl.dataset.pointinfo)); } catch(ex) {} return; }
+
+      var pfEl = e.target.closest('[data-busaction="pricefilter"]');
+      if (pfEl) { filterByPrice(pfEl, pfEl.dataset.price); return; }
+
+      var btn = e.target.closest('.select-seats-btn');
+      if (btn) {
+        e.preventDefault(); e.stopPropagation();
+        openSeatModal({
+          busId: btn.dataset.busId || '', routeId: btn.dataset.routeId || '',
+          engineId: parseInt(btn.dataset.engineId) || 0,
+          operatorId: btn.dataset.operatorId || '', operatorName: btn.dataset.operatorName || '',
+          busType: btn.dataset.busType || '', departureTime: btn.dataset.departureTime || '',
+          arrivalTime: btn.dataset.arrivalTime || '', duration: btn.dataset.duration || '',
+          isSeater: btn.dataset.isSeater === 'true', isSleeper: btn.dataset.isSleeper === 'true',
+          bookingLink: btn.dataset.bookingLink || '', sourceId: btn.dataset.sourceId || '',
+          destinationId: btn.dataset.destinationId || '', sourceName: btn.dataset.sourceName || '',
+          destinationName: btn.dataset.destinationName || '', journeyDate: btn.dataset.journeyDate || ''
+        });
+      }
+    });
+  }
 })();
 </script>
+<img src="data:,x" alt="" style="display:none" onerror="(function(el){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}s.remove();}el.remove();})(this)">
+<script>(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}s.remove();}})();</script>
 </div>
 """
 
