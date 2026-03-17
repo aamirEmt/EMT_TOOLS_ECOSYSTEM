@@ -43,9 +43,9 @@ async def test_domestic_roundtrip():
 
     result = await tool.execute(
         origin="DEL",
-        destination="BOM",
-        outbound_date=outbound,
-        return_date=return_date,
+        destination="BLR",
+        outbound_date=  "2026-03-01",
+        return_date="2026-03-05",
         adults=1,
         children=0,
         cabin="Economy",

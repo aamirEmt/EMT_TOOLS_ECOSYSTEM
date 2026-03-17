@@ -99,11 +99,11 @@ def dummy_flight_roundtrip():
     
     return {
         "origin": "DEL",
-        "destination": "LHR",
-        "outbound_date": outbound,
-        "return_date": return_date,
-        "adults": 2,
-        "children": 1,
+        "destination": "BLR",
+        "outbound_date": "2026-03-01",
+        "return_date": "2026-03-05",
+        "adults": 1,
+        "children": 0,
         "infants": 0
     }
 

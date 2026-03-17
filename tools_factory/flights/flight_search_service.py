@@ -542,6 +542,10 @@ def _process_international_combos(
                     except (TypeError, ValueError):
                         combo_fare = None
 
+            # apply ICPS/TTDIS discount check even on directly-extracted fare
+            if combo_fare is not None:
+                combo_fare = _effective_total_fare(combo_fare, segment.get("TTDIS"), segment.get("ICPS"))
+
             # build fare options for outbound/inbound from combo
             combo_fare = combo_fare or _derive_combo_fare(segment)
 
@@ -1004,7 +1008,7 @@ async def search_flights(
         "appType": 1,
         "isSingleView": False,
         "ResType": 0 if is_international else 2,
-        "IsNBA": True,
+        "IsNBA": False,
         "CouponCode": "",
         "IsArmedForce": is_armed_force,
         "AgentCode": "",
