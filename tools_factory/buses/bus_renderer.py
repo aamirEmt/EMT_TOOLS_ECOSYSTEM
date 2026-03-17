@@ -1,12 +1,11 @@
 from typing import Dict, Any, List, Optional
 from jinja2 import Environment, BaseLoader
 import uuid
+import os
 from urllib.parse import quote as _url_quote
-
-try:
-    from emt_client.config import CHATBOT_API_BASE_URL as _DEFAULT_API_BASE
-except Exception:
-    _DEFAULT_API_BASE = ""
+from dotenv import load_dotenv
+load_dotenv()
+_DEFAULT_API_BASE = os.getenv("CHATBOT_API_BASE_URL", "")
 
 _jinja_env = Environment(
     loader=BaseLoader(),
@@ -1022,7 +1021,7 @@ BUS_CAROUSEL_TEMPLATE = """
 {{ styles }}
 </style>
 
-<div class="bus-carousel round-trip-selector" data-instance-id="{{ instance_id }}">
+<div class="bus-carousel round-trip-selector" data-instance-id="{{ instance_id }}" data-api-base="{{ api_base }}">
   <main>
     <div class="rslttp rslt-heading">
       <div class="busctl">
@@ -1142,9 +1141,26 @@ BUS_CAROUSEL_TEMPLATE = """
           </div>
 
           <div class="busftr">
-            <a href="{{ api_base }}/bus/seat-select?busId={{ bus.bus_id | urlencode }}&routeId={{ bus.route_id | urlencode }}&engineId={{ bus.engine_id }}&operatorId={{ bus.operator_id | urlencode }}&operatorName={{ bus.operator_name_full | urlencode }}&busType={{ bus.bus_type_full | urlencode }}&departureTime={{ bus.departure_time | urlencode }}&arrivalTime={{ bus.arrival_time | urlencode }}&duration={{ bus.duration | urlencode }}&isSeater={{ bus.is_seater | lower }}&isSleeper={{ bus.is_sleeper | lower }}&bookingLink={{ bus.booking_link | urlencode }}&sourceId={{ source_id | urlencode }}&destinationId={{ destination_id | urlencode }}&sourceName={{ source_city | urlencode }}&destinationName={{ destination_city | urlencode }}&journeyDate={{ journey_date_raw | urlencode }}" target="_blank" rel="noopener noreferrer" class="bkbtn" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">
+            <button type="button" class="bkbtn select-seats-btn"
+                    data-bus-id="{{ bus.bus_id }}"
+                    data-route-id="{{ bus.route_id }}"
+                    data-engine-id="{{ bus.engine_id }}"
+                    data-operator-id="{{ bus.operator_id }}"
+                    data-operator-name="{{ bus.operator_name_full }}"
+                    data-bus-type="{{ bus.bus_type_full }}"
+                    data-departure-time="{{ bus.departure_time }}"
+                    data-arrival-time="{{ bus.arrival_time }}"
+                    data-duration="{{ bus.duration }}"
+                    data-is-seater="{{ bus.is_seater | lower }}"
+                    data-is-sleeper="{{ bus.is_sleeper | lower }}"
+                    data-booking-link="{{ bus.booking_link }}"
+                    data-source-id="{{ source_id }}"
+                    data-destination-id="{{ destination_id }}"
+                    data-source-name="{{ source_city }}"
+                    data-destination-name="{{ destination_city }}"
+                    data-journey-date="{{ journey_date_raw }}">
               Select Seats
-            </a>
+            </button>
             {% if bus.is_cancellable %}
             <div class="cancelpolicy cancellable">Free Cancellation</div>
             {% else %}
@@ -1173,6 +1189,377 @@ BUS_CAROUSEL_TEMPLATE = """
     {% endif %}
   </main>
 </div>
+<script id="__busInit_{{ instance_id }}" type="text/plain">
+(function(){
+  if(window.__busChatbotModal){
+    // Already initialized — just wire up any new buttons from this carousel render
+    document.querySelectorAll('.select-seats-btn').forEach(function(btn){
+      if(!btn.__busInit){btn.__busInit=true;btn.addEventListener('click',function(e){e.stopPropagation();if(window.__openBusSeatModal)window.__openBusSeatModal({busId:this.dataset.busId||'',routeId:this.dataset.routeId||'',engineId:parseInt(this.dataset.engineId)||0,operatorId:this.dataset.operatorId||'',operatorName:this.dataset.operatorName||'',busType:this.dataset.busType||'',departureTime:this.dataset.departureTime||'',arrivalTime:this.dataset.arrivalTime||'',duration:this.dataset.duration||'',isSeater:this.dataset.isSeater==='true',isSleeper:this.dataset.isSleeper==='true',bookingLink:this.dataset.bookingLink||'',sourceId:this.dataset.sourceId||'',destinationId:this.dataset.destinationId||'',sourceName:this.dataset.sourceName||'',destinationName:this.dataset.destinationName||'',journeyDate:this.dataset.journeyDate||''});});}
+    });
+    return;
+  }
+  window.__busChatbotModal=true;
+
+  // Read api base from the carousel data attribute so fetch calls reach the right server
+  var apiBase='';
+  try{var bc=document.querySelector('[data-api-base]');if(bc&&bc.dataset.apiBase)apiBase=bc.dataset.apiBase;}catch(e){}
+  window.__BUS_API_BASE=apiBase;
+
+  if(!document.getElementById('seatModalOverlay')){
+    var d=document.createElement('div');
+    d.id='seatModalOverlay';
+    d.innerHTML=
+      '<div class="seat-modal">'+
+        '<div class="seat-modal-header">'+
+          '<div><div class="seat-modal-title" id="modalBusOperator">Loading...</div>'+
+          '<div class="seat-modal-subtitle" id="modalBusType"></div></div>'+
+          '<button type="button" class="seat-modal-close" id="seatModalCloseBtn">\u00d7</button>'+
+        '</div>'+
+        '<div style="display:flex;justify-content:center;gap:8px;padding:8px 12px;background:#f8f9fa;border-bottom:1px solid #e0e0e0;">'+
+          '<div id="step1" style="display:flex;align-items:center;gap:4px;font-size:10px;color:#ef6614;font-weight:600;"><span style="width:18px;height:18px;border-radius:50%;background:#ef6614;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;">1</span>Seats</div>'+
+          '<div style="color:#ccc;">\u2192</div>'+
+          '<div id="step2" style="display:flex;align-items:center;gap:4px;font-size:10px;color:#999;"><span style="width:18px;height:18px;border-radius:50%;background:#e0e0e0;color:#666;display:flex;align-items:center;justify-content:center;font-size:9px;">2</span>Boarding</div>'+
+          '<div style="color:#ccc;">\u2192</div>'+
+          '<div id="step3" style="display:flex;align-items:center;gap:4px;font-size:10px;color:#999;"><span style="width:18px;height:18px;border-radius:50%;background:#e0e0e0;color:#666;display:flex;align-items:center;justify-content:center;font-size:9px;">3</span>Dropping</div>'+
+        '</div>'+
+        '<div class="seat-modal-body">'+
+          '<div id="seatStep" style="display:block;">'+
+            '<div class="seat-legend">'+
+              '<div class="legend-item"><div class="legend-box available"></div>Available</div>'+
+              '<div class="legend-item"><div class="legend-box selected"></div>Selected</div>'+
+              '<div class="legend-item"><div class="legend-box booked"></div>Booked</div>'+
+              '<div class="legend-item"><div class="legend-box ladies"></div>Ladies</div>'+
+            '</div>'+
+            '<div id="seatLayoutContainer" class="seat-loading">Loading seat layout...</div>'+
+          '</div>'+
+          '<div id="boardingStep" style="display:none;">'+
+            '<div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#202020;">Select Boarding Point</div>'+
+            '<div id="boardingPointsList" style="max-height:260px;overflow-y:auto;"></div>'+
+          '</div>'+
+          '<div id="droppingStep" style="display:none;">'+
+            '<div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#202020;">Select Dropping Point</div>'+
+            '<div id="droppingPointsList" style="max-height:260px;overflow-y:auto;"></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="seat-modal-footer">'+
+          '<div class="selected-info"><div>Seats: <strong id="selectedSeatsDisplay">None</strong></div>'+
+          '<div class="total-fare">\u20b9<span id="totalFareDisplay">0</span></div></div>'+
+          '<div style="display:flex;gap:8px;">'+
+            '<button type="button" class="continue-btn" id="backBtn" style="display:none;background:#666;">\u2190 Back</button>'+
+            '<button type="button" class="continue-btn" id="nextBtn" disabled>Next \u2192</button>'+
+            '<button type="button" class="continue-btn" id="bookNowBtn" style="display:none;background:#00a664;">Book Now</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    d.style.display='none';
+    document.body.appendChild(d);
+
+    if(!document.getElementById('__busModalCSS')){
+      var sEl=document.createElement('style');sEl.id='__busModalCSS';
+      sEl.textContent=
+        '#seatModalOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:2147483647;display:none;justify-content:center;align-items:center;font-family:poppins,sans-serif;}'+
+        '#seatModalOverlay .seat-modal{background:#fff;border-radius:12px;max-width:420px;width:95%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);font-size:11px;}'+
+        '#seatModalOverlay .seat-modal-header{padding:12px 16px;border-bottom:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center;background:#f8f9fa;}'+
+        '#seatModalOverlay .seat-modal-title{font-size:14px;font-weight:600;color:#202020;}'+
+        '#seatModalOverlay .seat-modal-subtitle{font-size:11px;color:#868686;margin-top:2px;}'+
+        '#seatModalOverlay .seat-modal-close{width:28px;height:28px;border:none;background:#e0e0e0;border-radius:50%;cursor:pointer;font-size:18px;color:#666;line-height:1;display:flex;align-items:center;justify-content:center;}'+
+        '#seatModalOverlay .seat-modal-body{flex:1;overflow-y:auto;padding:10px;}'+
+        '#seatModalOverlay .seat-modal-footer{padding:10px 16px;border-top:1px solid #e0e0e0;background:#f8f9fa;display:flex;justify-content:space-between;align-items:center;gap:8px;}'+
+        '#seatModalOverlay .selected-info{font-size:10px;color:#666;}'+
+        '#seatModalOverlay .total-fare{font-size:15px;font-weight:700;color:#202020;}'+
+        '#seatModalOverlay .continue-btn{padding:7px 16px;background:#ef6614;color:#fff;border:none;border-radius:40px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;}'+
+        '#seatModalOverlay .continue-btn:disabled{background:#ccc;cursor:not-allowed;}'+
+        '#seatModalOverlay .seat-loading{display:flex;align-items:center;justify-content:center;padding:40px 20px;color:#868686;font-size:11px;}'+
+        '#seatModalOverlay .seat-legend{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}'+
+        '#seatModalOverlay .legend-item{display:flex;align-items:center;gap:4px;font-size:9px;color:#666;}'+
+        '#seatModalOverlay .legend-box{width:14px;height:14px;border-radius:3px;border:1px solid transparent;}'+
+        '#seatModalOverlay .legend-box.available{background:#e8f5e9;border-color:#4caf50;}'+
+        '#seatModalOverlay .legend-box.selected{background:#fff3e0;border-color:#ef6614;}'+
+        '#seatModalOverlay .legend-box.booked{background:#eee;border-color:#9e9e9e;}'+
+        '#seatModalOverlay .legend-box.ladies{background:#fce4ec;border-color:#e91e63;}'+
+        '#seatModalOverlay .seat-decks{display:flex;gap:8px;flex-wrap:wrap;}'+
+        '#seatModalOverlay .seat-deck{flex:1;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:8px;min-width:120px;}'+
+        '#seatModalOverlay .deck-title{font-size:10px;font-weight:600;color:#202020;margin-bottom:6px;text-align:center;padding:3px;background:#f0f0f0;border-radius:4px;}'+
+        '#seatModalOverlay .seat-grid{display:flex;flex-direction:column;gap:3px;align-items:center;}'+
+        '#seatModalOverlay .seat-row{display:flex;gap:2px;}'+
+        '#seatModalOverlay .seat{border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:500;border:1px solid transparent;width:24px;height:24px;}'+
+        '#seatModalOverlay .seat.sleeper{width:48px;}'+
+        '#seatModalOverlay .seat.available{background:#e8f5e9;color:#2e7d32;border-color:#4caf50;cursor:pointer;}'+
+        '#seatModalOverlay .seat.available:hover{background:#c8e6c9;}'+
+        '#seatModalOverlay .seat.selected{background:#fff3e0;color:#e65100;border-color:#ef6614;box-shadow:0 1px 4px rgba(239,102,20,.3);}'+
+        '#seatModalOverlay .seat.booked{background:#eee;color:#9e9e9e;cursor:not-allowed;}'+
+        '#seatModalOverlay .seat.ladies{background:#fce4ec;color:#c2185b;border-color:#e91e63;cursor:pointer;}'+
+        '#seatModalOverlay .seat.empty{visibility:hidden;}'+
+        '#seatModalOverlay .point-item{padding:8px;border:1px solid #e0e0e0;border-radius:4px;margin-bottom:6px;cursor:pointer;font-size:10px;}'+
+        '#seatModalOverlay .point-item:hover{background:#f5f5f5;}'+
+        '#seatModalOverlay .point-item.selected{border-color:#2093ef;background:#e3f2fd;}'+
+        '#seatModalOverlay .price-filter{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;}'+
+        '#seatModalOverlay .price-btn{padding:3px 8px;border:1px solid #e0e0e0;border-radius:4px;background:#fff;font-size:10px;cursor:pointer;font-family:inherit;}'+
+        '#seatModalOverlay .price-btn.active{background:#ef6614;color:#fff;border-color:#ef6614;}';
+      document.head.appendChild(sEl);
+    }
+
+    document.getElementById('seatModalCloseBtn').addEventListener('click',closeSeatModal);
+    document.getElementById('backBtn').addEventListener('click',function(){if(currentStep>1)updateStep(currentStep-1);});
+    document.getElementById('nextBtn').addEventListener('click',function(){
+      if(currentStep===1&&!selSeats.length){alert('Please select at least one seat');return;}
+      if(currentStep===2&&!selBoarding){alert('Please select a boarding point');return;}
+      if(currentStep<3)updateStep(currentStep+1);
+    });
+    document.getElementById('bookNowBtn').addEventListener('click',confirmAndRedirect);
+  }
+
+  var curBus=null,selSeats=[],selBoarding=null,selDropping=null,layoutData=null,currentStep=1;
+
+  function ghex(){var r='';for(var i=0;i<32;i++)r+=Math.floor(Math.random()*16).toString(16);return r;}
+  function guid(){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==='x'?r:(r&0x3|0x8);return v.toString(16);});}
+
+  function updateStep(n){
+    currentStep=n;
+    for(var i=1;i<=3;i++){
+      var el=document.getElementById('step'+i);if(!el)continue;
+      var num=el.querySelector('span'),lbl=el.querySelector('span:last-child');
+      if(i===n){el.style.color='#ef6614';el.style.fontWeight='600';if(num){num.style.background='#ef6614';num.style.color='#fff';}}
+      else if(i<n){el.style.color='#00a664';el.style.fontWeight='500';if(num){num.style.background='#00a664';num.style.color='#fff';}}
+      else{el.style.color='#999';el.style.fontWeight='400';if(num){num.style.background='#e0e0e0';num.style.color='#666';}}
+    }
+    document.getElementById('seatStep').style.display=n===1?'block':'none';
+    document.getElementById('boardingStep').style.display=n===2?'block':'none';
+    document.getElementById('droppingStep').style.display=n===3?'block':'none';
+    document.getElementById('backBtn').style.display=n>1?'inline-block':'none';
+    document.getElementById('nextBtn').style.display=n<3?'inline-block':'none';
+    document.getElementById('bookNowBtn').style.display=n===3?'inline-block':'none';
+    updateBtns();
+  }
+  function updateBtns(){
+    var nb=document.getElementById('nextBtn'),bb=document.getElementById('bookNowBtn');
+    if(currentStep===1)nb.disabled=!selSeats.length;
+    else if(currentStep===2)nb.disabled=!selBoarding;
+    if(currentStep===3)bb.disabled=!selDropping;
+  }
+  function openSeatModal(busData){
+    curBus=busData;curBus.sid=ghex();curBus.vid=ghex();curBus.traceId=guid();
+    selSeats=[];selBoarding=null;selDropping=null;layoutData=null;currentStep=1;
+    var ov=document.getElementById('seatModalOverlay');if(!ov)return;
+    document.getElementById('modalBusOperator').textContent=busData.operatorName||'Bus Operator';
+    document.getElementById('modalBusType').textContent=busData.busType||'';
+    document.getElementById('seatLayoutContainer').innerHTML='<div class="seat-loading">Loading seat layout...</div>';
+    document.getElementById('boardingPointsList').innerHTML='<div class="seat-loading">Loading...</div>';
+    document.getElementById('droppingPointsList').innerHTML='<div class="seat-loading">Loading...</div>';
+    ov.style.display='flex';
+    updateStep(1);updateFooter();
+    fetchLayout(busData);
+  }
+  window.__openBusSeatModal=openSeatModal;
+
+  function closeSeatModal(){
+    var ov=document.getElementById('seatModalOverlay');if(ov)ov.style.display='none';
+    curBus=null;selSeats=[];selBoarding=null;selDropping=null;layoutData=null;currentStep=1;
+  }
+  function fetchLayout(busData){
+    var searchReq=busData.sourceId+'|'+busData.destinationId+'|'+busData.sourceName+'|'+busData.destinationName+'|'+busData.journeyDate;
+    var payload={Idproof:0,id:busData.busId,engineId:busData.engineId,sessionId:null,
+      seater:busData.isSeater,sleeper:busData.isSleeper,bustype:busData.busType,
+      travel:busData.operatorName,ArrivalTime:busData.arrivalTime,JourneyDate:busData.journeyDate,
+      DepartureTime:busData.departureTime,searchReq:searchReq,duration:busData.duration,
+      routeid:busData.routeId,bpId:'',dpId:'',isBpdp:false,Vid:busData.vid,
+      SeatPrice:0,stStatus:false,agentType:'NAN',countryCode:null,
+      TraceID:busData.traceId,Sid:busData.sid,OperatorId:busData.operatorId};
+    fetch((window.__BUS_API_BASE||'')+'/api/bus/seat-layout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(function(data){
+      layoutData=data;layoutData.Sid=busData.sid;layoutData.Vid=busData.vid;layoutData.TraceID=busData.traceId;
+      if(data.error||(!data.Lower&&!data.Upper)){showFallback(data.error||'Seat layout not available');return;}
+      renderSeats(data);renderBP(data.listBoardingPoint||[]);renderDP(data.listDropPoint||[]);
+    })
+    .catch(function(err){console.error('SeatLayout error:',err);showFallback('Unable to load seat layout');});
+  }
+  function showFallback(msg){
+    document.getElementById('seatLayoutContainer').innerHTML=
+      '<div style="text-align:center;padding:30px 15px;">'+
+        '<p style="font-size:12px;color:#666;margin-bottom:15px;">'+msg+'</p>'+
+        (curBus&&curBus.bookingLink?'<a href="'+curBus.bookingLink+'" target="_blank" rel="noopener" style="display:inline-block;padding:10px 24px;background:#ef6614;color:#fff;text-decoration:none;border-radius:20px;font-weight:600;font-size:12px;">Select on Website</a>':'')+
+      '</div>';
+    document.getElementById('nextBtn').style.display='none';
+    document.getElementById('bookNowBtn').style.display='none';
+  }
+  function renderSeats(data){
+    var html='';
+    if(data.setuniquefares&&data.setuniquefares.length){
+      html+='<div class="price-filter"><button class="price-btn active" data-busaction="pricefilter" data-price="all">All</button>';
+      data.setuniquefares.forEach(function(f){html+='<button class="price-btn" data-busaction="pricefilter" data-price="'+f.baseFare+'">\u20b9'+f.baseFare+'</button>';});
+      html+='</div>';
+    }
+    html+='<div class="seat-decks">';
+    if(data.LowerShow&&data.Lower)html+='<div class="seat-deck"><div class="deck-title">Lower Deck</div><div class="seat-grid">'+renderDeck(data.Lower)+'</div></div>';
+    if(data.UpperShow&&data.Upper)html+='<div class="seat-deck"><div class="deck-title">Upper Deck</div><div class="seat-grid">'+renderDeck(data.Upper)+'</div></div>';
+    html+='</div>';
+    document.getElementById('seatLayoutContainer').innerHTML=html;
+    document.getElementById('seatLayoutContainer').className='';
+  }
+  function renderDeck(deck){
+    var cols=['firstColumn','SecondColumn','ThirdColumn','FourthColumn','FifthColumn','SixthColumn','seventhColumn','eightColumn','ninethColumn','tenthColumn','eleventhColumn','tevelthColumn','thirteenColumn','fourteenColumn'];
+    var maxR=0;cols.forEach(function(c){if(deck[c]&&deck[c].length>maxR)maxR=deck[c].length;});
+    if(!maxR)return'';
+    var html='';
+    for(var row=0;row<maxR;row++){
+      html+='<div class="seat-row">';
+      cols.forEach(function(col,ci){
+        if(!deck[col])return;var s=deck[col][row];if(!s)return;
+        if(ci===2)html+='<div style="width:8px;"></div>';
+        if(s.seatType==='noseat'||!s.name){html+='<div class="seat empty"></div>';return;}
+        var avail=s.available&&String(s.seatType).indexOf('unavailable')===-1;
+        var ladies=s.ladiesSeat==='True'||s.ladiesSeat===true||s.ladiesSeat==='true';
+        var slpr=s.isSleeper||s.seatStyle==='SL';
+        var cls='seat'+(slpr?' sleeper':'')+(avail?(ladies?' ladies':' available'):' booked');
+        var fare=s.fare||s.actualfare||0,baseFare=s.baseFare||0;
+        if(avail){
+          var info=JSON.stringify({id:s.id,name:s.name,fare:fare,baseFare:baseFare,actualfare:s.actualfare||fare,
+            gender:s.gender||'M',encriSeat:s.EncriSeat||'',seatType:slpr?'SL':'ST',
+            bookingFee:s.bookingFee||0,concession:s.concession||0,convenienceCharge:s.convenienceCharge||0,
+            srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:s.serviceFee||0}).replace(/"/g,'&quot;');
+          html+='<div class="'+cls+'" data-busaction="selectseat" data-seatinfo="'+info+'" data-fare="'+baseFare+'" title="'+s.name+' - \u20b9'+fare+'">'+s.name+'</div>';
+        }else{
+          html+='<div class="'+cls+'" title="'+s.name+' - Booked">'+s.name+'</div>';
+        }
+      });
+      html+='</div>';
+    }
+    return html;
+  }
+  function renderBP(pts){
+    if(!pts||!pts.length){document.getElementById('boardingPointsList').innerHTML='<div style="padding:15px;text-align:center;color:#868686;font-size:11px;">No boarding points</div>';return;}
+    var html='';
+    pts.forEach(function(pt){
+      var name=pt.bdLongName||pt.bdPoint||'Unknown',time=pt.time||'';
+      var info=JSON.stringify({id:pt.bdid,name:name,time:time,bdPoint:pt.bdPoint,bdLongName:pt.bdLongName,bdlocation:pt.bdlocation,landmark:pt.landmark,contactNumber:pt.contactNumber}).replace(/"/g,'&quot;');
+      html+='<div class="point-item" data-busaction="selectboarding" data-pointinfo="'+info+'"><div style="font-weight:600;">'+time+'</div><div style="color:#666;margin-top:2px;">'+name+'</div></div>';
+    });
+    document.getElementById('boardingPointsList').innerHTML=html;
+  }
+  function renderDP(pts){
+    if(!pts||!pts.length){document.getElementById('droppingPointsList').innerHTML='<div style="padding:15px;text-align:center;color:#868686;font-size:11px;">No dropping points</div>';return;}
+    var html='';
+    pts.forEach(function(pt){
+      var name=pt.dpName||'Unknown',time=pt.dpTime||'';
+      var info=JSON.stringify({id:pt.dpId,name:name,time:time,dpName:pt.dpName,dpTime:pt.dpTime,locatoin:pt.locatoin}).replace(/"/g,'&quot;');
+      html+='<div class="point-item" data-busaction="selectdropping" data-pointinfo="'+info+'"><div style="font-weight:600;">'+time+'</div><div style="color:#666;margin-top:2px;">'+name+'</div></div>';
+    });
+    document.getElementById('droppingPointsList').innerHTML=html;
+  }
+  function selectSeat(el,s){
+    if(el.classList.contains('booked'))return;
+    if(el.classList.contains('selected')){
+      el.classList.remove('selected');el.classList.add(s.ladies?'ladies':'available');
+      selSeats=selSeats.filter(function(x){return!(x.id===s.id&&x.name===s.name);});
+    }else{
+      el.classList.remove('available','ladies');el.classList.add('selected');selSeats.push(s);
+    }
+    updateFooter();updateBtns();
+  }
+  function selectBP(el,pt){
+    document.querySelectorAll('#boardingPointsList .point-item').forEach(function(x){x.classList.remove('selected');});
+    el.classList.add('selected');selBoarding=pt;updateFooter();updateBtns();
+  }
+  function selectDP(el,pt){
+    document.querySelectorAll('#droppingPointsList .point-item').forEach(function(x){x.classList.remove('selected');});
+    el.classList.add('selected');selDropping=pt;updateFooter();updateBtns();
+  }
+  function updateFooter(){
+    document.getElementById('selectedSeatsDisplay').textContent=selSeats.length?selSeats.map(function(s){return s.name;}).join(', '):'None';
+    document.getElementById('totalFareDisplay').textContent=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0).toLocaleString('en-IN');
+  }
+  function filterByPrice(btn,price){
+    document.querySelectorAll('.price-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    document.querySelectorAll('#seatLayoutContainer .seat.available,#seatLayoutContainer .seat.ladies').forEach(function(s){
+      var show=price==='all'||parseInt(s.dataset.fare)===parseInt(price);
+      s.style.opacity=show?'1':'0.3';s.style.pointerEvents=show?'auto':'none';
+    });
+  }
+  function confirmAndRedirect(){
+    if(!selSeats.length||!selBoarding||!selDropping){alert('Please complete all selections');return;}
+    var seatsPayload=selSeats.map(function(s){
+      return{seatNo:s.name,seatType:s.seatType||'ST',fare:s.fare,seatId:s.id||s.name,
+        actualfare:s.actualfare||s.fare,gender:s.gender||'M',baseFare:s.baseFare||s.fare,
+        EncriSeat:s.encriSeat||'',bookingFee:s.bookingFee||0,concession:s.concession||0,
+        convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:s.serviceFee||0};
+    });
+    var total=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0);
+    var payload={
+      seats:seatsPayload,sessionId:null,totalFare:total,
+      boardingId:selBoarding.id,boardingName:selBoarding.name||'',
+      boardingPoint:{bdPoint:selBoarding.bdPoint||selBoarding.name,bdLongName:selBoarding.bdLongName||selBoarding.name,
+        bdid:selBoarding.id,bdlocation:selBoarding.bdlocation||'',landmark:selBoarding.landmark||'',
+        time:selBoarding.time||'',contactNumber:selBoarding.contactNumber||'',Count:0},
+      dropId:selDropping.id,
+      DropingPoint:{dpId:selDropping.id,dpName:selDropping.dpName||selDropping.name,
+        locatoin:selDropping.locatoin||null,prime:null,dpTime:selDropping.time||selDropping.dpTime||'',Count:0},
+      availableTripId:curBus.busId,source:curBus.sourceName,destination:curBus.destinationName,
+      busOperator:curBus.operatorName,busType:curBus.busType,routeId:curBus.routeId,
+      engineId:curBus.engineId,operator_id:curBus.operatorId,
+      DepTime:curBus.departureTime,arrivalDate:curBus.arrivalTime,
+      departureDate:null,Discount:0,CashBack:0,serviceFee:0,STF:0,TDS:0,
+      cpnCode:'',agentCode:'',agentType:'',agentMarkUp:0,agentACBalance:0,
+      Sid:curBus.sid||(layoutData&&layoutData.Sid)||'',
+      Vid:curBus.vid||(layoutData&&layoutData.Vid)||'',
+      TraceId:curBus.traceId||(layoutData&&layoutData.TraceID)||'',
+      cancelPolicyList:(layoutData&&layoutData.cancelPolicyList)||[]
+    };
+    var bb=document.getElementById('bookNowBtn');bb.disabled=true;bb.textContent='Processing...';
+    fetch((window.__BUS_API_BASE||'')+'/api/bus/confirm-seats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(function(r){return r.json();})
+    .then(function(){
+      var form=document.createElement('form');
+      form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment';
+      var inp=document.createElement('input');inp.type='hidden';inp.name='userid';inp.value='Emt';
+      form.appendChild(inp);document.body.appendChild(form);form.submit();
+    })
+    .catch(function(err){
+      console.error('ConfirmSeats error:',err);bb.disabled=false;bb.textContent='Book Now';
+      if(curBus&&curBus.bookingLink)window.open(curBus.bookingLink,'_blank');
+    });
+  }
+
+  if(!window.__busClickDelegated){
+    window.__busClickDelegated=true;
+    document.addEventListener('click',function(e){
+      var ov=document.getElementById('seatModalOverlay');
+      if(ov&&e.target===ov){closeSeatModal();return;}
+      var seat=e.target.closest('[data-busaction="selectseat"]');
+      if(seat){try{selectSeat(seat,JSON.parse(seat.dataset.seatinfo));}catch(ex){}return;}
+      var bp=e.target.closest('[data-busaction="selectboarding"]');
+      if(bp){try{selectBP(bp,JSON.parse(bp.dataset.pointinfo));}catch(ex){}return;}
+      var dp=e.target.closest('[data-busaction="selectdropping"]');
+      if(dp){try{selectDP(dp,JSON.parse(dp.dataset.pointinfo));}catch(ex){}return;}
+      var pf=e.target.closest('[data-busaction="pricefilter"]');
+      if(pf){filterByPrice(pf,pf.dataset.price);return;}
+      var btn=e.target.closest('.select-seats-btn');
+      if(btn){
+        e.preventDefault();e.stopPropagation();
+        openSeatModal({
+          busId:btn.dataset.busId||'',routeId:btn.dataset.routeId||'',
+          engineId:parseInt(btn.dataset.engineId)||0,
+          operatorId:btn.dataset.operatorId||'',operatorName:btn.dataset.operatorName||'',
+          busType:btn.dataset.busType||'',departureTime:btn.dataset.departureTime||'',
+          arrivalTime:btn.dataset.arrivalTime||'',duration:btn.dataset.duration||'',
+          isSeater:btn.dataset.isSeater==='true',isSleeper:btn.dataset.isSleeper==='true',
+          bookingLink:btn.dataset.bookingLink||'',sourceId:btn.dataset.sourceId||'',
+          destinationId:btn.dataset.destinationId||'',sourceName:btn.dataset.sourceName||'',
+          destinationName:btn.dataset.destinationName||'',journeyDate:btn.dataset.journeyDate||''
+        });
+      }
+    });
+  }
+  // Direct handlers on this carousel's buttons (bypasses any propagation blocking)
+  document.querySelectorAll('.select-seats-btn').forEach(function(btn){
+    if(!btn.__busInit){btn.__busInit=true;btn.addEventListener('click',function(e){e.stopPropagation();openSeatModal({busId:this.dataset.busId||'',routeId:this.dataset.routeId||'',engineId:parseInt(this.dataset.engineId)||0,operatorId:this.dataset.operatorId||'',operatorName:this.dataset.operatorName||'',busType:this.dataset.busType||'',departureTime:this.dataset.departureTime||'',arrivalTime:this.dataset.arrivalTime||'',duration:this.dataset.duration||'',isSeater:this.dataset.isSeater==='true',isSleeper:this.dataset.isSleeper==='true',bookingLink:this.dataset.bookingLink||'',sourceId:this.dataset.sourceId||'',destinationId:this.dataset.destinationId||'',sourceName:this.dataset.sourceName||'',destinationName:this.dataset.destinationName||'',journeyDate:this.dataset.journeyDate||''});});}
+  });
+})();
+</script>
+<script>(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s&&!s.dataset.ran){s.dataset.ran='1';try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}}})()</script>
+<img src="data:image/gif;base64,aaaa" style="display:none" alt="" onerror="(function(el){var s=document.getElementById('__busInit_{{ instance_id }}');if(s&&!s.dataset.ran){s.dataset.ran='1';try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}s.remove();}el.remove();})(this)">
+<svg style="display:none;position:absolute;width:0;height:0" onload="(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s&&!s.dataset.ran){s.dataset.ran='1';try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}s.remove();}})()"><rect width="0" height="0"/></svg>
 """
 
 
