@@ -777,7 +777,11 @@ def _process_seat(seat: Dict[str, Any], deck_name: str) -> Optional[Dict[str, An
     
     seat_type_lower = str(seat_type).lower()
     is_booked = "unavailable" in seat_type_lower or "booked" in seat_type_lower
-    is_ladies = "ladies" in seat_type_lower or "female" in seat_type_lower
+    ladies_seat = seat.get("ladiesSeat")
+    is_ladies = (
+        "ladies" in seat_type_lower or "female" in seat_type_lower
+        or ladies_seat == "true" or ladies_seat is True
+    )
     is_blocked = "blocked" in seat_type_lower
     
     if not is_booked:
@@ -814,33 +818,50 @@ def _process_seat(seat: Dict[str, Any], deck_name: str) -> Optional[Dict[str, An
     }
 
 
+_SEAT_COLUMN_NAMES = [
+    "firstColumn", "SecondColumn", "ThirdColumn", "FourthColumn",
+    "FifthColumn", "SixthColumn", "seventhColumn", "eightColumn",
+    "ninethColumn", "tenthColumn", "eleventhColumn", "tevelthColumn",
+    "thirteenColumn", "fourteenColumn",
+]
+
+
 def _process_deck(deck_data: Any, deck_name: str) -> Optional[Dict[str, Any]]:
-    
+
     if not deck_data:
         return None
-    
+
     if isinstance(deck_data, dict):
-        deck_data = deck_data.get("seats") or deck_data.get("Seats") or []
-    
-    if not isinstance(deck_data, list) or not deck_data:
+        # Seats are spread across named column arrays
+        seat_list = []
+        for col_name in _SEAT_COLUMN_NAMES:
+            col = deck_data.get(col_name)
+            if col and isinstance(col, list):
+                seat_list.extend(col)
+    elif isinstance(deck_data, list):
+        seat_list = deck_data
+    else:
         return None
-    
+
     seats = []
     max_row = 0
     max_col = 0
-    
-    for seat in deck_data:
+
+    for seat in seat_list:
         if not isinstance(seat, dict):
+            continue
+        # Skip placeholder noseat entries
+        if seat.get("seatType") == "noseat":
             continue
         processed = _process_seat(seat, deck_name)
         if processed:
             seats.append(processed)
             max_row = max(max_row, processed["row"])
             max_col = max(max_col, processed["column"])
-    
+
     if not seats:
         return None
-    
+
     return {
         "deck_name": deck_name,
         "rows": max_row + 1,
@@ -866,24 +887,8 @@ def process_seat_layout_response(
             "raw_response": api_response,
         }
     
-    seats = api_response.get("Seats", []) or api_response.get("seats", [])
-    
-    if not seats:
-        return {
-            "success": False,
-            "message": "No seat layout available for this bus",
-            "layout": None,
-            "raw_response": api_response,
-        }
-    
-    lower_seats = [s for s in seats if s.get("lowerShow", True)]
-    upper_seats = [s for s in seats if s.get("upperShow", False)]
-    
-    lower_deck = _process_deck(lower_seats, "Lower") if lower_seats else None
-    upper_deck = _process_deck(upper_seats, "Upper") if upper_seats else None
-    
-    if not lower_deck and not upper_deck and seats:
-        lower_deck = _process_deck(seats, "Lower")
+    lower_deck = _process_deck(api_response.get("Lower"), "Lower")
+    upper_deck = _process_deck(api_response.get("Upper"), "Upper")
     
     all_seats = []
     if lower_deck and lower_deck.get("seats"):
@@ -919,7 +924,7 @@ def process_seat_layout_response(
         "dropping_point": dropping_point,
         "boarding_time": api_response.get("deptTime", ""),
         "dropping_time": api_response.get("arrTime", ""),
-        "fare_details": [],
+        "fare_details": api_response.get("setuniquefares", []),
     }
     
     success = total_seats > 0
