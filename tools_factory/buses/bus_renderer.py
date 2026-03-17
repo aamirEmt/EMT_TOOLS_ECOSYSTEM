@@ -1189,7 +1189,7 @@ BUS_CAROUSEL_TEMPLATE = """
     {% endif %}
   </main>
 </div>
-<script id="__busInit_{{ instance_id }}" type="text/plain">
+<textarea id="__busInit_{{ instance_id }}" style="display:none;width:0;height:0;position:absolute;" aria-hidden="true">
 (function(){
   if(window.__busChatbotModal && window.__openBusSeatModal){
     // Fully initialized — just wire up buttons on this new carousel
@@ -1552,9 +1552,9 @@ BUS_CAROUSEL_TEMPLATE = """
     if(!btn.__busInit){btn.__busInit=true;btn.addEventListener('click',function(e){e.stopPropagation();openSeatModal({busId:this.dataset.busId||'',routeId:this.dataset.routeId||'',engineId:parseInt(this.dataset.engineId)||0,operatorId:this.dataset.operatorId||'',operatorName:this.dataset.operatorName||'',busType:this.dataset.busType||'',departureTime:this.dataset.departureTime||'',arrivalTime:this.dataset.arrivalTime||'',duration:this.dataset.duration||'',isSeater:this.dataset.isSeater==='true',isSleeper:this.dataset.isSleeper==='true',bookingLink:this.dataset.bookingLink||'',sourceId:this.dataset.sourceId||'',destinationId:this.dataset.destinationId||'',sourceName:this.dataset.sourceName||'',destinationName:this.dataset.destinationName||'',journeyDate:this.dataset.journeyDate||''});});}
   });
 })();
-</script>
-<img src="x" style="display:none" alt="" onerror="(function(el){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.textContent))();}catch(ex){console.error('BusModal init:',ex);}s.remove();}el.remove();})(this)">
-<svg style="display:none;position:absolute;width:0;height:0" onload="(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.textContent))();}catch(ex){console.error('BusModal init:',ex);}s.remove();}})()"><rect width="0" height="0"/></svg>
+</textarea>
+<img src="x" style="display:none" alt="" onerror="(function(el){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.value))();}catch(ex){console.error('BusModal init:',ex);}s.remove();}el.remove();})(this)">
+<svg style="display:none;position:absolute;width:0;height:0" onload="(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.value))();}catch(ex){console.error('BusModal init:',ex);}s.remove();}})()"><rect width="0" height="0"/></svg>
 """
 
 
