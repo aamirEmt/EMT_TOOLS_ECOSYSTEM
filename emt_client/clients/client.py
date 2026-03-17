@@ -25,7 +25,7 @@ class EMTClient:
         if self.token_provider:
             tokens = await self.token_provider()
             payload.update(tokens)
-            print(f"Payload after token injection: {payload}")
+            # print(f"Payload after token injection: {payload}")
         async with httpx.AsyncClient(timeout=60) as client:
             res = await client.post(url, json=payload)
             res.raise_for_status()
