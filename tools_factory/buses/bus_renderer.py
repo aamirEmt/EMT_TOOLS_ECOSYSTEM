@@ -1191,19 +1191,14 @@ BUS_CAROUSEL_TEMPLATE = """
 </div>
 <script id="__busInit_{{ instance_id }}" type="text/plain">
 (function(){
-  if(window.__busChatbotModal){
-    // Already initialized — just wire up any new buttons from this carousel render
+  if(window.__busChatbotModal && window.__openBusSeatModal){
+    // Fully initialized — just wire up buttons on this new carousel
     document.querySelectorAll('.select-seats-btn').forEach(function(btn){
-      if(!btn.__busInit){btn.__busInit=true;btn.addEventListener('click',function(e){e.stopPropagation();if(window.__openBusSeatModal)window.__openBusSeatModal({busId:this.dataset.busId||'',routeId:this.dataset.routeId||'',engineId:parseInt(this.dataset.engineId)||0,operatorId:this.dataset.operatorId||'',operatorName:this.dataset.operatorName||'',busType:this.dataset.busType||'',departureTime:this.dataset.departureTime||'',arrivalTime:this.dataset.arrivalTime||'',duration:this.dataset.duration||'',isSeater:this.dataset.isSeater==='true',isSleeper:this.dataset.isSleeper==='true',bookingLink:this.dataset.bookingLink||'',sourceId:this.dataset.sourceId||'',destinationId:this.dataset.destinationId||'',sourceName:this.dataset.sourceName||'',destinationName:this.dataset.destinationName||'',journeyDate:this.dataset.journeyDate||''});});}
+      if(!btn.__busInit){btn.__busInit=true;btn.addEventListener('click',function(e){e.stopPropagation();window.__openBusSeatModal({busId:this.dataset.busId||'',routeId:this.dataset.routeId||'',engineId:parseInt(this.dataset.engineId)||0,operatorId:this.dataset.operatorId||'',operatorName:this.dataset.operatorName||'',busType:this.dataset.busType||'',departureTime:this.dataset.departureTime||'',arrivalTime:this.dataset.arrivalTime||'',duration:this.dataset.duration||'',isSeater:this.dataset.isSeater==='true',isSleeper:this.dataset.isSleeper==='true',bookingLink:this.dataset.bookingLink||'',sourceId:this.dataset.sourceId||'',destinationId:this.dataset.destinationId||'',sourceName:this.dataset.sourceName||'',destinationName:this.dataset.destinationName||'',journeyDate:this.dataset.journeyDate||''});});}
     });
     return;
   }
-  window.__busChatbotModal=true;
-
-  // Read api base from the carousel data attribute so fetch calls reach the right server
-  var apiBase='';
-  try{var bc=document.querySelector('[data-api-base]');if(bc&&bc.dataset.apiBase)apiBase=bc.dataset.apiBase;}catch(e){}
-  window.__BUS_API_BASE=apiBase;
+  // Not fully initialized yet (fresh start or previous attempt was partial) — run full setup
 
   if(!document.getElementById('seatModalOverlay')){
     var d=document.createElement('div');
@@ -1351,6 +1346,7 @@ BUS_CAROUSEL_TEMPLATE = """
     fetchLayout(busData);
   }
   window.__openBusSeatModal=openSeatModal;
+  window.__busChatbotModal=true;
 
   function closeSeatModal(){
     var ov=document.getElementById('seatModalOverlay');if(ov)ov.style.display='none';
@@ -1365,7 +1361,7 @@ BUS_CAROUSEL_TEMPLATE = """
       routeid:busData.routeId,bpId:'',dpId:'',isBpdp:false,Vid:busData.vid,
       SeatPrice:0,stStatus:false,agentType:'NAN',countryCode:null,
       TraceID:busData.traceId,Sid:busData.sid,OperatorId:busData.operatorId};
-    fetch((window.__BUS_API_BASE||'')+'/api/bus/seat-layout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    fetch('/api/bus/seat-layout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(function(data){
       layoutData=data;layoutData.Sid=busData.sid;layoutData.Vid=busData.vid;layoutData.TraceID=busData.traceId;
@@ -1507,7 +1503,7 @@ BUS_CAROUSEL_TEMPLATE = """
       cancelPolicyList:(layoutData&&layoutData.cancelPolicyList)||[]
     };
     var bb=document.getElementById('bookNowBtn');bb.disabled=true;bb.textContent='Processing...';
-    fetch((window.__BUS_API_BASE||'')+'/api/bus/confirm-seats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    fetch('/api/bus/confirm-seats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
     .then(function(){
       var form=document.createElement('form');
@@ -1557,9 +1553,8 @@ BUS_CAROUSEL_TEMPLATE = """
   });
 })();
 </script>
-<script>(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s&&!s.dataset.ran){s.dataset.ran='1';try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}}})()</script>
-<img src="data:image/gif;base64,aaaa" style="display:none" alt="" onerror="(function(el){var s=document.getElementById('__busInit_{{ instance_id }}');if(s&&!s.dataset.ran){s.dataset.ran='1';try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}s.remove();}el.remove();})(this)">
-<svg style="display:none;position:absolute;width:0;height:0" onload="(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s&&!s.dataset.ran){s.dataset.ran='1';try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}s.remove();}})()"><rect width="0" height="0"/></svg>
+<img src="x" style="display:none" alt="" onerror="(function(el){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.textContent))();}catch(ex){console.error('BusModal init:',ex);}s.remove();}el.remove();})(this)">
+<svg style="display:none;position:absolute;width:0;height:0" onload="(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.textContent))();}catch(ex){console.error('BusModal init:',ex);}s.remove();}})()"><rect width="0" height="0"/></svg>
 """
 
 
