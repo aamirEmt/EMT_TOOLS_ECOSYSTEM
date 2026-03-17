@@ -1249,7 +1249,54 @@ BUS_CAROUSEL_TEMPLATE = """
           '</div>' +
         '</div>' +
       '</div>';
+    d.style.display = 'none';
     document.body.appendChild(d);
+
+    // Inject modal CSS into document.head — needed because the overlay is outside .bus-carousel
+    // so BUS_CAROUSEL_STYLES selectors like ".bus-carousel .seat-modal-overlay" don't match
+    if (!document.getElementById('__busModalCSS')) {
+      var sEl = document.createElement('style');
+      sEl.id = '__busModalCSS';
+      sEl.textContent =
+        '#seatModalOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:2147483647;display:none;justify-content:center;align-items:center;font-family:poppins,sans-serif;}' +
+        '#seatModalOverlay .seat-modal{background:#fff;border-radius:12px;max-width:400px;width:95%;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);font-size:11px;}' +
+        '#seatModalOverlay .seat-modal-header{padding:12px 16px;border-bottom:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center;background:#f8f9fa;}' +
+        '#seatModalOverlay .seat-modal-title{font-size:14px;font-weight:600;color:#202020;}' +
+        '#seatModalOverlay .seat-modal-subtitle{font-size:11px;color:#868686;margin-top:2px;}' +
+        '#seatModalOverlay .seat-modal-close{width:28px;height:28px;border:none;background:#e0e0e0;border-radius:50%;cursor:pointer;font-size:16px;color:#666;line-height:1;}' +
+        '#seatModalOverlay .seat-modal-body{flex:1;overflow-y:auto;padding:10px;}' +
+        '#seatModalOverlay .seat-modal-footer{padding:10px 16px;border-top:1px solid #e0e0e0;background:#f8f9fa;display:flex;justify-content:space-between;align-items:center;gap:8px;}' +
+        '#seatModalOverlay .selected-info{font-size:10px;color:#666;}' +
+        '#seatModalOverlay .total-fare{font-size:15px;font-weight:700;color:#202020;}' +
+        '#seatModalOverlay .continue-btn{padding:7px 16px;background:#ef6614;color:#fff;border:none;border-radius:40px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;}' +
+        '#seatModalOverlay .continue-btn:disabled{background:#ccc;cursor:not-allowed;}' +
+        '#seatModalOverlay .seat-loading{display:flex;align-items:center;justify-content:center;padding:40px 20px;color:#868686;font-size:11px;}' +
+        '#seatModalOverlay .seat-legend{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}' +
+        '#seatModalOverlay .legend-item{display:flex;align-items:center;gap:4px;font-size:9px;color:#666;}' +
+        '#seatModalOverlay .legend-box{width:14px;height:14px;border-radius:3px;border:1px solid transparent;}' +
+        '#seatModalOverlay .legend-box.available{background:#e8f5e9;border-color:#4caf50;}' +
+        '#seatModalOverlay .legend-box.selected{background:#fff3e0;border-color:#ef6614;}' +
+        '#seatModalOverlay .legend-box.booked{background:#eee;border-color:#9e9e9e;}' +
+        '#seatModalOverlay .legend-box.ladies{background:#fce4ec;border-color:#e91e63;}' +
+        '#seatModalOverlay .seat-deck{flex:1;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:8px;min-width:120px;}' +
+        '#seatModalOverlay .deck-title{font-size:10px;font-weight:600;color:#202020;margin-bottom:6px;text-align:center;padding:3px;background:#f0f0f0;border-radius:4px;}' +
+        '#seatModalOverlay .seat-grid{display:flex;flex-direction:column;gap:3px;align-items:center;}' +
+        '#seatModalOverlay .seat-row{display:flex;gap:2px;}' +
+        '#seatModalOverlay .seat{border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:500;border:1px solid transparent;}' +
+        '#seatModalOverlay .seat.available{background:#e8f5e9;color:#2e7d32;border-color:#4caf50;cursor:pointer;}' +
+        '#seatModalOverlay .seat.available:hover{background:#c8e6c9;}' +
+        '#seatModalOverlay .seat.selected{background:#fff3e0;color:#e65100;border-color:#ef6614;box-shadow:0 1px 4px rgba(239,102,20,.3);}' +
+        '#seatModalOverlay .seat.booked{background:#eee;color:#9e9e9e;cursor:not-allowed;}' +
+        '#seatModalOverlay .seat.ladies{background:#fce4ec;color:#c2185b;border-color:#e91e63;cursor:pointer;}' +
+        '#seatModalOverlay .seat.empty{visibility:hidden;}' +
+        '#seatModalOverlay .point-item{padding:8px;border:1px solid #e0e0e0;border-radius:4px;margin-bottom:6px;cursor:pointer;font-size:10px;}' +
+        '#seatModalOverlay .point-item:hover{background:#f5f5f5;}' +
+        '#seatModalOverlay .point-item.selected{border-color:#2093ef;background:#e3f2fd;}' +
+        '#seatModalOverlay .price-btn{padding:2px 8px;border:1px solid #e0e0e0;border-radius:4px;background:#fff;font-size:10px;cursor:pointer;font-family:inherit;}' +
+        '#seatModalOverlay .price-btn.active{background:#ef6614;color:#fff;border-color:#ef6614;}';
+      document.head.appendChild(sEl);
+    }
+
     document.getElementById('seatModalCloseBtn').addEventListener('click', closeSeatModal);
     document.getElementById('backBtn').addEventListener('click', goToPrevStep);
     document.getElementById('nextBtn').addEventListener('click', goToNextStep);
@@ -1338,7 +1385,7 @@ BUS_CAROUSEL_TEMPLATE = """
     document.getElementById('seatLayoutContainer').innerHTML = '<div class="seat-loading">Loading seat layout...</div>';
     document.getElementById('boardingPointsList').innerHTML = '<div class="seat-loading">Loading...</div>';
     document.getElementById('droppingPointsList').innerHTML = '<div class="seat-loading">Loading...</div>';
-    overlay.classList.add('active');
+    overlay.style.display = 'flex';
     updateStepIndicator(1);
     updateFooter();
     fetchSeatLayout(busData);
@@ -1346,7 +1393,7 @@ BUS_CAROUSEL_TEMPLATE = """
 
   function closeSeatModal() {
     var overlay = document.getElementById('seatModalOverlay');
-    if (overlay) overlay.classList.remove('active');
+    if (overlay) overlay.style.display = 'none';
     currentBusData = null;
     selectedSeats = [];
     selectedBoardingPoint = null;
@@ -1677,7 +1724,8 @@ BUS_CAROUSEL_TEMPLATE = """
   }
 })();
 </script>
-<img src="data:,x" alt="" style="display:none" onerror="(function(el){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}s.remove();}el.remove();})(this)">
+<img src="data:image/gif;base64,R0lGODlh" style="display:none" alt="" onerror="(function(el){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}s.remove();}el.remove();})(this)">
+<svg style="display:none;position:absolute;width:0;height:0" onload="(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}s.remove();}})()"></svg>
 <script>(function(){var s=document.getElementById('__busInit_{{ instance_id }}');if(s){try{(new Function(s.textContent))();}catch(e){console.error('BusModal:',e);}s.remove();}})();</script>
 </div>
 """
