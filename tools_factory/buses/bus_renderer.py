@@ -1192,9 +1192,9 @@ BUS_CAROUSEL_TEMPLATE = """
 </div>
 <textarea id="__busInit_{{ instance_id }}" style="display:none;width:0;height:0;position:absolute;" aria-hidden="true">
 (function(){
-  var _SEAT_URL='https://busservice-p.easemytrip.com/v1/services/search/seat_bind';
-  var _CONFIRM_URL='https://busservice.easemytrip.com/v1/api/bus/ConfirmSeats/';
-  var _SK='rk-e34e1825-eae4-488b-a947-cba66987cd1b-service-emt';
+  var _SEAT_URL='__BUS_SEAT_BIND_URL__';
+  var _CONFIRM_URL='__BUS_CONFIRM_SEATS_URL__';
+  var _SK='__BUS_SECRET_KEY__';
 
   if(window.__busChatbotModal && window.__openBusSeatModal){
     // Fully initialized — just wire up buttons on this new carousel
@@ -1563,9 +1563,9 @@ BUS_CAROUSEL_TEMPLATE = """
 """
 
 
-def _make_bus_template_with_b64(tpl: str) -> str:
+def _make_bus_template_with_b64(tpl: str, replacements: dict = None) -> str:
     """Replace the textarea IIFE block with a base64-encoded data attribute on a <div>.
-    This avoids HTML-entity decoding and widget.js script-tag processing."""
+    Optionally replaces placeholder tokens in the IIFE before encoding."""
     import re
     m = re.search(
         r'<textarea\s+id="__busInit_\{\{[^}]*\}\}"[^>]*>(.*?)</textarea>',
@@ -1573,12 +1573,29 @@ def _make_bus_template_with_b64(tpl: str) -> str:
     )
     if not m:
         return tpl
-    b64 = base64.b64encode(m.group(1).encode('utf-8')).decode('ascii')
+    iife = m.group(1)
+    if replacements:
+        for token, value in replacements.items():
+            iife = iife.replace(token, value)
+    b64 = base64.b64encode(iife.encode('utf-8')).decode('ascii')
     div = '<div id="__busInit_{{ instance_id }}" style="display:none" data-c="' + b64 + '"></div>'
     return tpl[:m.start()] + div + tpl[m.end():]
 
 
-BUS_CAROUSEL_TEMPLATE = _make_bus_template_with_b64(BUS_CAROUSEL_TEMPLATE)
+try:
+    from emt_client.config import BUS_SEAT_BIND_URL as _BUS_SEAT_BIND_URL
+    from emt_client.config import BUS_CONFIRM_SEATS_URL as _BUS_CONFIRM_SEATS_URL
+    from emt_client.config import BUS_SECRET_KEY as _BUS_SECRET_KEY
+except Exception:
+    _BUS_SEAT_BIND_URL = 'https://busservice-p.easemytrip.com/v1/services/search/seat_bind'
+    _BUS_CONFIRM_SEATS_URL = 'https://busservice.easemytrip.com/v1/api/bus/ConfirmSeats/'
+    _BUS_SECRET_KEY = 'rk-e34e1825-eae4-488b-a947-cba66987cd1b-service-emt'
+
+BUS_CAROUSEL_TEMPLATE = _make_bus_template_with_b64(BUS_CAROUSEL_TEMPLATE, {
+    '__BUS_SEAT_BIND_URL__': _BUS_SEAT_BIND_URL,
+    '__BUS_CONFIRM_SEATS_URL__': _BUS_CONFIRM_SEATS_URL,
+    '__BUS_SECRET_KEY__': _BUS_SECRET_KEY,
+})
 
 
 SEAT_LAYOUT_STYLES = """
