@@ -1192,20 +1192,9 @@ BUS_CAROUSEL_TEMPLATE = """
 </div>
 <textarea id="__busInit_{{ instance_id }}" style="display:none;width:0;height:0;position:absolute;" aria-hidden="true">
 (function(){
-  // Auto-detect chatbot backend origin from any cross-origin script tag
-  if(!window.__busApiBase){
-    var _co=window.location.origin;
-    var _allScripts=document.querySelectorAll('script[src]');
-    var _base='';
-    for(var _si=0;_si<_allScripts.length;_si++){
-      var _ssrc=_allScripts[_si].src||'';
-      var _sm=_ssrc.match(/^(https?:\/\/[^\/]+)/);
-      if(_sm&&_sm[1]!==_co){_base=_sm[1];break;}
-    }
-    window.__busApiBase=_base;
-    console.log('[BusModal] detected apiBase:',_base||'(none — using relative)','pageOrigin:',_co);
-  }
-  var _API=window.__busApiBase;
+  var _SEAT_URL='https://busservice-p.easemytrip.com/v1/services/search/seat_bind';
+  var _CONFIRM_URL='https://busservice.easemytrip.com/v1/api/bus/ConfirmSeats/';
+  var _SK='rk-e34e1825-eae4-488b-a947-cba66987cd1b-service-emt';
 
   if(window.__busChatbotModal && window.__openBusSeatModal){
     // Fully initialized — just wire up buttons on this new carousel
@@ -1377,14 +1366,14 @@ BUS_CAROUSEL_TEMPLATE = """
       routeid:busData.routeId,bpId:'',dpId:'',isBpdp:false,Vid:busData.vid,
       SeatPrice:0,stStatus:false,agentType:'NAN',countryCode:null,
       TraceID:busData.traceId,Sid:busData.sid,OperatorId:busData.operatorId};
-    fetch(_API+'/api/bus/seat-layout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    fetch(_SEAT_URL,{method:'POST',headers:{'Content-Type':'application/json','x-client-secret-key':_SK},body:JSON.stringify(payload)})
     .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(function(data){
       layoutData=data;layoutData.Sid=busData.sid;layoutData.Vid=busData.vid;layoutData.TraceID=busData.traceId;
       if(data.error||(!data.Lower&&!data.Upper)){showFallback(data.error||'Seat layout not available');return;}
       renderSeats(data);renderBP(data.listBoardingPoint||[]);renderDP(data.listDropPoint||[]);
     })
-    .catch(function(err){console.error('SeatLayout error:',err,'url:',_API+'/api/bus/seat-layout');showFallback('Unable to load seat layout');});
+    .catch(function(err){console.error('SeatLayout error:',err,'url:',_SEAT_URL);showFallback('Unable to load seat layout');});
   }
   function showFallback(msg){
     document.getElementById('seatLayoutContainer').innerHTML=
@@ -1519,7 +1508,7 @@ BUS_CAROUSEL_TEMPLATE = """
       cancelPolicyList:(layoutData&&layoutData.cancelPolicyList)||[]
     };
     var bb=document.getElementById('bookNowBtn');bb.disabled=true;bb.textContent='Processing...';
-    fetch(_API+'/api/bus/confirm-seats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    fetch(_CONFIRM_URL,{method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','Accept':'application/json, text/plain, */*','x-requested-with':'XMLHttpRequest'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
     .then(function(){
       var form=document.createElement('form');
