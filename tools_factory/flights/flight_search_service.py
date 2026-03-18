@@ -780,7 +780,7 @@ def build_roundtrip_combo_deep_link(
         for i, seg in enumerate(segment_strings)
         if seg
     )
-    print(f"{FLIGHT_DEEPLINK}?{query}&{segment_query}")
+    # print(f"{FLIGHT_DEEPLINK}?{query}&{segment_query}")
     return f"{FLIGHT_DEEPLINK}?{query}&{segment_query}"
 
 
@@ -957,6 +957,8 @@ async def search_flights(
         fare_type_code = 0
 
     is_fare_family = (fare_type_code >= 2)
+    if is_international:
+        is_fare_family=False
     is_armed_force = fare_type_code == 1
 
     search_context = {

@@ -125,7 +125,7 @@ MYBOOKINGS_BASE_URL = _get_config_value(
 FLIGHT_DEEPLINK = _get_config_value(
     'FLIGHT_DEEPLINK',
     'FLIGHT_DEEPLINK',
-    default='https://flight.easemytrip.com/RemoteSearchHandlers/index'
+    default='https://www.easemytrip.com/flight-search/RemoteSearchHandlers/'
 )
 
 FLIGHT_AMENITIES_URL = f"{FLIGHT_BASE_URL}/FlightStatus/FlightAmentiesByListing"
