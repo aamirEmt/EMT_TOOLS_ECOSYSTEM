@@ -16,6 +16,7 @@ from tools_factory.bookings.hotel_bookings_tool import GetHotelBookingsTool
 from tools_factory.bookings.train_bookings_tool import GetTrainBookingsTool
 from tools_factory.bookings.bus_bookings_tool import GetBusBookingsTool
 from tools_factory.cancellation.cancellation_tool import CancellationTool
+from tools_factory.handoff.handoff_tool import HandoffToCustomerAgentTool
 from emt_client.auth.session_manager import SessionManager
 from typing import Dict, Optional, List
 
@@ -56,6 +57,9 @@ class ToolFactory:
 
         # Cancellation (unified tool with action-based dispatch)
         self.register_tool(CancellationTool())
+
+        # Handoff to customer agent
+        self.register_tool(HandoffToCustomerAgentTool())
         self.register_tool(OtpLoginTool(self.session_manager))
 
         # Booking tools with session manager (require session_id parameter)
