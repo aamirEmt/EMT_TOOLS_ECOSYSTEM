@@ -1192,6 +1192,14 @@ BUS_CAROUSEL_TEMPLATE = """
 </div>
 <textarea id="__busInit_{{ instance_id }}" style="display:none;width:0;height:0;position:absolute;" aria-hidden="true">
 (function(){
+  // Auto-detect chatbot backend origin from widget.js script tag
+  if(!window.__busApiBase){
+    var _ws=document.querySelector('script[src*="widget.js"]');
+    if(_ws){var _m=_ws.src.match(/^(https?:\/\/[^\/]+)/);window.__busApiBase=_m?_m[1]:'';}
+    else{window.__busApiBase='';}
+  }
+  var _API=window.__busApiBase;
+
   if(window.__busChatbotModal && window.__openBusSeatModal){
     // Fully initialized — just wire up buttons on this new carousel
     document.querySelectorAll('.select-seats-btn').forEach(function(btn){
@@ -1362,7 +1370,7 @@ BUS_CAROUSEL_TEMPLATE = """
       routeid:busData.routeId,bpId:'',dpId:'',isBpdp:false,Vid:busData.vid,
       SeatPrice:0,stStatus:false,agentType:'NAN',countryCode:null,
       TraceID:busData.traceId,Sid:busData.sid,OperatorId:busData.operatorId};
-    fetch('/api/bus/seat-layout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    fetch(_API+'/api/bus/seat-layout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(function(data){
       layoutData=data;layoutData.Sid=busData.sid;layoutData.Vid=busData.vid;layoutData.TraceID=busData.traceId;
@@ -1504,7 +1512,7 @@ BUS_CAROUSEL_TEMPLATE = """
       cancelPolicyList:(layoutData&&layoutData.cancelPolicyList)||[]
     };
     var bb=document.getElementById('bookNowBtn');bb.disabled=true;bb.textContent='Processing...';
-    fetch('/api/bus/confirm-seats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    fetch(_API+'/api/bus/confirm-seats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
     .then(function(){
       var form=document.createElement('form');
