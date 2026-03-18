@@ -14,7 +14,7 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 class HotelSearchService:
     """Service layer for hotel search operations"""
-    def _generate_view_all(self, deeplink: str) -> str:
+    def _generate_view_all(self, deeplink: str, use_short_links: bool = True) -> str:
         """
         Convert a hotel details deeplink into a 'view all hotels' search link.
         """
@@ -52,6 +52,8 @@ class HotelSearchService:
             parsed._replace(path=new_path, query=new_query)
         )
 
+        if not use_short_links:
+            return raw_link
         try:
             short_link = generate_short_link(
                 [{"deepLink": raw_link}],
@@ -126,7 +128,7 @@ class HotelSearchService:
             })
         return rooms
     
-    async def search(self, search_input: HotelSearchInput) -> Dict[str, Any]:
+    async def search(self, search_input: HotelSearchInput, use_short_links: bool = True) -> Dict[str, Any]:
         """Execute hotel search workflow"""
         
         try:
@@ -192,13 +194,12 @@ class HotelSearchService:
                     "num_children": search_input.num_children,
                     "totalResults": 0,
                     "total_results": 0,
-                    "results": [],
                     "hotels": [],
                 }
             
             
             # Step 6: Process response
-            return self._process_response(response, resolved_city, search_input, search_key,lat, lon,stype)
+            return self._process_response(response, resolved_city, search_input, search_key, lat, lon, stype, use_short_links=use_short_links)
             
         except Exception as e:
             # Return error with details
@@ -220,7 +221,6 @@ class HotelSearchService:
                 "num_children": search_input.num_children,
                 "totalResults": 0,
                 "total_results": 0,
-                "results": [],
                 "hotels": [],
             }
     
@@ -233,6 +233,7 @@ class HotelSearchService:
     lat: float = None,
     lon: float = None,
     stype: str = None,
+    use_short_links: bool = True,
     ) -> Dict[str, Any]:
 
         # print(f"DEBUG: API response keys: {response.keys()}")
@@ -261,7 +262,7 @@ class HotelSearchService:
             )
 
             if index == 0:
-                view_all_link = self._generate_view_all(deep_link_data["deepLink"])
+                view_all_link = self._generate_view_all(deep_link_data["deepLink"], use_short_links=use_short_links)
 
             # Calculate adjusted price (base_price - discount)
             base_price = hotel.get("prc")

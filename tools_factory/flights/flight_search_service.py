@@ -801,7 +801,7 @@ def _format_listing_date(raw_date: Optional[str]) -> str:
     return raw_text
 
 
-def _build_view_all_link(search_context: Optional[Dict[str, Any]]) -> str:
+def _build_view_all_link(search_context: Optional[Dict[str, Any]], use_short_links: bool = True) -> str:
     if not search_context:
         return ""
 
@@ -867,6 +867,8 @@ def _build_view_all_link(search_context: Optional[Dict[str, Any]]) -> str:
     base_url = "https://www.easemytrip.com/flight-search/listing"
     raw_link = f"{base_url}?{urlencode(query_params, quote_via=quote)}"
 
+    if not use_short_links:
+        return raw_link
     try:
         short_link = generate_short_link(
             [{"deepLink": raw_link}],
@@ -893,6 +895,7 @@ async def search_flights(
     departure_time_window: Optional[str] = None,
     arrival_time_window: Optional[str] = None,
     airline_names: Optional[list[str]] = None,
+    use_short_links: bool = True,
 ) -> dict:
     """Call EaseMyTrip flight search API.
 
@@ -1047,7 +1050,7 @@ async def search_flights(
         }
 
     # Process results
-    processed_data = process_flight_results(data, is_roundtrip,is_international, search_context)
+    processed_data = process_flight_results(data, is_roundtrip, is_international, search_context, use_short_links=use_short_links)
     processed_data["origin"] = origin_code
     processed_data["destination"] = destination_code
     processed_data["outbound_date"] = outbound_date
@@ -1061,6 +1064,7 @@ def process_flight_results(
     is_roundtrip: bool,
     is_international:bool,
     search_context: Optional[Dict[str, Any]] = None,
+    use_short_links: bool = True,
 ) -> dict:
     """Process raw flight search response.
 
@@ -1348,7 +1352,7 @@ def process_flight_results(
             + _flight_duration_minutes(c.get("return_flight", {}))
         )
 
-    view_all_link = _build_view_all_link(search_context)
+    view_all_link = _build_view_all_link(search_context, use_short_links=use_short_links)
 
     return {
         "outbound_flights": outbound_flights,
