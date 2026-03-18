@@ -1368,7 +1368,7 @@ BUS_CAROUSEL_TEMPLATE = """
       routeid:busData.routeId,bpId:'',dpId:'',isBpdp:false,Vid:busData.vid,
       SeatPrice:0,stStatus:false,agentType:'NAN',countryCode:null,
       TraceID:busData.traceId,Sid:busData.sid,OperatorId:busData.operatorId};
-    fetch(_SEAT_URL,{method:'POST',headers:{'Content-Type':'application/json','x-client-secret-key':_SK},body:JSON.stringify(payload)})
+    fetch(_SEAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(function(data){
       layoutData=data;layoutData.Sid=busData.sid;layoutData.Vid=busData.vid;layoutData.TraceID=busData.traceId;
@@ -1579,7 +1579,10 @@ def _make_bus_template_with_b64(tpl: str, replacements: dict = None) -> str:
     if replacements:
         for token, value in replacements.items():
             iife = iife.replace(token, value)
-    b64 = base64.b64encode(iife.encode('utf-8')).decode('ascii')
+    # Escape non-ASCII to \uXXXX so base64+atob roundtrip stays pure ASCII
+    import re as _re2
+    iife = _re2.sub(r'[^\x00-\x7F]', lambda c: '\\u{:04x}'.format(ord(c.group())), iife)
+    b64 = base64.b64encode(iife.encode('ascii')).decode('ascii')
     div = '<div id="__busInit_{{ instance_id }}" style="display:none" data-c="' + b64 + '"></div>'
     return tpl[:m.start()] + div + tpl[m.end():]
 
