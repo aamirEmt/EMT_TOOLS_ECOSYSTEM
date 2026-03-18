@@ -1196,6 +1196,7 @@ BUS_CAROUSEL_TEMPLATE = """
   var _apiBase=(_c?(_c.getAttribute('data-api-base')||'').replace(/\/$/,''):'');
   var _SEAT_URL=_apiBase+'/api/bus/seat-layout';
   var _CONFIRM_URL=_apiBase+'/api/bus/confirm-seats';
+  if(!_apiBase){(function(){var _h=window.location.hostname||'127.0.0.1';[8000,8001,8080,3000,5000].forEach(function(p){var o='http://'+_h+':'+p;var x=new XMLHttpRequest();x.open('GET',o+'/api/bus/ping',true);x.timeout=500;x.onload=function(){if(x.status===200&&!_apiBase){_apiBase=o;_SEAT_URL=o+'/api/bus/seat-layout';_CONFIRM_URL=o+'/api/bus/confirm-seats';}};x.send();});})();}
 
   if(window.__busChatbotModal && window.__openBusSeatModal){
     // Fully initialized — just wire up buttons on this new carousel
