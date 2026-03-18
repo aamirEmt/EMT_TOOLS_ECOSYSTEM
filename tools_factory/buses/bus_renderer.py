@@ -1192,11 +1192,18 @@ BUS_CAROUSEL_TEMPLATE = """
 </div>
 <textarea id="__busInit_{{ instance_id }}" style="display:none;width:0;height:0;position:absolute;" aria-hidden="true">
 (function(){
-  // Auto-detect chatbot backend origin from widget.js script tag
+  // Auto-detect chatbot backend origin from any cross-origin script tag
   if(!window.__busApiBase){
-    var _ws=document.querySelector('script[src*="widget.js"]');
-    if(_ws){var _m=_ws.src.match(/^(https?:\/\/[^\/]+)/);window.__busApiBase=_m?_m[1]:'';}
-    else{window.__busApiBase='';}
+    var _co=window.location.origin;
+    var _allScripts=document.querySelectorAll('script[src]');
+    var _base='';
+    for(var _si=0;_si<_allScripts.length;_si++){
+      var _ssrc=_allScripts[_si].src||'';
+      var _sm=_ssrc.match(/^(https?:\/\/[^\/]+)/);
+      if(_sm&&_sm[1]!==_co){_base=_sm[1];break;}
+    }
+    window.__busApiBase=_base;
+    console.log('[BusModal] detected apiBase:',_base||'(none — using relative)','pageOrigin:',_co);
   }
   var _API=window.__busApiBase;
 
@@ -1377,7 +1384,7 @@ BUS_CAROUSEL_TEMPLATE = """
       if(data.error||(!data.Lower&&!data.Upper)){showFallback(data.error||'Seat layout not available');return;}
       renderSeats(data);renderBP(data.listBoardingPoint||[]);renderDP(data.listDropPoint||[]);
     })
-    .catch(function(err){console.error('SeatLayout error:',err);showFallback('Unable to load seat layout');});
+    .catch(function(err){console.error('SeatLayout error:',err,'url:',_API+'/api/bus/seat-layout');showFallback('Unable to load seat layout');});
   }
   function showFallback(msg){
     document.getElementById('seatLayoutContainer').innerHTML=
