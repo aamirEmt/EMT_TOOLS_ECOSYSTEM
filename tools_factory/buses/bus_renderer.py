@@ -1516,10 +1516,10 @@ BUS_CAROUSEL_TEMPLATE = """
     var bb=document.getElementById('bookNowBtn');bb.disabled=true;bb.textContent='Processing...';
     fetch(_CONFIRM_URL,{method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','Accept':'application/json, text/plain, */*','x-requested-with':'XMLHttpRequest'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
-    .then(function(cd){
-      var url=cd&&cd.payment_url;
-      if(url){window.location.href=url;}
-      else if(curBus&&curBus.bookingLink){window.open(curBus.bookingLink,'_blank');}
+    .then(function(){
+      var form=document.createElement('form');
+      form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment?userid=Emt';
+      document.body.appendChild(form);form.submit();
     })
     .catch(function(err){
       console.error('ConfirmSeats error:',err);bb.disabled=false;bb.textContent='Book Now';
@@ -2175,10 +2175,10 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
     var bb=document.getElementById('bookBtn');bb.disabled=true;bb.textContent='Processing...';
     fetch('/api/bus/confirm-seats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
-    .then(function(cd){
-      var url=cd&&cd.payment_url;
-      if(url){window.location.href=url;}
-      else if(bus.bookingLink){window.location.href=bus.bookingLink;}
+    .then(function(){
+      var form=document.createElement('form');
+      form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment?userid=Emt';
+      document.body.appendChild(form);form.submit();
     })
     .catch(function(err){
       console.error('ConfirmSeats error:',err);
