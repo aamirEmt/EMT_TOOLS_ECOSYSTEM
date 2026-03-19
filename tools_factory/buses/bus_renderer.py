@@ -1485,6 +1485,7 @@ BUS_CAROUSEL_TEMPLATE = """
       s.style.opacity=show?'1':'0.3';s.style.pointerEvents=show?'auto':'none';
     });
   }
+  function _getCk(n){var m=document.cookie.match(new RegExp('(?:^|;)\\s*'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):'';}
   function confirmAndRedirect(){
     if(!selSeats.length||!selBoarding||!selDropping){alert('Please complete all selections');return;}
     var seatsPayload=selSeats.map(function(s){
@@ -1494,6 +1495,8 @@ BUS_CAROUSEL_TEMPLATE = """
         convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:s.serviceFee||0};
     });
     var total=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0);
+    var _sid=_getCk('_uetsid')||(layoutData&&layoutData.Sid)||curBus.sid||'';
+    var _vid=_getCk('_uetvid')||_getCk('uservid')||(layoutData&&layoutData.Vid)||curBus.vid||'';
     var payload={
       seats:seatsPayload,sessionId:null,totalFare:total,
       boardingId:selBoarding.id,boardingName:selBoarding.name||'',
@@ -1509,8 +1512,7 @@ BUS_CAROUSEL_TEMPLATE = """
       DepTime:curBus.departureTime,arrivalDate:curBus.arrivalTime,
       departureDate:null,Discount:0,CashBack:0,serviceFee:0,STF:0,TDS:0,
       cpnCode:'',agentCode:'',agentType:'',agentMarkUp:0,agentACBalance:0,
-      Sid:curBus.sid||(layoutData&&layoutData.Sid)||'',
-      Vid:curBus.vid||(layoutData&&layoutData.Vid)||'',
+      Sid:_sid,Vid:_vid,
       TraceId:curBus.traceId||(layoutData&&layoutData.TraceID)||'',
       cancelPolicyList:(layoutData&&layoutData.cancelPolicyList)||[]
     };
@@ -1520,26 +1522,9 @@ BUS_CAROUSEL_TEMPLATE = """
     .then(function(r){return r.json();})
     .then(function(){
       var form=document.createElement('form');
-      form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment?userid=Emt';
-      function addF(n,v){var i=document.createElement('input');i.type='hidden';i.name=n;i.value=(v===null||v===undefined)?'':v;form.appendChild(i);}
-      addF('seats',JSON.stringify(seatsPayload));
-      addF('totalFare',total);
-      addF('source',curBus.sourceName||'');addF('destination',curBus.destinationName||'');
-      addF('DepTime',curBus.departureTime||'');addF('arrivalDate',curBus.arrivalTime||'');
-      addF('availableTripId',curBus.busId||'');addF('busOperator',curBus.operatorName||'');
-      addF('busType',curBus.busType||'');addF('routeId',curBus.routeId||'');
-      addF('engineId',curBus.engineId||0);addF('operator_id',curBus.operatorId||'');
-      addF('boardingId',selBoarding.id||'');
-      addF('boardingPoint',JSON.stringify({bdPoint:selBoarding.bdPoint||selBoarding.name,bdLongName:selBoarding.bdLongName||selBoarding.name,bdid:selBoarding.id,bdlocation:selBoarding.bdlocation||'',landmark:selBoarding.landmark||'',time:selBoarding.time||'',contactNumber:selBoarding.contactNumber||null,prime:null,Count:0}));
-      addF('dropId',selDropping.id||'');
-      addF('DropingPoint',JSON.stringify({dpId:selDropping.id,dpName:selDropping.dpName||selDropping.name,locatoin:selDropping.locatoin||null,prime:null,dpTime:selDropping.time||selDropping.dpTime||'',Count:0}));
-      addF('Sid',curBus.sid||(layoutData&&layoutData.Sid)||'');
-      addF('Vid',curBus.vid||(layoutData&&layoutData.Vid)||'');
-      addF('TraceId',curBus.traceId||(layoutData&&layoutData.TraceID)||'');
-      addF('cancelPolicyList',JSON.stringify((layoutData&&layoutData.cancelPolicyList)||[]));
-      addF('Discount',0);addF('CashBack',0);addF('STF',0);addF('TDS',0);
-      addF('serviceFee',0);addF('departureDate','');addF('sessionId','');
-      document.body.appendChild(form);form.submit();
+      form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment';
+      var inp=document.createElement('input');inp.type='hidden';inp.name='userid';inp.value='Emt';
+      form.appendChild(inp);document.body.appendChild(form);form.submit();
     })
     .catch(function(err){
       console.error('ConfirmSeats error:',err);bb.disabled=false;bb.textContent='Book Now';
@@ -2163,6 +2148,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       s.style.opacity=show?'1':'0.3';s.style.pointerEvents=show?'auto':'none';
     });
   }
+  function _getCk(n){var m=document.cookie.match(new RegExp('(?:^|;)\\s*'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):'';}
   function doBook(){
     if(!selSeats.length||!selBoarding||!selDropping){alert('Please complete all selections');return;}
     var seatsPayload=selSeats.map(function(s){
@@ -2172,6 +2158,8 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
         convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:s.serviceFee||0};
     });
     var total=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0);
+    var _sid=_getCk('_uetsid')||(layoutData&&layoutData.Sid)||bus.sid||'';
+    var _vid=_getCk('_uetvid')||_getCk('uservid')||(layoutData&&layoutData.Vid)||bus.vid||'';
     var payload={
       seats:seatsPayload,sessionId:null,totalFare:total,
       boardingId:selBoarding.id,boardingName:selBoarding.name||'',
@@ -2187,8 +2175,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       DepTime:bus.departureTime,arrivalDate:bus.arrivalTime,
       departureDate:null,Discount:0,CashBack:0,serviceFee:0,STF:0,TDS:0,
       cpnCode:'',agentCode:'',agentType:'',agentMarkUp:0,agentACBalance:0,
-      Sid:bus.sid||(layoutData&&layoutData.Sid)||'',
-      Vid:bus.vid||(layoutData&&layoutData.Vid)||'',
+      Sid:_sid,Vid:_vid,
       TraceId:bus.traceId||(layoutData&&layoutData.TraceID)||'',
       cancelPolicyList:(layoutData&&layoutData.cancelPolicyList)||[]
     };
@@ -2197,26 +2184,9 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
     .then(function(r){return r.json();})
     .then(function(){
       var form=document.createElement('form');
-      form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment?userid=Emt';
-      function addF(n,v){var i=document.createElement('input');i.type='hidden';i.name=n;i.value=(v===null||v===undefined)?'':v;form.appendChild(i);}
-      addF('seats',JSON.stringify(seatsPayload));
-      addF('totalFare',total);
-      addF('source',bus.sourceName||'');addF('destination',bus.destinationName||'');
-      addF('DepTime',bus.departureTime||'');addF('arrivalDate',bus.arrivalTime||'');
-      addF('availableTripId',bus.busId||'');addF('busOperator',bus.operatorName||'');
-      addF('busType',bus.busType||'');addF('routeId',bus.routeId||'');
-      addF('engineId',bus.engineId||0);addF('operator_id',bus.operatorId||'');
-      addF('boardingId',selBoarding.id||'');
-      addF('boardingPoint',JSON.stringify({bdPoint:selBoarding.bdPoint||selBoarding.name,bdLongName:selBoarding.bdLongName||selBoarding.name,bdid:selBoarding.id,bdlocation:selBoarding.bdlocation||'',landmark:selBoarding.landmark||'',time:selBoarding.time||'',contactNumber:selBoarding.contactNumber||null,prime:null,Count:0}));
-      addF('dropId',selDropping.id||'');
-      addF('DropingPoint',JSON.stringify({dpId:selDropping.id,dpName:selDropping.dpName||selDropping.name,locatoin:selDropping.locatoin||null,prime:null,dpTime:selDropping.time||selDropping.dpTime||'',Count:0}));
-      addF('Sid',bus.sid||(layoutData&&layoutData.Sid)||'');
-      addF('Vid',bus.vid||(layoutData&&layoutData.Vid)||'');
-      addF('TraceId',bus.traceId||(layoutData&&layoutData.TraceID)||'');
-      addF('cancelPolicyList',JSON.stringify((layoutData&&layoutData.cancelPolicyList)||[]));
-      addF('Discount',0);addF('CashBack',0);addF('STF',0);addF('TDS',0);
-      addF('serviceFee',0);addF('departureDate','');addF('sessionId','');
-      document.body.appendChild(form);form.submit();
+      form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment';
+      var inp=document.createElement('input');inp.type='hidden';inp.name='userid';inp.value='Emt';
+      form.appendChild(inp);document.body.appendChild(form);form.submit();
     })
     .catch(function(err){
       console.error('ConfirmSeats error:',err);
