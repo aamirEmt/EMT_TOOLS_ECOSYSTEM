@@ -1022,7 +1022,7 @@ BUS_CAROUSEL_TEMPLATE = """
 {{ styles }}
 </style>
 
-<div class="bus-carousel round-trip-selector" data-instance-id="{{ instance_id }}" data-api-base="{{ api_base }}">
+<div class="bus-carousel round-trip-selector" data-instance-id="{{ instance_id }}" data-api-base="{{ api_base }}" data-confirm-seats-url="{{ confirm_seats_url }}">
   <main>
     <div class="rslttp rslt-heading">
       <div class="busctl">
@@ -1196,6 +1196,7 @@ BUS_CAROUSEL_TEMPLATE = """
   var _apiBase=(_c?(_c.getAttribute('data-api-base')||'').replace(/\/$/,''):'');
   var _SEAT_URL=_apiBase+'/api/bus/seat-layout';
   var _CONFIRM_URL=_apiBase+'/api/bus/confirm-seats';
+  var _DIRECT_CONFIRM_URL=(_c?(_c.getAttribute('data-confirm-seats-url')||''):'');
   if(!_apiBase){(function(){var _h=window.location.hostname||'127.0.0.1';[8000,8001,8080,3000,5000].forEach(function(p){var o='http://'+_h+':'+p;var x=new XMLHttpRequest();x.open('GET',o+'/api/bus/ping',true);x.timeout=500;x.onload=function(){if(x.status===200&&!_apiBase){_apiBase=o;_SEAT_URL=o+'/api/bus/seat-layout';_CONFIRM_URL=o+'/api/bus/confirm-seats';}};x.send();});})();}
 
   if(window.__busChatbotModal && window.__openBusSeatModal){
@@ -1514,7 +1515,8 @@ BUS_CAROUSEL_TEMPLATE = """
       cancelPolicyList:(layoutData&&layoutData.cancelPolicyList)||[]
     };
     var bb=document.getElementById('bookNowBtn');bb.disabled=true;bb.textContent='Processing...';
-    fetch(_CONFIRM_URL,{method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','Accept':'application/json, text/plain, */*','x-requested-with':'XMLHttpRequest'},body:JSON.stringify(payload)})
+    var _callUrl=_DIRECT_CONFIRM_URL||_CONFIRM_URL;
+    fetch(_callUrl,{method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','Accept':'application/json, text/plain, */*','x-requested-with':'XMLHttpRequest'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
     .then(function(){
       var form=document.createElement('form');
@@ -2457,6 +2459,7 @@ def render_bus_results(bus_results: Dict[str, Any], api_base: str = _DEFAULT_API
     journey_date_raw = bus_results.get("journey_date", "")
     instance_id = uuid.uuid4().hex[:8]
     template = _jinja_env.from_string(BUS_CAROUSEL_TEMPLATE)
+    from emt_client.config import BUS_CONFIRM_SEATS_URL as _bcs_url
     return template.render(
         styles=BUS_CAROUSEL_STYLES,
         source_city=source_city,
@@ -2474,6 +2477,7 @@ def render_bus_results(bus_results: Dict[str, Any], api_base: str = _DEFAULT_API
         total_bus_count=bus_count,
         instance_id=instance_id,
         api_base=api_base,
+        confirm_seats_url=_bcs_url,
     )
 
 
