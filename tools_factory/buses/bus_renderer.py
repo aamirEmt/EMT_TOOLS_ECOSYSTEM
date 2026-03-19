@@ -1279,13 +1279,13 @@ BUS_CAROUSEL_TEMPLATE = """
         '#seatModalOverlay .legend-box.selected{background:#fff3e0;border-color:#ef6614;}'+
         '#seatModalOverlay .legend-box.booked{background:#eee;border-color:#9e9e9e;}'+
         '#seatModalOverlay .legend-box.ladies{background:#fce4ec;border-color:#e91e63;}'+
-        '#seatModalOverlay .seat-decks{display:flex;gap:8px;flex-wrap:wrap;}'+
-        '#seatModalOverlay .seat-deck{flex:1;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:8px;min-width:120px;}'+
+        '#seatModalOverlay .seat-decks{display:flex;flex-direction:column;gap:10px;}'+
+        '#seatModalOverlay .seat-deck{background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:8px;}'+
         '#seatModalOverlay .deck-title{font-size:10px;font-weight:600;color:#202020;margin-bottom:6px;text-align:center;padding:3px;background:#f0f0f0;border-radius:4px;}'+
         '#seatModalOverlay .seat-grid{display:flex;flex-direction:column;gap:3px;align-items:center;}'+
         '#seatModalOverlay .seat-row{display:flex;gap:2px;}'+
-        '#seatModalOverlay .seat{border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:500;border:1px solid transparent;width:24px;height:24px;}'+
-        '#seatModalOverlay .seat.sleeper{width:48px;}'+
+        '#seatModalOverlay .seat{border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:500;border:1px solid transparent;width:28px;height:28px;}'+
+        '#seatModalOverlay .seat.sleeper{width:56px;}'+
         '#seatModalOverlay .seat.available{background:#e8f5e9;color:#2e7d32;border-color:#4caf50;cursor:pointer;}'+
         '#seatModalOverlay .seat.available:hover{background:#c8e6c9;}'+
         '#seatModalOverlay .seat.selected{background:#fff3e0;color:#e65100;border-color:#ef6614;box-shadow:0 1px 4px rgba(239,102,20,.3);}'+
@@ -1474,7 +1474,7 @@ BUS_CAROUSEL_TEMPLATE = """
   }
   function updateFooter(){
     document.getElementById('selectedSeatsDisplay').textContent=selSeats.length?selSeats.map(function(s){return s.name;}).join(', '):'None';
-    document.getElementById('totalFareDisplay').textContent=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0).toLocaleString('en-IN');
+    document.getElementById('totalFareDisplay').textContent=selSeats.reduce(function(t,s){return t+(parseFloat(s.baseFare)||parseFloat(s.fare)||0);},0).toLocaleString('en-IN');
   }
   function filterByPrice(btn,price){
     document.querySelectorAll('.price-btn').forEach(function(b){b.classList.remove('active');});
@@ -1516,11 +1516,10 @@ BUS_CAROUSEL_TEMPLATE = """
     var bb=document.getElementById('bookNowBtn');bb.disabled=true;bb.textContent='Processing...';
     fetch(_CONFIRM_URL,{method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','Accept':'application/json, text/plain, */*','x-requested-with':'XMLHttpRequest'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
-    .then(function(){
-      var form=document.createElement('form');
-      form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment';
-      var inp=document.createElement('input');inp.type='hidden';inp.name='userid';inp.value='Emt';
-      form.appendChild(inp);document.body.appendChild(form);form.submit();
+    .then(function(cd){
+      var url=cd&&cd.payment_url;
+      if(url){window.location.href=url;}
+      else if(curBus&&curBus.bookingLink){window.open(curBus.bookingLink,'_blank');}
     })
     .catch(function(err){
       console.error('ConfirmSeats error:',err);bb.disabled=false;bb.textContent='Book Now';
@@ -1862,13 +1861,13 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
     .legend-box.selected{background:#fff3e0;border-color:#ef6614;}
     .legend-box.booked{background:#eee;border-color:#9e9e9e;}
     .legend-box.ladies{background:#fce4ec;border-color:#e91e63;}
-    .seat-decks{display:flex;gap:8px;flex-wrap:wrap;}
-    .seat-deck{flex:1;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:8px;min-width:120px;}
+    .seat-decks{display:flex;flex-direction:column;gap:10px;}
+    .seat-deck{background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:8px;}
     .deck-title{font-size:10px;font-weight:600;color:#202020;margin-bottom:6px;text-align:center;padding:3px;background:#f0f0f0;border-radius:4px;}
     .seat-grid{display:flex;flex-direction:column;gap:3px;align-items:center;}
     .seat-row{display:flex;gap:2px;}
-    .seat{border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:500;border:1px solid transparent;width:24px;height:24px;}
-    .seat.sleeper{width:48px;}
+    .seat{border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:500;border:1px solid transparent;width:28px;height:28px;}
+    .seat.sleeper{width:56px;}
     .seat.available{background:#e8f5e9;color:#2e7d32;border-color:#4caf50;cursor:pointer;}
     .seat.available:hover{background:#c8e6c9;}
     .seat.selected{background:#fff3e0;color:#e65100;border-color:#ef6614;box-shadow:0 1px 4px rgba(239,102,20,.3);}
@@ -2134,7 +2133,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
   }
   function updateFooter(){
     document.getElementById('seatsDisplay').textContent=selSeats.length?selSeats.map(function(s){return s.name;}).join(', '):'None';
-    document.getElementById('fareDisplay').textContent=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0).toLocaleString('en-IN');
+    document.getElementById('fareDisplay').textContent=selSeats.reduce(function(t,s){return t+(parseFloat(s.baseFare)||parseFloat(s.fare)||0);},0).toLocaleString('en-IN');
   }
   function filterPrice(btn,price){
     document.querySelectorAll('.price-btn').forEach(function(b){b.classList.remove('active');});
@@ -2176,11 +2175,10 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
     var bb=document.getElementById('bookBtn');bb.disabled=true;bb.textContent='Processing...';
     fetch('/api/bus/confirm-seats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
-    .then(function(){
-      var form=document.createElement('form');
-      form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment';
-      var inp=document.createElement('input');inp.type='hidden';inp.name='userid';inp.value='Emt';
-      form.appendChild(inp);document.body.appendChild(form);form.submit();
+    .then(function(cd){
+      var url=cd&&cd.payment_url;
+      if(url){window.location.href=url;}
+      else if(bus.bookingLink){window.location.href=bus.bookingLink;}
     })
     .catch(function(err){
       console.error('ConfirmSeats error:',err);
