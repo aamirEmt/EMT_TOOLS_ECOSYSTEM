@@ -1519,6 +1519,24 @@ BUS_CAROUSEL_TEMPLATE = """
     .then(function(){
       var form=document.createElement('form');
       form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment?userid=Emt';
+      function addF(n,v){var i=document.createElement('input');i.type='hidden';i.name=n;i.value=(v===null||v===undefined)?'':v;form.appendChild(i);}
+      addF('seats',JSON.stringify(seatsPayload));
+      addF('totalFare',total);
+      addF('source',curBus.sourceName||'');addF('destination',curBus.destinationName||'');
+      addF('DepTime',curBus.departureTime||'');addF('arrivalDate',curBus.arrivalTime||'');
+      addF('availableTripId',curBus.busId||'');addF('busOperator',curBus.operatorName||'');
+      addF('busType',curBus.busType||'');addF('routeId',curBus.routeId||'');
+      addF('engineId',curBus.engineId||0);addF('operator_id',curBus.operatorId||'');
+      addF('boardingId',selBoarding.id||'');
+      addF('boardingPoint',JSON.stringify({bdPoint:selBoarding.bdPoint||selBoarding.name,bdLongName:selBoarding.bdLongName||selBoarding.name,bdid:selBoarding.id,bdlocation:selBoarding.bdlocation||'',landmark:selBoarding.landmark||'',time:selBoarding.time||'',contactNumber:selBoarding.contactNumber||null,prime:null,Count:0}));
+      addF('dropId',selDropping.id||'');
+      addF('DropingPoint',JSON.stringify({dpId:selDropping.id,dpName:selDropping.dpName||selDropping.name,locatoin:selDropping.locatoin||null,prime:null,dpTime:selDropping.time||selDropping.dpTime||'',Count:0}));
+      addF('Sid',curBus.sid||(layoutData&&layoutData.Sid)||'');
+      addF('Vid',curBus.vid||(layoutData&&layoutData.Vid)||'');
+      addF('TraceId',curBus.traceId||(layoutData&&layoutData.TraceID)||'');
+      addF('cancelPolicyList',JSON.stringify((layoutData&&layoutData.cancelPolicyList)||[]));
+      addF('Discount',0);addF('CashBack',0);addF('STF',0);addF('TDS',0);
+      addF('serviceFee',0);addF('departureDate','');addF('sessionId','');
       document.body.appendChild(form);form.submit();
     })
     .catch(function(err){
@@ -2178,6 +2196,24 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
     .then(function(){
       var form=document.createElement('form');
       form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment?userid=Emt';
+      function addF(n,v){var i=document.createElement('input');i.type='hidden';i.name=n;i.value=(v===null||v===undefined)?'':v;form.appendChild(i);}
+      addF('seats',JSON.stringify(seatsPayload));
+      addF('totalFare',total);
+      addF('source',bus.sourceName||'');addF('destination',bus.destinationName||'');
+      addF('DepTime',bus.departureTime||'');addF('arrivalDate',bus.arrivalTime||'');
+      addF('availableTripId',bus.busId||'');addF('busOperator',bus.operatorName||'');
+      addF('busType',bus.busType||'');addF('routeId',bus.routeId||'');
+      addF('engineId',bus.engineId||0);addF('operator_id',bus.operatorId||'');
+      addF('boardingId',selBoarding.id||'');
+      addF('boardingPoint',JSON.stringify({bdPoint:selBoarding.bdPoint||selBoarding.name,bdLongName:selBoarding.bdLongName||selBoarding.name,bdid:selBoarding.id,bdlocation:selBoarding.bdlocation||'',landmark:selBoarding.landmark||'',time:selBoarding.time||'',contactNumber:selBoarding.contactNumber||null,prime:null,Count:0}));
+      addF('dropId',selDropping.id||'');
+      addF('DropingPoint',JSON.stringify({dpId:selDropping.id,dpName:selDropping.dpName||selDropping.name,locatoin:selDropping.locatoin||null,prime:null,dpTime:selDropping.time||selDropping.dpTime||'',Count:0}));
+      addF('Sid',bus.sid||(layoutData&&layoutData.Sid)||'');
+      addF('Vid',bus.vid||(layoutData&&layoutData.Vid)||'');
+      addF('TraceId',bus.traceId||(layoutData&&layoutData.TraceID)||'');
+      addF('cancelPolicyList',JSON.stringify((layoutData&&layoutData.cancelPolicyList)||[]));
+      addF('Discount',0);addF('CashBack',0);addF('STF',0);addF('TDS',0);
+      addF('serviceFee',0);addF('departureDate','');addF('sessionId','');
       document.body.appendChild(form);form.submit();
     })
     .catch(function(err){
