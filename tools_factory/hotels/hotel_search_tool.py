@@ -59,6 +59,7 @@ class HotelSearchTool(BaseTool):
         user_type = kwargs.pop("_user_type", "website")
         render_html = user_type.lower() == "website"
         is_whatsapp = user_type.lower() == "whatsapp"
+        is_chatGPT= user_type.lower() == "chat-gpt"
         
         if limit is None:
             limit = 15
@@ -79,7 +80,7 @@ class HotelSearchTool(BaseTool):
             
         # Execute search through service layer
         try:
-            results: Dict[str, Any] = await self.service.search(search_input)
+            results: Dict[str, Any] = await self.service.search(search_input, use_short_links=not is_chatGPT)
         except Exception as exc:
             return ToolResponseFormat(
                 response_text="Hotel search failed",
@@ -130,16 +131,16 @@ class HotelSearchTool(BaseTool):
         hotel_count = len(paginated_hotels)
 
         # Generate short links for paginated hotels
-        try:
-            if paginated_hotels:
-                limited_results["hotels"] = generate_short_link(
-                    paginated_hotels,
-                    product_type="hotel"
-                )
-        except Exception as e:
-            # DO NOT FAIL hotel search because of short-link issues
-            pass
-
+        if not is_chatGPT:
+            try:
+                if paginated_hotels:
+                    limited_results["hotels"] = generate_short_link(
+                        paginated_hotels,
+                        product_type="hotel"
+                    )
+            except Exception as e:
+                # DO NOT FAIL hotel search because of short-link issues
+                pass
         # Build WhatsApp response if needed
         whatsapp_response = None
         if is_whatsapp and not has_error:

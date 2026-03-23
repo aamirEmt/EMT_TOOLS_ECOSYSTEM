@@ -88,6 +88,7 @@ class FlightSearchTool(BaseTool):
         user_type = kwargs.pop("_user_type", "website")
         render_html = user_type.lower() == "website"
         is_whatsapp = user_type.lower() == "whatsapp"
+        is_chatGPT= user_type.lower() == "chat-gpt"
 
         if limit is None:
             limit = 15
@@ -123,6 +124,7 @@ class FlightSearchTool(BaseTool):
             departure_time_window=payload.departure_time_window,
             arrival_time_window=payload.arrival_time_window,
             airline_names=payload.airline_names,
+            use_short_links=not is_chatGPT,
         )
         has_error = bool(flight_results.get("error")) 
         
@@ -182,24 +184,29 @@ class FlightSearchTool(BaseTool):
         # --------------------------------------------------
         # Generate short links for PAGINATED flights
         # --------------------------------------------------
-        if is_international and paginated_combos:
-            paginated_combos = generate_short_link(
-                paginated_combos,
-                product_type="flight",
-            )
-            paginated_outbound = []
-            paginated_return = []
-        else:
-            paginated_outbound = generate_short_link(
-                paginated_outbound,
-                product_type="flight",
-            ) if paginated_outbound else []
-
-            if is_roundtrip and paginated_return:
-                paginated_return = generate_short_link(
-                    paginated_return,
+        if not is_chatGPT:
+            if is_international and paginated_combos:
+                paginated_combos = generate_short_link(
+                    paginated_combos,
                     product_type="flight",
                 )
+                paginated_outbound = []
+                paginated_return = []
+            else:
+                paginated_outbound = generate_short_link(
+                    paginated_outbound,
+                    product_type="flight",
+                ) if paginated_outbound else []
+
+                if is_roundtrip and paginated_return:
+                    paginated_return = generate_short_link(
+                        paginated_return,
+                        product_type="flight",
+                    )
+        else:
+            if is_international and paginated_combos:
+                paginated_outbound = []
+                paginated_return = []
 
         # --------------------------------------------------
         # Update flight_results with paginated data
@@ -207,6 +214,18 @@ class FlightSearchTool(BaseTool):
         flight_results["outbound_flights"] = paginated_outbound
         flight_results["return_flights"] = paginated_return
         flight_results["international_combos"] = paginated_combos
+
+        # --------------------------------------------------
+        # Strip all deep links for chatGPT
+        # --------------------------------------------------
+        if is_chatGPT:
+            for flight in flight_results.get("outbound_flights", []):
+                flight.pop("deepLink", None)
+            for flight in flight_results.get("return_flights", []):
+                flight.pop("deepLink", None)
+            for combo in flight_results.get("international_combos", []):
+                combo.pop("deepLink", None)
+            flight_results.pop("view_all_link", None)
 
         # Add pagination info
         if is_international and is_roundtrip:
