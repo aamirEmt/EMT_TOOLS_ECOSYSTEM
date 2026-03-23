@@ -1516,8 +1516,10 @@ BUS_CAROUSEL_TEMPLATE = """
       cancelPolicyList:(layoutData&&layoutData.cancelPolicyList)||[]
     };
     var bb=document.getElementById('bookNowBtn');bb.disabled=true;bb.textContent='Processing...';
+    var _fetchOpts={method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','Accept':'application/json, text/plain, */*','x-requested-with':'XMLHttpRequest'},body:JSON.stringify(payload)};
+    if(_DIRECT_CONFIRM_URL)_fetchOpts.credentials='include';
     var _callUrl=_DIRECT_CONFIRM_URL||_CONFIRM_URL;
-    fetch(_callUrl,{method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','Accept':'application/json, text/plain, */*','x-requested-with':'XMLHttpRequest'},body:JSON.stringify(payload)})
+    fetch(_callUrl,_fetchOpts)
     .then(function(r){return r.json();})
     .then(function(){
       var form=document.createElement('form');
@@ -1952,6 +1954,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
 <script>
 (function(){
   var p=new URLSearchParams(window.location.search);
+  var _directConfirmUrl=p.get('confirmSeatsUrl')||'';
   var bus={
     busId:p.get('busId')||'',routeId:p.get('routeId')||'',
     engineId:parseInt(p.get('engineId'))||0,operatorId:p.get('operatorId')||'',
@@ -2178,7 +2181,10 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       cancelPolicyList:(layoutData&&layoutData.cancelPolicyList)||[]
     };
     var bb=document.getElementById('bookBtn');bb.disabled=true;bb.textContent='Processing...';
-    fetch('/api/bus/confirm-seats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    var _callUrl2=_directConfirmUrl||'/api/bus/confirm-seats';
+    var _fetchOpts2={method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','Accept':'application/json, text/plain, */*','x-requested-with':'XMLHttpRequest'},body:JSON.stringify(payload)};
+    if(_directConfirmUrl)_fetchOpts2.credentials='include';
+    fetch(_callUrl2,_fetchOpts2)
     .then(function(r){return r.json();})
     .then(function(){
       var form=document.createElement('form');
