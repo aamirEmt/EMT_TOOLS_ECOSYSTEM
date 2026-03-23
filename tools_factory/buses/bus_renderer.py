@@ -1485,7 +1485,6 @@ BUS_CAROUSEL_TEMPLATE = """
       s.style.opacity=show?'1':'0.3';s.style.pointerEvents=show?'auto':'none';
     });
   }
-  function _getCk(n){var m=document.cookie.match(new RegExp('(?:^|;)\\s*'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):'';}
   function confirmAndRedirect(){
     if(!selSeats.length||!selBoarding||!selDropping){alert('Please complete all selections');return;}
     var seatsPayload=selSeats.map(function(s){
@@ -1495,8 +1494,8 @@ BUS_CAROUSEL_TEMPLATE = """
         convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:s.serviceFee||0};
     });
     var total=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0);
-    var _sid=_getCk('_uetsid')||(layoutData&&layoutData.Sid)||curBus.sid||'';
-    var _vid=_getCk('_uetvid')||_getCk('uservid')||(layoutData&&layoutData.Vid)||curBus.vid||'';
+    var _sid=(layoutData&&layoutData.Sid)||curBus.sid||'';
+    var _vid=(layoutData&&layoutData.Vid)||curBus.vid||'';
     var payload={
       seats:seatsPayload,sessionId:null,totalFare:total,
       boardingId:selBoarding.id,boardingName:selBoarding.name||'',
@@ -2148,7 +2147,6 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       s.style.opacity=show?'1':'0.3';s.style.pointerEvents=show?'auto':'none';
     });
   }
-  function _getCk(n){var m=document.cookie.match(new RegExp('(?:^|;)\\s*'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):'';}
   function doBook(){
     if(!selSeats.length||!selBoarding||!selDropping){alert('Please complete all selections');return;}
     var seatsPayload=selSeats.map(function(s){
@@ -2158,8 +2156,8 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
         convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:s.serviceFee||0};
     });
     var total=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0);
-    var _sid=_getCk('_uetsid')||(layoutData&&layoutData.Sid)||bus.sid||'';
-    var _vid=_getCk('_uetvid')||_getCk('uservid')||(layoutData&&layoutData.Vid)||bus.vid||'';
+    var _sid=(layoutData&&layoutData.Sid)||bus.sid||'';
+    var _vid=(layoutData&&layoutData.Vid)||bus.vid||'';
     var payload={
       seats:seatsPayload,sessionId:null,totalFare:total,
       boardingId:selBoarding.id,boardingName:selBoarding.name||'',
