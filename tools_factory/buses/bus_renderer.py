@@ -1261,7 +1261,7 @@ BUS_CAROUSEL_TEMPLATE = """
       var sEl=document.createElement('style');sEl.id='__busModalCSS';
       sEl.textContent=
         '#seatModalOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:2147483647;display:none;justify-content:center;align-items:center;font-family:poppins,sans-serif;}'+
-        '#seatModalOverlay .seat-modal{background:#fff;border-radius:12px;max-width:420px;width:95%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);font-size:11px;}'+
+        '#seatModalOverlay .seat-modal{background:#fff;border-radius:12px;max-width:520px;width:95%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);font-size:11px;}'+
         '#seatModalOverlay .seat-modal-header{padding:12px 16px;border-bottom:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center;background:#f8f9fa;}'+
         '#seatModalOverlay .seat-modal-title{font-size:14px;font-weight:600;color:#202020;}'+
         '#seatModalOverlay .seat-modal-subtitle{font-size:11px;color:#868686;margin-top:2px;}'+
@@ -1281,9 +1281,9 @@ BUS_CAROUSEL_TEMPLATE = """
         '#seatModalOverlay .legend-box.booked{background:#eee;border-color:#9e9e9e;}'+
         '#seatModalOverlay .legend-box.ladies{background:#fce4ec;border-color:#e91e63;}'+
         '#seatModalOverlay .seat-decks{display:flex;flex-direction:column;gap:10px;}'+
-        '#seatModalOverlay .seat-deck{background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:8px;}'+
+        '#seatModalOverlay .seat-deck{background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:8px;overflow-x:auto;}'+
         '#seatModalOverlay .deck-title{font-size:10px;font-weight:600;color:#202020;margin-bottom:6px;text-align:center;padding:3px;background:#f0f0f0;border-radius:4px;}'+
-        '#seatModalOverlay .seat-grid{display:flex;flex-direction:column;gap:3px;align-items:center;}'+
+        '#seatModalOverlay .seat-grid{display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:max-content;}'+
         '#seatModalOverlay .seat-row{display:flex;gap:2px;}'+
         '#seatModalOverlay .seat{border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:500;border:1px solid transparent;width:28px;height:28px;}'+
         '#seatModalOverlay .seat.sleeper{width:56px;}'+
