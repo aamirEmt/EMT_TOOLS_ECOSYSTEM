@@ -438,14 +438,7 @@ def _process_single_bus(
             if bus_departure_minutes >= to_minutes:
                 return None
 
-    raw_id = bus.get("id", 0) or bus.get("Id", 0)
-    if not raw_id or str(raw_id) == "0":
-        # Some engines (e.g. engineId 12) return id=0.
-        # The actual trip ID is the first segment of routeId (e.g. "3761773976:120334:False" → "3761773976")
-        route_raw = str(bus.get("routeId", "") or bus.get("routeid", ""))
-        bus_id = route_raw.split(":")[0] if ":" in route_raw else str(raw_id or "")
-    else:
-        bus_id = str(raw_id)
+    bus_id = str(bus.get("id", "") or bus.get("Id", "") or "")
     
     book_now = _build_bus_listing_url(
         source_id=source_id,
@@ -585,34 +578,26 @@ async def search_buses(
     resolved_dest_id = destination_id
     resolved_source_name = source_name or ""
     resolved_dest_name = destination_name or ""
-    
-    if source_name and not source_id:
-        source_info = await get_city_info(source_name)
-        if source_info:
-            resolved_source_id = source_info.get("id")
-            resolved_source_name = source_info.get("name", source_name)
-        else:
+
+    if (source_name and not source_id) or (destination_name and not destination_id):
+        city_result = await resolve_city_names_to_ids(
+            source_city=source_name or "",
+            destination_city=destination_name or "",
+        )
+        if city_result.get("error"):
             return {
                 "error": "CITY_NOT_FOUND",
-                "message": f"Could not find source city: {source_name}",
+                "message": city_result["error"],
                 "buses": [],
                 "total_count": 0,
                 "is_bus_available": False,
             }
-    
-    if destination_name and not destination_id:
-        dest_info = await get_city_info(destination_name)
-        if dest_info:
-            resolved_dest_id = dest_info.get("id")
-            resolved_dest_name = dest_info.get("name", destination_name)
-        else:
-            return {
-                "error": "CITY_NOT_FOUND",
-                "message": f"Could not find destination city: {destination_name}",
-                "buses": [],
-                "total_count": 0,
-                "is_bus_available": False,
-            }
+        if source_name and not source_id:
+            resolved_source_id = city_result.get("source_id")
+            resolved_source_name = city_result.get("source_name") or source_name
+        if destination_name and not destination_id:
+            resolved_dest_id = city_result.get("destination_id")
+            resolved_dest_name = city_result.get("destination_name") or destination_name
     
     if not resolved_source_id or not resolved_dest_id:
         return {
