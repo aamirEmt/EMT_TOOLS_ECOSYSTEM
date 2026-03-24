@@ -65,6 +65,19 @@ class BusApiClient:
                 if response.status != 200:
                     raise Exception(f"Autosuggest API returned status {response.status}")
                 return await response.text()
+
+    async def get_city_suggestions_busservice(self, encrypted_payload: dict) -> str:
+        """POST encrypted autosuggest to busservice.easemytrip.com — returns correct city IDs."""
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{self.source_autosuggest_url}?useby=popularu&key={self.autosuggest_key}",
+                json=encrypted_payload,
+                headers={"Content-Type": "application/json"},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as response:
+                if response.status != 200:
+                    raise Exception(f"busservice autosuggest returned status {response.status}")
+                return await response.text()
             
     async def get_source_city_suggestions(self, prefix: str = '') -> List[Dict]:
         url = self.source_autosuggest_url

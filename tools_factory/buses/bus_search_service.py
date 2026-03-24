@@ -89,25 +89,36 @@ async def get_city_suggestions(
         "Prefix": city_prefix,
         "country_code": country_code,
     }
-    
     encrypted_request = encrypt_v1(json.dumps(json_string))
-    
     api_payload = {
         "request": encrypted_request,
         "isIOS": False,
         "ip": "49.249.40.58",
         "encryptedHeader": BUS_ENCRYPTED_HEADER,
     }
-    
+
+    client = BusApiClient()
+
+    # Try busservice.easemytrip.com first — returns correct IDs (1622 for Jammu etc.)
     try:
-        client = BusApiClient()
-        encrypted_response = await client.get_city_suggestions(api_payload)
-        
+        encrypted_response = await client.get_city_suggestions_busservice(api_payload)
         decrypted_response = decrypt_v1(encrypted_response)
         data = json.loads(decrypted_response)
-        
+        results = data.get("list", [])
+        if results:
+            import logging as _l
+            _l.getLogger(__name__).info(f"[city-suggest] busservice URL returned {len(results)} results for {city_prefix!r}. First: {results[0]}")
+            return results
+    except Exception as e:
+        import logging as _l
+        _l.getLogger(__name__).info(f"[city-suggest] busservice URL failed for {city_prefix!r}: {e}")
+
+    # Fall back to old autosuggest.easemytrip.com
+    try:
+        encrypted_response = await client.get_city_suggestions(api_payload)
+        decrypted_response = decrypt_v1(encrypted_response)
+        data = json.loads(decrypted_response)
         return data.get("list", [])
-                
     except Exception as e:
         print(f"Error fetching city suggestions: {e}")
         return []
@@ -129,34 +140,10 @@ async def get_city_id(city_name: str, country_code: str = "IN") -> Optional[str]
 
 
 async def get_city_info(city_name: str, country_code: str = "IN") -> Optional[Dict[str, Any]]:
-    city_lower = city_name.lower().strip()
-
-    # Try the busservice GET endpoint first — returns correct IDs (e.g. 1622 for Jammu)
-    try:
-        client = BusApiClient()
-        busservice_results = await client.get_source_city_suggestions(city_name)
-        import logging as _logging
-        _logging.getLogger(__name__).info(f"[city-resolve] GET endpoint for {city_name!r} returned {len(busservice_results) if busservice_results else 0} results. First item: {busservice_results[0] if busservice_results else None}")
-        if busservice_results:
-            for r in busservice_results:
-                # API may use name/cityName/CityName etc.
-                name_val = (r.get("name") or r.get("cityName") or r.get("CityName") or "")
-                id_val   = r.get("id") or r.get("cityId") or r.get("CityId")
-                if name_val.lower().strip() == city_lower and id_val:
-                    return {"id": id_val, "name": name_val}
-            for r in busservice_results:
-                name_val = (r.get("name") or r.get("cityName") or r.get("CityName") or "")
-                id_val   = r.get("id") or r.get("cityId") or r.get("CityId")
-                if name_val.lower().strip().startswith(city_lower) and id_val:
-                    return {"id": id_val, "name": name_val}
-    except Exception as _e:
-        import logging as _logging
-        _logging.getLogger(__name__).info(f"[city-resolve] GET endpoint failed for {city_name!r}: {_e}")
-
-    # Fall back to encrypted autosuggest
     suggestions = await get_city_suggestions(city_name, country_code)
     if not suggestions:
         return None
+    city_lower = city_name.lower().strip()
     for suggestion in suggestions:
         if suggestion.get("name", "").lower().strip() == city_lower:
             return suggestion
