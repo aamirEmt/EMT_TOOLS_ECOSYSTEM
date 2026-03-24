@@ -129,17 +129,34 @@ async def get_city_id(city_name: str, country_code: str = "IN") -> Optional[str]
 
 
 async def get_city_info(city_name: str, country_code: str = "IN") -> Optional[Dict[str, Any]]:
+    city_lower = city_name.lower().strip()
 
+    # Try the busservice GET endpoint first — returns correct IDs (e.g. 1622 for Jammu)
+    try:
+        client = BusApiClient()
+        busservice_results = await client.get_source_city_suggestions(city_name)
+        if busservice_results:
+            for r in busservice_results:
+                # API may use name/cityName/CityName etc.
+                name_val = (r.get("name") or r.get("cityName") or r.get("CityName") or "")
+                id_val   = r.get("id") or r.get("cityId") or r.get("CityId")
+                if name_val.lower().strip() == city_lower and id_val:
+                    return {"id": id_val, "name": name_val}
+            for r in busservice_results:
+                name_val = (r.get("name") or r.get("cityName") or r.get("CityName") or "")
+                id_val   = r.get("id") or r.get("cityId") or r.get("CityId")
+                if name_val.lower().strip().startswith(city_lower) and id_val:
+                    return {"id": id_val, "name": name_val}
+    except Exception:
+        pass
+
+    # Fall back to encrypted autosuggest
     suggestions = await get_city_suggestions(city_name, country_code)
-    
     if not suggestions:
         return None
-    
-    city_name_lower = city_name.lower().strip()
     for suggestion in suggestions:
-        if suggestion.get("name", "").lower().strip() == city_name_lower:
+        if suggestion.get("name", "").lower().strip() == city_lower:
             return suggestion
-    
     return suggestions[0] if suggestions else None
 
 
@@ -579,25 +596,33 @@ async def search_buses(
     resolved_source_name = source_name or ""
     resolved_dest_name = destination_name or ""
 
-    if (source_name and not source_id) or (destination_name and not destination_id):
-        city_result = await resolve_city_names_to_ids(
-            source_city=source_name or "",
-            destination_city=destination_name or "",
-        )
-        if city_result.get("error"):
+    if source_name and not source_id:
+        source_info = await get_city_info(source_name)
+        if source_info:
+            resolved_source_id = source_info.get("id")
+            resolved_source_name = source_info.get("name", source_name)
+        else:
             return {
                 "error": "CITY_NOT_FOUND",
-                "message": city_result["error"],
+                "message": f"Could not find source city: {source_name}",
                 "buses": [],
                 "total_count": 0,
                 "is_bus_available": False,
             }
-        if source_name and not source_id:
-            resolved_source_id = city_result.get("source_id")
-            resolved_source_name = city_result.get("source_name") or source_name
-        if destination_name and not destination_id:
-            resolved_dest_id = city_result.get("destination_id")
-            resolved_dest_name = city_result.get("destination_name") or destination_name
+
+    if destination_name and not destination_id:
+        dest_info = await get_city_info(destination_name)
+        if dest_info:
+            resolved_dest_id = dest_info.get("id")
+            resolved_dest_name = dest_info.get("name", destination_name)
+        else:
+            return {
+                "error": "CITY_NOT_FOUND",
+                "message": f"Could not find destination city: {destination_name}",
+                "buses": [],
+                "total_count": 0,
+                "is_bus_available": False,
+            }
     
     if not resolved_source_id or not resolved_dest_id:
         return {
