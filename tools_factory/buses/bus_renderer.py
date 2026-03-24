@@ -1533,19 +1533,34 @@ BUS_CAROUSEL_TEMPLATE = """
       _addField('source',payload.source);
       _addField('destination',payload.destination);
       _addField('busOperator',payload.busOperator);
+      _addField('operatorName',payload.busOperator);
       _addField('busType',payload.busType);
       _addField('DepTime',payload.DepTime);
+      _addField('departureTime',payload.DepTime);
+      _addField('DepartureTime',payload.DepTime);
       _addField('arrivalDate',payload.arrivalDate);
+      _addField('arrivalTime',payload.arrivalDate);
+      _addField('ArrivalTime',payload.arrivalDate);
       _addField('seats',payload.seats);
+      _addField('SeatDetail',payload.seats);
+      _addField('seatDetails',payload.seats);
+      _addField('noOfPassenger',payload.seats.length);
+      _addField('paxCount',payload.seats.length);
       _addField('boardingId',payload.boardingId);
       _addField('boardingName',payload.boardingName);
       _addField('boardingPoint',payload.boardingPoint);
+      _addField('boardingTime',payload.boardingPoint.time||'');
+      _addField('boardingAddress',payload.boardingPoint.bdLongName||payload.boardingPoint.bdPoint||'');
       _addField('dropId',payload.dropId);
       _addField('DropingPoint',payload.DropingPoint);
+      _addField('droppingTime',payload.DropingPoint.dpTime||'');
+      _addField('droppingAddress',payload.DropingPoint.dpName||'');
       _addField('Sid',payload.Sid);
       _addField('Vid',payload.Vid);
       _addField('TraceId',payload.TraceId);
       _addField('totalFare',payload.totalFare);
+      _addField('onwardFare',payload.totalFare);
+      _addField('baseFare',payload.totalFare);
       _addField('Discount',payload.Discount);
       _addField('CashBack',payload.CashBack);
       _addField('serviceFee',payload.serviceFee);
@@ -2225,19 +2240,34 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       _addField('source',payload.source);
       _addField('destination',payload.destination);
       _addField('busOperator',payload.busOperator);
+      _addField('operatorName',payload.busOperator);
       _addField('busType',payload.busType);
       _addField('DepTime',payload.DepTime);
+      _addField('departureTime',payload.DepTime);
+      _addField('DepartureTime',payload.DepTime);
       _addField('arrivalDate',payload.arrivalDate);
+      _addField('arrivalTime',payload.arrivalDate);
+      _addField('ArrivalTime',payload.arrivalDate);
       _addField('seats',payload.seats);
+      _addField('SeatDetail',payload.seats);
+      _addField('seatDetails',payload.seats);
+      _addField('noOfPassenger',payload.seats.length);
+      _addField('paxCount',payload.seats.length);
       _addField('boardingId',payload.boardingId);
       _addField('boardingName',payload.boardingName);
       _addField('boardingPoint',payload.boardingPoint);
+      _addField('boardingTime',payload.boardingPoint.time||'');
+      _addField('boardingAddress',payload.boardingPoint.bdLongName||payload.boardingPoint.bdPoint||'');
       _addField('dropId',payload.dropId);
       _addField('DropingPoint',payload.DropingPoint);
+      _addField('droppingTime',payload.DropingPoint.dpTime||'');
+      _addField('droppingAddress',payload.DropingPoint.dpName||'');
       _addField('Sid',payload.Sid);
       _addField('Vid',payload.Vid);
       _addField('TraceId',payload.TraceId);
       _addField('totalFare',payload.totalFare);
+      _addField('onwardFare',payload.totalFare);
+      _addField('baseFare',payload.totalFare);
       _addField('Discount',payload.Discount);
       _addField('CashBack',payload.CashBack);
       _addField('serviceFee',payload.serviceFee);
@@ -2459,7 +2489,8 @@ def _normalize_bus_for_ui(bus: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "m_ticket": m_ticket,
         "is_cancellable": is_cancellable,
         "booking_link": booking_link,
-
+        "source_id": bus.get("source_id") or "",
+        "destination_id": bus.get("destination_id") or "",
     }
 
 
