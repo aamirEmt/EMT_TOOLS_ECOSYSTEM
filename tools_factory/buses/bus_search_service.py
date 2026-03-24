@@ -504,6 +504,8 @@ def _process_single_bus(
         amenities=amenities,
         cancellation_policy=cancellation_policy,
         book_now=book_now,
+        source_id=str(bus.get("_SourceId") or bus.get("srcorderID") or source_id),
+        destination_id=str(bus.get("_DestinationId") or bus.get("dstorderID") or destination_id),
     )
 
 

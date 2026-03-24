@@ -1155,8 +1155,8 @@ BUS_CAROUSEL_TEMPLATE = """
                     data-is-seater="{{ bus.is_seater | lower }}"
                     data-is-sleeper="{{ bus.is_sleeper | lower }}"
                     data-booking-link="{{ bus.booking_link }}"
-                    data-source-id="{{ source_id }}"
-                    data-destination-id="{{ destination_id }}"
+                    data-source-id="{{ bus.source_id if bus.source_id else source_id }}"
+                    data-destination-id="{{ bus.destination_id if bus.destination_id else destination_id }}"
                     data-source-name="{{ source_city }}"
                     data-destination-name="{{ destination_city }}"
                     data-journey-date="{{ journey_date_raw }}">
@@ -1520,11 +1520,41 @@ BUS_CAROUSEL_TEMPLATE = """
     var _callUrl=_DIRECT_CONFIRM_URL||_CONFIRM_URL;
     fetch(_callUrl,{method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','Accept':'application/json, text/plain, */*','x-requested-with':'XMLHttpRequest'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
-    .then(function(){
+    .then(function(confirmResp){
       var form=document.createElement('form');
-      form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment';
-      var inp=document.createElement('input');inp.type='hidden';inp.name='userid';inp.value='Emt';
-      form.appendChild(inp);document.body.appendChild(form);form.submit();
+      form.method='POST';
+      form.action='https://bus.easemytrip.com/Home/BusPayment?userid=Emt';
+      form.target='_blank';
+      function _addField(n,v){var i=document.createElement('input');i.type='hidden';i.name=n;i.value=(v===null||v===undefined)?'':(typeof v==='object'?JSON.stringify(v):String(v));form.appendChild(i);}
+      _addField('availableTripId',payload.availableTripId);
+      _addField('engineId',payload.engineId);
+      _addField('routeId',payload.routeId);
+      _addField('operator_id',payload.operator_id);
+      _addField('source',payload.source);
+      _addField('destination',payload.destination);
+      _addField('busOperator',payload.busOperator);
+      _addField('busType',payload.busType);
+      _addField('DepTime',payload.DepTime);
+      _addField('arrivalDate',payload.arrivalDate);
+      _addField('seats',payload.seats);
+      _addField('boardingId',payload.boardingId);
+      _addField('boardingName',payload.boardingName);
+      _addField('boardingPoint',payload.boardingPoint);
+      _addField('dropId',payload.dropId);
+      _addField('DropingPoint',payload.DropingPoint);
+      _addField('Sid',payload.Sid);
+      _addField('Vid',payload.Vid);
+      _addField('TraceId',payload.TraceId);
+      _addField('totalFare',payload.totalFare);
+      _addField('Discount',payload.Discount);
+      _addField('CashBack',payload.CashBack);
+      _addField('serviceFee',payload.serviceFee);
+      _addField('STF',payload.STF);
+      _addField('TDS',payload.TDS);
+      _addField('cpnCode',payload.cpnCode);
+      _addField('cancelPolicyList',payload.cancelPolicyList);
+      if(confirmResp){_addField('confirmResponse',confirmResp);}
+      document.body.appendChild(form);form.submit();document.body.removeChild(form);
     })
     .catch(function(err){
       console.error('ConfirmSeats error:',err);bb.disabled=false;bb.textContent='Book Now';
@@ -2182,11 +2212,41 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
     var bb=document.getElementById('bookBtn');bb.disabled=true;bb.textContent='Processing...';
     fetch('/api/bus/confirm-seats',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
-    .then(function(){
+    .then(function(confirmResp){
       var form=document.createElement('form');
-      form.method='POST';form.action='https://bus.easemytrip.com/Home/BusPayment';
-      var inp=document.createElement('input');inp.type='hidden';inp.name='userid';inp.value='Emt';
-      form.appendChild(inp);document.body.appendChild(form);form.submit();
+      form.method='POST';
+      form.action='https://bus.easemytrip.com/Home/BusPayment?userid=Emt';
+      form.target='_blank';
+      function _addField(n,v){var i=document.createElement('input');i.type='hidden';i.name=n;i.value=(v===null||v===undefined)?'':(typeof v==='object'?JSON.stringify(v):String(v));form.appendChild(i);}
+      _addField('availableTripId',payload.availableTripId);
+      _addField('engineId',payload.engineId);
+      _addField('routeId',payload.routeId);
+      _addField('operator_id',payload.operator_id);
+      _addField('source',payload.source);
+      _addField('destination',payload.destination);
+      _addField('busOperator',payload.busOperator);
+      _addField('busType',payload.busType);
+      _addField('DepTime',payload.DepTime);
+      _addField('arrivalDate',payload.arrivalDate);
+      _addField('seats',payload.seats);
+      _addField('boardingId',payload.boardingId);
+      _addField('boardingName',payload.boardingName);
+      _addField('boardingPoint',payload.boardingPoint);
+      _addField('dropId',payload.dropId);
+      _addField('DropingPoint',payload.DropingPoint);
+      _addField('Sid',payload.Sid);
+      _addField('Vid',payload.Vid);
+      _addField('TraceId',payload.TraceId);
+      _addField('totalFare',payload.totalFare);
+      _addField('Discount',payload.Discount);
+      _addField('CashBack',payload.CashBack);
+      _addField('serviceFee',payload.serviceFee);
+      _addField('STF',payload.STF);
+      _addField('TDS',payload.TDS);
+      _addField('cpnCode',payload.cpnCode);
+      _addField('cancelPolicyList',payload.cancelPolicyList);
+      if(confirmResp){_addField('confirmResponse',confirmResp);}
+      document.body.appendChild(form);form.submit();document.body.removeChild(form);
     })
     .catch(function(err){
       console.error('ConfirmSeats error:',err);

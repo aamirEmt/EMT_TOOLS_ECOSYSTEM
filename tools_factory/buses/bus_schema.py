@@ -172,6 +172,8 @@ class BusInfo(BaseModel):
     amenities: List[str]
     cancellation_policy: List[CancellationPolicy]
     book_now: Optional[str] = None
+    source_id: str = ""
+    destination_id: str = ""
 
 
 class WhatsappBusFormat(BaseModel):
