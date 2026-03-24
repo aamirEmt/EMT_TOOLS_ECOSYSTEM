@@ -438,7 +438,11 @@ def _process_single_bus(
             if bus_departure_minutes >= to_minutes:
                 return None
 
-    bus_id = str(bus.get("id", ""))
+    raw_id = bus.get("id", 0)
+    if not raw_id or str(raw_id) == "0":
+        import logging as _log
+        _log.getLogger(__name__).info(f"[bus-id-debug] id=0 bus keys={list(bus.keys())} routeId={bus.get('routeId') or bus.get('routeid')} travels={bus.get('Travels')}")
+    bus_id = str(raw_id)
     
     book_now = _build_bus_listing_url(
         source_id=source_id,
