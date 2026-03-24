@@ -135,6 +135,8 @@ async def get_city_info(city_name: str, country_code: str = "IN") -> Optional[Di
     try:
         client = BusApiClient()
         busservice_results = await client.get_source_city_suggestions(city_name)
+        import logging as _logging
+        _logging.getLogger(__name__).info(f"[city-resolve] GET endpoint for {city_name!r} returned {len(busservice_results) if busservice_results else 0} results. First item: {busservice_results[0] if busservice_results else None}")
         if busservice_results:
             for r in busservice_results:
                 # API may use name/cityName/CityName etc.
@@ -147,8 +149,9 @@ async def get_city_info(city_name: str, country_code: str = "IN") -> Optional[Di
                 id_val   = r.get("id") or r.get("cityId") or r.get("CityId")
                 if name_val.lower().strip().startswith(city_lower) and id_val:
                     return {"id": id_val, "name": name_val}
-    except Exception:
-        pass
+    except Exception as _e:
+        import logging as _logging
+        _logging.getLogger(__name__).info(f"[city-resolve] GET endpoint failed for {city_name!r}: {_e}")
 
     # Fall back to encrypted autosuggest
     suggestions = await get_city_suggestions(city_name, country_code)
@@ -455,7 +458,10 @@ def _process_single_bus(
             if bus_departure_minutes >= to_minutes:
                 return None
 
-    bus_id = str(bus.get("id", "") or bus.get("Id", "") or "")
+    _raw_id = bus.get("id")
+    if _raw_id is None:
+        _raw_id = bus.get("Id", "")
+    bus_id = str(_raw_id)
     
     book_now = _build_bus_listing_url(
         source_id=source_id,
@@ -624,6 +630,9 @@ async def search_buses(
                 "is_bus_available": False,
             }
     
+    import logging as _logging
+    _logging.getLogger(__name__).info(f"[city-ids] source={source_name!r}→{resolved_source_id!r}  dest={destination_name!r}→{resolved_dest_id!r}")
+
     if not resolved_source_id or not resolved_dest_id:
         return {
             "error": "MISSING_PARAMS",
