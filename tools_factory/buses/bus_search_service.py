@@ -143,6 +143,18 @@ async def get_city_info(city_name: str, country_code: str = "IN") -> Optional[Di
     return suggestions[0] if suggestions else None
 
 
+def _find_city_in_list(city_name: str, suggestions: list) -> Optional[Dict[str, Any]]:
+    city_lower = city_name.lower().strip()
+    for s in suggestions:
+        if s.get("name", "").lower().strip() == city_lower:
+            return s
+    # partial prefix match fallback
+    for s in suggestions:
+        if s.get("name", "").lower().strip().startswith(city_lower):
+            return s
+    return suggestions[0] if suggestions else None
+
+
 async def resolve_city_names_to_ids(
     source_city: str,
     destination_city: str,
@@ -156,31 +168,57 @@ async def resolve_city_names_to_ids(
         "destination_name": None,
         "error": None,
     }
-    
+
+    client = BusApiClient()
+
+    # --- Resolve source ---
     if source_city.isdigit():
         result["source_id"] = source_city
-        result["source_name"] = source_city  
+        result["source_name"] = source_city
     else:
-        source_info = await get_city_info(source_city, country_code)
+        source_info = None
+        try:
+            busservice_results = await client.get_source_city_suggestions(source_city)
+            if busservice_results:
+                source_info = _find_city_in_list(source_city, busservice_results)
+        except Exception:
+            pass
+
+        if not source_info:
+            source_info = await get_city_info(source_city, country_code)
+
         if source_info:
-            result["source_id"] = source_info.get("id")
+            result["source_id"] = str(source_info.get("id", ""))
             result["source_name"] = source_info.get("name")
         else:
             result["error"] = f"Could not find city: {source_city}"
             return result
-    
+
+    # --- Resolve destination ---
     if destination_city.isdigit():
         result["destination_id"] = destination_city
-        result["destination_name"] = destination_city  
+        result["destination_name"] = destination_city
     else:
-        dest_info = await get_city_info(destination_city, country_code)
+        dest_info = None
+        try:
+            busservice_dest_results = await client.get_dest_city_suggestions(
+                result["source_id"], destination_city
+            )
+            if busservice_dest_results:
+                dest_info = _find_city_in_list(destination_city, busservice_dest_results)
+        except Exception:
+            pass
+
+        if not dest_info:
+            dest_info = await get_city_info(destination_city, country_code)
+
         if dest_info:
-            result["destination_id"] = dest_info.get("id")
+            result["destination_id"] = str(dest_info.get("id", ""))
             result["destination_name"] = dest_info.get("name")
         else:
             result["error"] = f"Could not find city: {destination_city}"
             return result
-    
+
     return result
 
 

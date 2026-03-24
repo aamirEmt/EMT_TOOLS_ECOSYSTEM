@@ -492,6 +492,20 @@ BUS_SECRET_KEY = _get_config_value(
     default='rk-e34e1825-eae4-488b-a947-cba66987cd1b-service-emt'
 )
 
+# Bus Source AutoSuggest API (returns correct city IDs used by search)
+BUS_SOURCE_AUTOSUGGEST_URL = _get_config_value(
+    'BUS_SOURCE_AUTOSUGGEST_URL',
+    'BUS_SOURCE_AUTOSUGGEST_URL',
+    default='https://busservice.easemytrip.com/v1/api/search/sourceAutoSuggest'
+)
+
+# Bus Destination AutoSuggest API (requires sourceId, returns matching destination city IDs)
+BUS_DEST_AUTOSUGGEST_URL = _get_config_value(
+    'BUS_DEST_AUTOSUGGEST_URL',
+    'BUS_DEST_AUTOSUGGEST_URL',
+    default='https://busservice.easemytrip.com/v1/api/search/destinationAutoSuggest'
+)
+
 # Bus Confirm Seats API endpoint
 BUS_CONFIRM_SEATS_URL = _get_config_value(
     'BUS_CONFIRM_SEATS_URL',
@@ -540,6 +554,8 @@ __all__ = [
     "BUS_DEEPLINK_BASE",
     "BUS_AUTOSUGGEST_URL",
     "BUS_AUTOSUGGEST_KEY",
+    "BUS_SOURCE_AUTOSUGGEST_URL",
+    "BUS_DEST_AUTOSUGGEST_URL",
     "BUS_CONFIRM_SEATS_URL",
     "BUS_PAYMENT_URL",
     "BUS_ENCRYPTED_HEADER",
