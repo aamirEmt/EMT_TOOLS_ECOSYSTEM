@@ -1373,11 +1373,12 @@ BUS_CAROUSEL_TEMPLATE = """
     .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(function(data){
       layoutData=data;layoutData.Sid=busData.sid;layoutData.Vid=busData.vid;layoutData.TraceID=busData.traceId;
-      if(data.error||(!data.Lower&&!data.Upper)){showFallback(data.error||'Seat layout not available');return;}
+      if(data.error||(!_deckHasSeats(data.Lower)&&!_deckHasSeats(data.Upper))){showFallback(data.error||'Seat layout not available');return;}
       renderSeats(data);renderBP(data.listBoardingPoint||[]);renderDP(data.listDropPoint||[]);
     })
     .catch(function(err){console.error('SeatLayout error:',err,'url:',_SEAT_URL);showFallback('Unable to load seat layout');});
   }
+  function _deckHasSeats(deck){if(!deck||typeof deck!=='object')return false;var k=Object.keys(deck);for(var i=0;i<k.length;i++){var col=deck[k[i]];if(!Array.isArray(col))continue;for(var j=0;j<col.length;j++){var s=col[j];if(s&&s.seatType&&s.seatType!=='noseat'&&s.name)return true;}}return false;}
   function showFallback(msg){
     document.getElementById('seatLayoutContainer').innerHTML=
       '<div style="text-align:center;padding:30px 15px;">'+
@@ -1395,8 +1396,8 @@ BUS_CAROUSEL_TEMPLATE = """
       html+='</div>';
     }
     html+='<div class="seat-decks">';
-    if(data.LowerShow&&data.Lower)html+='<div class="seat-deck"><div class="deck-title">Lower Deck</div><div class="seat-grid">'+renderDeck(data.Lower)+'</div></div>';
-    if(data.UpperShow&&data.Upper)html+='<div class="seat-deck"><div class="deck-title">Upper Deck</div><div class="seat-grid">'+renderDeck(data.Upper)+'</div></div>';
+    if((data.LowerShow||_deckHasSeats(data.Lower))&&data.Lower)html+='<div class="seat-deck"><div class="deck-title">Lower Deck</div><div class="seat-grid">'+renderDeck(data.Lower)+'</div></div>';
+    if((data.UpperShow||_deckHasSeats(data.Upper))&&data.Upper)html+='<div class="seat-deck"><div class="deck-title">Upper Deck</div><div class="seat-grid">'+renderDeck(data.Upper)+'</div></div>';
     html+='</div>';
     document.getElementById('seatLayoutContainer').innerHTML=html;
     document.getElementById('seatLayoutContainer').className='';
@@ -2027,7 +2028,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
     .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(function(data){
       layoutData=data;layoutData.Sid=bus.sid;layoutData.Vid=bus.vid;layoutData.TraceID=bus.traceId;
-      if(data.error||(!data.Lower&&!data.Upper)){showFallback(data.error||'Seat layout not available');return;}
+      if(data.error||(!_deckHasSeats(data.Lower)&&!_deckHasSeats(data.Upper))){showFallback(data.error||'Seat layout not available');return;}
       renderSeats(data);
       renderBP(data.listBoardingPoint||[]);
       renderDP(data.listDropPoint||[]);
@@ -2035,6 +2036,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
     .catch(function(err){console.error(err);showFallback('Unable to load seat layout');});
   })();
 
+  function _deckHasSeats(deck){if(!deck||typeof deck!=='object')return false;var k=Object.keys(deck);for(var i=0;i<k.length;i++){var col=deck[k[i]];if(!Array.isArray(col))continue;for(var j=0;j<col.length;j++){var s=col[j];if(s&&s.seatType&&s.seatType!=='noseat'&&s.name)return true;}}return false;}
   function showFallback(msg){
     document.getElementById('seatLayoutContainer').innerHTML=
       '<div class="fallback-box"><p>'+msg+'</p>'+
@@ -2051,8 +2053,8 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       html+='</div>';
     }
     html+='<div class="seat-decks">';
-    if(data.LowerShow&&data.Lower)html+='<div class="seat-deck"><div class="deck-title">Lower Deck</div><div class="seat-grid">'+renderDeck(data.Lower)+'</div></div>';
-    if(data.UpperShow&&data.Upper)html+='<div class="seat-deck"><div class="deck-title">Upper Deck</div><div class="seat-grid">'+renderDeck(data.Upper)+'</div></div>';
+    if((data.LowerShow||_deckHasSeats(data.Lower))&&data.Lower)html+='<div class="seat-deck"><div class="deck-title">Lower Deck</div><div class="seat-grid">'+renderDeck(data.Lower)+'</div></div>';
+    if((data.UpperShow||_deckHasSeats(data.Upper))&&data.Upper)html+='<div class="seat-deck"><div class="deck-title">Upper Deck</div><div class="seat-grid">'+renderDeck(data.Upper)+'</div></div>';
     html+='</div>';
     document.getElementById('seatLayoutContainer').innerHTML=html;
     document.getElementById('seatLayoutContainer').className='';
