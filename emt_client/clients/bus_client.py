@@ -116,6 +116,7 @@ class BusApiClient:
             "Accept": "application/json, text/plain, */*",
             "x-requested-with": "XMLHttpRequest",
             "access-control-allow-origin": "true",
+            "x-client-secret-key": self.secret_key,
         }
         
         try:
