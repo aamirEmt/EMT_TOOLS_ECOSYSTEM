@@ -1281,14 +1281,14 @@ BUS_CAROUSEL_TEMPLATE = """
         '#seatModalOverlay .legend-box.booked{background:#e0e0e0;border-color:#bdbdbd;}'+
         '#seatModalOverlay .legend-box.ladies{background:#fce4ec;border-color:#e91e63;}'+
         '#seatModalOverlay .seat-decks{display:flex;flex-direction:row;align-items:flex-start;gap:16px;flex-wrap:wrap;}'+
-        '#seatModalOverlay .seat-deck{background:#fff;border:1.5px solid #e3e8f0;border-radius:10px;padding:10px 12px;overflow-x:auto;flex:1;min-width:190px;}'+
-        '#seatModalOverlay .deck-title{font-size:11px;font-weight:700;color:#1565c0;margin-bottom:10px;text-align:center;padding:5px 8px;background:linear-gradient(90deg,#e3f2fd,#f0f4ff);border-radius:6px;letter-spacing:.5px;border:1px solid #bbdefb;}'+
-        '#seatModalOverlay .seat-grid{display:flex;flex-direction:column;gap:4px;align-items:flex-start;min-width:max-content;}'+
-        '#seatModalOverlay .seat-row{display:flex;gap:4px;}'+
-        '#seatModalOverlay .seat{border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:600;border:1.5px solid transparent;width:46px;height:46px;gap:1px;transition:all .15s;}'+
-        '#seatModalOverlay .seat.sleeper{height:86px;}'+
-        '#seatModalOverlay .seat-lbl{font-size:10px;font-weight:700;line-height:1.2;}'+
-        '#seatModalOverlay .seat-prc{font-size:8px;font-weight:500;line-height:1.2;opacity:.85;}'+
+        '#seatModalOverlay .seat-deck{background:#fff;border:1.5px solid #e3e8f0;border-radius:10px;padding:8px 10px;overflow-x:auto;flex:1;min-width:160px;}'+
+        '#seatModalOverlay .deck-title{font-size:10px;font-weight:700;color:#1565c0;margin-bottom:8px;text-align:center;padding:4px 6px;background:linear-gradient(90deg,#e3f2fd,#f0f4ff);border-radius:6px;letter-spacing:.5px;border:1px solid #bbdefb;}'+
+        '#seatModalOverlay .seat-grid{display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:max-content;}'+
+        '#seatModalOverlay .seat-row{display:flex;gap:3px;}'+
+        '#seatModalOverlay .seat{border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:600;border:1.5px solid transparent;width:38px;height:38px;gap:0px;transition:all .15s;}'+
+        '#seatModalOverlay .seat.sleeper{height:70px;}'+
+        '#seatModalOverlay .seat-lbl{font-size:9px;font-weight:700;line-height:1.1;}'+
+        '#seatModalOverlay .seat-prc{font-size:7px;font-weight:500;line-height:1.1;opacity:.85;}'+
         '#seatModalOverlay .seat.available{background:#fff;color:#2e7d32;border-color:#4caf50;cursor:pointer;}'+
         '#seatModalOverlay .seat.available:hover{background:#e8f5e9;border-color:#2e7d32;transform:scale(1.05);}'+
         '#seatModalOverlay .seat.selected{background:#e8f5e9;color:#1b5e20;border-color:#2e7d32;box-shadow:0 2px 6px rgba(46,125,50,.25);}'+
