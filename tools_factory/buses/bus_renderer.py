@@ -1592,8 +1592,8 @@ BUS_CAROUSEL_TEMPLATE = """
       _addField('rconcession',0);
       _addField('childCon',0);
       _addField('trvVid',payload.Vid);
-      _addField('trvBoardingDate',(confirmResp&&(confirmResp.BordingDate||confirmResp.bordingDate))||'');
-      _addField('trvDroppingDate',(confirmResp&&(confirmResp.DroppingDate||confirmResp.droppingDate))||'');
+      _addField('trvBoardingDate',(confirmResp&&(confirmResp.BordingDate||confirmResp.bordingDate))||payload.boardingPoint.time||'');
+      _addField('trvDroppingDate',(confirmResp&&(confirmResp.DroppingDate||confirmResp.droppingDate))||payload.DropingPoint.dpTime||'');
       _addField('trvAgentMarkUp',0);
       _addField('trvAgentType','');
       _addField('trvAgentCode','');
@@ -1627,7 +1627,7 @@ BUS_CAROUSEL_TEMPLATE = """
       _addField('journeyDate',curBus.journeyDate||'');
       _addField('sourceId',curBus.sourceId||'');
       _addField('destinationId',curBus.destinationId||'');
-      if(confirmResp){_addField('confirmResponse',confirmResp);}
+      _addField('confirmResponse',confirmResp||{});
       if(window._busAccum){_addField('busBookingAccum',window._busAccum);}
       document.body.appendChild(form);form.submit();document.body.removeChild(form);
     })
@@ -2348,8 +2348,8 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       _addField('rconcession',0);
       _addField('childCon',0);
       _addField('trvVid',payload.Vid);
-      _addField('trvBoardingDate',(confirmResp&&(confirmResp.BordingDate||confirmResp.bordingDate))||'');
-      _addField('trvDroppingDate',(confirmResp&&(confirmResp.DroppingDate||confirmResp.droppingDate))||'');
+      _addField('trvBoardingDate',(confirmResp&&(confirmResp.BordingDate||confirmResp.bordingDate))||payload.boardingPoint.time||'');
+      _addField('trvDroppingDate',(confirmResp&&(confirmResp.DroppingDate||confirmResp.droppingDate))||payload.DropingPoint.dpTime||'');
       _addField('trvAgentMarkUp',0);
       _addField('trvAgentType','');
       _addField('trvAgentCode','');
@@ -2383,7 +2383,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       _addField('journeyDate',bus.journeyDate||'');
       _addField('sourceId',bus.sourceId||'');
       _addField('destinationId',bus.destinationId||'');
-      if(confirmResp){_addField('confirmResponse',confirmResp);}
+      _addField('confirmResponse',confirmResp||{});
       if(window._busAccum){_addField('busBookingAccum',window._busAccum);}
       document.body.appendChild(form);form.submit();document.body.removeChild(form);
     })
