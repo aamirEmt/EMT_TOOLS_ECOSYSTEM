@@ -1544,7 +1544,7 @@ BUS_CAROUSEL_TEMPLATE = """
       var _tConvFee=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.convenienceCharge)||0);},0);
       var _tSrtFee=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.srtfee)||0);},0);
       var _searchReq=(curBus.sourceId||'')+'|'+(curBus.destinationId||'')+'|'+(curBus.sourceName||'')+'|'+(curBus.destinationName||'')+'|'+(curBus.journeyDate||'');
-      var _key=(confirmResp&&(confirmResp.Sid||confirmResp.key||confirmResp.sessionId))||payload.Sid||'';
+      var _key='';
       // seatid in exact EMT format: seatNo@totalFare@seatType@seatNo@gender@EncriSeat@bookingFee@undefined
       // totalFare = s.fare (includes serviceFee); serviceFee = fare - baseFare when not explicit
       var _seatId=seatsPayload.map(function(s){
@@ -2297,7 +2297,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       var _tConvFee=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.convenienceCharge)||0);},0);
       var _tSrtFee=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.srtfee)||0);},0);
       var _searchReq=(bus.sourceId||'')+'|'+(bus.destinationId||'')+'|'+(bus.sourceName||'')+'|'+(bus.destinationName||'')+'|'+(bus.journeyDate||'');
-      var _key=(confirmResp&&(confirmResp.Sid||confirmResp.key||confirmResp.sessionId))||payload.Sid||'';
+      var _key='';
       // seatid in exact EMT format: seatNo@totalFare@seatType@seatNo@gender@EncriSeat@bookingFee@undefined
       // totalFare = s.fare (includes serviceFee); serviceFee = fare - baseFare when not explicit
       var _seatId=seatsPayload.map(function(s){
