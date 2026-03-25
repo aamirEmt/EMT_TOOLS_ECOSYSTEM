@@ -1412,15 +1412,13 @@ BUS_CAROUSEL_TEMPLATE = """
     var orderMap={};knownOrder.forEach(function(c,i){orderMap[c]=i;});
     var cols=Object.keys(deck).filter(function(k){return Array.isArray(deck[k])&&deck[k].length>0;});
     cols.sort(function(a,b){var oa=orderMap.hasOwnProperty(a)?orderMap[a]:999;var ob=orderMap.hasOwnProperty(b)?orderMap[b]:999;return oa!==ob?oa-ob:(a<b?-1:1);});
-    var maxR=0;cols.forEach(function(c){if(deck[c].length>maxR)maxR=deck[c].length;});
-    if(!maxR)return'';
-    var aisleAfter=Math.ceil(cols.length/2)-1;
+    if(!cols.length)return'';
     var html='';
-    for(var row=0;row<maxR;row++){
+    cols.forEach(function(col){
+      var seats=deck[col];
+      if(!seats||!seats.length)return;
       html+='<div class="seat-row">';
-      cols.forEach(function(col,ci){
-        var s=deck[col][row];
-        if(ci===aisleAfter+1)html+='<div style="width:8px;"></div>';
+      seats.forEach(function(s){
         if(!s||s.seatType==='noseat'||!s.name){html+='<div class="seat empty"></div>';return;}
         var avail=s.available&&String(s.seatType).indexOf('unavailable')===-1;
         var ladies=s.ladiesSeat==='True'||s.ladiesSeat===true||s.ladiesSeat==='true';
@@ -1438,7 +1436,7 @@ BUS_CAROUSEL_TEMPLATE = """
         }
       });
       html+='</div>';
-    }
+    });
     return html;
   }
   function renderBP(pts){
@@ -2126,15 +2124,13 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
     var orderMap={};knownOrder.forEach(function(c,i){orderMap[c]=i;});
     var cols=Object.keys(deck).filter(function(k){return Array.isArray(deck[k])&&deck[k].length>0;});
     cols.sort(function(a,b){var oa=orderMap.hasOwnProperty(a)?orderMap[a]:999;var ob=orderMap.hasOwnProperty(b)?orderMap[b]:999;return oa!==ob?oa-ob:(a<b?-1:1);});
-    var maxR=0;cols.forEach(function(c){if(deck[c].length>maxR)maxR=deck[c].length;});
-    if(!maxR)return'';
-    var aisleAfter=Math.ceil(cols.length/2)-1;
+    if(!cols.length)return'';
     var html='';
-    for(var row=0;row<maxR;row++){
+    cols.forEach(function(col){
+      var seats=deck[col];
+      if(!seats||!seats.length)return;
       html+='<div class="seat-row">';
-      cols.forEach(function(col,ci){
-        var s=deck[col][row];
-        if(ci===aisleAfter+1)html+='<div style="width:8px;"></div>';
+      seats.forEach(function(s){
         if(!s||s.seatType==='noseat'||!s.name){html+='<div class="seat empty"></div>';return;}
         var avail=s.available&&String(s.seatType).indexOf('unavailable')===-1;
         var ladies=s.ladiesSeat==='True'||s.ladiesSeat===true||s.ladiesSeat==='true';
@@ -2152,7 +2148,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
         }
       });
       html+='</div>';
-    }
+    });
     return html;
   }
 
