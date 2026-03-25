@@ -1551,6 +1551,9 @@ BUS_CAROUSEL_TEMPLATE = """
         var tf=parseFloat(s.fare)||(parseFloat(s.baseFare||0)+parseFloat(s.serviceFee||0));
         return[s.seatNo,tf,s.seatType||'ST',s.seatNo,s.gender||'M',s.EncriSeat||'',s.bookingFee||0,'undefined'].join('@');
       }).join(',');
+      console.log('[BUS DEBUG modal] seatsPayload:',JSON.stringify(seatsPayload));
+      console.log('[BUS DEBUG modal] seatid:',_seatId);
+      console.log('[BUS DEBUG modal] confirmResp:',JSON.stringify(confirmResp));
       // Senior's exact form field names (values matched to real EMT POST)
       _addField('gotraveller','Submit');
       _addField('key',_key);
@@ -2304,6 +2307,9 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
         var tf=parseFloat(s.fare)||(parseFloat(s.baseFare||0)+parseFloat(s.serviceFee||0));
         return[s.seatNo,tf,s.seatType||'ST',s.seatNo,s.gender||'M',s.EncriSeat||'',s.bookingFee||0,'undefined'].join('@');
       }).join(',');
+      console.log('[BUS DEBUG standalone] seatsPayload:',JSON.stringify(seatsPayload));
+      console.log('[BUS DEBUG standalone] seatid:',_seatId);
+      console.log('[BUS DEBUG standalone] confirmResp:',JSON.stringify(confirmResp));
       // Senior's exact form field names (values matched to real EMT POST)
       _addField('gotraveller','Submit');
       _addField('key',_key);
