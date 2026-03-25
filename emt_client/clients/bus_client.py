@@ -130,8 +130,13 @@ class BusApiClient:
                     if response.status == 200:
                         return await response.json(content_type=None)
                     else:
+                        error_body = await response.text()
+                        import logging
+                        logging.getLogger(__name__).error(
+                            f"[CONFIRM SEATS] HTTP {response.status} from EMT: {error_body[:1000]}"
+                        )
                         return {
-                            "error": f"HTTP {response.status}: {await response.text()}"
+                            "error": f"HTTP {response.status}: {error_body}"
                         }
         except Exception as e:
             return {"error": str(e)}
