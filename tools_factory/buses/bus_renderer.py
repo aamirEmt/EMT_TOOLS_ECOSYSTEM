@@ -1280,8 +1280,8 @@ BUS_CAROUSEL_TEMPLATE = """
         '#seatModalOverlay .legend-box.selected{background:#e8f5e9;border-color:#2e7d32;}'+
         '#seatModalOverlay .legend-box.booked{background:#e0e0e0;border-color:#bdbdbd;}'+
         '#seatModalOverlay .legend-box.ladies{background:#fce4ec;border-color:#e91e63;}'+
-        '#seatModalOverlay .seat-decks{display:flex;flex-direction:row;align-items:flex-start;gap:12px;flex-wrap:wrap;justify-content:center;}'+
-        '#seatModalOverlay .seat-deck{background:#fff;border:1.5px solid #e3e8f0;border-radius:10px;padding:8px 10px;overflow-x:visible;min-width:0;}'+
+        '#seatModalOverlay .seat-decks{display:flex;flex-direction:row;align-items:flex-start;gap:16px;flex-wrap:wrap;}'+
+        '#seatModalOverlay .seat-deck{background:#fff;border:1.5px solid #e3e8f0;border-radius:10px;padding:8px 10px;overflow-x:auto;flex:1;min-width:160px;}'+
         '#seatModalOverlay .deck-title{font-size:10px;font-weight:700;color:#1565c0;margin-bottom:8px;text-align:center;padding:4px 6px;background:linear-gradient(90deg,#e3f2fd,#f0f4ff);border-radius:6px;letter-spacing:.5px;border:1px solid #bbdefb;}'+
         '#seatModalOverlay .seat-grid{display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:max-content;}'+
         '#seatModalOverlay .seat-row{display:flex;gap:3px;}'+
