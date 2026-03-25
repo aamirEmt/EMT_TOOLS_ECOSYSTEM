@@ -1343,6 +1343,7 @@ BUS_CAROUSEL_TEMPLATE = """
   function openSeatModal(busData){
     curBus=busData;curBus.sid=ghex();curBus.vid=ghex();curBus.traceId=guid();
     selSeats=[];selBoarding=null;selDropping=null;layoutData=null;currentStep=1;
+    window._busAccum={busInfo:{busId:busData.busId,routeId:busData.routeId,engineId:busData.engineId,operatorId:busData.operatorId,operatorName:busData.operatorName,busType:busData.busType,departureTime:busData.departureTime,arrivalTime:busData.arrivalTime,duration:busData.duration,isSeater:busData.isSeater,isSleeper:busData.isSleeper,sourceId:busData.sourceId,destinationId:busData.destinationId,sourceName:busData.sourceName,destinationName:busData.destinationName,journeyDate:busData.journeyDate},sid:curBus.sid,vid:curBus.vid,traceId:curBus.traceId,seatBindData:null,selectedSeats:[],boardingPoint:null,droppingPoint:null,confirmPayload:null,confirmResponse:null};
     var ov=document.getElementById('seatModalOverlay');if(!ov)return;
     document.getElementById('modalBusOperator').textContent=busData.operatorName||'Bus Operator';
     document.getElementById('modalBusType').textContent=busData.busType||'';
@@ -1373,6 +1374,7 @@ BUS_CAROUSEL_TEMPLATE = """
     .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(function(data){
       layoutData=data;layoutData.Sid=busData.sid;layoutData.Vid=busData.vid;layoutData.TraceID=busData.traceId;
+      if(window._busAccum){window._busAccum.sid=busData.sid;window._busAccum.vid=busData.vid;window._busAccum.traceId=busData.traceId;window._busAccum.seatBindData={Sid:busData.sid,Vid:busData.vid,TraceID:busData.traceId,cancelPolicyList:data.cancelPolicyList||[],setuniquefares:data.setuniquefares||[],listBoardingPoint:data.listBoardingPoint||[],listDropPoint:data.listDropPoint||[]};}
       if(data.error||(!_deckHasSeats(data.Lower)&&!_deckHasSeats(data.Upper))){showFallback(data.error||'Seat layout not available');return;}
       renderSeats(data);renderBP(data.listBoardingPoint||[]);renderDP(data.listDropPoint||[]);
     })
@@ -1464,15 +1466,20 @@ BUS_CAROUSEL_TEMPLATE = """
     }else{
       el.classList.remove('available','ladies');el.classList.add('selected');selSeats.push(s);
     }
+    if(window._busAccum)window._busAccum.selectedSeats=selSeats.slice();
     updateFooter();updateBtns();
   }
   function selectBP(el,pt){
     document.querySelectorAll('#boardingPointsList .point-item').forEach(function(x){x.classList.remove('selected');});
-    el.classList.add('selected');selBoarding=pt;updateFooter();updateBtns();
+    el.classList.add('selected');selBoarding=pt;
+    if(window._busAccum)window._busAccum.boardingPoint=pt;
+    updateFooter();updateBtns();
   }
   function selectDP(el,pt){
     document.querySelectorAll('#droppingPointsList .point-item').forEach(function(x){x.classList.remove('selected');});
-    el.classList.add('selected');selDropping=pt;updateFooter();updateBtns();
+    el.classList.add('selected');selDropping=pt;
+    if(window._busAccum)window._busAccum.droppingPoint=pt;
+    updateFooter();updateBtns();
   }
   function updateFooter(){
     document.getElementById('selectedSeatsDisplay').textContent=selSeats.length?selSeats.map(function(s){return s.name;}).join(', '):'None';
@@ -1521,6 +1528,7 @@ BUS_CAROUSEL_TEMPLATE = """
     fetch(_callUrl,{method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','Accept':'application/json, text/plain, */*','x-requested-with':'XMLHttpRequest'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
     .then(function(confirmResp){
+      if(window._busAccum){window._busAccum.confirmPayload=payload;window._busAccum.confirmResponse=confirmResp;try{sessionStorage.setItem('busBookingAccum',JSON.stringify(window._busAccum));}catch(e){}}
       var form=document.createElement('form');
       form.method='POST';
       form.action='https://bus.easemytrip.com/Home/BusPayment?userid=Emt';
@@ -1568,7 +1576,12 @@ BUS_CAROUSEL_TEMPLATE = """
       _addField('TDS',payload.TDS);
       _addField('cpnCode',payload.cpnCode);
       _addField('cancelPolicyList',payload.cancelPolicyList);
+      _addField('journeyDate',curBus.journeyDate||'');
+      _addField('duration',curBus.duration||'');
+      _addField('sourceId',curBus.sourceId||'');
+      _addField('destinationId',curBus.destinationId||'');
       if(confirmResp){_addField('confirmResponse',confirmResp);}
+      if(window._busAccum){_addField('busBookingAccum',window._busAccum);}
       document.body.appendChild(form);form.submit();document.body.removeChild(form);
     })
     .catch(function(err){
