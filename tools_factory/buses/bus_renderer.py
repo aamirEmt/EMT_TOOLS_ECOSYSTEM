@@ -1497,10 +1497,12 @@ BUS_CAROUSEL_TEMPLATE = """
   function confirmAndRedirect(){
     if(!selSeats.length||!selBoarding||!selDropping){alert('Please complete all selections');return;}
     var seatsPayload=selSeats.map(function(s){
-      return{seatNo:s.name,seatType:s.seatType||'ST',fare:s.fare,seatId:s.id||s.name,
-        actualfare:s.actualfare||s.fare,gender:s.gender||'M',baseFare:s.baseFare||s.fare,
+      var bF=parseFloat(s.baseFare||s.fare)||0,tF=parseFloat(s.fare)||bF;
+      var sF=parseFloat(s.serviceFee)||(tF-bF)||0;
+      return{seatNo:s.name,seatType:s.seatType||'ST',fare:tF,seatId:s.id||s.name,
+        actualfare:parseFloat(s.actualfare)||tF,gender:s.gender||'M',baseFare:bF,
         EncriSeat:s.encriSeat||'',bookingFee:s.bookingFee||0,concession:s.concession||0,
-        convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:s.serviceFee||0};
+        convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:sF};
     });
     var total=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0);
     var _sid=(layoutData&&layoutData.Sid)||curBus.sid||'';
@@ -1536,7 +1538,7 @@ BUS_CAROUSEL_TEMPLATE = """
       form.target='_blank';
       function _addField(n,v){var i=document.createElement('input');i.type='hidden';i.name=n;i.value=(v===null||v===undefined)?'':(typeof v==='object'?JSON.stringify(v):String(v));form.appendChild(i);}
       var _tBaseFare=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.baseFare)||0);},0);
-      var _tSvcFee=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.serviceFee)||0);},0);
+      var _tSvcFee=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.serviceFee)||(parseFloat(s.fare||0)-parseFloat(s.baseFare||0)))||0;},0);
       var _tToll=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.tollfee)||0);},0);
       var _tConcession=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.concession)||0);},0);
       var _tConvFee=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.convenienceCharge)||0);},0);
@@ -1544,11 +1546,13 @@ BUS_CAROUSEL_TEMPLATE = """
       var _searchReq=(curBus.sourceId||'')+'|'+(curBus.destinationId||'')+'|'+(curBus.sourceName||'')+'|'+(curBus.destinationName||'')+'|'+(curBus.journeyDate||'');
       var _key=(confirmResp&&(confirmResp.Sid||confirmResp.key||confirmResp.sessionId))||payload.Sid||'';
       // seatid in exact EMT format: seatNo@totalFare@seatType@seatNo@gender@EncriSeat@bookingFee@undefined
+      // totalFare = s.fare (includes serviceFee); serviceFee = fare - baseFare when not explicit
       var _seatId=seatsPayload.map(function(s){
-        var tf=(parseFloat(s.baseFare)||0)+(parseFloat(s.serviceFee)||0);
+        var tf=parseFloat(s.fare)||(parseFloat(s.baseFare||0)+parseFloat(s.serviceFee||0));
         return[s.seatNo,tf,s.seatType||'ST',s.seatNo,s.gender||'M',s.EncriSeat||'',s.bookingFee||0,'undefined'].join('@');
       }).join(',');
       // Senior's exact form field names (values matched to real EMT POST)
+      _addField('gotraveller','Submit');
       _addField('key',_key);
       _addField('busid',payload.availableTripId);
       _addField('seatid',_seatId);
@@ -2248,10 +2252,12 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
   function doBook(){
     if(!selSeats.length||!selBoarding||!selDropping){alert('Please complete all selections');return;}
     var seatsPayload=selSeats.map(function(s){
-      return{seatNo:s.name,seatType:s.seatType||'ST',fare:s.fare,seatId:s.id||s.name,
-        actualfare:s.actualfare||s.fare,gender:s.gender||'M',baseFare:s.baseFare||s.fare,
+      var bF=parseFloat(s.baseFare||s.fare)||0,tF=parseFloat(s.fare)||bF;
+      var sF=parseFloat(s.serviceFee)||(tF-bF)||0;
+      return{seatNo:s.name,seatType:s.seatType||'ST',fare:tF,seatId:s.id||s.name,
+        actualfare:parseFloat(s.actualfare)||tF,gender:s.gender||'M',baseFare:bF,
         EncriSeat:s.encriSeat||'',bookingFee:s.bookingFee||0,concession:s.concession||0,
-        convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:s.serviceFee||0};
+        convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:sF};
     });
     var total=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0);
     var _sid=(layoutData&&layoutData.Sid)||bus.sid||'';
@@ -2285,7 +2291,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       form.target='_blank';
       function _addField(n,v){var i=document.createElement('input');i.type='hidden';i.name=n;i.value=(v===null||v===undefined)?'':(typeof v==='object'?JSON.stringify(v):String(v));form.appendChild(i);}
       var _tBaseFare=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.baseFare)||0);},0);
-      var _tSvcFee=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.serviceFee)||0);},0);
+      var _tSvcFee=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.serviceFee)||(parseFloat(s.fare||0)-parseFloat(s.baseFare||0)))||0;},0);
       var _tToll=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.tollfee)||0);},0);
       var _tConcession=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.concession)||0);},0);
       var _tConvFee=seatsPayload.reduce(function(t,s){return t+(parseFloat(s.convenienceCharge)||0);},0);
@@ -2293,11 +2299,13 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       var _searchReq=(bus.sourceId||'')+'|'+(bus.destinationId||'')+'|'+(bus.sourceName||'')+'|'+(bus.destinationName||'')+'|'+(bus.journeyDate||'');
       var _key=(confirmResp&&(confirmResp.Sid||confirmResp.key||confirmResp.sessionId))||payload.Sid||'';
       // seatid in exact EMT format: seatNo@totalFare@seatType@seatNo@gender@EncriSeat@bookingFee@undefined
+      // totalFare = s.fare (includes serviceFee); serviceFee = fare - baseFare when not explicit
       var _seatId=seatsPayload.map(function(s){
-        var tf=(parseFloat(s.baseFare)||0)+(parseFloat(s.serviceFee)||0);
+        var tf=parseFloat(s.fare)||(parseFloat(s.baseFare||0)+parseFloat(s.serviceFee||0));
         return[s.seatNo,tf,s.seatType||'ST',s.seatNo,s.gender||'M',s.EncriSeat||'',s.bookingFee||0,'undefined'].join('@');
       }).join(',');
       // Senior's exact form field names (values matched to real EMT POST)
+      _addField('gotraveller','Submit');
       _addField('key',_key);
       _addField('busid',payload.availableTripId);
       _addField('seatid',_seatId);
