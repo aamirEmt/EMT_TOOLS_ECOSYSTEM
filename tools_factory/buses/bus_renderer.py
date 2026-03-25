@@ -1261,43 +1261,46 @@ BUS_CAROUSEL_TEMPLATE = """
       var sEl=document.createElement('style');sEl.id='__busModalCSS';
       sEl.textContent=
         '#seatModalOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:2147483647;display:none;justify-content:center;align-items:center;font-family:poppins,sans-serif;}'+
-        '#seatModalOverlay .seat-modal{background:#fff;border-radius:12px;max-width:520px;width:95%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);font-size:11px;}'+
-        '#seatModalOverlay .seat-modal-header{padding:12px 16px;border-bottom:1px solid #e0e0e0;display:flex;justify-content:space-between;align-items:center;background:#f8f9fa;}'+
-        '#seatModalOverlay .seat-modal-title{font-size:14px;font-weight:600;color:#202020;}'+
-        '#seatModalOverlay .seat-modal-subtitle{font-size:11px;color:#868686;margin-top:2px;}'+
-        '#seatModalOverlay .seat-modal-close{width:28px;height:28px;border:none;background:#e0e0e0;border-radius:50%;cursor:pointer;font-size:18px;color:#666;line-height:1;display:flex;align-items:center;justify-content:center;}'+
-        '#seatModalOverlay .seat-modal-body{flex:1;overflow-y:auto;padding:10px;}'+
+        '#seatModalOverlay .seat-modal{background:#fff;border-radius:12px;max-width:940px;width:96%;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);font-size:11px;}'+
+        '#seatModalOverlay .seat-modal-header{padding:12px 16px;border-bottom:2px solid #e8f0fe;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(90deg,#f0f4ff 0%,#f8f9fa 100%);}'+
+        '#seatModalOverlay .seat-modal-title{font-size:14px;font-weight:700;color:#1a237e;}'+
+        '#seatModalOverlay .seat-modal-subtitle{font-size:11px;color:#5c6bc0;margin-top:2px;}'+
+        '#seatModalOverlay .seat-modal-close{width:28px;height:28px;border:none;background:#e8eaf6;border-radius:50%;cursor:pointer;font-size:18px;color:#3949ab;line-height:1;display:flex;align-items:center;justify-content:center;}'+
+        '#seatModalOverlay .seat-modal-body{flex:1;overflow-y:auto;padding:12px 14px;}'+
         '#seatModalOverlay .seat-modal-footer{padding:10px 16px;border-top:1px solid #e0e0e0;background:#f8f9fa;display:flex;justify-content:space-between;align-items:center;gap:8px;}'+
         '#seatModalOverlay .selected-info{font-size:10px;color:#666;}'+
         '#seatModalOverlay .total-fare{font-size:15px;font-weight:700;color:#202020;}'+
-        '#seatModalOverlay .continue-btn{padding:7px 16px;background:#ef6614;color:#fff;border:none;border-radius:40px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;}'+
+        '#seatModalOverlay .continue-btn{padding:8px 22px;background:#ef6614;color:#fff;border:none;border-radius:40px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;}'+
         '#seatModalOverlay .continue-btn:disabled{background:#ccc;cursor:not-allowed;}'+
         '#seatModalOverlay .seat-loading{display:flex;align-items:center;justify-content:center;padding:40px 20px;color:#868686;font-size:11px;}'+
-        '#seatModalOverlay .seat-legend{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}'+
-        '#seatModalOverlay .legend-item{display:flex;align-items:center;gap:4px;font-size:9px;color:#666;}'+
-        '#seatModalOverlay .legend-box{width:14px;height:14px;border-radius:3px;border:1px solid transparent;}'+
-        '#seatModalOverlay .legend-box.available{background:#e8f5e9;border-color:#4caf50;}'+
-        '#seatModalOverlay .legend-box.selected{background:#fff3e0;border-color:#ef6614;}'+
-        '#seatModalOverlay .legend-box.booked{background:#eee;border-color:#9e9e9e;}'+
+        '#seatModalOverlay .seat-legend{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;padding:8px 10px;background:#f8f9fa;border-radius:6px;border:1px solid #eee;}'+
+        '#seatModalOverlay .legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:#444;font-weight:500;}'+
+        '#seatModalOverlay .legend-box{width:16px;height:16px;border-radius:3px;border:1.5px solid transparent;}'+
+        '#seatModalOverlay .legend-box.available{background:#fff;border-color:#4caf50;}'+
+        '#seatModalOverlay .legend-box.selected{background:#e8f5e9;border-color:#2e7d32;}'+
+        '#seatModalOverlay .legend-box.booked{background:#e0e0e0;border-color:#bdbdbd;}'+
         '#seatModalOverlay .legend-box.ladies{background:#fce4ec;border-color:#e91e63;}'+
-        '#seatModalOverlay .seat-decks{display:flex;flex-direction:column;gap:10px;}'+
-        '#seatModalOverlay .seat-deck{background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;padding:8px;overflow-x:auto;}'+
-        '#seatModalOverlay .deck-title{font-size:10px;font-weight:600;color:#202020;margin-bottom:6px;text-align:center;padding:3px;background:#f0f0f0;border-radius:4px;}'+
-        '#seatModalOverlay .seat-grid{display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:max-content;}'+
-        '#seatModalOverlay .seat-row{display:flex;gap:2px;}'+
-        '#seatModalOverlay .seat{border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:500;border:1px solid transparent;width:28px;height:28px;}'+
-        '#seatModalOverlay .seat.sleeper{width:56px;}'+
-        '#seatModalOverlay .seat.available{background:#e8f5e9;color:#2e7d32;border-color:#4caf50;cursor:pointer;}'+
-        '#seatModalOverlay .seat.available:hover{background:#c8e6c9;}'+
-        '#seatModalOverlay .seat.selected{background:#fff3e0;color:#e65100;border-color:#ef6614;box-shadow:0 1px 4px rgba(239,102,20,.3);}'+
-        '#seatModalOverlay .seat.booked{background:#eee;color:#9e9e9e;cursor:not-allowed;}'+
+        '#seatModalOverlay .seat-decks{display:flex;flex-direction:row;align-items:flex-start;gap:16px;flex-wrap:wrap;}'+
+        '#seatModalOverlay .seat-deck{background:#fff;border:1.5px solid #e3e8f0;border-radius:10px;padding:10px 12px;overflow-x:auto;flex:1;min-width:260px;}'+
+        '#seatModalOverlay .deck-title{font-size:11px;font-weight:700;color:#1565c0;margin-bottom:10px;text-align:center;padding:5px 8px;background:linear-gradient(90deg,#e3f2fd,#f0f4ff);border-radius:6px;letter-spacing:.5px;border:1px solid #bbdefb;}'+
+        '#seatModalOverlay .seat-grid{display:flex;flex-direction:column;gap:4px;align-items:flex-start;min-width:max-content;}'+
+        '#seatModalOverlay .seat-row{display:flex;gap:4px;}'+
+        '#seatModalOverlay .seat{border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:600;border:1.5px solid transparent;width:52px;height:52px;gap:1px;transition:all .15s;}'+
+        '#seatModalOverlay .seat.sleeper{width:108px;}'+
+        '#seatModalOverlay .seat-lbl{font-size:10px;font-weight:700;line-height:1.2;}'+
+        '#seatModalOverlay .seat-prc{font-size:8px;font-weight:500;line-height:1.2;opacity:.85;}'+
+        '#seatModalOverlay .seat.available{background:#fff;color:#2e7d32;border-color:#4caf50;cursor:pointer;}'+
+        '#seatModalOverlay .seat.available:hover{background:#e8f5e9;border-color:#2e7d32;transform:scale(1.05);}'+
+        '#seatModalOverlay .seat.selected{background:#e8f5e9;color:#1b5e20;border-color:#2e7d32;box-shadow:0 2px 6px rgba(46,125,50,.25);}'+
+        '#seatModalOverlay .seat.booked{background:#f0f0f0;color:#bdbdbd;cursor:not-allowed;border-color:#e0e0e0;}'+
         '#seatModalOverlay .seat.ladies{background:#fce4ec;color:#c2185b;border-color:#e91e63;cursor:pointer;}'+
+        '#seatModalOverlay .seat.ladies:hover{background:#f8bbd0;}'+
         '#seatModalOverlay .seat.empty{visibility:hidden;}'+
-        '#seatModalOverlay .point-item{padding:8px;border:1px solid #e0e0e0;border-radius:4px;margin-bottom:6px;cursor:pointer;font-size:10px;}'+
-        '#seatModalOverlay .point-item:hover{background:#f5f5f5;}'+
-        '#seatModalOverlay .point-item.selected{border-color:#2093ef;background:#e3f2fd;}'+
-        '#seatModalOverlay .price-filter{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;}'+
-        '#seatModalOverlay .price-btn{padding:3px 8px;border:1px solid #e0e0e0;border-radius:4px;background:#fff;font-size:10px;cursor:pointer;font-family:inherit;}'+
+        '#seatModalOverlay .point-item{padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:6px;margin-bottom:6px;cursor:pointer;font-size:10px;transition:all .15s;}'+
+        '#seatModalOverlay .point-item:hover{background:#f5f5f5;border-color:#90caf9;}'+
+        '#seatModalOverlay .point-item.selected{border-color:#1565c0;background:#e3f2fd;}'+
+        '#seatModalOverlay .price-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}'+
+        '#seatModalOverlay .price-btn{padding:4px 10px;border:1.5px solid #e0e0e0;border-radius:20px;background:#fff;font-size:10px;cursor:pointer;font-family:inherit;font-weight:500;}'+
         '#seatModalOverlay .price-btn.active{background:#ef6614;color:#fff;border-color:#ef6614;}';
       document.head.appendChild(sEl);
     }
@@ -1398,8 +1401,8 @@ BUS_CAROUSEL_TEMPLATE = """
       html+='</div>';
     }
     html+='<div class="seat-decks">';
-    if((data.LowerShow||_deckHasSeats(data.Lower))&&data.Lower)html+='<div class="seat-deck"><div class="deck-title">Lower Deck</div><div class="seat-grid">'+renderDeck(data.Lower)+'</div></div>';
-    if((data.UpperShow||_deckHasSeats(data.Upper))&&data.Upper)html+='<div class="seat-deck"><div class="deck-title">Upper Deck</div><div class="seat-grid">'+renderDeck(data.Upper)+'</div></div>';
+    if((data.LowerShow||_deckHasSeats(data.Lower))&&data.Lower)html+='<div class="seat-deck"><div class="deck-title"><span style="font-size:14px;margin-right:4px;">&#8853;</span>LOWER SEAT</div><div class="seat-grid">'+renderDeck(data.Lower)+'</div></div>';
+    if((data.UpperShow||_deckHasSeats(data.Upper))&&data.Upper)html+='<div class="seat-deck"><div class="deck-title"><span style="font-size:14px;margin-right:4px;">&#8853;</span>UPPER SEAT</div><div class="seat-grid">'+renderDeck(data.Upper)+'</div></div>';
     html+='</div>';
     document.getElementById('seatLayoutContainer').innerHTML=html;
     document.getElementById('seatLayoutContainer').className='';
@@ -1429,9 +1432,9 @@ BUS_CAROUSEL_TEMPLATE = """
             gender:s.gender||'M',encriSeat:s.EncriSeat||'',seatType:slpr?'SL':'ST',
             bookingFee:s.bookingFee||0,concession:s.concession||0,convenienceCharge:s.convenienceCharge||0,
             srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:s.serviceFee||0}).replace(/"/g,'&quot;');
-          html+='<div class="'+cls+'" data-busaction="selectseat" data-seatinfo="'+info+'" data-fare="'+baseFare+'" title="'+s.name+' - \u20b9'+fare+'">'+s.name+'</div>';
+          html+='<div class="'+cls+'" data-busaction="selectseat" data-seatinfo="'+info+'" data-fare="'+baseFare+'" title="'+s.name+' - \u20b9'+fare+'"><span class="seat-lbl">'+s.name+'</span>'+(baseFare?'<span class="seat-prc">\u20b9'+baseFare+'</span>':'')+'</div>';
         }else{
-          html+='<div class="'+cls+'" title="'+s.name+' - Booked">'+s.name+'</div>';
+          html+='<div class="'+cls+'" title="'+s.name+' - Booked"><span class="seat-lbl">'+s.name+'</span></div>';
         }
       });
       html+='</div>';
@@ -2111,8 +2114,8 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       html+='</div>';
     }
     html+='<div class="seat-decks">';
-    if((data.LowerShow||_deckHasSeats(data.Lower))&&data.Lower)html+='<div class="seat-deck"><div class="deck-title">Lower Deck</div><div class="seat-grid">'+renderDeck(data.Lower)+'</div></div>';
-    if((data.UpperShow||_deckHasSeats(data.Upper))&&data.Upper)html+='<div class="seat-deck"><div class="deck-title">Upper Deck</div><div class="seat-grid">'+renderDeck(data.Upper)+'</div></div>';
+    if((data.LowerShow||_deckHasSeats(data.Lower))&&data.Lower)html+='<div class="seat-deck"><div class="deck-title"><span style="font-size:14px;margin-right:4px;">&#8853;</span>LOWER SEAT</div><div class="seat-grid">'+renderDeck(data.Lower)+'</div></div>';
+    if((data.UpperShow||_deckHasSeats(data.Upper))&&data.Upper)html+='<div class="seat-deck"><div class="deck-title"><span style="font-size:14px;margin-right:4px;">&#8853;</span>UPPER SEAT</div><div class="seat-grid">'+renderDeck(data.Upper)+'</div></div>';
     html+='</div>';
     document.getElementById('seatLayoutContainer').innerHTML=html;
     document.getElementById('seatLayoutContainer').className='';
@@ -2143,9 +2146,9 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
             gender:s.gender||'M',encriSeat:s.EncriSeat||'',seatType:slpr?'SL':'ST',
             bookingFee:s.bookingFee||0,concession:s.concession||0,convenienceCharge:s.convenienceCharge||0,
             srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:s.serviceFee||0}).replace(/"/g,'&quot;');
-          html+='<div class="'+cls+'" data-busaction="selectseat" data-seatinfo="'+info+'" data-fare="'+baseFare+'" title="'+s.name+' - &#8377;'+fare+'">'+s.name+'</div>';
+          html+='<div class="'+cls+'" data-busaction="selectseat" data-seatinfo="'+info+'" data-fare="'+baseFare+'" title="'+s.name+' - &#8377;'+fare+'"><span class="seat-lbl">'+s.name+'</span>'+(baseFare?'<span class="seat-prc">&#8377;'+baseFare+'</span>':'')+'</div>';
         }else{
-          html+='<div class="'+cls+'" title="'+s.name+' - Booked">'+s.name+'</div>';
+          html+='<div class="'+cls+'" title="'+s.name+' - Booked"><span class="seat-lbl">'+s.name+'</span></div>';
         }
       });
       html+='</div>';
