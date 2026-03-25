@@ -1603,30 +1603,20 @@ BUS_CAROUSEL_TEMPLATE = """
       _addField('BKeDeal',0);
       _addField('operator_id',payload.operator_id);
       _addField('dealname','');
-      _addField('listcpn',payload.cpnCode||'');
+      _addField('listcpn','');
       _addField('edealAmt',0);
-      // Existing fields kept for backward compatibility
+      // Extra fields (non-conflicting only — do NOT duplicate depTime/arrTime/bustype/DepartureTime/ArrivalTime/busType)
       _addField('availableTripId',payload.availableTripId);
-      _addField('engineId',payload.engineId);
       _addField('routeId',payload.routeId);
       _addField('source',payload.source);
       _addField('destination',payload.destination);
-      _addField('busOperator',payload.busOperator);
-      _addField('busType',payload.busType);
-      _addField('DepTime',payload.DepTime);
-      _addField('DepartureTime',payload.DepTime);
-      _addField('arrivalDate',payload.arrivalDate);
-      _addField('ArrivalTime',payload.arrivalDate);
       _addField('Sid',payload.Sid);
       _addField('Vid',payload.Vid);
       _addField('TraceId',payload.TraceId);
       _addField('totalFare',payload.totalFare);
       _addField('noOfPassenger',seatsPayload.length);
-      _addField('boardingId',payload.boardingId);
       _addField('boardingPoint',payload.boardingPoint);
-      _addField('dropId',payload.dropId);
       _addField('DropingPoint',payload.DropingPoint);
-      _addField('cancelPolicyList',payload.cancelPolicyList);
       _addField('journeyDate',curBus.journeyDate||'');
       _addField('sourceId',curBus.sourceId||'');
       _addField('destinationId',curBus.destinationId||'');
@@ -2362,31 +2352,25 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       _addField('BKeDeal',0);
       _addField('operator_id',payload.operator_id);
       _addField('dealname','');
-      _addField('listcpn',payload.cpnCode||'');
+      _addField('listcpn','');
       _addField('edealAmt',0);
-      // Existing fields kept for backward compatibility
+      // Extra fields (non-conflicting only — do NOT duplicate depTime/arrTime/bustype/DepartureTime/ArrivalTime/busType/busOperator)
       _addField('availableTripId',payload.availableTripId);
-      _addField('engineId',payload.engineId);
       _addField('routeId',payload.routeId);
       _addField('source',payload.source);
       _addField('destination',payload.destination);
-      _addField('busOperator',payload.busOperator);
-      _addField('busType',payload.busType);
-      _addField('DepTime',payload.DepTime);
-      _addField('DepartureTime',payload.DepTime);
-      _addField('arrivalDate',payload.arrivalDate);
-      _addField('ArrivalTime',payload.arrivalDate);
       _addField('Sid',payload.Sid);
       _addField('Vid',payload.Vid);
       _addField('TraceId',payload.TraceId);
       _addField('totalFare',payload.totalFare);
       _addField('noOfPassenger',seatsPayload.length);
-      _addField('boardingId',payload.boardingId);
       _addField('boardingPoint',payload.boardingPoint);
-      _addField('dropId',payload.dropId);
       _addField('DropingPoint',payload.DropingPoint);
-      _addField('cancelPolicyList',payload.cancelPolicyList);
+      _addField('journeyDate',bus.journeyDate||'');
+      _addField('sourceId',bus.sourceId||'');
+      _addField('destinationId',bus.destinationId||'');
       if(confirmResp){_addField('confirmResponse',confirmResp);}
+      if(window._busAccum){_addField('busBookingAccum',window._busAccum);}
       document.body.appendChild(form);form.submit();document.body.removeChild(form);
     })
     .catch(function(err){
