@@ -1498,15 +1498,11 @@ BUS_CAROUSEL_TEMPLATE = """
     if(!selSeats.length||!selBoarding||!selDropping){alert('Please complete all selections');return;}
     var seatsPayload=selSeats.map(function(s){
       var bF=parseFloat(s.baseFare||s.fare)||0,tF=parseFloat(s.fare)||bF;
-      var rawSvcFee=parseFloat(s.serviceFee)||0;
-      var rawSrtFee=parseFloat(s.srtfee)||0;
-      // Match real EMT: difference between fare and baseFare goes to srtfee if serviceFee is 0
-      var finalSrtFee=rawSrtFee||(rawSvcFee?0:Math.round((tF-bF)*100)/100);
-      var finalSvcFee=rawSvcFee?Math.round(rawSvcFee*100)/100:0;
+      var sF=parseFloat(s.serviceFee)||(tF-bF)||0;
       return{seatNo:s.name,seatType:s.seatType||'ST',fare:tF,seatId:s.id||s.name,
         actualfare:parseFloat(s.actualfare)||tF,gender:s.gender||'M',baseFare:bF,
         EncriSeat:s.encriSeat||'',bookingFee:s.bookingFee||0,concession:s.concession||0,
-        convenienceCharge:s.convenienceCharge||0,srtfee:finalSrtFee,tollfee:s.tollfee||0,serviceFee:finalSvcFee};
+        convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:sF};
     });
     var total=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0);
     var _sid=(layoutData&&layoutData.Sid)||curBus.sid||'';
@@ -2265,15 +2261,11 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
     if(!selSeats.length||!selBoarding||!selDropping){alert('Please complete all selections');return;}
     var seatsPayload=selSeats.map(function(s){
       var bF=parseFloat(s.baseFare||s.fare)||0,tF=parseFloat(s.fare)||bF;
-      var rawSvcFee=parseFloat(s.serviceFee)||0;
-      var rawSrtFee=parseFloat(s.srtfee)||0;
-      // Match real EMT: difference between fare and baseFare goes to srtfee if serviceFee is 0
-      var finalSrtFee=rawSrtFee||(rawSvcFee?0:Math.round((tF-bF)*100)/100);
-      var finalSvcFee=rawSvcFee?Math.round(rawSvcFee*100)/100:0;
+      var sF=parseFloat(s.serviceFee)||(tF-bF)||0;
       return{seatNo:s.name,seatType:s.seatType||'ST',fare:tF,seatId:s.id||s.name,
         actualfare:parseFloat(s.actualfare)||tF,gender:s.gender||'M',baseFare:bF,
         EncriSeat:s.encriSeat||'',bookingFee:s.bookingFee||0,concession:s.concession||0,
-        convenienceCharge:s.convenienceCharge||0,srtfee:finalSrtFee,tollfee:s.tollfee||0,serviceFee:finalSvcFee};
+        convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:sF};
     });
     var total=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0);
     var _sid=(layoutData&&layoutData.Sid)||bus.sid||'';
