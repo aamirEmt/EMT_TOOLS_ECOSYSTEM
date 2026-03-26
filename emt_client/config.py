@@ -130,6 +130,12 @@ FLIGHT_DEEPLINK = _get_config_value(
 
 FLIGHT_AMENITIES_URL = f"{FLIGHT_BASE_URL}/FlightStatus/FlightAmentiesByListing"
 
+REDIS_URL = _get_config_value(
+    'REDIS_URL',
+    'REDIS_URL',
+    default='redis://localhost:6379'
+)
+
 # ============================================================================
 # ✅ STAYS THE SAME: All your existing configurations
 # ============================================================================

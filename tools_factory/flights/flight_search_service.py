@@ -15,9 +15,28 @@ from emt_client.utils import (
     fetch_first_city_code_country,
     generate_short_link,
 )
-from emt_client.config import FLIGHT_BASE_URL, FLIGHT_DEEPLINK
+from emt_client.config import FLIGHT_BASE_URL, FLIGHT_DEEPLINK, REDIS_URL
 from enum import Enum
 import re
+import json
+import redis.asyncio as aioredis
+
+REDIS_TTL_SECONDS = 300  # 5 minutes
+
+async def _save_flight_data_to_redis(raw: dict) -> None:
+    """Save raw flight API response to Redis only if the key does not already exist. Silently ignores errors."""
+    try:
+        print("Saving flight data to Redis with key:", str(raw.get('h', '')) + str(raw.get('FareTypeUI', '')))
+        redis_key = str(raw.get('h', '')) + str(raw.get('FareTypeUI', ''))
+        r = aioredis.from_url(REDIS_URL)
+        if not await r.exists(redis_key):
+            await r.set(redis_key, json.dumps(raw))
+            print("Flight data saved to Redis with key:", redis_key)
+        await r.aclose()
+    except Exception as e:
+        print("Error occurred while saving flight data to Redis:", e)
+        pass
+
 
 class CabinClassEnum(int, Enum):
     ECONOMY = 0
@@ -1045,6 +1064,10 @@ async def search_flights(
             "destination": destination_code,
             "viewAll": None,
         }
+
+    # Cache raw response for one-way domestic flights
+    if not is_roundtrip and not is_international:
+        await _save_flight_data_to_redis(data)
 
     # Process results
     processed_data = process_flight_results(data, is_roundtrip,is_international, search_context)
