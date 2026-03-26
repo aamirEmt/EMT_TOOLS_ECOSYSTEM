@@ -1498,11 +1498,15 @@ BUS_CAROUSEL_TEMPLATE = """
     if(!selSeats.length||!selBoarding||!selDropping){alert('Please complete all selections');return;}
     var seatsPayload=selSeats.map(function(s){
       var bF=parseFloat(s.baseFare||s.fare)||0,tF=parseFloat(s.fare)||bF;
-      var sF=parseFloat(s.serviceFee)||(tF-bF)||0;
+      var rawSvcFee=parseFloat(s.serviceFee)||0;
+      var rawSrtFee=parseFloat(s.srtfee)||0;
+      // Match real EMT: difference between fare and baseFare goes to srtfee if serviceFee is 0
+      var finalSrtFee=rawSrtFee||(rawSvcFee?0:Math.round((tF-bF)*100)/100);
+      var finalSvcFee=rawSvcFee?Math.round(rawSvcFee*100)/100:0;
       return{seatNo:s.name,seatType:s.seatType||'ST',fare:tF,seatId:s.id||s.name,
         actualfare:parseFloat(s.actualfare)||tF,gender:s.gender||'M',baseFare:bF,
         EncriSeat:s.encriSeat||'',bookingFee:s.bookingFee||0,concession:s.concession||0,
-        convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:sF};
+        convenienceCharge:s.convenienceCharge||0,srtfee:finalSrtFee,tollfee:s.tollfee||0,serviceFee:finalSvcFee};
     });
     var total=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0);
     var _sid=(layoutData&&layoutData.Sid)||curBus.sid||'';
@@ -1520,8 +1524,9 @@ BUS_CAROUSEL_TEMPLATE = """
       busOperator:curBus.operatorName,busType:curBus.busType,routeId:curBus.routeId,
       engineId:curBus.engineId,operator_id:curBus.operatorId,
       DepTime:curBus.departureTime,arrivalDate:curBus.arrivalTime,
-      departureDate:curBus.journeyDate||null,Discount:0,CashBack:0,
-      serviceFee:seatsPayload.reduce(function(t,s){return t+(parseFloat(s.serviceFee)||0);},0),
+      departureDate:null,Discount:0,CashBack:0,
+      serviceFee:Math.round(seatsPayload.reduce(function(t,s){return t+(parseFloat(s.serviceFee)||0);},0)*100)/100,
+      seatid:seatsPayload.map(function(s){var tf=parseFloat(s.fare)||(parseFloat(s.baseFare||0)+parseFloat(s.serviceFee||0));return[s.seatNo,tf,s.seatType||'ST',s.seatNo,s.gender||'M',s.EncriSeat||'',s.bookingFee||0,'undefined'].join('@');}).join(','),
       STF:0,TDS:0,
       cpnCode:'',agentCode:'',agentType:'',agentMarkUp:0,agentACBalance:0,
       Sid:_sid,Vid:_vid,
@@ -2260,11 +2265,15 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
     if(!selSeats.length||!selBoarding||!selDropping){alert('Please complete all selections');return;}
     var seatsPayload=selSeats.map(function(s){
       var bF=parseFloat(s.baseFare||s.fare)||0,tF=parseFloat(s.fare)||bF;
-      var sF=parseFloat(s.serviceFee)||(tF-bF)||0;
+      var rawSvcFee=parseFloat(s.serviceFee)||0;
+      var rawSrtFee=parseFloat(s.srtfee)||0;
+      // Match real EMT: difference between fare and baseFare goes to srtfee if serviceFee is 0
+      var finalSrtFee=rawSrtFee||(rawSvcFee?0:Math.round((tF-bF)*100)/100);
+      var finalSvcFee=rawSvcFee?Math.round(rawSvcFee*100)/100:0;
       return{seatNo:s.name,seatType:s.seatType||'ST',fare:tF,seatId:s.id||s.name,
         actualfare:parseFloat(s.actualfare)||tF,gender:s.gender||'M',baseFare:bF,
         EncriSeat:s.encriSeat||'',bookingFee:s.bookingFee||0,concession:s.concession||0,
-        convenienceCharge:s.convenienceCharge||0,srtfee:s.srtfee||0,tollfee:s.tollfee||0,serviceFee:sF};
+        convenienceCharge:s.convenienceCharge||0,srtfee:finalSrtFee,tollfee:s.tollfee||0,serviceFee:finalSvcFee};
     });
     var total=selSeats.reduce(function(t,s){return t+(parseFloat(s.fare)||0);},0);
     var _sid=(layoutData&&layoutData.Sid)||bus.sid||'';
@@ -2282,7 +2291,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       busOperator:bus.operatorName,busType:bus.busType,routeId:bus.routeId,
       engineId:bus.engineId,operator_id:bus.operatorId,
       DepTime:bus.departureTime,arrivalDate:bus.arrivalTime,
-      departureDate:bus.journeyDate||null,Discount:0,CashBack:0,
+      departureDate:null,Discount:0,CashBack:0,
       serviceFee:seatsPayload.reduce(function(t,s){return t+(parseFloat(s.serviceFee)||0);},0),STF:0,TDS:0,
       cpnCode:'',agentCode:'',agentType:'',agentMarkUp:0,agentACBalance:0,
       Sid:_sid,Vid:_vid,
