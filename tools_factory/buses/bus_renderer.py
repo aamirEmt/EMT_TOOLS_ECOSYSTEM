@@ -1520,7 +1520,9 @@ BUS_CAROUSEL_TEMPLATE = """
       busOperator:curBus.operatorName,busType:curBus.busType,routeId:curBus.routeId,
       engineId:curBus.engineId,operator_id:curBus.operatorId,
       DepTime:curBus.departureTime,arrivalDate:curBus.arrivalTime,
-      departureDate:null,Discount:0,CashBack:0,serviceFee:0,STF:0,TDS:0,
+      departureDate:curBus.journeyDate||null,Discount:0,CashBack:0,
+      serviceFee:seatsPayload.reduce(function(t,s){return t+(parseFloat(s.serviceFee)||0);},0),
+      STF:0,TDS:0,
       cpnCode:'',agentCode:'',agentType:'',agentMarkUp:0,agentACBalance:0,
       Sid:_sid,Vid:_vid,
       TraceId:curBus.traceId||(layoutData&&layoutData.TraceID)||'',
@@ -1627,7 +1629,9 @@ BUS_CAROUSEL_TEMPLATE = """
       _addField('journeyDate',curBus.journeyDate||'');
       _addField('sourceId',curBus.sourceId||'');
       _addField('destinationId',curBus.destinationId||'');
-      _addField('confirmResponse',confirmResp||{});
+      var _hasRealConf=confirmResp&&typeof confirmResp==='object'&&Object.keys(confirmResp).length>0&&!confirmResp.error&&!confirmResp.rawBody;
+      var _confData=_hasRealConf?confirmResp:{BordingDate:payload.boardingPoint.time||'',DroppingDate:payload.DropingPoint.dpTime||'',availableTripId:payload.availableTripId,Sid:payload.Sid,Vid:payload.Vid,TraceId:payload.TraceId,TotalFare:payload.totalFare,noOfPassenger:seatsPayload.length,seatid:_seatId};
+      _addField('confirmResponse',_confData);
       if(window._busAccum){_addField('busBookingAccum',window._busAccum);}
       document.body.appendChild(form);form.submit();document.body.removeChild(form);
     })
@@ -2278,7 +2282,8 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       busOperator:bus.operatorName,busType:bus.busType,routeId:bus.routeId,
       engineId:bus.engineId,operator_id:bus.operatorId,
       DepTime:bus.departureTime,arrivalDate:bus.arrivalTime,
-      departureDate:null,Discount:0,CashBack:0,serviceFee:0,STF:0,TDS:0,
+      departureDate:bus.journeyDate||null,Discount:0,CashBack:0,
+      serviceFee:seatsPayload.reduce(function(t,s){return t+(parseFloat(s.serviceFee)||0);},0),STF:0,TDS:0,
       cpnCode:'',agentCode:'',agentType:'',agentMarkUp:0,agentACBalance:0,
       Sid:_sid,Vid:_vid,
       TraceId:bus.traceId||(layoutData&&layoutData.TraceID)||'',
@@ -2383,7 +2388,9 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       _addField('journeyDate',bus.journeyDate||'');
       _addField('sourceId',bus.sourceId||'');
       _addField('destinationId',bus.destinationId||'');
-      _addField('confirmResponse',confirmResp||{});
+      var _hasRealConf=confirmResp&&typeof confirmResp==='object'&&Object.keys(confirmResp).length>0&&!confirmResp.error&&!confirmResp.rawBody;
+      var _confData=_hasRealConf?confirmResp:{BordingDate:payload.boardingPoint.time||'',DroppingDate:payload.DropingPoint.dpTime||'',availableTripId:payload.availableTripId,Sid:payload.Sid,Vid:payload.Vid,TraceId:payload.TraceId,TotalFare:payload.totalFare,noOfPassenger:seatsPayload.length,seatid:_seatId};
+      _addField('confirmResponse',_confData);
       if(window._busAccum){_addField('busBookingAccum',window._busAccum);}
       document.body.appendChild(form);form.submit();document.body.removeChild(form);
     })

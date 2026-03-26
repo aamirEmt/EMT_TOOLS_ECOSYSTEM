@@ -127,16 +127,21 @@ class BusApiClient:
                     headers=headers,
                     timeout=aiohttp.ClientTimeout(total=30),
                 ) as response:
+                    import logging
+                    _cslog = logging.getLogger(__name__)
+                    raw_body = await response.text()
+                    _cslog.info(f"[CONFIRM SEATS] HTTP {response.status} raw body: {raw_body[:2000]}")
                     if response.status == 200:
-                        return await response.json(content_type=None)
+                        import json as _json
+                        try:
+                            parsed = _json.loads(raw_body)
+                            return parsed if parsed is not None else {}
+                        except Exception:
+                            return {"rawBody": raw_body}
                     else:
-                        error_body = await response.text()
-                        import logging
-                        logging.getLogger(__name__).error(
-                            f"[CONFIRM SEATS] HTTP {response.status} from EMT: {error_body[:1000]}"
-                        )
+                        _cslog.error(f"[CONFIRM SEATS] HTTP {response.status} from EMT: {raw_body[:1000]}")
                         return {
-                            "error": f"HTTP {response.status}: {error_body}"
+                            "error": f"HTTP {response.status}: {raw_body}"
                         }
         except Exception as e:
             return {"error": str(e)}
