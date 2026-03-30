@@ -1625,6 +1625,7 @@ BUS_CAROUSEL_TEMPLATE = """
       _addField('TraceId',payload.TraceId);
       _addField('totalFare',payload.totalFare);
       _addField('noOfPassenger',seatsPayload.length);
+      _addField('paxs',seatsPayload.map(function(_,i){return i+1;}));
       _addField('boardingPoint',payload.boardingPoint);
       _addField('DropingPoint',payload.DropingPoint);
       _addField('journeyDate',curBus.journeyDate||'');
@@ -2384,6 +2385,7 @@ BUS_SEAT_SELECT_PAGE = """<!DOCTYPE html>
       _addField('TraceId',payload.TraceId);
       _addField('totalFare',payload.totalFare);
       _addField('noOfPassenger',seatsPayload.length);
+      _addField('paxs',seatsPayload.map(function(_,i){return i+1;}));
       _addField('boardingPoint',payload.boardingPoint);
       _addField('DropingPoint',payload.DropingPoint);
       _addField('journeyDate',bus.journeyDate||'');
