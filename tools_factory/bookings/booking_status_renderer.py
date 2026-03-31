@@ -92,7 +92,7 @@ BOOKING_STATUS_TEMPLATE = """
   </div>
   <div class="bsc-body">
     <div class="bsc-row">
-      <span class="bsc-label">Product Type</span>
+      <span class="bsc-label">Booking Type</span>
       <span class="bsc-value">{{ product_type }}</span>
     </div>
     <div class="bsc-row">
