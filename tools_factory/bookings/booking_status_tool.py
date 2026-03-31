@@ -17,7 +17,7 @@ class GetBookingStatusTool(BaseTool):
 
     def get_metadata(self) -> ToolMetadata:
         return ToolMetadata(
-            name="get_booking_status",
+            name="get_booking_status_by_booking_id",
             description=(
                 "Check the status of a booking using a booking/transaction ID and the email "
                 "address associated with the booking. Use this when the user asks about the "
