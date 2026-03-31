@@ -486,6 +486,16 @@ BUS_DECRYPTION_KEY = _get_config_value(
 )
 
 # ============================================================================
+# 📋 BOOKING STATUS API CONFIGURATION
+# ============================================================================
+
+BOOKING_STATUS_URL = _get_config_value(
+    'BOOKING_STATUS_URL',
+    'BOOKING_STATUS_URL',
+    default='https://emtservice.easemytrip.com/v1/emtapp.svc/GetBookingDetailsV2'
+)
+
+# ============================================================================
 # 📦 EXPORT ALL CONFIGURATIONS
 # ============================================================================
 
@@ -512,6 +522,9 @@ __all__ = [
     # Flight Endpoints
     "FLIGHT_AMENITIES_URL",
     "FLIGHT_ATK_TOKEN",
+
+    # Booking Status
+    "BOOKING_STATUS_URL",
 
     # Bus Configuration
     "BUS_SEARCH_URL",

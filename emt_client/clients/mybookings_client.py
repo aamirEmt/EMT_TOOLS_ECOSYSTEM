@@ -4,7 +4,7 @@ from typing import Dict, Any
 import logging
 import json
 
-from emt_client.config import MYBOOKINGS_BASE_URL
+from emt_client.config import MYBOOKINGS_BASE_URL, BOOKING_STATUS_URL
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +37,18 @@ class MyBookingsApiClient:
             headers=self.headers,
             follow_redirects=True,
         )
+
+    async def fetch_booking_status(self, booking_id: str, email: str) -> Dict[str, Any]:
+        """Fetch booking status via GetBookingDetailsV2 API."""
+        payload = {
+            "EmailId": email,
+            "Authentication": {
+                "UserName": "chatbot",
+                "Password": "@sdas$chatbot@12$1",
+            },
+            "TransctionScreenId": booking_id,
+        }
+        return await self._post_flight(BOOKING_STATUS_URL, payload, email)
 
     async def guest_login(self, booking_id: str, email: str) -> Dict[str, Any]:
         """Step 1: POST /Mybooking/LoginGuestUser?app=null"""
