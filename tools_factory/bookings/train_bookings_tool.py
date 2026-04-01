@@ -127,13 +127,12 @@ class GetTrainBookingsTool(BaseTool):
 
             # Filter raw_response for renderer if status filter is applied
             if payload.status and raw_response:
+                # In TrainDetails API, cancelled bookings are stored under "Refunded" key
+                train_status_key = "Refunded" if payload.status == "Cancelled" else payload.status
                 train_details = raw_response.get("TrainDetails") or {}
-                journey_details = train_details.get("trainJourneyDetails") or []
-                filtered_journeys = [t for t in journey_details if t.get("TripStatus", "").lower() == payload.status.lower()]
-                train_details = dict(train_details)
-                train_details["trainJourneyDetails"] = filtered_journeys
+                filtered_details = {k: v for k, v in train_details.items() if k.lower() == train_status_key.lower()}
                 raw_response = dict(raw_response)
-                raw_response["TrainDetails"] = train_details
+                raw_response["TrainDetails"] = filtered_details
 
             # Render HTML for website
             html_content = None
