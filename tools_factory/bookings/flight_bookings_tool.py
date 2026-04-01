@@ -2,6 +2,7 @@
 from typing import Dict, Any
 import logging
 
+from pydantic import ValidationError
 from ..base import BaseTool, ToolMetadata
 from .flight_bookings_service import FlightBookingsService, build_whatsapp_flight_bookings_response
 from .flight_bookings_renderer import render_flight_bookings
@@ -44,6 +45,15 @@ class GetFlightBookingsTool(BaseTool):
             render_html = user_type.lower() == "website"
             is_whatsapp = user_type.lower() == "whatsapp"
 
+            try:
+                payload = GetBookingsInput.model_validate(kwargs)
+            except ValidationError as exc:
+                return ToolResponseFormat(
+                    response_text="Invalid booking input",
+                    structured_content={"error": "VALIDATION_ERROR", "details": exc.errors()},
+                    is_error=True,
+                )
+
             # Validate session_id is provided
             if not session_id:
                 return ToolResponseFormat(
@@ -74,6 +84,10 @@ class GetFlightBookingsTool(BaseTool):
 
             bookings = result.get("bookings", [])
             user_account = token_provider.get_email() or token_provider.get_phone() or result.get("uid")
+
+            # Filter by status if provided
+            if payload.status:
+                bookings = [b for b in bookings if b.get("status", "").lower() == payload.status.lower()]
 
             if not bookings:
                 return ToolResponseFormat(
@@ -109,6 +123,13 @@ class GetFlightBookingsTool(BaseTool):
             )
             
             raw_response = result.get("raw_response", {})
+
+            # Filter raw_response for renderer if status filter is applied
+            if payload.status and raw_response:
+                flight_details = raw_response.get("FlightDetails") or {}
+                filtered_details = {k: v for k, v in flight_details.items() if k.lower() == payload.status.lower()}
+                raw_response = dict(raw_response)
+                raw_response["FlightDetails"] = filtered_details
 
             # Render HTML for website
             html_content = None
