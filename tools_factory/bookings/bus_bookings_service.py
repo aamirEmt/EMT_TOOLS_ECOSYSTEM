@@ -82,7 +82,7 @@ class BusBookingsService:
 
                 results.append({
                     "type": "Bus",
-                    "status": b.get("Status") or status_key,
+                    "status": status_key,
                     "booking_id": b.get("BookingRefNo"),
                     "route": b.get("TripDetails") or d.get("Route"),
                     "journey_date": b.get("JourneyDate") or b.get("DateOfJourney"),

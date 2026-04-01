@@ -75,7 +75,7 @@ class FlightBookingsService:
 
                 results.append({
                     "type": "Flight",
-                    "status": f.get("TripStatus") or status_key,
+                    "status": status_key,
                     "booking_id": f.get("BookingRefNo"),
                     "source": f.get("SourceFullCityName") or ui.get("DepartureCity"),
                     "destination": f.get("DestinationFullCityName") or ui.get("ArrivalCity"),
