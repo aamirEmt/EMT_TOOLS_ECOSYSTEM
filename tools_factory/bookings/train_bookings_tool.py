@@ -86,8 +86,10 @@ class GetTrainBookingsTool(BaseTool):
             user_account = token_provider.get_email() or token_provider.get_phone() or result.get("uid")
 
             # Filter by status if provided
+            # In TrainDetails API, cancelled bookings are stored under "Refunded" key
             if payload.status:
-                bookings = [b for b in bookings if b.get("status", "").lower() == payload.status.lower()]
+                train_status_match = "Refunded" if payload.status == "Cancelled" else payload.status
+                bookings = [b for b in bookings if b.get("status", "").lower() == train_status_match.lower()]
 
             if not bookings:
                 return ToolResponseFormat(
