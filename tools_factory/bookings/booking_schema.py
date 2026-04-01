@@ -7,7 +7,7 @@ class GetBookingsInput(BaseModel):
     """Schema for get bookings"""
     status: Optional[str] = Field(
         None,
-        description="Filter bookings by status. Options: Upcoming, Completed, Cancelled. If not provided, all bookings are returned.",
+        description="Filter bookings by status. MUST be one of: 'Upcoming', 'Completed', 'Cancelled'. Any other value is invalid. If not provided, all bookings are returned.",
     )
 
     @field_validator("status")
