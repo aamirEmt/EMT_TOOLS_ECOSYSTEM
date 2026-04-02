@@ -49,7 +49,10 @@ TRAIN_CAROUSEL_TEMPLATE = """
 }
 
 .train-carousel .trnttl {
-  width: 90%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   font-size: 18px;
   font-weight: 600;
   color: #202020;
@@ -479,7 +482,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 }
 
 .train-carousel .view-all-link {
-  margin-left: 12px;
+  flex-shrink: 0;
   padding: 6px 14px;
   background: #f5f5f5;
   border: 1px solid #e0e0e0;
@@ -648,7 +651,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
   <main>
     <div class="trnhd">
       <div class="trnttl">
-        {{ title }}
+        <span>{{ title }}</span>
         {% if view_all_link %}
         <a href="{{ view_all_link }}" target="_blank" rel="noopener noreferrer" class="view-all-link">View All</a>
         {% endif %}
