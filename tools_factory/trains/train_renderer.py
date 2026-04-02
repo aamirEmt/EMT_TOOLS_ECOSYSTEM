@@ -34,6 +34,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
 
 .train-carousel * {
   font-family: inherit;
+  font-size: 16px;
   box-sizing: border-box;
   margin: 0;
 }
