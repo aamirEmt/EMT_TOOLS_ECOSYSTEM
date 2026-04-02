@@ -10,7 +10,7 @@ BOOKING_STATUS_TEMPLATE = """
 <style>
 .booking-status-card {
   font-family: Poppins, sans-serif;
-  max-width: 480px;
+  width: 360px;
   margin: 0 auto;
   background: #ffffff;
   border-radius: 12px;
