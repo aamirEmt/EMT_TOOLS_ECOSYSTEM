@@ -60,25 +60,18 @@ REFUND_STATUS_TEMPLATE = """
   padding-bottom: 0;
 }
 
+.rsc-label {
+  font-size: 12px;
+  color: #888888;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
 .rsc-value {
   font-size: 14px;
   font-weight: 600;
   color: #202020;
-}
-
-.rsc-value-refunded {
-  display: inline-block;
-  font-size: 14px;
-  font-weight: 600;
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.rsc-value-unavailable {
-  font-size: 14px;
-  font-weight: 600;
-  background: #fff3e0;
-  color: #e65100;
 }
 
 .rsc-badge-refunded {
@@ -116,21 +109,20 @@ REFUND_STATUS_TEMPLATE = """
   </div>
   <div class="rsc-body">
     <div class="rsc-row">
+      <span class="rsc-label">Booking Type</span>
       <span class="rsc-value">{{ product_type }}</span>
     </div>
     <div class="rsc-row">
-      {% if is_refunded %}
-        <span class="rsc-value-refunded">{{ trip_status }}</span>
-      {% else %}
-        <span class="rsc-value-unavailable">{{ trip_status }}</span>
-      {% endif %}
+      <span class="rsc-label">Current Status</span>
+      <span class="rsc-value">{{ trip_status }}</span>
     </div>
     <div class="rsc-row" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+      <span class="rsc-label">Refund Status</span>
       {% if is_refunded %}
         <span class="rsc-badge-refunded">{{ refund_status }}</span>
       {% else %}
         <span class="rsc-badge-unavailable">{{ refund_status }}</span>
-        <p class="rsc-refund-note">Your booking is currently <strong>{{ trip_status }}</strong>. No refund status is available for this booking.</p>
+        <p class="rsc-refund-note">Your booking is currently <strong>{{ trip_status }}</strong>. Refund Status is now available.</p>
       {% endif %}
     </div>
   </div>
