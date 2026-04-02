@@ -10,7 +10,7 @@ REFUND_STATUS_TEMPLATE = """
 <style>
 .refund-status-card {
   font-family: Poppins, sans-serif;
-  max-width: 480px;
+  width: 360px;
   margin: 0 auto;
   background: #ffffff;
   border-radius: 12px;
@@ -120,11 +120,11 @@ REFUND_STATUS_TEMPLATE = """
         <span class="rsc-badge-unavailable">{{ trip_status }}</span>
       {% endif %}
     </div>
-    <div class="rsc-row" style="flex-direction: column; align-items: flex-start; gap: 6px;">
-      {% if not is_refunded %}
-        <p class="rsc-refund-note">Your booking is currently <strong>{{ trip_status }}</strong>. No refund status is available for this booking.</p>
-      {% endif %}
-    </div>
+    {% if not is_refunded %}
+      <div class="rsc-row" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+          <p class="rsc-refund-note">Your booking is currently <strong>{{ trip_status }}</strong>. No refund status is available for this booking.</p>
+      </div>
+    {% endif %}
   </div>
 </div>
 """
