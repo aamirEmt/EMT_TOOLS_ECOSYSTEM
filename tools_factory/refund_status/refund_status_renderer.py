@@ -114,15 +114,15 @@ REFUND_STATUS_TEMPLATE = """
     </div>
     <div class="rsc-row">
       <span class="rsc-label">Current Status</span>
-      <span class="rsc-value">{{ trip_status }}</span>
+      {% if is_refunded %}
+        <span class="rsc-badge-refunded">{{ trip_status }}</span>
+      {% else %}
+        <span class="rsc-badge-unavailable">{{ trip_status }}</span>
+      {% endif %}
     </div>
     <div class="rsc-row" style="flex-direction: column; align-items: flex-start; gap: 6px;">
-      <span class="rsc-label">Refund Status</span>
-      {% if is_refunded %}
-        <span class="rsc-badge-refunded">{{ refund_status }}</span>
-      {% else %}
-        <span class="rsc-badge-unavailable">{{ refund_status }}</span>
-        <p class="rsc-refund-note">Your booking is currently <strong>{{ trip_status }}</strong>. Refund Status is now available.</p>
+      {% if not is_refunded %}
+        <p class="rsc-refund-note">Your booking is currently <strong>{{ trip_status }}</strong>. No refund status is available for this booking.</p>
       {% endif %}
     </div>
   </div>
