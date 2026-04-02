@@ -3,6 +3,7 @@ from typing import Dict, Any
 import json
 import logging
 
+from pydantic import ValidationError
 from ..base import BaseTool, ToolMetadata
 from .bus_bookings_service import BusBookingsService, build_whatsapp_bus_bookings_response
 from .bus_bookings_renderer import render_bus_bookings
@@ -47,6 +48,15 @@ class GetBusBookingsTool(BaseTool):
             render_html = user_type.lower() == "website"
             is_whatsapp = user_type.lower() == "whatsapp"
             token = kwargs.pop("_token", None)
+
+            try:
+                payload = GetBookingsInput.model_validate(kwargs)
+            except ValidationError as exc:
+                return ToolResponseFormat(
+                    response_text="Invalid booking input",
+                    structured_content={"error": "VALIDATION_ERROR", "details": exc.errors()},
+                    is_error=True,
+                )
 
             if token:
                 # Token-based auth: decrypt and reconstruct LoginTokenProvider
@@ -99,6 +109,10 @@ class GetBusBookingsTool(BaseTool):
             bookings = result.get("bookings", [])
             user_account = token_provider.get_email() or token_provider.get_phone() or result.get("uid")
 
+            # Filter by status if provided
+            if payload.status:
+                bookings = [b for b in bookings if b.get("status", "").lower() == payload.status.lower()]
+
             if not bookings:
                 return ToolResponseFormat(
                     response_text=f"No bus bookings found for account {user_account}.",
@@ -144,6 +158,13 @@ class GetBusBookingsTool(BaseTool):
             )
             
             raw_response = result.get("raw_response", {})
+
+            # Filter raw_response for renderer if status filter is applied
+            if payload.status and raw_response:
+                bus_details = raw_response.get("BusDetails") or {}
+                filtered_details = {k: v for k, v in bus_details.items() if k.lower() == payload.status.lower()}
+                raw_response = dict(raw_response)
+                raw_response["BusDetails"] = filtered_details
 
             # Render HTML for website
             html_content = None
