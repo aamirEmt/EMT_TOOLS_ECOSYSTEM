@@ -53,7 +53,7 @@ TRAIN_CAROUSEL_TEMPLATE = """
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #202020;
 }
