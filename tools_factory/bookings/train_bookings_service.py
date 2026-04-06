@@ -67,20 +67,21 @@ class TrainBookingsService:
             return results
         
         train = data.get("TrainDetails") or {}
-        for t in train.get("trainJourneyDetails") or []:
-            results.append({
-                "type": "Train",
-                "status": t.get("TripStatus"),
-                "booking_id": t.get("BookingRefNo"),
-                "pnr": t.get("_bookingId"),          # PNR comes from _bookingId
-                "source": t.get("FromStn"),
-                "destination": t.get("ToStn"),
-                "class": t.get("Class"),          
-                "quota": t.get("Quota"), 
-                "travel_date": t.get("TravelDate"),  
-                "departure": t.get("DepartureTime"),
-                "arrival": t.get("ArrivalTime"),
-            })
+        for status_key in ["Upcoming", "Completed", "Refunded", "PartiallyRefunded", "Pending", "CancelRequested", "Rejected"]:
+            for t in train.get(status_key) or []:
+                results.append({
+                    "type": "Train",
+                    "status": status_key,
+                    "booking_id": t.get("BookingRefNo"),
+                    "pnr": t.get("_bookingId"),
+                    "source": t.get("FromStn"),
+                    "destination": t.get("ToStn"),
+                    "class": t.get("Class"),
+                    "quota": t.get("Quota"),
+                    "travel_date": t.get("TravelDate"),
+                    "departure": t.get("DepartureTime"),
+                    "arrival": t.get("ArrivalTime"),
+                })
         return results
 
 
